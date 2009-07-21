@@ -12,14 +12,7 @@ phold_init(phold_state * s, tw_lp * lp)
 	int              i;
 
 	if(g_tw_rng_default == TW_FALSE)
-	{
-		//tw_error(TW_LOC, "No RNGs!");
 		tw_rand_init_streams(lp, 1);
-/*
-		lp->rng = tw_calloc(TW_LOC, "LP RNG", sizeof(tw_rng_stream), 1);
-		tw_rand_initial_seed(lp->pe->rng, lp->rng, lp->gid);
-*/
-	}
 
 	for (i = 0; i < g_phold_start_events; i++)
 	{
@@ -104,7 +97,6 @@ main(int argc, char **argv, char **env)
 
 	offset_lpid = g_tw_mynode * nlp_per_pe;
 	ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
-	g_tw_memory_nqueues = 1;
 	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
 				optimistic_memory;
 	g_tw_rng_default = TW_FALSE;
@@ -114,8 +106,6 @@ main(int argc, char **argv, char **env)
 	// use g_tw_nlp now
 	for(i = 0; i < g_tw_nlp; i++)
 		tw_lp_settype(i, &mylps[0]);
-
-	tw_kp_memory_init(g_tw_kp, 1000, 100, 1);
 
 	tw_run();
 
