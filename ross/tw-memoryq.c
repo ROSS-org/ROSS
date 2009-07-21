@@ -88,18 +88,6 @@ tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 	tw_memoryq_debug(q);
 #endif
 
-	tw_memory *p = h;
-
-	while(p)
-	{
-#if 0
-		printf("%d: freed mb %ld with ts %lf\n", g_tw_mynode, 
-			(long int) p, p->ts);
-#endif
-
-		p = p->next;
-	}
-
 	t->next = q->head;
 	h->prev = NULL;
 
@@ -258,57 +246,3 @@ tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 	tw_memoryq_debug(q);
 #endif
 }
-
-void
-tw_memoryq_fossil_collect(tw_memoryq * q, tw_lp * lp, tw_fd fd)
-{
-	tw_memoryq	*free_q = tw_kp_getqueue(lp->kp, fd);
-
-	tw_stime gvt = lp->pe->GVT;
-
-	tw_memory *h = q->head;
-	tw_memory *t = q->tail;
-
-	int	 cnt;
-
-	/* Nothing to collect from this event list? */
-	if (!t || t->ts >= gvt)
-		return;
-
-	if (h->ts < gvt)
-	{
-		/* Everything in the queue can be collected */
-		tw_memoryq_push_list(free_q, h, t, q->size);
-		q->head = q->tail = NULL;
-		q->size = 0;
-	} else {
-		/* Only some of the list can be collected.  We'll wind up
-		 * with at least one event being collected and at least
-		 * another event staying behind in the eventq structure so
-		 * we can really optimize this list splicing operation for
-		 * these conditions.
-		 */
-		tw_memory *n;
-
-		/* Search the leading part of the list... */
-		for (h = t->prev, cnt = 1; h && h->ts < gvt; cnt++)
-			h = h->prev;
-
-		/* t isn't eligible for collection; its the new head */
-		n = h;
-
-		/* Back up one cell, we overshot where to cut the list */
-		h = h->next;
-
-		/* Cut h..t out of the event queue */
-		q->tail = n;
-		n->next = NULL;
-		q->size -= cnt;
-
-		/* Free h..t (inclusive) */
-		tw_memoryq_push_list(free_q, h, t, cnt);
-		//t->next = pe->free_q->head;
-		//pe->free_q = h;
-	}
-}
-

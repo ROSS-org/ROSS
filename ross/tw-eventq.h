@@ -1,7 +1,7 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
-//#define ROSS_DEBUG 0
+#define ROSS_DEBUG 0
 
 #include <ross.h>
 

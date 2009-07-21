@@ -101,7 +101,7 @@ print_options(FILE * f)
 }
 #endif
 
-void
+static void
 show_options(void)
 {
 	const char *s = ross_options;

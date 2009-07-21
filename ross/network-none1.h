@@ -49,9 +49,14 @@
 #ifndef INC_network_none1_h
 #define INC_network_none1_h
 
-typedef unsigned int tw_eventid;
+typedef tw_lpid tw_eventid;
 typedef uint32_t tw_node;
 
 extern tw_node mynode;
+
+FWD(struct, tw_net_eventhdr);
+DEF(struct, tw_net_eventhdr)
+{
+};
 
 #endif

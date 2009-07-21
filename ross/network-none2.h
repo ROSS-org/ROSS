@@ -73,10 +73,4 @@ tw_net_onnode(tw_peid gid)
 	return &mynode;
 }
 
-INLINE(int)
-tw_gvt_inprogress(tw_pe * pe)
-{
-	return 0;
-}
-
 #endif

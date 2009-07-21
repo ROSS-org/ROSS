@@ -53,19 +53,16 @@ struct act_q
 {
 	const char *name;
 
-	tw_event	**event_list;
-	char		**buffers;
-	MPI_Request	 *req_list;
-	int		 *idx_list;
-	MPI_Status	 *status_list;
+	tw_event **event_list;
+	MPI_Request *req_list;
+	int *idx_list;
+	MPI_Status *status_list;
 
-	unsigned int	  cur;
+	unsigned int cur;
 };
 
-#define BUFFER_SIZE 2000
 #define EVENT_TAG 1
-//#define EVENT_SIZE(e) g_tw_event_msg_sz
-#define EVENT_SIZE(e) BUFFER_SIZE
+#define EVENT_SIZE(e) g_tw_event_msg_sz
 #define STATS_TAG 2
 
 static struct act_q posted_sends;
@@ -115,8 +112,7 @@ tw_net_init(int *argc, char ***argv)
 static void
 init_q(struct act_q *q, const char *name)
 {
-	unsigned int	i;
-	unsigned int	n;
+	unsigned int n;
 
 	if(q == &posted_sends)
 		n = send_buffer;
@@ -128,10 +124,6 @@ init_q(struct act_q *q, const char *name)
 	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
 	q->idx_list = tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
-	q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
-
-	for(i = 0; i < n; i++)
-		q->buffers[i] = tw_calloc(TW_LOC, "", BUFFER_SIZE, 1);
 }
 
 unsigned int
@@ -143,6 +135,8 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
+	//tw_peid pi;
+
 	if (MPI_Comm_size(MPI_COMM_WORLD, &world_size) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_WORLD)");
 
@@ -150,6 +144,16 @@ tw_net_start(void)
 	tw_pe_create(1);
 	tw_pe_init(0, g_tw_mynode);
 	g_tw_pe[0]->hash_t = tw_hash_create();
+
+#if 0
+	for (pi = 0; pi < g_tw_npe; pi++) {
+		if (pi != g_tw_mynode)
+		{
+			int r = pi;
+			tw_pe_init(pi, r);
+		}
+	}
+#endif
 
 	if (send_buffer < 1)
 		tw_error(TW_LOC, "network send buffer must be >= 1");
@@ -210,10 +214,9 @@ static int
 test_q(
 	struct act_q *q,
 	tw_pe *me,
-	void (*finish)(tw_pe *, tw_event *, char *))
+	void (*finish)(tw_pe *, tw_event *))
 {
 	int ready, i, n;
-	char *tmp;
 
 	if (!q->cur)
 		return 0;
@@ -242,25 +245,14 @@ test_q(
 		e = q->event_list[n];
 		q->event_list[n] = NULL;
 
-		finish(me, e, q->buffers[n]);
+		finish(me, e);
 	}
 
 	/* Collapse the lists to remove any holes we left. */
-	for (i = 0, n = 0; i < q->cur; i++)
-	{
-		if (q->event_list[i])
-		{
-			if (i != n)
-			{
-				// shift the event pointers
+	for (i = 0, n = 0; i < q->cur; i++) {
+		if (q->event_list[i]) {
+			if (i != n) {
 				q->event_list[n] = q->event_list[i];
-
-				// swap the byte arrays
-				tmp = q->buffers[n];
-				q->buffers[n] = q->buffers[i];
-				q->buffers[i] = tmp;
-
-				// copy the request handles
 				memcpy(
 					&q->req_list[n],
 					&q->req_list[i],
@@ -309,9 +301,8 @@ recv_begin(tw_pe *me)
 		}
 
 #if 1
-			//MPI_Irecv(e,
 		if(!flag || 
-			MPI_Irecv(posted_recvs.buffers[id],
+			MPI_Irecv(e,
 				EVENT_SIZE(e),
 				MPI_BYTE,
 				MPI_ANY_SOURCE,
@@ -344,27 +335,17 @@ recv_begin(tw_pe *me)
 }
 
 static void
-recv_finish(tw_pe *me, tw_event *e, char * buffer)
+recv_finish(tw_pe *me, tw_event *e)
 {
-	tw_pe		*dest_pe;
-	tw_fd		 fd;
-
-	tw_memory	*last = NULL;
-
-	size_t		 m_sz;
-	int		 position = 0;
-
-	void		*tmp_memory_data;
+	tw_pe	*dest_pe;
 
 	me->s_nrecv_network++;
 
 	if(1 == e->color)
 		me->s_nwhite_recv++;
 
-	// unpack event, membufs, and fix pointers to memory buffers
-	MPI_Unpack(buffer, BUFFER_SIZE, &position, e, g_tw_event_msg_sz, MPI_BYTE, MPI_COMM_WORLD);
-
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+
 	dest_pe = e->dest_lp->pe;
 
 	if(e->send_pe > tw_nnodes()-1)
@@ -374,38 +355,11 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	e->caused_by_me = NULL;
 	e->cause_next = NULL;
 
-	fd = (tw_fd) e->prev;
-	m_sz = (size_t) e->memory;
-
-	while(m_sz)
-	{
-		tw_memory * b = tw_memory_alloc(e->dest_lp, fd);
-		tmp_memory_data = b->data;
-
-		if(last)
-			last->next = b;
-		else
-			e->memory = b;
-
-		MPI_Unpack(buffer, BUFFER_SIZE, &position, b, m_sz, MPI_BYTE, MPI_COMM_WORLD);
-
-		b->data = tmp_memory_data;
-		b->prev = (tw_memory *) fd;
-
-		m_sz = (size_t) b->next;
-		fd = (tw_fd) b->prev;
-		last = b;
-	}
-
 	if(e->recv_ts < me->GVT)
 		tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d, %d)", me->id,  e->send_pe, e->recv_ts, e->state.cancel_q, e->color);
 
 	if(tw_gvt_inprogress(me))
 		me->trans_msg_ts = min(me->trans_msg_ts, e->recv_ts);
-
-#if 0
-	printf("%lld: read event from %d at %.8lf (%d, %d, %d)\n", e->dest_lp->gid, e->send_pe, e->recv_ts, e->event_id, e->state.cancel_q, e->order);
-#endif
 
 	// if cancel event, retrieve and flush
 	// else, store in hash table
@@ -475,25 +429,14 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 static int
 send_begin(tw_pe *me)
 {
-	//void		*tmp_prev;
-	char		*buffer;
-
-	tw_kp		*kp;
-
-	tw_memory	*memory;
-	tw_memory	*m;
-
-	size_t		 m_sz;
-
-	int	 changed = 0;
+	int changed = 0;
 
 	while (posted_sends.cur < send_buffer)
 	{
-		unsigned int	 id = posted_sends.cur;
-		int		 position = 0;
+		unsigned id = posted_sends.cur;
+		tw_event *e = tw_eventq_peek(&outq);
 
-		tw_event	*e = tw_eventq_peek_head(&outq);
-		tw_node		*dest_node;
+		tw_node	*dest_node;
 
 		if (!e)
 			break;
@@ -505,16 +448,7 @@ send_begin(tw_pe *me)
 					((tw_lpid) e->dest_lp));
 
 		if(!e->state.cancel_q)
-		{
 			e->event_id = (tw_eventid) ++me->seq_num;
-			e->order = 1;
-		} else
-			e->order = 2;
-
-#if 0
-		printf("%lld: send event to %lld at %.8lf (%d, %d, %d)\n", 
-			e->src_lp->gid, (tw_lpid) e->dest_lp, e->recv_ts, e->event_id, e->state.cancel_q, e->order);
-#endif
 
 		e->send_pe = (tw_peid) g_tw_mynode;
 
@@ -526,71 +460,14 @@ send_begin(tw_pe *me)
 		} else
 			e->color = 0;
 
-		if(0 == e->state.cancel_q)
-		{
-			m_sz = 0;
-			memory = NULL;
-			if(e->memory)
-			{
-				kp = e->src_lp->kp;
-				memory = e->memory;
-				//tmp_prev = e->prev;
-
-				m_sz = tw_memory_getsize(kp, (tw_fd) memory->prev);
-				e->memory = (tw_memory *) m_sz;
-				e->prev = (tw_event *) memory->prev;
-			}
-		}
-
-		// pack event into char array
-		position = 0;
-		buffer = posted_sends.buffers[id];
-		MPI_Pack(e, g_tw_event_msg_sz, MPI_BYTE, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-		//e->memory = memory;
-		//e->prev = tmp_prev;
-
-		if(0 == e->state.cancel_q)
-		{
-			m = NULL;
-			while(memory)
-			{
-				m = memory->next;
-				//tmp_prev = memory->prev;
-
-				if(m)
-				{
-					memory->next = (tw_memory *)
-						tw_memory_getsize(kp, (tw_fd) m->prev);
-					memory->prev = (tw_memory *) m->prev;
-				}
-	
-				if(position+m_sz > BUFFER_SIZE)
-					tw_error(TW_LOC, "Buffer size exceeded: %d", 
-						 position+m_sz);
-	
-				MPI_Pack(memory, m_sz, MPI_BYTE, buffer, BUFFER_SIZE, &position, MPI_COMM_WORLD);
-
-				//memory->next = m;
-				//memory->prev = tmp_prev;
-
-				//tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
-				memory = m;
-	
-				if(memory)
-					m_sz = tw_memory_getsize(kp, (tw_fd) memory->prev);
-			}
-		}
 #if 1
-		//if (MPI_Isend(e,
-		if (MPI_Isend(buffer,
+		if (MPI_Isend(e,
 			EVENT_SIZE(e),
 			MPI_BYTE,
 			*dest_node,
 			EVENT_TAG,
 			MPI_COMM_WORLD,
 			&posted_sends.req_list[id]) != MPI_SUCCESS) {
-			tw_error(TW_LOC, "MPI_Isend failed.");
 			return changed;
 		}
 #else
@@ -607,7 +484,7 @@ send_begin(tw_pe *me)
 		if(e->color)
 			me->s_nwhite_sent++;
 
-		tw_eventq_shift(&outq);
+		tw_eventq_pop(&outq);
 		e->state.owner = e->state.cancel_q
 			? TW_net_acancel
 			: TW_net_asend;
@@ -621,7 +498,7 @@ send_begin(tw_pe *me)
 }
 
 static void
-send_finish(tw_pe *me, tw_event *e, char * buffer)
+send_finish(tw_pe *me, tw_event *e)
 {
 	me->s_nsend_network++;
 
@@ -633,8 +510,7 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 			 */
 			e->state.cancel_asend = 0;
 			e->state.cancel_q = 1;
-			//tw_eventq_unshift(&outq, e);
-			tw_eventq_push(&outq, e);
+			tw_eventq_unshift(&outq, e);
 		} else {
 			/* Event finished transmission and was not cancelled.
 			 * Add to our sent event queue so we can retain the
@@ -698,8 +574,7 @@ tw_net_send(tw_event *e)
 
 	e->state.remote_fmt = 0;
 	e->state.owner = TW_net_outq;
-	//tw_eventq_unshift(&outq, e);
-	tw_eventq_push(&outq, e);
+	tw_eventq_unshift(&outq, e);
 
 #if ROSS_NET_aggressive
 	service_queues(me);
@@ -744,9 +619,6 @@ tw_net_cancel(tw_event *e)
 		 * another message send once the current send of
 		 * this message is completed.
 		 */
-#if 0
-	printf("%lld: cancel event during send at %.8lf (%d, %d)\n", e->src_lp->gid, e->recv_ts, e->event_id, e->state.cancel_q);
-#endif
 		e->state.cancel_asend = 1;
 		break;
 
@@ -756,12 +628,7 @@ tw_net_cancel(tw_event *e)
 		 * place it at the front of the outq.
 		 */
 		e->state.cancel_q = 1;
-#if 0
-	printf("%lld: cancel event at %.8lf (%d, %d)\n", e->src_lp->gid, e->recv_ts, e->event_id, e->state.cancel_q);
-#endif
-		//tw_eventq_unshift(&outq, e);
-		
-		tw_eventq_push(&outq, e);
+		tw_eventq_unshift(&outq, e);
 		break;
 
 	default:

@@ -48,6 +48,7 @@
 
 #include <ross.h>
 
+#if 0
 inline tw_kp *
 tw_kp_next_onpe(tw_kp * last, tw_pe * pe)
 {
@@ -57,6 +58,7 @@ tw_kp_next_onpe(tw_kp * last, tw_pe * pe)
 		return NULL;
 	return last->next;
 }
+#endif
 
 inline void
 tw_kp_onpe(tw_kp * kp, tw_pe * pe)
@@ -153,10 +155,12 @@ tw_init_kps(tw_pe * me)
 		if (kp->pe != me)
 			continue;
 
+#if 0
 		if (prev_kp)
 			prev_kp->next = kp;
 		else
 			me->kp_list = kp;
+#endif
 
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;
@@ -183,6 +187,7 @@ tw_kp_next_free_q(tw_kp * kp)
 tw_fd
 tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
 {
+#
 	tw_memoryq	*q;
 
 	int             fd;
@@ -191,10 +196,11 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
 
 	q = tw_kp_getqueue(kp, fd);
 
-	q->size = 0;
+	q->start_size = n_mem;
+	q->d_size = d_sz;
 	q->grow = mult;
 
-	tw_memory_allocate(q, d_sz, n_mem);
+	tw_memory_allocate(q, sizeof(tw_memory), q->start_size);
 
 	kp->s_mem_buffers_used = 0;
 

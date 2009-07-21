@@ -34,8 +34,10 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 	{
 #if 0
 		kp->s_mem_buffers_used += 
-			tw_memory_allocate(q, q->d_size, q->start_size);
+			tw_memory_allocate(q, sizeof(tw_memory), fd);
+#endif
 
+#if 0
 		printf("Allocating %ld bytes in memory fd: %lld \n", 
 			((sizeof(tw_memory) + q->d_size) * q->start_size * q->grow), 
 			fd);
@@ -46,6 +48,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 		tw_error(TW_LOC, "No memory buffers to allocate!");
 
 	rv->next = rv->prev = NULL;
+	rv->lp_next = NULL;
 
 	//printf("%ld: mem alloc, remain: %d, fd %ld \n", lp->id, q->size, fd);
 
@@ -75,7 +78,7 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	kp = lp->kp;
 
 	/* If seq sim, just reclaim buffer now. */
-	if((tw_nnodes() * g_tw_npe) == 1)
+	if(g_tw_npe == 1)
 		q = tw_kp_getqueue(kp, fd);
 	else
 		q = tw_kp_getqueue(kp, fd + 1);
@@ -139,29 +142,34 @@ tw_memory_getsize(tw_kp * kp, int fd)
 }
 
 size_t
-tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t n_mem)
+tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t cnt)
 {
 	tw_memory	*head;
 	tw_memory	*tail;
 
-	void           *d;
+	char           *d;
 	size_t		mem_sz;
 	size_t		mem_len;
-	size_t		cnt;
 
-	q->d_size = buf_size;
+/*
+	size_t          multiple;
+	size_t		mod;
+*/
 
-	if(!q->start_size)
-		q->start_size = n_mem;
+        mem_len = buf_size + q->d_size;
 
-        mem_len = g_tw_memory_sz + q->d_size;
+/*
+	mod = sizeof(int *);
+        if(mem_len % mod  != 0)
+        {
+                multiple = mem_len / mod;
+                mem_len = mod * (multiple+1);
+        }
+*/
 	mem_sz = mem_len * q->start_size * q->grow;
 
 	q->size += q->start_size * q->grow;
 	q->grow *= q->grow;
-
-	if(!q->size)
-		return 0;
 
 #if ROSS_VERIFY_MEMORY
 	printf("Allocating %d bytes in memory subsystem...", mem_sz);
@@ -170,25 +178,22 @@ tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t n_mem)
 	d = tw_calloc(TW_LOC, "Memory Queue", mem_sz, 1);
 
 	if (!d)
-		tw_error(TW_LOC, "\nCannot allocate %u buffers! \n", q->size);
+		tw_error(TW_LOC, "\nCannot allocate %u events! \n", q->size);
 
-	head = tail = d;
+	head = tail = (tw_memory *) d;
 
 	cnt = q->size;
-	while(--cnt)
+	while (--cnt)
 	{
 		tail->next = (tw_memory *) (((char *)tail) + mem_len);
-		//tail->data = (void *)(((char *)tail) + buf_size);
-		tail->data = (void *)(((char *)tail) + g_tw_memory_sz);
-		tail->d_size = q->d_size;
+		tail->data = (void *)(((char *)tail) + buf_size);
 
 		tail = tail->next;
 		tail->prev = (tw_memory *) (((char *)tail) - mem_len);
 	}
 
 	tail->next = NULL;
-	//tail->data = (void *)(((char *)tail) + buf_size);
-	tail->data = (void *)(((char *)tail) + g_tw_memory_sz);
+	tail->data = (void *)(((char *)tail) + buf_size);
 	head->prev = NULL;
 
 	if(q->head == NULL)

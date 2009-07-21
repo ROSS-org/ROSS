@@ -83,10 +83,13 @@ void
 tw_pe_fossil_collect(tw_pe * me)
 {
 	tw_kp	*kp;
+	int	 i;
 
 	g_tw_fossil_attempts++;
-	for (kp = me->kp_list; kp; kp = kp->next)
+	//for (kp = me->kp_list; kp; kp = kp->next)
+	for(i = 0; i < g_tw_nkp; i++)
 	{
+		kp = &g_tw_kp[i];
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
 
 		if(kp->queues)

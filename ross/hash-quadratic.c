@@ -8,10 +8,7 @@ static tw_event **allocate_table(int hash_size);
 static int hash_(tw_eventid event_id, int hash_size);
 static int      next_prime(int ptst);
 static int      is_prime(int ptst);
-
-#if 0
-static tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
-#endif
+//static tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
 
 void     hash_print(tw_hash * h);
 
@@ -153,8 +150,8 @@ find_entry(tw_event ** hash_t, tw_event * event, int hash_size, int pe)
 
 		if (key > hash_size)
 		{
-			tw_error(TW_LOC, "%d: Cannot find event in hash table: PE %d, key %d, size %d, id %d\n", 
-				g_tw_mynode, pe, key, hash_size, event->event_id);
+			tw_error(TW_LOC, "Cannot find event in hash table: PE %d, key %d, size %d\n", 
+				pe, key, hash_size);
 		}
 	}
 
@@ -230,7 +227,6 @@ is_prime(int ptst)
 	return prim_found;
 }
 
-#if 0
 tw_event *
 hash_search(tw_event ** hash_t, tw_event *evt, int size)
 {
@@ -253,7 +249,6 @@ hash_search(tw_event ** hash_t, tw_event *evt, int size)
 
 	return NULL;
 }
-#endif
 
 void
 hash_print(tw_hash * h)
@@ -279,7 +274,7 @@ hash_print(tw_hash * h)
 			if (e)
 			{
 				//printf("recv_ts = %f \n", e->recv_ts);
-				printf("%d: %d %lf\n\n", j, e->event_id, e->recv_ts);
+				//printf("%d: %ld \n\n", j, e->event_id);
 			} else
 				empty++;
 		}

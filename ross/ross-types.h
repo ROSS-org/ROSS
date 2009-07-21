@@ -69,7 +69,7 @@ FWD(struct, tw_log);
  * tw_fd   -- used to distinguish between memory and event arrays
  */
 typedef tw_peid tw_kpid;
-typedef tw_lpid tw_fd;
+typedef unsigned long tw_fd;
 typedef long long tw_stat;
 
 	/*
@@ -174,19 +174,17 @@ DEF(struct, tw_memory)
 	 * pe		-- PE which originally alloc'ed this buffer: needed in order
 	 *		   to return buffer to the PE that created it
 	 * ts		-- time at which this event can be collected
-	 * d_size	-- size of the data segment
 	 * data		-- data segment of the memory buffer: application defined
 	 */
 	tw_memory	*volatile next;
 	tw_memory	*volatile prev;
 	//tw_memory	*volatile up;
-	int		 heap_index;
+	tw_memory	*volatile lp_next;
 
+	//int		 heap_index;
 	tw_stime         ts;
 
 	int		 bit;
-	size_t		 d_size;
-
 	void		*data;
 };
 
@@ -292,7 +290,6 @@ DEF(struct, tw_event)
 
 	int		 color;
 	tw_eventid	 event_id;
-	tw_eventid	 order;
 
 	/* Status of the event's queue location(s). */
 	struct
@@ -346,27 +343,27 @@ DEF(struct, tw_event)
 DEF(struct, tw_lp)
 {
 	// local LP id
-	tw_lpid		  id;
+	tw_lpid id;
 
 	// global LP id
-	tw_lpid		  gid;
+	tw_lpid gid;
 
-	tw_pe		 *pe;
+	tw_pe *pe;
 
 	/* kp -- Kernel process that we belong to (must match pe).
 	 * pe_next  -- Next LP in the PE's service list.
 	 */
-	tw_kp		 *kp;
-	tw_lp		 *pe_next;
+	tw_kp *kp;
+	//tw_lp *pe_next;
 
 	/* cur_state -- Current application LP data.
 	 * state_qh -- Head of [free] state queue (for state saving).
 	 * type -- Type of this LP, including service callbacks.
 	 */
-	void		 *cur_state;
-	tw_lp_state	 *state_qh;
-	tw_lptype	  type;
-	tw_rng_stream	 *rng;
+	void		*cur_state;
+	tw_lp_state	*state_qh;
+	tw_lptype	 type;
+	tw_rng_stream	*rng;
 };
 
 	/*
@@ -403,9 +400,9 @@ DEF(struct, tw_kp)
 	 */
 	tw_stat s_nevent_processed;
 	tw_stat s_mem_buffers_used;
-	tw_stat s_e_rbs;
-	tw_stat s_rb_total;
-	tw_stat s_rb_secondary;
+	long s_e_rbs;
+	long s_rb_total;
+	long s_rb_secondary;
 };
 
 	/*
@@ -438,8 +435,8 @@ DEF(struct, tw_pe)
 	tw_mutex event_q_lck;
 	tw_mutex cancel_q_lck;
 	tw_pq *pq;
-	tw_lp *lp_list;
-	tw_kp *kp_list;
+	//tw_lp *lp_list;
+	//tw_kp *kp_list;
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.
@@ -502,9 +499,9 @@ DEF(struct, tw_pe)
 	tw_stat s_ngvts;
 
 	/*
-	 * rng	-- pointer to the random number generator on this PE
+	 * rng  -- pointer to the random number generator on this PE
 	 */
-	tw_rng	*rng;
+	tw_rng  *rng;
 
 #ifndef ROSS_NETWORK_none
         /*

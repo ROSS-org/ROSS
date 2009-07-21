@@ -31,7 +31,7 @@
 #   1. clcg4	-- Combined Linear Congruential Generator 4
 #
 #########################################################################
-QUEUE=heap
+QUEUE=splay
 MAPPING=linear
 RAND=clcg4
 
@@ -120,7 +120,6 @@ HEADERS = \
 	rand-$(RAND).h \
 	ross-extern.h \
 	ross-inline.h \
-	ross-kernel-inline.h \
 	ross-network.h \
 	ross-thread.h \
 	ross-types.h \

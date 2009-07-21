@@ -69,9 +69,9 @@ tw_kp          *g_tw_kp = NULL;
 int             g_tw_sv_growcnt = 10;
 int             g_tw_fossil_attempts = 0;
 unsigned int    g_tw_nRNG_per_lp = 1;
-tw_lpid		g_tw_rng_default = TW_TRUE;
-size_t		g_tw_rng_max = 1;
-tw_seed		*g_tw_rng_seed = NULL;
+tw_lpid         g_tw_rng_default = TW_TRUE;
+size_t          g_tw_rng_max = 1;
+tw_seed        *g_tw_rng_seed = NULL;
 
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
@@ -94,7 +94,7 @@ tw_stime        g_tw_ts_end = 100.0;
 	 * g_tw_events_per_pe   -- Number of events to place in for each PE.
 	 *                         MUST be > 1 because of abort buffer.
 	 */
-tw_peid		g_tw_npe = 0;
+tw_peid		g_tw_npe = 1;
 tw_pe **g_tw_pe;
 int             g_tw_events_per_pe = 2048;
 unsigned int	g_tw_master = 0;

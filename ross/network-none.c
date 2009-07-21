@@ -48,13 +48,13 @@
 
 #include <ross.h>
 
+// for tw_net_onnode
 tw_node mynode = 0;
 static int npe = 1;
-static char g_tw_net_config[256] = "./.ross_network";
+static char g_tw_net_config[256] = ".ross_network";
 
 static const tw_optdef net_options[] = {
 	TWOPT_GROUP("ROSS-SMP Kernel"),
-	TWOPT_CHAR("machines", g_tw_net_config, "CPU configuration file"),
 	TWOPT_END()
 };
 
@@ -106,8 +106,10 @@ tw_net_start(void)
 {
 	tw_peid pi;
 
+	g_tw_nlp *= g_tw_npe;
+
 	tw_pe_create(npe);
-	for (pi = 0; pi < npe; pi++)
+	for (pi = 0; pi < g_tw_npe; pi++)
 		tw_pe_init(pi, pi);
 }
 

@@ -57,18 +57,7 @@ tw_event_grab(tw_pe *pe)
 		e->prev = e->next = NULL;
 #endif
 
-		e->cancel_next = NULL;
-		e->caused_by_me = NULL;
-		e->cause_next = NULL;
-		memset(&e->state, 0, sizeof(e->state));
-		memset(&e->event_id, 0, sizeof(e->event_id));
-
-		e->dest_lp = NULL;
-		e->src_lp = NULL;
-		e->recv_ts = 0.0;
-		e->prev = e->next = NULL;
-		e->memory = NULL;
-		e->color = 0;
+		e->state.owner = 0;
 	}
 
 	return e;
@@ -108,15 +97,12 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 	e->caused_by_me = NULL;
 	e->cause_next = NULL;
 	memset(&e->state, 0, sizeof(e->state));
-	memset(&e->event_id, 0, sizeof(e->event_id));
 
 	e->dest_lp = (tw_lp *) dest_gid;
 	e->src_lp = sender;
 	e->recv_ts = recv_ts;
 	e->prev = e->next = NULL;
-	e->memory = NULL;
-	e->color = 0;
-	
+
 	return e;
 }
 
@@ -147,7 +133,7 @@ INLINE(void)
 tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
 	m->next = lp->pe->cur_event->memory;
-	m->prev = (tw_memory *) fd;
+	m->prev = (tw_memory *)fd;
 	lp->pe->cur_event->memory = m;
 }
 
@@ -156,7 +142,7 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 {
 	tw_memory	*b;
 
-	if(e->state.remote_fmt == 0 && e == e->src_lp->pe->abort_event)
+	if(e == e->src_lp->pe->abort_event)
 	{
 		tw_memory_alloc_rc(e->src_lp, m, fd);
 		return;
@@ -182,8 +168,7 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 INLINE(void)
 tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 {
-	if((e->state.remote_fmt == 0 && e == e->src_lp->pe->abort_event) ||
-	   e->state.cancel_q == 1)
+	if(e == e->src_lp->pe->abort_event)
 	{
 		tw_memory_alloc_rc(e->src_lp, m, fd);
 		return;
