@@ -373,7 +373,7 @@ recv_finish(tw_pe *me, tw_event *e)
 		// event sends over the network.
 
 		cancel->state.cancel_q = 1;
-		cancel->state.remote_fmt = 0;
+		cancel->state.hash_t = 0;
 
 		tw_mutex_lock(&dest_pe->cancel_q_lck);
 		cancel->cancel_next = dest_pe->cancel_q;
@@ -381,7 +381,7 @@ recv_finish(tw_pe *me, tw_event *e)
 		tw_mutex_unlock(&dest_pe->cancel_q_lck);
 
 		e->event_id = e->state.cancel_q = 0;
-		e->state.remote_fmt = 0;
+		e->state.hash_t = 0;
 
 		tw_event_free(me, e);
 
@@ -391,7 +391,7 @@ recv_finish(tw_pe *me, tw_event *e)
 	tw_hash_insert(me->hash_t, e, e->send_pe);
 
 	memset(&e->state, 0, sizeof(e->state));
-	e->state.remote_fmt = 1;
+	e->state.hash_t = 1;
 
 	if (me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
 		/* Fast case, we are sending to our own PE and
@@ -572,7 +572,7 @@ tw_net_send(tw_event *e)
 {
 	tw_pe * me = e->src_lp->pe;
 
-	e->state.remote_fmt = 0;
+	e->state.hash_t = 0;
 	e->state.owner = TW_net_outq;
 	tw_eventq_unshift(&outq, e);
 

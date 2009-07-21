@@ -652,7 +652,7 @@ tw_net_send(tw_event * event)
 	tw_peid		dest_peid = (*event->src_lp->type.map)
 						((tw_lpid) event->dest_lp);
 
-	event->state.remote_fmt = 0;
+	event->state.hash_t = 0;
 
 	// as long as this is not a cancellation, 
 	// enqueue into my PEs remote send queue
