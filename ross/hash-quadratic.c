@@ -8,7 +8,7 @@ static tw_event **allocate_table(int hash_size);
 static int hash_(tw_eventid event_id, int hash_size);
 static int      next_prime(int ptst);
 static int      is_prime(int ptst);
-//static tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
+tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
 
 void     hash_print(tw_hash * h);
 
