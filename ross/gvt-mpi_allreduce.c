@@ -4,8 +4,8 @@
 #define TW_GVT_COMPUTE 1
 
 static tw_stat tot_mattern_nochange = 0;
-static unsigned int g_tw_gvt_max_no_change = 10000;
-static unsigned int g_tw_gvt_no_change = 0;
+static unsigned int g_tw_gvt_max_nochange = 100;
+static unsigned int g_tw_gvt_nochange = 0;
 static unsigned int mattern_nochange = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
@@ -80,7 +80,7 @@ tw_gvt_step2(tw_pe *me)
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
 
-while(1)
+while(mattern_nochange < g_tw_gvt_max_nochange)
 {
 	tw_net_read(me);
 	
@@ -124,17 +124,17 @@ while(1)
 
 	if(gvt != me->GVT_prev)
 	{
-		g_tw_gvt_no_change = 0;
+		g_tw_gvt_nochange = 0;
 	} else
 	{
-		g_tw_gvt_no_change++;
-		if (g_tw_gvt_no_change >= g_tw_gvt_max_no_change) {
+		g_tw_gvt_nochange++;
+		if (g_tw_gvt_nochange >= g_tw_gvt_max_nochange) {
 			tw_error(
 				TW_LOC,
 				"GVT computed %d times in a row"
 				" without changing: GVT = %14.14lf, PREV %14.14lf"
 				" -- GLOBAL SYNCH -- out of memory!",
-				g_tw_gvt_no_change, gvt, me->GVT_prev);
+				g_tw_gvt_nochange, gvt, me->GVT_prev);
 		}
 	}
 
