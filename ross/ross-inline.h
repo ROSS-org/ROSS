@@ -4,13 +4,10 @@
 INLINE(tw_memoryq *)
 tw_kp_getqueue(tw_kp * kp, tw_fd fd)
 {
-#if 0
 	if(fd == -1)
 		tw_error(TW_LOC, "Queue not found!");
 
 	return &kp->queues[fd];
-#endif
-	return NULL;
 }
 
 INLINE(int)
@@ -69,7 +66,7 @@ tw_event_grab(tw_pe *pe)
 INLINE(tw_event *)
 tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 {
-	tw_pe	*send_pe;
+	tw_pe		*send_pe;
 	tw_event	*e;
 	tw_stime	 recv_ts;
 
@@ -122,32 +119,27 @@ tw_event_free(tw_pe *pe, tw_event *e)
 INLINE(tw_memory *)
 tw_event_memory_get(tw_lp * lp)
 {
-	tw_memory      *m;
-#if 0
-	m = lp->pe->cur_event->memory;
+	tw_memory      *m = lp->pe->cur_event->memory;
 
 	if(m && m->next)
 		lp->pe->cur_event->memory = lp->pe->cur_event->memory->next;
 	else
 		lp->pe->cur_event->memory = NULL;
-#endif
+
 	return m;
 }
 
 INLINE(void)
 tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
-#if 0
 	m->next = lp->pe->cur_event->memory;
 	m->prev = (tw_memory *)fd;
 	lp->pe->cur_event->memory = m;
-#endif
 }
 
 INLINE(void)
 tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 {
-#if 0
 	tw_memory	*b;
 
 	if(e == e->src_lp->pe->abort_event)
@@ -171,13 +163,11 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 		b->next = m;
 		m->next = NULL;
 	}
-#endif
 }
 
 INLINE(void)
 tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 {
-#if 0
 	if(e == e->src_lp->pe->abort_event)
 	{
 		tw_memory_alloc_rc(e->src_lp, m, fd);
@@ -187,7 +177,6 @@ tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 	m->next = e->memory;
 	m->prev = (tw_memory *)fd;
 	e->memory = m;
-#endif
 }
 
 INLINE(void *)

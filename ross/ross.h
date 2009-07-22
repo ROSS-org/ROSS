@@ -136,7 +136,9 @@ typedef unsigned long long tw_lpid;
 //typedef uintptr_t tw_lpid;
 #endif
 
+#include "ross-random.h"
 #include "ross-thread.h"
+
 #ifdef ROSS_THREAD_pthread
 #  define tw_volatile volatile
 #  include "thread-pthread.h"
@@ -152,6 +154,9 @@ typedef unsigned long long tw_lpid;
 
 #ifdef ROSS_CLOCK_i386
 #  include "clock-i386.h"
+#endif
+#ifdef ROSS_CLOCK_amd64
+#  include "clock-amd64.h"
 #endif
 #ifdef ROSS_CLOCK_ia64
 #  include "clock-ia64.h"
@@ -177,18 +182,17 @@ typedef unsigned long long tw_lpid;
 #include "ross-types.h"
 #include "tw-timer.h"
 #include "tw-opts.h"
-#include "ross-random.h"
 #include "ross-network.h"
 #include "ross-gvt.h"
 #include "ross-extern.h"
 #include "ross-kernel-inline.h"
+#include "hash-quadratic.h"
 
 #ifdef ROSS_NETWORK_none
 #  include "network-none2.h"
 #endif
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi2.h"
-#  include "hash-quadratic.h"
 #endif
 #ifdef ROSS_NETWORK_tcp
 #  include "network-tcp2.h"

@@ -77,13 +77,19 @@ tw_error(const char *file, int line, const char *fmt, ...)
 	tw_net_abort();
 }
 
+void
+tw_exit(int rv)
+{
+	tw_net_stop();
+	exit(rv);
+}
+
 struct mem_pool
 {
 	struct mem_pool *next_pool;
 	char *next_free;
 	char *end_free;
-}__attribute__((aligned(8)));
-
+};
 static struct mem_pool *main_pool;
 
 #ifdef ARCH_BLUE_GENE
@@ -92,8 +98,7 @@ static tw_mutex pool_lock;
 static tw_mutex pool_lock = TW_MUTEX_INIT;
 #endif /* BLUE_GENE */
 
-//static const size_t pool_size = 512 * 1024 - sizeof(struct mem_pool);
-static const size_t pool_size = (512 * 1024) - 32;
+static const size_t pool_size = 512 * 1024 - sizeof(struct mem_pool);
 static const size_t pool_align = max(sizeof(double),sizeof(void*));
 static size_t total_allocated;
 static unsigned malloc_calls;
@@ -119,6 +124,11 @@ pool_alloc(size_t len)
 	struct mem_pool *p;
 	void *r;
 
+#if 1
+	if (len & (pool_align - 1))
+		len += pool_align - (len & (pool_align - 1));
+#endif
+
 	tw_mutex_lock(&pool_lock);
 	for (p = main_pool; p; p = p->next_pool)
 		if ((p->end_free - p->next_free >= len))
@@ -130,26 +140,20 @@ pool_alloc(size_t len)
 			goto ret;
 		}
 
-		p = my_malloc(pool_size + 32);
+		p = my_malloc(sizeof(struct mem_pool) + pool_size);
 		if (!p) {
 			r = NULL;
 			goto ret;
 		}
 
 		p->next_pool = main_pool;
-		//p->next_free = (char*)(p + 1);
-                p->next_free = (char *)((size_t)32 + (size_t)p);
-		if( 7 & (size_t)(p->next_free) )
-		    printf("pool_alloc: WARNING found pool start address (%p) NOT 8 byte aligned\n", p->next_free);
+		p->next_free = (char*)(p + 1);
 		p->end_free = p->next_free + pool_size;
 		main_pool = p;
 	}
 
 	r = p->next_free;
 	p->next_free += len;
-
-	if( 7 & (size_t)r || 7 & (size_t)(p->next_free) )
-	    printf("pool_alloc: WARNING found return ptr (%p) or next_free (%p) NOT 8 bytes aligned\n", r, p->next_free );
 
 ret:
 	if (r)
@@ -168,11 +172,10 @@ tw_calloc(
 {
 	void *r;
 
-	if(e_sz & (pool_align - 1))
-	{
-	    e_sz += pool_align - (e_sz & (pool_align - 1));
-	    // printf("%s:%d:%s: realigned size to %d \n", file, line, for_who, e_sz );
-	}
+#if 0
+	if(n & (pool_align - 1))
+		n += pool_align - (n & (pool_align - 1));
+#endif
 
 	e_sz *= n;
 	if (!e_sz)

@@ -21,38 +21,40 @@
  */
 #define H   32768
 
+// default RNG seed
+long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
+
+
+#if 0
 /*
  * a[j]^{2^w} et a[j]^{2^{v+w}}.     
  */
-static long aw[4], avw[4], a[4] = { 45991, 207707, 138556, 49689 }, m[4] =
-{ 2147483647, 2147483543, 2147483423, 2147483323};
+long	*m;
+long	*a;
+long	*aw;
+long	*avw;
 
 /*
  * equals a[i]^{m[i]-2} mod m[i] 
  */
-static long long b[4] = { 0, 0, 0, 0 };
-static long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
- 
+long long	*b;
+
 /*
- * static long Ig[4][Maxgen+1], Lg[4][Maxgen+1], Cg[4][Maxgen+1]; 
+ * RNG Seed
  */
+long	*seed;
+#endif
 
 /*
  * variables for normal distribution
  */
-
-/*extern volatile double *g_tw_normal_u1;
+#if 0
+extern volatile double *g_tw_normal_u1;
 extern volatile double *g_tw_normal_u2;
-extern volatile int *g_tw_normal_flipflop;*/
+extern volatile int *g_tw_normal_flipflop;
+#endif
 
-
-/*
- * Initial seed, previous seed, and current seed. 
- */
-static short i, j;
-static int Maxgen = 0;
-
-
+//short i, j;
 
 /*
  * FindB -- Find B which is a[i]^{m[i] - 2} mod m[i]                   
@@ -60,8 +62,7 @@ static int Maxgen = 0;
  * Used in running the CLCG4 backwards                        
  * Added by Chris Carothers, 5/15/98                          
  */
-
-static long long
+long long
 FindB(long long a, long long k, long long m)
 {
   int i;
@@ -98,7 +99,7 @@ FindB(long long a, long long k, long long m)
  * Returns(s*t) MOD M.  Assumes that -M < s < M and -M < t < M.    
  */
 
-static inline long
+inline long
 MultModM(long s, long t, long M)
 {
   long R, S0, S1, q, qh, rh, k;
@@ -118,6 +119,7 @@ MultModM(long s, long t, long M)
       S0 = s - H * S1;
       qh = M / H;
       rh = M - H * qh;
+
       if(S1 >= H)
 	{
 	  S1 -= H;
@@ -128,6 +130,7 @@ MultModM(long s, long t, long M)
 	}
       else
 	R = 0;
+
       if(S1 != 0)
 	{
 	  q = M / S1;
@@ -169,11 +172,14 @@ MultModM(long s, long t, long M)
  */
 
 void
-rng_set_seed(tw_generator * g, long s[4])
+rng_set_seed(tw_rng_stream * g, long s[4])
 {
-  for(j = 0; j < 4; j++)
-    g->Ig[j] = s[j];
-  rng_init_generator(g, InitialSeed);
+	int	j;
+
+	for(j = 0; j < 4; j++)
+		g->Ig[j] = s[j];
+
+	rng_init_generator(g, InitialSeed);
 }
 
 /*
@@ -181,11 +187,13 @@ rng_set_seed(tw_generator * g, long s[4])
  */
 
 void
-rng_write_state(tw_generator * g)
+rng_write_state(tw_rng_stream * g)
 {
-  for(j = 0; j < 4; j++)
-    printf("%lu ", g->Cg[j]);
-  printf("\n");
+	int	j;
+
+	for(j = 0; j < 4; j++)
+		printf("%lu ", g->Cg[j]);
+	printf("\n");
 }
 
 /*
@@ -193,10 +201,12 @@ rng_write_state(tw_generator * g)
  */
 
 void
-rng_get_state(tw_generator * g, long s[4])
+rng_get_state(tw_rng_stream * g, long s[4])
 {
-  for(j = 0; j < 4; j++)
-    s[j] = g->Cg[j];
+	int	j;
+
+	for(j = 0; j < 4; j++)
+		s[j] = g->Cg[j];
 }
 
 
@@ -205,10 +215,12 @@ rng_get_state(tw_generator * g, long s[4])
  */
 
 void
-rng_put_state(tw_generator * g, long s[4])
+rng_put_state(tw_rng_stream * g, long s[4])
 {
-  for(j = 0; j < 4; j++)
-    g->Cg[j] = s[j];
+	int	j;
+
+	for(j = 0; j < 4; j++)
+		g->Cg[j] = s[j];
 }
 
 /*
@@ -216,43 +228,48 @@ rng_put_state(tw_generator * g, long s[4])
  */
 
 void
-rng_init_generator(tw_generator * g, SeedType Where)
+rng_init_generator(tw_rng_stream * g, SeedType Where)
 {
-  for(j = 0; j < 4; j++)
-    {
-      switch(Where)
-	{
-	case InitialSeed:
-	  g->Lg[j] = g->Ig[j];
-	  break;
-	case NewSeed:
-	  g->Lg[j] = MultModM(aw[j], g->Lg[j], m[j]);
-	  break;
-	case LastSeed:
-	  break;
-	}
-      g->Cg[j] = g->Lg[j];
-    }
-}
+	int	j;
 
+	for(j = 0; j < 4; j++)
+	{
+		switch(Where)
+		{
+			case InitialSeed:
+				g->Lg[j] = g->Ig[j];
+				break;
+			case NewSeed:
+				g->Lg[j] = MultModM(g->rng->aw[j], g->Lg[j], g->rng->m[j]);
+				break;
+			case LastSeed:
+				break;
+		}
+
+		g->Cg[j] = g->Lg[j];
+	}
+}
 
 /*
  * rng_set_initial_seed                                                   
  */
 void
-tw_rand_initial_seed(tw_generator * g, tw_lpid id)
+tw_rand_initial_seed(tw_rng * rng, tw_rng_stream * g, tw_lpid id)
 {
 	tw_lpid mask_bit = 1;
 
 	long Ig_t[4];
 	long avw_t[4];
 
+	int i;
+	int j;
 	int positions = ((sizeof(tw_lpid)) * 8) - 1;
-	//int positions = ((sizeof(uintptr_t)) * 8) - 1;
+
+	g->rng = rng;
 
 	//seed for zero
 	for(j = 0; j < 4; j++)
-		Ig_t[j] = seed[j];
+		Ig_t[j] = rng->seed[j];
 
 	mask_bit <<= positions;
 
@@ -262,13 +279,13 @@ tw_rand_initial_seed(tw_generator * g, tw_lpid id)
 		{
 			for(j = 0; j < 4; j++)
 			{
-				avw_t[j] = avw[j];
+				avw_t[j] = rng->avw[j];
 
 				// exponentiate modulus
 				for(i = 0; i < positions; i++)
-					avw_t[j] = MultModM(avw_t[j], avw_t[j], m[j]);
+					avw_t[j] = MultModM(avw_t[j], avw_t[j], rng->m[j]);
 
-				Ig_t[j] = MultModM(avw_t[j], Ig_t[j], m[j]);
+				Ig_t[j] = MultModM(avw_t[j], Ig_t[j], rng->m[j]);
 			}
 		}
 
@@ -279,7 +296,7 @@ tw_rand_initial_seed(tw_generator * g, tw_lpid id)
 	if(id % 2)
 	{
 		for(j = 0; j < 4; j++)
-			Ig_t[j] = MultModM(avw[j], Ig_t[j], m[j]);
+			Ig_t[j] = MultModM(rng->avw[j], Ig_t[j], rng->m[j]);
 	}
 
 	for(j = 0; j < 4; j++)
@@ -289,46 +306,80 @@ tw_rand_initial_seed(tw_generator * g, tw_lpid id)
 	//rng_write_state(g);
 }
 
+void
+tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
+{
+	int	 i;
+
+	lp->rng = tw_calloc(TW_LOC, "LP RNG Streams", sizeof(*lp->rng), nstreams);
+
+	if(nstreams > g_tw_rng_max)
+		tw_error(TW_LOC, "RNG max streams exceeded: %d > %d\n",
+			 nstreams, g_tw_rng_max);
+
+	for(i = 0; i < nstreams; i++)
+		tw_rand_initial_seed(lp->pe->rng, &lp->rng[i], 
+					(lp->gid * g_tw_rng_max) + i);
+}
+
 /*
  * rng_init                                                             
  */
-void
-rng_init(int v, int w, long *sd, tw_lpid nrng)
+tw_rng	*
+rng_init(int v, int w)
 {
-	if(nrng)
-		Maxgen = nrng;
-	else
-		Maxgen = g_tw_nlp * g_tw_nRNG_per_lp;
+	tw_rng	*rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
 
-	if(NULL != sd)
+	int	 i;
+	int	 j;
+
+	rng->m[0] = 2147483647;
+	rng->m[1] = 2147483543;
+	rng->m[2] = 2147483423;
+	rng->m[3] = 2147483323;
+
+	rng->a[0] = 45991;
+	rng->a[1] = 207707;
+	rng->a[2] = 138556;
+	rng->a[3] = 49689;
+	
+	if(g_tw_rng_seed)
 	{
 		for(j = 0; j < 4; j++)
-			seed[j] = sd[j];
+			rng->seed[j] = *g_tw_rng_seed[j];
+	} else
+	{
+		rng->seed[0] = 11111111;
+		rng->seed[1] = 22222222;
+		rng->seed[2] = 33333333;
+		rng->seed[3] = 44444444;
 	}
 
 	for(j = 0; j < 4; j++)
-		aw[j] = a[j];
+		rng->aw[j] = rng->a[j];
 
 	for(j = 0; j < 4; j++)
 	{
 		for(i = 1; i <= w; i++)
-			aw[j] = MultModM(aw[j], aw[j], m[j]);
+			rng->aw[j] = MultModM(rng->aw[j], rng->aw[j], rng->m[j]);
 
-		avw[j] = aw[j];
+		rng->avw[j] = rng->aw[j];
 
 		for(i = 1; i <= v; i++)
-			avw[j] = MultModM(avw[j], avw[j], m[j]);
+			rng->avw[j] = MultModM(rng->avw[j], rng->avw[j], rng->m[j]);
 	}
 
 	for(j = 0; j < 4; j++)
-		b[j] = FindB(a[j],(m[j] - 2), m[j]);
+		rng->b[j] = FindB(rng->a[j],(rng->m[j] - 2), rng->m[j]);
+
+	return rng;
 }
 
 /*
  * rng_gen_val                                                              
  */
 double
-rng_gen_val(tw_generator * g)
+rng_gen_val(tw_rng_stream * g)
 {
   long k, s;
   double u;
@@ -385,8 +436,10 @@ rng_gen_val(tw_generator * g)
  */
 
 double
-rng_gen_reverse_val(tw_generator * g)
+rng_gen_reverse_val(tw_rng_stream * g)
 {
+  long long *b = g->rng->b;
+  long *m = g->rng->m;
   long long s;
   double u;
 

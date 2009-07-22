@@ -1,5 +1,6 @@
 #include <ross.h>
 
+#ifndef ROSS_DO_NOT_PRINT
 static void
 show_lld(const char *name, tw_stat v)
 {
@@ -20,6 +21,7 @@ show_4f(const char *name, double v)
 	printf("\t%-50s %11.4f %%\n", name, v);
 	fprintf(g_tw_csv, "%.4f,", v);
 }
+#endif
 
 void
 tw_stats(tw_pe * me)
@@ -58,7 +60,6 @@ tw_stats(tw_pe * me)
 		s.tw_s_nrecv_network += pe->s_nrecv_network;
 		s.tw_s_nsend_remote_rb += pe->s_nsend_remote_rb;
 
-		//for (kp = NULL; (kp = tw_kp_next_onpe(kp, pe));)
 		for(i = 0; i < g_tw_nkp; i++)
 		{
 			kp = tw_getkp(i);
@@ -68,7 +69,6 @@ tw_stats(tw_pe * me)
 			s.tw_s_rb_secondary += kp->s_rb_secondary;
 		}
 
-		//for (lp = NULL; (lp = tw_lp_next_onpe(lp, pe));)
 		for(i = 0; i < g_tw_nlp; i++)
 		{
 			lp = tw_getlp(i);
@@ -144,8 +144,8 @@ tw_stats(tw_pe * me)
 	show_lld("PE struct", sizeof(tw_pe));
 	show_lld("KP struct", sizeof(tw_kp));
 	show_lld("LP struct", sizeof(tw_lp));
-	show_lld("LP RNGs", sizeof(*lp->rng));
 	show_lld("LP Model struct", lp->type.state_sz);
+	show_lld("LP RNGs", sizeof(*lp->rng));
 	show_lld("Total LP", sizeof(tw_lp) + lp->type.state_sz + sizeof(*lp->rng));
 	show_lld("Event struct", sizeof(tw_event));
 	show_lld("Event struct with Model", sizeof(tw_event) + g_tw_msg_sz);

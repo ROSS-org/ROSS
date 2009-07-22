@@ -433,7 +433,7 @@ tw_socket_read_event(tw_pe * me)
 	}
 
 	recv_event->next = NULL;
-	recv_event->lp_state = NULL;
+	//recv_event->lp_state = NULL;
 	recv_event->cancel_next = NULL;
 	recv_event->caused_by_me = NULL;
 	recv_event->cause_next = NULL;

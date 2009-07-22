@@ -38,8 +38,6 @@ tw_gvt_force_update(tw_pe *me)
 {
 	gvt_force++;
 	gvt_cnt = g_tw_gvt_interval;
-
-	tw_error(TW_LOC, "%d: forcing GVT\n", me->id);
 }
 
 void

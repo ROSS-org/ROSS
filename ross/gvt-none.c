@@ -5,8 +5,14 @@ tw_gvt_stats(FILE * F)
 {
 }
 
-void
+const tw_optdef	*
 tw_gvt_setup(void)
+{
+	return NULL;
+}
+
+void
+tw_gvt_start(void)
 {
 }
 

@@ -14,7 +14,7 @@
 # Otherwise, undefined.
 ########################################################################
 #ARCH=BLUE_GENE
-DATA_LAYOUT=byte_per_bit
+#DATA_LAYOUT=byte_per_bit
 
 ########################################################################
 # for QUEUE select from: 
@@ -44,8 +44,6 @@ RAND=clcg4
 #   2. conservative	-- do not try to read (probe) during sends
 #########################################################################
 NETWORK=mpi
-NETWORK_ADDTL=hash-quadratic.o
-NETWORK_ADDTL_HDR=hash-quadratic.h
 THREAD=none
 CLOCK=none
 GVT=mpi_allreduce
@@ -56,9 +54,9 @@ NET=conservative
 #
 #THREAD=pthread
 #NETWORK=tcp
-#NETWORK_ADDTL=socket-tcp.o hash-quadratic.o
+#NETWORK_ADDTL=socket-tcp.o
 #NETWORK_ADDTL_HDR=socket-tcp.h
-#CLOCK=i386
+#CLOCK=amd64
 #GVT=7oclock
 
 #
@@ -66,12 +64,14 @@ NET=conservative
 #
 #THREAD=pthread
 #NETWORK=none
-#CLOCK=none
+#CLOCK=amd64
 #GVT=7oclock
 
 #
 # Sequential execution
 #
+#THREAD=none
+#NETWORK=none
 #CLOCK=none
 #GVT=none
 
@@ -85,6 +85,7 @@ BASIC_OBJS = \
 	clock-$(CLOCK).o  \
 	network-$(NETWORK).o \
 	$(NETWORK_ADDTL) \
+	hash-quadratic.o \
 	queue-$(QUEUE).o \
 	rand-$(RAND).o \
 	ross-global.o \
@@ -114,6 +115,7 @@ HEADERS = \
 	network-$(NETWORK)1.h \
 	network-$(NETWORK)2.h \
 	$(NETWORK_ADDTL_HDR) \
+	hash-quadratic.h \
 	gvt-$(GVT).h \
 	rand-$(RAND).h \
 	ross-extern.h \

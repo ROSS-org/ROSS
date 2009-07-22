@@ -69,8 +69,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 5000;
-static unsigned int send_buffer = 5000;
+static unsigned int read_buffer = 50000;
+static unsigned int send_buffer = 50000;
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -126,12 +126,6 @@ init_q(struct act_q *q, const char *name)
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
 }
 
-int
-tw_net_nqueued()
-{
-	return outq.size;
-}
-
 unsigned int
 tw_nnodes(void)
 {
@@ -141,25 +135,12 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
-	//tw_peid pi;
-
 	if (MPI_Comm_size(MPI_COMM_WORLD, &world_size) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_WORLD)");
 
-	//tw_pe_create(world_size);
 	tw_pe_create(1);
 	tw_pe_init(0, g_tw_mynode);
 	g_tw_pe[0]->hash_t = tw_hash_create();
-
-#if 0
-	for (pi = 0; pi < g_tw_npe; pi++) {
-		if (pi != g_tw_mynode)
-		{
-			int r = pi;
-			tw_pe_init(pi, r);
-		}
-	}
-#endif
 
 	if (send_buffer < 1)
 		tw_error(TW_LOC, "network send buffer must be >= 1");
@@ -488,9 +469,6 @@ send_begin(tw_pe *me)
 
 		changed = 1;
 	}
-
-	if(outq.size && !g_tw_mynode)
-		printf("outq: %ld\n", outq.size);
 	return changed;
 }
 
@@ -561,16 +539,7 @@ service_queues(tw_pe *me)
 void
 tw_net_read(tw_pe *me)
 {
-#if 1
-//ROSS_NET_aggressive
 	service_queues(me);
-#else
-	int changed;
-	do {
-		changed  = test_q(&posted_recvs, me, recv_finish);
-		changed |= recv_begin(me);
-	} while (changed);
-#endif
 }
 
 void

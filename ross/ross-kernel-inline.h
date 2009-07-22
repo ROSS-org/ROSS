@@ -1,6 +1,9 @@
 #ifndef INC_ross_kernel_inline_h
 #define INC_ross_kernel_inline_h
 
+#define TW_TRUE	1
+#define TW_FALSE 0
+
 #define	max(a,b)	((a) > (b) ? (a) : (b))
 #define	min(a,b)	((a) < (b) ? (a) : (b))
 

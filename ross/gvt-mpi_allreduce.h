@@ -79,7 +79,7 @@ gvt_print(tw_stime gvt)
 	else
 		printf("GVT = %.4f", gvt);
 
-	printf("). (%d)\n", tw_net_nqueued());
+	printf(").\n");
 	percent_complete += gvt_print_interval;
 }
 

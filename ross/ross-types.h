@@ -178,12 +178,10 @@ DEF(struct, tw_memory)
 	 */
 	tw_memory	*volatile next;
 	tw_memory	*volatile prev;
-	tw_memory	*volatile up;
+	//tw_memory	*volatile up;
 	tw_memory	*volatile lp_next;
 
-	/*
-	 * must occur at 8 byte boundry
-	 */
+	//int		 heap_index;
 	tw_stime         ts;
 
 	int		 bit;
@@ -326,7 +324,7 @@ DEF(struct, tw_event)
 
 	tw_peid		 send_pe;
 
-	//tw_memory	*memory;
+	tw_memory	*memory;
 };
 
 	/*
@@ -361,10 +359,10 @@ DEF(struct, tw_lp)
 	 * state_qh -- Head of [free] state queue (for state saving).
 	 * type -- Type of this LP, including service callbacks.
 	 */
-	void *cur_state;
-	tw_lp_state *state_qh;
-	tw_lptype type;
-	tw_generator	*rng;
+	void		*cur_state;
+	tw_lp_state	*state_qh;
+	tw_lptype	 type;
+	tw_rng_stream	*rng;
 };
 
 	/*
@@ -386,13 +384,13 @@ DEF(struct, tw_kp)
 	/* last_time -- Time of the current event being processed.
 	 * pevent_q -- Events processed by LPs bound to this KP
 	 */
-	tw_eventq pevent_q; // invert order to be 8 byte aligned for last_time
 	tw_stime last_time;
+	tw_eventq pevent_q;
 
 	/*
 	 * queues -- TW memory buffer queues
 	 */
-	//tw_memoryq	*queues;
+	tw_memoryq	*queues;
 
 	/* s_nevent_processed -- Number of events processed.
 	 * s_e_rbs -- Number of events rolled back by this LP.
@@ -400,12 +398,10 @@ DEF(struct, tw_kp)
 	 * s_rb_secondary -- Number of secondary rollbacks by this LP.
 	 */
 	tw_stat s_nevent_processed;
-	//tw_stat s_mem_buffers_used;
+	tw_stat s_mem_buffers_used;
 	long s_e_rbs;
 	long s_rb_total;
 	long s_rb_secondary;
-
-	long long test;
 };
 
 	/*
@@ -439,7 +435,7 @@ DEF(struct, tw_pe)
 	tw_mutex cancel_q_lck;
 	tw_pq *pq;
 	//tw_lp *lp_list;
-	tw_kp *kp_list;
+	//tw_kp *kp_list;
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.
@@ -469,11 +465,6 @@ DEF(struct, tw_pe)
 	BIT_GROUP_ITEM(local_master, 1)
 	BIT_GROUP_ITEM(gvt_status, 4)
 	)
-
-	/*
-	 * alignment dummy var to ensure fp vars are 8 byte aligned
-	 */
-	unsigned int alignment_dummy; 
 
 	/* trans_msg_ts -- Last transient messages' time stamp.
 	 * GVT -- global virtual time
@@ -506,6 +497,11 @@ DEF(struct, tw_pe)
 	tw_stat s_nsend_remote_rb;
 	tw_stat s_ngvts;
 
+	/*
+	 * rng  -- pointer to the random number generator on this PE
+	 */
+	tw_rng  *rng;
+
 #ifndef ROSS_NETWORK_none
         /*
          * hash_t  -- array of incoming events from remote pes
@@ -514,7 +510,11 @@ DEF(struct, tw_pe)
          *                 size == g_tw_npe
          */
         void           *hash_t;
-        tw_eventid	seq_num;
+#ifdef ROSS_NETWORK_mpi
+        tw_eventid	 seq_num;
+#else
+        tw_eventid	*seq_num;
+#endif
 #endif
 };
 
