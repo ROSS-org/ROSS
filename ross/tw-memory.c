@@ -141,8 +141,8 @@ tw_memory_getsize(tw_kp * kp, int fd)
 	return tw_kp_getqueue(kp, fd)->d_size + g_tw_memory_sz;
 }
 
-size_t
-tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t cnt)
+unsigned int
+tw_memory_allocate(tw_memoryq * q, size_t buf_size, unsigned int cnt)
 {
 	tw_memory	*head;
 	tw_memory	*tail;

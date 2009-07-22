@@ -69,8 +69,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 50000;
-static unsigned int send_buffer = 50000;
+static unsigned int read_buffer = 5000;
+static unsigned int send_buffer = 5000;
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -124,6 +124,12 @@ init_q(struct act_q *q, const char *name)
 	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
 	q->idx_list = tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+}
+
+int
+tw_net_nqueued()
+{
+	return outq.size;
 }
 
 unsigned int
@@ -340,9 +346,7 @@ recv_finish(tw_pe *me, tw_event *e)
 	tw_pe	*dest_pe;
 
 	me->s_nrecv_network++;
-
-	if(1 == e->color)
-		me->s_nwhite_recv++;
+	me->s_nwhite_recv++;
 
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 
@@ -356,7 +360,7 @@ recv_finish(tw_pe *me, tw_event *e)
 	e->cause_next = NULL;
 
 	if(e->recv_ts < me->GVT)
-		tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d, %d)", me->id,  e->send_pe, e->recv_ts, e->state.cancel_q, e->color);
+		tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
 	if(tw_gvt_inprogress(me))
 		me->trans_msg_ts = min(me->trans_msg_ts, e->recv_ts);
@@ -373,7 +377,7 @@ recv_finish(tw_pe *me, tw_event *e)
 		// event sends over the network.
 
 		cancel->state.cancel_q = 1;
-		cancel->state.hash_t = 0;
+		cancel->state.remote_fmt = 0;
 
 		tw_mutex_lock(&dest_pe->cancel_q_lck);
 		cancel->cancel_next = dest_pe->cancel_q;
@@ -381,7 +385,7 @@ recv_finish(tw_pe *me, tw_event *e)
 		tw_mutex_unlock(&dest_pe->cancel_q_lck);
 
 		e->event_id = e->state.cancel_q = 0;
-		e->state.hash_t = 0;
+		e->state.remote_fmt = 0;
 
 		tw_event_free(me, e);
 
@@ -391,7 +395,7 @@ recv_finish(tw_pe *me, tw_event *e)
 	tw_hash_insert(me->hash_t, e, e->send_pe);
 
 	memset(&e->state, 0, sizeof(e->state));
-	e->state.hash_t = 1;
+	e->state.remote_fmt = 1;
 
 	if (me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
 		/* Fast case, we are sending to our own PE and
@@ -452,14 +456,6 @@ send_begin(tw_pe *me)
 
 		e->send_pe = (tw_peid) g_tw_mynode;
 
-		// overloading caused_by_me pointer to mark the 
-		// event as white (1), or red (0)
-		if(!tw_gvt_inprogress(me))
-		{
-			e->color = 1;
-		} else
-			e->color = 0;
-
 #if 1
 		if (MPI_Isend(e,
 			EVENT_SIZE(e),
@@ -481,9 +477,6 @@ send_begin(tw_pe *me)
 		}
 #endif
 
-		if(e->color)
-			me->s_nwhite_sent++;
-
 		tw_eventq_pop(&outq);
 		e->state.owner = e->state.cancel_q
 			? TW_net_acancel
@@ -491,9 +484,13 @@ send_begin(tw_pe *me)
 
 		posted_sends.event_list[id] = e;
 		posted_sends.cur++;
+		me->s_nwhite_sent++;
 
 		changed = 1;
 	}
+
+	if(outq.size && !g_tw_mynode)
+		printf("outq: %ld\n", outq.size);
 	return changed;
 }
 
@@ -564,7 +561,16 @@ service_queues(tw_pe *me)
 void
 tw_net_read(tw_pe *me)
 {
+#if 1
+//ROSS_NET_aggressive
 	service_queues(me);
+#else
+	int changed;
+	do {
+		changed  = test_q(&posted_recvs, me, recv_finish);
+		changed |= recv_begin(me);
+	} while (changed);
+#endif
 }
 
 void
@@ -572,7 +578,7 @@ tw_net_send(tw_event *e)
 {
 	tw_pe * me = e->src_lp->pe;
 
-	e->state.hash_t = 0;
+	e->state.remote_fmt = 0;
 	e->state.owner = TW_net_outq;
 	tw_eventq_unshift(&outq, e);
 

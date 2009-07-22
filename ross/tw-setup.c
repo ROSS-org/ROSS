@@ -79,7 +79,6 @@ tw_init(int *argc, char ***argv)
 
 	tw_net_start();
 	tw_gvt_start();
-
 	//tw_register_signals();
 }
 
@@ -128,13 +127,7 @@ map(void)
 		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
 
 	g_tw_memory_nqueues *= 2;
-	g_tw_memory_sz = sizeof(tw_memory);
 	g_tw_lp_offset = g_tw_mynode * g_tw_nlp;
-
-#if VERIFY_MAPPING
-		printf("NODE %d: nlp %lld, offset %lld\n", 
-			g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
-#endif
 
 	for(kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); )
 	{
@@ -149,12 +142,14 @@ map(void)
 
 			tw_kp_onpe(kp, pe);
 
+#if 0
 			kp->queues = tw_calloc(TW_LOC, "KP queue",
 					sizeof(tw_memoryq),
 					g_tw_memory_nqueues);
 
 			for(j = 0; j < g_tw_memory_nqueues; j++)
 				kp->queues[j].size = -1;
+#endif
 
 #if VERIFY_MAPPING
 			printf("\t\tKP %d", kp->id);
@@ -168,7 +163,7 @@ map(void)
 #if VERIFY_MAPPING
 				if(0 == j % 20)
 					printf("\n\t\t\t");
-				printf("%lld ", lpid+g_tw_lp_offset);
+				printf("%d ", lpid);
 #endif
 			}
 
@@ -211,14 +206,10 @@ map(void)
 }
 
 void
-tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
+tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_lpid nrng)
 {
-	int	 i;
-
-	1 == tw_nnodes() ? g_tw_nlp = nlp * g_tw_npe : (g_tw_nlp = nlp);
+	g_tw_nlp = nlp;
 	g_tw_msg_sz = msg_sz;
-	g_tw_rng_seed = seed;
-
 	early_sanity_check();
 
 	/*
@@ -234,12 +225,13 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	 */
 	g_tw_lp = tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
 
-	map();
+	/* Setup our random number generators. */
+	if(nrng)
+		tw_rand_init(31, 41, NULL, nrng);
+	else
+		tw_rand_init(31, 41, NULL, 0);
 
-	// init LP RNG stream(s)
-	for(i = 0; i < g_tw_nlp; i++)
-		if(g_tw_rng_default == TW_TRUE)
-			tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
+	map();
 }
 
 static void
@@ -327,6 +319,8 @@ setup_pes(void)
 
 		tw_eventq_alloc(&pe->free_q, 1 + g_tw_events_per_pe);
 		pe->abort_event = tw_eventq_shift(&pe->free_q);
+
+		//g_tw_gvt_threshold = ceil(g_tw_events_per_pe / 10);
 	}
 
 	if(tw_node_eq(&g_tw_mynode, &g_tw_masternode))
@@ -356,9 +350,7 @@ setup_pes(void)
 		printf("\t%-50s %11s\n", "LP-to-PE Mapping", "model defined");
 		fprintf(g_tw_csv, "%s,", "model defined");
 #endif
-		printf("\n");
 
-#ifndef ROSS_DO_NOT_PRINT
 		printf("\nROSS Event Memory Allocation:\n");
 		printf("\t%-50s %11d\n", "Model events", 
 			g_tw_events_per_pe - g_tw_gvt_threshold);
@@ -371,8 +363,8 @@ setup_pes(void)
 		printf("\t%-50s %11d\n", "Total events", 
 			g_tw_events_per_pe);
 		fprintf(g_tw_csv, "%d,", g_tw_events_per_pe);
+
 		printf("\n");
-#endif
 	}
 
 	for(i = 1; i < g_tw_npe; i++)

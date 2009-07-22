@@ -211,7 +211,7 @@ show_help(void)
 					break;
 
 				case TWOPTTYPE_CHAR:
-					fprintf(stderr, " (default %s)", (char *) def->value);
+					fprintf(stderr, " (default %s)", *((char **)def->value));
 					break;
 
 				default:

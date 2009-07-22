@@ -82,10 +82,15 @@ tw_lp_onpe(tw_lpid id, tw_pe * pe, tw_lpid gid)
 	if(id >= g_tw_nlp)
 		tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
 
-	if(g_tw_lp[id])
-		tw_error(TW_LOC, "LP already allocated: %lld\n", id);
+	if(g_tw_lp[id] && g_tw_lp[id]->pe)
+		tw_error(TW_LOC, "refusing to move LP %u from PE %u to PE %u",
+			id, g_tw_lp[id]->pe->id, pe->id);
 
 	g_tw_lp[id] = tw_calloc(TW_LOC, "Local LP", sizeof(tw_lp), 1);
+
+	if(!tw_rand_configured())
+		g_tw_lp[id]->rng = tw_calloc(TW_LOC, "LP RNG", 
+					sizeof(tw_generator), g_tw_nRNG_per_lp);
 
 	g_tw_lp[id]->gid = gid;
 	g_tw_lp[id]->id = id;
@@ -104,26 +109,35 @@ tw_lp_onkp(tw_lp * lp, tw_kp * kp)
 void
 tw_init_lps(tw_pe * me)
 {
-	tw_lp *lp = NULL;
-	//tw_lp *prev_lp = NULL;
+	tw_lp *prev_lp = NULL;
 
 	tw_lpid i;
+	tw_lpid j;
 
-	for(i = 0; i < g_tw_nlp; i++)
+	for (i = 0; i < g_tw_nlp; i++)
 	{
-		lp = g_tw_lp[i];
+		tw_lp *lp = g_tw_lp[i];
 
 		if (lp->pe != me)
 			continue;
+
+		if(!tw_rand_configured())
+		{
+			for(j = 0; j < g_tw_nRNG_per_lp; j++)
+			{
+				//lp->rng[j].id = (lp->gid * g_tw_nRNG_per_lp) + j;
+				tw_rand_initial_seed(&lp->rng[j], ((lp->gid * g_tw_nRNG_per_lp) + j));
+			}
+		}
 
 #if 0
 		if (prev_lp)
 			prev_lp->pe_next = lp;
 		else
 			me->lp_list = lp;
+#endif
 
 		prev_lp = lp;
-#endif
 
 		/*
 		 * Allocate initial state vectors for this LP, and

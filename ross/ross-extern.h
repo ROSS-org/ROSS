@@ -1,8 +1,7 @@
 #ifndef INC_ross_extern_h
 #define	INC_ross_extern_h
 
-extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
-
+extern void print_outq(tw_pe * me);
 /*
  * tw-stats.c
  */
@@ -33,11 +32,8 @@ extern tw_lp	**g_tw_lp;
 extern tw_kp   *g_tw_kp;
 extern int      g_tw_sv_growcnt;
 extern int      g_tw_fossil_attempts;
-extern unsigned int	g_tw_nRNG_per_lp;
-extern tw_lpid		g_tw_rng_default;
-extern size_t		g_tw_rng_max;
-extern tw_seed		*g_tw_rng_seed;
-extern unsigned int	g_tw_mblock;
+extern unsigned int g_tw_nRNG_per_lp;
+extern unsigned int g_tw_mblock;
 extern tw_stime		g_tw_ts_end;
 extern unsigned int	g_tw_sim_started;
 extern unsigned int	g_tw_master;
@@ -95,7 +91,7 @@ INLINE(tw_event *)	 tw_event_new(tw_lpid, tw_stime, tw_lp *);
 /*
  * tw-lp.c
  */
-extern tw_lp		*tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
+//extern tw_lp		*tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
 extern void		 tw_lp_settype(tw_lpid lp, const tw_lptype * type);
 extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
 extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
@@ -108,7 +104,7 @@ INLINE(tw_stime)	 tw_now(tw_lp * lp);
  * tw-kp.c
  */
 extern void	 kp_fossil_remote(tw_kp * kp);
-extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
+//extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
 extern void	 tw_kp_onpe(tw_kp * kp, tw_pe * pe);
 extern void	 tw_init_kps(tw_pe * me);
 
@@ -136,8 +132,8 @@ extern void tw_pe_fossil_collect(tw_pe * me);
  * tw-setup.c
  */
 extern void tw_init(int *argc, char ***argv);
-extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed);
-extern void tw_run(void);
+extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_lpid nrng);
+extern  void     tw_run(void);
 
 /*
  * tw-sched.c
@@ -170,19 +166,18 @@ extern   double   tw_wall_to_double(tw_wtime * t);
  */
 extern tw_memoryq	*tw_memoryq_init();
 extern void tw_memoryq_splice(tw_memoryq *, tw_memory *, tw_memory *, int);
-extern tw_memory *tw_memoryq_pop(tw_memoryq * q);
-extern tw_memory *tw_memoryq_pop_list(tw_memoryq * q);
-extern void tw_memoryq_push_list(tw_memoryq *, tw_memory *, tw_memory *, int);
-extern void tw_memoryq_push(tw_memoryq * q, tw_memory * buf);
-extern void tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf);
+extern  tw_memory *tw_memoryq_pop(tw_memoryq * q);
+extern  tw_memory *tw_memoryq_pop_list(tw_memoryq * q);
+extern  void tw_memoryq_push_list(tw_memoryq *, tw_memory *, tw_memory *, int);
+extern  void tw_memoryq_push(tw_memoryq * q, tw_memory * buf);
+extern  void tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf);
 extern void tw_memoryq_debug(tw_memoryq * q);
-extern void tw_memoryq_fossil_collect(tw_memoryq * q, tw_lp * lp, tw_fd fd);
 
 /*
  * tw-memory.c
  */
 extern size_t tw_memory_getsize(tw_kp * kp, int fd);
-extern size_t tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t n_mem);
+extern unsigned int tw_memory_allocate(tw_memoryq * q, size_t buf_size, unsigned int);
 extern tw_memory *tw_memory_alloc(tw_lp *lp, tw_fd fd);
 extern void    tw_memory_free(tw_lp *lp, tw_memory *m, tw_fd fd);
 extern void    tw_memory_alloc_rc(tw_lp *lp, tw_memory *head, tw_fd fd);
@@ -206,7 +201,6 @@ extern void tw_printf(
 	int line,
 	const char *fmt,
 	...);
-extern void tw_exit(int rv);
 extern void tw_calloc_stats(size_t *alloc, size_t *waste);
 extern void* tw_calloc(
 	const char *file,

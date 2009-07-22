@@ -9,7 +9,7 @@ FWD(struct, tw_net_stats);
 FWD(struct, tw_net_node);
 
 // required to be defined by ROSS: index into tw_net_node array
-typedef unsigned int tw_eventid;
+typedef tw_lpid tw_eventid;
 typedef unsigned int tw_node;
 
 typedef struct sockaddr_in tw_socket;

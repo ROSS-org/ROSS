@@ -410,7 +410,7 @@ tw_socket_read_event(tw_pe * me)
 		cancel_event = tw_hash_remove(me->hash_t, recv_event, send_peid);
 		dest_pe = cancel_event->dest_lp->pe;
 		cancel_event->state.cancel_q = 1;
-		cancel_event->state.hash_t = 0;
+		cancel_event->state.remote_fmt = 0;
 
 		if(cancel_event == recv_event)
 			tw_error(TW_LOC, "cancel_event == recv_event!");
@@ -425,7 +425,7 @@ tw_socket_read_event(tw_pe * me)
 		tw_mutex_unlock(&dest_pe->cancel_q_lck);
 
 		recv_event->event_id = recv_event->state.cancel_q = 0;
-		recv_event->state.hash_t = 0;
+		recv_event->state.remote_fmt = 0;
 
 		tw_event_free(me, recv_event);
 
@@ -433,13 +433,13 @@ tw_socket_read_event(tw_pe * me)
 	}
 
 	recv_event->next = NULL;
-	//recv_event->lp_state = NULL;
+	recv_event->lp_state = NULL;
 	recv_event->cancel_next = NULL;
 	recv_event->caused_by_me = NULL;
 	recv_event->cause_next = NULL;
 
 	// signals for on-the-fly fossil collection
-	recv_event->state.hash_t = 1;
+	recv_event->state.remote_fmt = 1;
 
 	tw_hash_insert(me->hash_t, recv_event, send_peid);
 

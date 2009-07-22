@@ -49,7 +49,7 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
-static tw_stime gvt_print_interval = 1.0;
+static tw_stime gvt_print_interval = 0.05;
 static tw_stime percent_complete = 0.0;
 
 INLINE(int)
@@ -79,7 +79,7 @@ gvt_print(tw_stime gvt)
 	else
 		printf("GVT = %.4f", gvt);
 
-	printf(").\n");
+	printf("). (%d)\n", tw_net_nqueued());
 	percent_complete += gvt_print_interval;
 }
 

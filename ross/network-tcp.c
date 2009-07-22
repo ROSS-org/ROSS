@@ -217,7 +217,7 @@ tw_net_start(void)
 				init_socket(i, j++, temp_hostname, id);
 				g_tw_pe[i]->hash_t = tw_hash_create();
 				g_tw_pe[i]->seq_num = tw_calloc(TW_LOC, "seq_num",
-							sizeof(tw_eventid), nnet_nodes);
+							sizeof(unsigned int) * nnet_nodes, 1);
 			}
 
 			if(0 == g_tw_mynode)
@@ -652,14 +652,14 @@ tw_net_send(tw_event * event)
 	tw_peid		dest_peid = (*event->src_lp->type.map)
 						((tw_lpid) event->dest_lp);
 
-	event->state.hash_t = 0;
+	event->state.remote_fmt = 0;
 
 	// as long as this is not a cancellation, 
 	// enqueue into my PEs remote send queue
 	if(event->state.cancel_q == 0)
 	{
 		// configure event id and store in PE send event queue
-		event->event_id = ++src_pe->seq_num[dest_peid];
+		event->event_id = (tw_eventid) ++src_pe->seq_num[dest_peid];
 		event->state.owner = TW_net_asend;
 		tw_eventq_unshift(&event->src_lp->pe->sevent_q, event);
 	}

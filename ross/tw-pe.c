@@ -72,11 +72,6 @@ tw_pe_init(tw_peid id, tw_peid gid)
 		tw_error(TW_LOC, "PE %u already initialized", pe->id);
 
 	g_tw_pe[id] = pe;
-
-	if(g_tw_rng_default == TW_TRUE)
-		g_tw_rng_max = g_tw_nRNG_per_lp;
-
-	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 }
 
 void
@@ -89,11 +84,13 @@ tw_pe_fossil_collect(tw_pe * me)
 	//for (kp = me->kp_list; kp; kp = kp->next)
 	for(i = 0; i < g_tw_nkp; i++)
 	{
-		kp = &g_tw_kp[i];
+		kp = tw_getkp(i);
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
 
+#if 0
 		if(kp->queues)
 			tw_kp_fossil_memory(kp);
+#endif
 	}
 
 	tw_eventq_fossil_collect(&me->sevent_q, me);

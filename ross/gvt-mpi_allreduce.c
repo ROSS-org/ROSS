@@ -4,8 +4,8 @@
 #define TW_GVT_COMPUTE 1
 
 static tw_stat tot_mattern_nochange = 0;
-static unsigned int g_tw_gvt_max_nochange = 100;
-static unsigned int g_tw_gvt_nochange = 0;
+static unsigned int g_tw_gvt_max_no_change = 10000;
+static unsigned int g_tw_gvt_no_change = 0;
 static unsigned int mattern_nochange = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
@@ -38,6 +38,8 @@ tw_gvt_force_update(tw_pe *me)
 {
 	gvt_force++;
 	gvt_cnt = g_tw_gvt_interval;
+
+	tw_error(TW_LOC, "%d: forcing GVT\n", me->id);
 }
 
 void
@@ -80,7 +82,7 @@ tw_gvt_step2(tw_pe *me)
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
 
-while(mattern_nochange < g_tw_gvt_max_nochange)
+while(1)
 {
 	tw_net_read(me);
 	
@@ -124,17 +126,17 @@ while(mattern_nochange < g_tw_gvt_max_nochange)
 
 	if(gvt != me->GVT_prev)
 	{
-		g_tw_gvt_nochange = 0;
+		g_tw_gvt_no_change = 0;
 	} else
 	{
-		g_tw_gvt_nochange++;
-		if (g_tw_gvt_nochange >= g_tw_gvt_max_nochange) {
+		g_tw_gvt_no_change++;
+		if (g_tw_gvt_no_change >= g_tw_gvt_max_no_change) {
 			tw_error(
 				TW_LOC,
 				"GVT computed %d times in a row"
 				" without changing: GVT = %14.14lf, PREV %14.14lf"
 				" -- GLOBAL SYNCH -- out of memory!",
-				g_tw_gvt_nochange, gvt, me->GVT_prev);
+				g_tw_gvt_no_change, gvt, me->GVT_prev);
 		}
 	}
 

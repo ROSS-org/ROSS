@@ -106,8 +106,6 @@ tw_net_start(void)
 {
 	tw_peid pi;
 
-	g_tw_nlp *= g_tw_npe;
-
 	tw_pe_create(npe);
 	for (pi = 0; pi < g_tw_npe; pi++)
 		tw_pe_init(pi, pi);

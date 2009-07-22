@@ -1,4 +1,4 @@
-#include <ross.h>
+#include<ross.h>
 
 static void     rehash(tw_hash * hash_t, int pe);
 static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
@@ -8,12 +8,12 @@ static tw_event **allocate_table(int hash_size);
 static int hash_(tw_eventid event_id, int hash_size);
 static int      next_prime(int ptst);
 static int      is_prime(int ptst);
-tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
+//static tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
 
 void     hash_print(tw_hash * h);
 
 static unsigned int ncpu = 1;
-unsigned int g_tw_hash_size = 7;
+unsigned int g_tw_hash_size = 31;
 
 int
 hash_(tw_eventid event_id, int hash_size)
@@ -88,6 +88,7 @@ rehash(tw_hash * hash_t, int pe)
 	old_size = hash_t->hash_sizes[pe];
 
 	hash_t->num_stored[pe] = 0;
+	//hash_t->hash_sizes[pe] *= 2;
 	hash_t->hash_sizes[pe] = next_prime(hash_t->hash_sizes[pe]);
 	hash_t->incoming[pe] = allocate_table(hash_t->hash_sizes[pe]);
 
@@ -102,8 +103,6 @@ rehash(tw_hash * hash_t, int pe)
 
 	if(old_stored != hash_t->num_stored[pe])
 		tw_error(TW_LOC, "Did not rehash properly!");
-
-	//free(old_list);
 
 #if VERIFY_HASH_QUAD
 	printf("\nHASH TABLE RESIZED: old size = %d, new size = %d \n\n", old_size,

@@ -51,19 +51,33 @@
 /*
  * defines                                                             
  */
-#ifdef RAND_NORMAL
+static int model_configured = 0;
+
 tw_volatile double *g_tw_normal_u1;
 tw_volatile double *g_tw_normal_u2;
 tw_volatile int *g_tw_normal_flipflop;
-#endif
+
+int
+tw_rand_configured(void)
+{
+	return model_configured;
+}
 
 /*
  * tw_rand_init
  */
-tw_rng	*
-tw_rand_init(uint64_t v, uint64_t w)
+void
+tw_rand_init(uint64_t v, uint64_t w, long * sd, tw_lpid nrng)
 {
-	return rng_init(v, w);
+	long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
+
+	if(nrng)
+		model_configured = 1;
+
+	if(sd)
+		rng_init(v, w, sd, nrng);
+	else
+		rng_init(v, w, seed, nrng);
 }
 
 /*
@@ -73,7 +87,7 @@ tw_rand_init(uint64_t v, uint64_t w)
  */
 
 long 
-tw_rand_integer(tw_rng_stream * g, long low, long high)
+tw_rand_integer(tw_generator * g, long low, long high)
 {
 	if (high < low)
 		return (0);
@@ -82,7 +96,7 @@ tw_rand_integer(tw_rng_stream * g, long low, long high)
 }
 
 long 
-tw_rand_binomial(tw_rng_stream * g, long N, double P)
+tw_rand_binomial(tw_generator * g, long N, double P)
 {
 	long            sucesses, trials;
 
@@ -98,19 +112,19 @@ tw_rand_binomial(tw_rng_stream * g, long N, double P)
 }
 
 double 
-tw_rand_exponential(tw_rng_stream * g, double Lambda)
+tw_rand_exponential(tw_generator * g, double Lambda)
 {
 	return (-Lambda * log(tw_rand_unif(g)));
 }
 
 double 
-tw_rand_pareto(tw_rng_stream * g, double shape, double scale)
+tw_rand_pareto(tw_generator * g, double shape, double scale)
 {
   return( scale * 1.0/pow(tw_rand_unif(g), 1/shape) );
 }
 
 double 
-tw_rand_gamma(tw_rng_stream * g, double shape, double scale)
+tw_rand_gamma(tw_generator * g, double shape, double scale)
 {
 	double          a, b, q, phi, d;
 
@@ -170,7 +184,7 @@ tw_rand_gamma(tw_rng_stream * g, double shape, double scale)
 }
 
 long 
-tw_rand_geometric(tw_rng_stream * g, double P)
+tw_rand_geometric(tw_generator * g, double P)
 {
 	int             count = 1;
 
@@ -181,7 +195,7 @@ tw_rand_geometric(tw_rng_stream * g, double P)
 }
 
 double 
-tw_rand_normal01(tw_rng_stream * g)
+tw_rand_normal01(tw_generator * g)
 {
 #if !RAND_NORMAL
 	tw_error(TW_LOC, "Please compile using -DRAND_NORMAL!");
@@ -209,7 +223,7 @@ tw_rand_normal01(tw_rng_stream * g)
 
 /*
   double 
-  tw_rand_normal01(tw_rng_stream * g)
+  tw_rand_normal01(tw_generator * g)
   {
   static int      FlipFlop = 0;
   static double   u1, u2;
@@ -228,13 +242,13 @@ tw_rand_normal01(tw_rng_stream * g)
 */
 
 double 
-tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd)
+tw_rand_normal_sd(tw_generator * g, double Mu, double Sd)
 {
 	return (tw_rand_normal01(g) * Sd + Mu);
 }
 
 long 
-tw_rand_poisson(tw_rng_stream * g, double Lambda)
+tw_rand_poisson(tw_generator * g, double Lambda)
 {
 	double          a, b;
 	long            count;
@@ -255,7 +269,7 @@ tw_rand_poisson(tw_rng_stream * g, double Lambda)
 }
 
 double
-tw_rand_lognormal(tw_rng_stream * g, double mean, double sd)
+tw_rand_lognormal(tw_generator * g, double mean, double sd)
 {
   return (exp( mean + sd * tw_rand_normal01(g)));
 }

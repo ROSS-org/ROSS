@@ -54,22 +54,20 @@
 #define tw_rand_unif(G)			rng_gen_val(G)
 #define tw_rand_reverse_unif(G)	rng_gen_reverse_val(G)
 
-FWD(struct, tw_rng);
-FWD(struct, tw_rng_stream);
-
 /*
  * Public Function Prototypes
  */
-extern tw_rng	*tw_rand_init(uint64_t v, uint64_t w);
-extern void	tw_rand_initial_seed(tw_rng *, tw_rng_stream * g, tw_lpid id);
-extern long     tw_rand_integer(tw_rng_stream * g, long low, long high);
-extern long     tw_rand_binomial(tw_rng_stream * g, long N, double P);
-extern double   tw_rand_exponential(tw_rng_stream * g, double Lambda);
-extern double   tw_rand_pareto(tw_rng_stream * g, double scale, double shape);
-extern double   tw_rand_gamma(tw_rng_stream * g, double shape, double scale);
-extern long     tw_rand_geometric(tw_rng_stream * g, double P);
-extern double   tw_rand_normal01(tw_rng_stream * g);
-extern double   tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd);
-extern long     tw_rand_poisson(tw_rng_stream * g, double Lambda);
+
+extern int	tw_rand_configured(void);
+extern void	tw_rand_init(uint64_t v, uint64_t w, long *, tw_lpid);
+extern long     tw_rand_integer(tw_generator * g, long low, long high);
+extern long     tw_rand_binomial(tw_generator * g, long N, double P);
+extern double   tw_rand_exponential(tw_generator * g, double Lambda);
+extern double   tw_rand_pareto(tw_generator * g, double scale, double shape);
+extern double   tw_rand_gamma(tw_generator * g, double shape, double scale);
+extern long     tw_rand_geometric(tw_generator * g, double P);
+extern double   tw_rand_normal01(tw_generator * g);
+extern double   tw_rand_normal_sd(tw_generator * g, double Mu, double Sd);
+extern long     tw_rand_poisson(tw_generator * g, double Lambda);
 
 #endif

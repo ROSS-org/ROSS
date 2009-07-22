@@ -49,6 +49,8 @@
 #ifndef INC_ross_network_h
 #define INC_ross_network_h
 
+extern int tw_net_nqueued();
+
 /* Initalize the network library and parse options.
  *
  * argc and argv are pointers to the original command line; the

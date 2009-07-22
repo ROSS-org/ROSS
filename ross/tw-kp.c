@@ -172,7 +172,7 @@ tw_init_kps(tw_pe * me)
 tw_fd
 tw_kp_next_free_q(tw_kp * kp)
 {
-
+#if 0
 	unsigned int             i;
 
 	for (i = 0; i < g_tw_memory_nqueues; i++)
@@ -180,14 +180,14 @@ tw_kp_next_free_q(tw_kp * kp)
 			return i;
 
 	tw_error(TW_LOC, "No more free queues on kp %d \n", kp->id);
-
+#endif
 	return -1;
 }
 
 tw_fd
 tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
 {
-#
+#if 0
 	tw_memoryq	*q;
 
 	int             fd;
@@ -214,11 +214,14 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
 	q->head = q->tail = NULL;
 
 	return fd;
+#endif
+	return 0;
 }
 
 int
 tw_kp_fossil_memory(tw_kp * me)
 {
+#if 0
 	tw_memoryq	*q;
 
 	tw_memory      *b;
@@ -296,4 +299,6 @@ tw_kp_fossil_memory(tw_kp * me)
 	}
 
 	return rv;
+#endif
+	return 0;
 }
