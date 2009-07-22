@@ -47,11 +47,11 @@ tw_event_grab(tw_pe *pe)
 	{
 #ifndef ROSS_NETWORK_none
 		// have to reclaim non-cancelled remote events from hash table
-		if(e->event_id && e->state.remote_fmt)
+		if(e->event_id && e->state.remote)
 		{
 			tw_hash_remove(pe->hash_t, e, e->send_pe);
 
-			e->state.remote_fmt = 0;
+			e->state.remote = 0;
 			e->event_id = 0;
 		}
 		e->prev = e->next = NULL;
@@ -85,10 +85,10 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 	}
 
 #ifndef ROSS_NETWORK_none
-	if(e->event_id && e->state.remote_fmt)
+	if(e->event_id && e->state.remote)
 	{
 		tw_hash_remove(send_pe->hash_t, e, e->src_lp->pe->id);
-		e->state.remote_fmt = 0;
+		e->state.remote = 0;
 		e->event_id = 0;
 	}
 #endif

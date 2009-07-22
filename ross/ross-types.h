@@ -303,7 +303,7 @@ DEF(struct, tw_event)
 		BIT_GROUP_ITEM(cancel_asend, 1)
 
 		/* Indicates union addr is in 'remote' storage */
-		BIT_GROUP_ITEM(remote_fmt, 1)
+		BIT_GROUP_ITEM(remote, 1)
 		)
 	} state;
 
