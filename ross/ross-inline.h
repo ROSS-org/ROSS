@@ -48,16 +48,16 @@ tw_event_grab(tw_pe *pe)
 #ifndef ROSS_NETWORK_none
 		// have to reclaim non-cancelled remote events from hash table
 		if(e->event_id && e->state.remote)
-		{
 			tw_hash_remove(pe->hash_t, e, e->send_pe);
-
-			e->state.remote = 0;
-			e->event_id = 0;
-		}
-		e->prev = e->next = NULL;
 #endif
 
-		e->state.owner = 0;
+		e->cancel_next = NULL;
+		e->caused_by_me = NULL;
+		e->cause_next = NULL;
+		e->prev = e->next = NULL;
+
+		memset(&e->state, 0, sizeof(e->state));
+		memset(&e->event_id, 0, sizeof(e->event_id));
 	}
 
 	return e;
@@ -84,6 +84,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 			e = send_pe->abort_event;
 	}
 
+#if 0
 #ifndef ROSS_NETWORK_none
 	if(e->event_id && e->state.remote)
 	{
@@ -92,16 +93,11 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 		e->event_id = 0;
 	}
 #endif
-
-	e->cancel_next = NULL;
-	e->caused_by_me = NULL;
-	e->cause_next = NULL;
-	memset(&e->state, 0, sizeof(e->state));
+#endif
 
 	e->dest_lp = (tw_lp *) dest_gid;
 	e->src_lp = sender;
 	e->recv_ts = recv_ts;
-	e->prev = e->next = NULL;
 
 	return e;
 }

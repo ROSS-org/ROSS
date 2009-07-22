@@ -179,7 +179,7 @@ tw_hash_remove(void *h, tw_event * event, int pe)
 
 	hash_t->incoming[pe][key] = NULL;
 	(hash_t->num_stored[pe])--;
-
+	
 	return ret_event;
 }
 

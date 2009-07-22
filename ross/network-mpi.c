@@ -51,18 +51,21 @@
 
 struct act_q
 {
-	const char *name;
+	const char	 *name;
 
-	tw_event **event_list;
-	MPI_Request *req_list;
-	int *idx_list;
-	MPI_Status *status_list;
+	tw_event	**event_list;
+	char		**buffers;
+	MPI_Request	 *req_list;
+	int		 *idx_list;
+	MPI_Status	 *status_list;
 
-	unsigned int cur;
+	unsigned int	  cur;
 };
 
+#define BUFFER_SIZE 2000
 #define EVENT_TAG 1
-#define EVENT_SIZE(e) g_tw_event_msg_sz
+//#define EVENT_SIZE(e) g_tw_event_msg_sz
+#define EVENT_SIZE(e) BUFFER_SIZE
 #define STATS_TAG 2
 
 static struct act_q posted_sends;
@@ -112,6 +115,7 @@ tw_net_init(int *argc, char ***argv)
 static void
 init_q(struct act_q *q, const char *name)
 {
+	unsigned int i;
 	unsigned int n;
 
 	if(q == &posted_sends)
@@ -124,6 +128,10 @@ init_q(struct act_q *q, const char *name)
 	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
 	q->idx_list = tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+	q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
+
+	for(i = 0; i < n; i++)
+		q->buffers[i] = tw_calloc(TW_LOC, "", BUFFER_SIZE, 1);
 }
 
 unsigned int
@@ -201,9 +209,10 @@ static int
 test_q(
 	struct act_q *q,
 	tw_pe *me,
-	void (*finish)(tw_pe *, tw_event *))
+	void (*finish)(tw_pe *, tw_event *, char *))
 {
 	int ready, i, n;
+	char *tmp;
 
 	if (!q->cur)
 		return 0;
@@ -232,14 +241,22 @@ test_q(
 		e = q->event_list[n];
 		q->event_list[n] = NULL;
 
-		finish(me, e);
+		finish(me, e, q->buffers[n]);
 	}
 
 	/* Collapse the lists to remove any holes we left. */
 	for (i = 0, n = 0; i < q->cur; i++) {
 		if (q->event_list[i]) {
 			if (i != n) {
+				// swap the event pointers
 				q->event_list[n] = q->event_list[i];
+
+				// swap the buffers
+				tmp = q->buffers[n];
+				q->buffers[n] = q->buffers[i];
+				q->buffers[i] = tmp;
+
+				// copy the request handles
 				memcpy(
 					&q->req_list[n],
 					&q->req_list[i],
@@ -289,7 +306,8 @@ recv_begin(tw_pe *me)
 
 #if 1
 		if(!flag || 
-			MPI_Irecv(e,
+			//MPI_Irecv(e,
+			MPI_Irecv(posted_recvs.buffers[id],
 				EVENT_SIZE(e),
 				MPI_BYTE,
 				MPI_ANY_SOURCE,
@@ -322,15 +340,20 @@ recv_begin(tw_pe *me)
 }
 
 static void
-recv_finish(tw_pe *me, tw_event *e)
+recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
 	tw_pe	*dest_pe;
 
 	me->s_nrecv_network++;
 	me->s_nwhite_recv++;
 
-	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+	memcpy(e, buffer, g_tw_event_msg_sz);
+memset(buffer, 0, BUFFER_SIZE);
 
+if(!e->event_id)
+	tw_error(TW_LOC, "bad event recv!");
+
+	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 	dest_pe = e->dest_lp->pe;
 
 	if(e->send_pe > tw_nnodes()-1)
@@ -341,7 +364,8 @@ recv_finish(tw_pe *me, tw_event *e)
 	e->cause_next = NULL;
 
 	if(e->recv_ts < me->GVT)
-		tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
+		tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", 
+			 me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
 	if(tw_gvt_inprogress(me))
 		me->trans_msg_ts = min(me->trans_msg_ts, e->recv_ts);
@@ -365,8 +389,8 @@ recv_finish(tw_pe *me, tw_event *e)
 		dest_pe->cancel_q = cancel;
 		tw_mutex_unlock(&dest_pe->cancel_q_lck);
 
-		e->event_id = e->state.cancel_q = 0;
-		e->state.remote = 0;
+		//e->event_id = e->state.cancel_q = 0;
+		//e->state.remote = 0;
 
 		tw_event_free(me, e);
 
@@ -375,10 +399,10 @@ recv_finish(tw_pe *me, tw_event *e)
 
 	tw_hash_insert(me->hash_t, e, e->send_pe);
 
-	memset(&e->state, 0, sizeof(e->state));
+	//memset(&e->state, 0, sizeof(e->state));
 	e->state.remote = 1;
 
-	if (me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
+	if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
 		/* Fast case, we are sending to our own PE and
 		 * there is no rollback caused by this send.
 		 */
@@ -386,7 +410,7 @@ recv_finish(tw_pe *me, tw_event *e)
 		return;
 	}
 
-	if (tw_node_eq(&me->node, &dest_pe->node)) {
+	if(tw_node_eq(&me->node, &dest_pe->node)) {
 		/* Slower, but still local send, so put into top
 		 * of dest_pe->event_q. 
 		 */
@@ -418,10 +442,15 @@ send_begin(tw_pe *me)
 
 	while (posted_sends.cur < send_buffer)
 	{
-		unsigned id = posted_sends.cur;
 		tw_event *e = tw_eventq_peek(&outq);
+		tw_event *tmp_prev = NULL;
+		tw_lp *tmp_lp = NULL;
+		tw_node	*dest_node = NULL;
 
-		tw_node	*dest_node;
+		char *buffer = NULL;
+
+		unsigned position = 0;
+		unsigned id = posted_sends.cur;
 
 		if (!e)
 			break;
@@ -437,8 +466,24 @@ send_begin(tw_pe *me)
 
 		e->send_pe = (tw_peid) g_tw_mynode;
 
+		// pack pointers
+		tmp_prev = e->prev;
+		tmp_lp = e->src_lp;
+
+		// delete when working
+		e->src_lp = NULL;
+
+		buffer = posted_sends.buffers[id];
+		memcpy(&buffer[position], e, g_tw_event_msg_sz);
+		position += g_tw_event_msg_sz;
+
+		// restore pointers
+		e->prev = tmp_prev;
+		e->src_lp = tmp_lp;
+
 #if 1
-		if (MPI_Isend(e,
+		//if (MPI_Isend(e,
+		if (MPI_Isend(buffer,
 			EVENT_SIZE(e),
 			MPI_BYTE,
 			*dest_node,
@@ -473,7 +518,7 @@ send_begin(tw_pe *me)
 }
 
 static void
-send_finish(tw_pe *me, tw_event *e)
+send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
 	me->s_nsend_network++;
 
