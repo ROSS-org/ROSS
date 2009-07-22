@@ -1,5 +1,5 @@
-#ifndef INC_phold_h
-#define INC_phold_h
+#ifndef INC_mem_h
+#define INC_mem_h
 
 #include <ross.h>
 
@@ -9,8 +9,8 @@
 
 #define Q_SIZE 1000000
 
-FWD(struct, phold_state);
-FWD(struct, phold_message);
+FWD(struct, mem_state);
+FWD(struct, mem_message);
 FWD(struct, mem_statistics);
 FWD(struct, mem_packet);
 
@@ -30,13 +30,13 @@ DEF(struct, mem_statistics)
 	tw_stat s_mem_get_rc;
 };
 
-DEF(struct, phold_state)
+DEF(struct, mem_state)
 {
 	mem_statistics	 stats;
 	long int	 dummy_state;
 };
 
-DEF(struct, phold_message)
+DEF(struct, mem_message)
 {
 	long int	 dummy_data;
 };
@@ -55,7 +55,7 @@ static tw_stime mult = 1.4;
 static tw_stime percent_remote = 0.25;
 static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
-static int g_phold_start_events = 1;
+static int g_mem_start_events = 1;
 static int optimistic_memory = 100;
 
 // rate for timestamp exponential distribution
