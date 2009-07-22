@@ -48,18 +48,6 @@
 
 #include <ross.h>
 
-#if 0
-inline tw_kp *
-tw_kp_next_onpe(tw_kp * last, tw_pe * pe)
-{
-	if (!last)
-		return pe->kp_list;
-	if (!last->next || last->pe != pe)
-		return NULL;
-	return last->next;
-}
-#endif
-
 inline void
 tw_kp_onpe(tw_kp * kp, tw_pe * pe)
 {
@@ -154,13 +142,6 @@ tw_init_kps(tw_pe * me)
 		tw_kp *kp = &g_tw_kp[i];
 		if (kp->pe != me)
 			continue;
-
-#if 0
-		if (prev_kp)
-			prev_kp->next = kp;
-		else
-			me->kp_list = kp;
-#endif
 
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;

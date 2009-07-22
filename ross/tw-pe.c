@@ -86,7 +86,7 @@ tw_pe_fossil_collect(tw_pe * me)
 	int	 i;
 
 	g_tw_fossil_attempts++;
-	//for (kp = me->kp_list; kp; kp = kp->next)
+
 	for(i = 0; i < g_tw_nkp; i++)
 	{
 		kp = &g_tw_kp[i];

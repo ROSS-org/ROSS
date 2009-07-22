@@ -424,8 +424,6 @@ DEF(struct, tw_pe)
 	 * event_q_lck -- processor specific lock for this PE's event_q.
 	 * cancel_q_lck -- processor specific lock for this PE's cancel_q.
 	 * pq -- Priority queue used to sort events.
-	 * lp_list -- List of LPs this PE services.
-	 * kp_list -- List of KPs this PE services.
 	 * pe_next -- Single linked list of PE structs.
 	 * rollback_q -- List of KPs actively rolling back.
 	 */
@@ -434,8 +432,6 @@ DEF(struct, tw_pe)
 	tw_mutex event_q_lck;
 	tw_mutex cancel_q_lck;
 	tw_pq *pq;
-	//tw_lp *lp_list;
-	//tw_kp *kp_list;
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.

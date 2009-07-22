@@ -48,20 +48,6 @@
 
 #include <ross.h>
 
-#if 0
-tw_lp *
-tw_lp_next_onpe(tw_lp * last, tw_pe * pe)
-{
-	if (!last)
-		return pe->lp_list;
-
-	if (!last->pe_next || last->pe != pe)
-		return NULL;
-
-	return last->pe_next;
-}
-#endif
-
 void
 tw_lp_settype(tw_lpid id, const tw_lptype * type)
 {
@@ -104,26 +90,14 @@ tw_lp_onkp(tw_lp * lp, tw_kp * kp)
 void
 tw_init_lps(tw_pe * me)
 {
-	tw_lp *lp = NULL;
-	//tw_lp *prev_lp = NULL;
-
 	tw_lpid i;
 
 	for(i = 0; i < g_tw_nlp; i++)
 	{
-		lp = g_tw_lp[i];
+		tw_lp * lp = g_tw_lp[i];
 
 		if (lp->pe != me)
 			continue;
-
-#if 0
-		if (prev_lp)
-			prev_lp->pe_next = lp;
-		else
-			me->lp_list = lp;
-
-		prev_lp = lp;
-#endif
 
 		/*
 		 * Allocate initial state vectors for this LP, and
@@ -134,11 +108,6 @@ tw_init_lps(tw_pe * me)
 			tw_state_alloc(lp, 1);
 		else
 			tw_state_alloc(lp, g_tw_sv_growcnt + 1);
-
-/*
-		lp->cur_state = lp->state_qh;
-		lp->state_qh = lp->state_qh->next;
-*/
 
 		if (lp->type.init)
 		{
