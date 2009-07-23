@@ -33,6 +33,7 @@ mem_fill(tw_memory * m)
 
 	p = tw_memory_data(m);
 	strcpy(p->bytes, test_string);
+	p->bit = 1;
 }
 
 void
@@ -44,6 +45,8 @@ mem_verify(tw_memory * m)
 
 	if(0 != (strcmp(p->bytes, test_string)))
 		tw_error(TW_LOC, "String does not match: %s \n", p->bytes);
+
+	p->bit = 0;
 }
 
 tw_memory	*
