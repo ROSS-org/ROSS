@@ -1,7 +1,7 @@
 #include <epi.h>
 
 typedef double KEY_TYPE;
-#define KEY(e) (( (epi_agent *) e->data)->ts_next)
+#define KEY(e) (( ((epi_agent *) e)+1)->ts_next)
 
 FWD(struct, CHeap);
 

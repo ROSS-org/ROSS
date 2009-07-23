@@ -1,4 +1,4 @@
-LIBDIR	:= ~/work/projects/ross-4.0
+LIBDIR	:= ../../ross
 CFLAGS	:= -g -I.
 CC	:= $(shell $(LIBDIR)/ross-config --cc)
 OPTIONS	:= $(shell $(LIBDIR)/ross-config --cflags)

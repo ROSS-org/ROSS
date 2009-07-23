@@ -424,7 +424,7 @@ epi_init_agent(void)
 	g_epi_agents->d_size = sizeof(epi_agent);
 	g_epi_agents->grow = 1;
 
-	tw_memory_allocate(g_epi_agents, sizeof(tw_memory), g_epi_nagents);
+	tw_memory_allocate(g_epi_agents);
 
 	b = g_epi_agents->head;
 	while(EOF != (fscanf(f, "%d %d %d", &h, &o, &t)))
