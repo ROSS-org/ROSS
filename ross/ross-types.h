@@ -149,9 +149,10 @@ DEF(struct, tw_statistics)
 
 DEF(struct, tw_memoryq)
 {
-	int		 size;
-	unsigned int	 start_size;
-	unsigned int	 d_size;
+	size_t		 size;
+	size_t		 start_size;
+	size_t		 d_size;
+
 	tw_stime	 grow;
 
 	tw_memory	*head;
