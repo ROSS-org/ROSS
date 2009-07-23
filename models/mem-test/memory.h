@@ -7,7 +7,7 @@
 	 * Model Types
 	 */
 
-#define Q_SIZE 1000000
+#define Q_SIZE 1000
 
 FWD(struct, mem_state);
 FWD(struct, mem_message);
@@ -43,7 +43,6 @@ DEF(struct, mem_message)
 
 DEF(struct, mem_packet)
 {
-	int bit;
 	char bytes[512];
 };
 
@@ -53,7 +52,7 @@ DEF(struct, mem_packet)
 
 static unsigned int offset_lpid = 0;
 static tw_stime mult = 1.4;
-static tw_stime percent_remote = 1.25;
+static tw_stime percent_remote = 0.25;
 static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
 static int g_mem_start_events = 1;
@@ -64,7 +63,7 @@ static tw_stime mean = 1.0;
 
 static char run_id[1024] = "undefined";
 
-static unsigned int nbufs = 1;
+static unsigned int nbufs = 2;
 static mem_statistics g_stats;
 static char test_string [255] = "This is a test!";
 static tw_fd	my_fd;
