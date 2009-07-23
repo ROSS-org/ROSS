@@ -35,9 +35,6 @@ tw_memoryq_debug(tw_memoryq * q)
 	{
 		cnt++;
 
-		if(next->data != (void *)(((char *)next) + sizeof(tw_memory)))
-			tw_error(TW_LOC, "Bad data pointer!");
-
 		if(next->prev != last)
 			tw_error(TW_LOC, "Prev pointer not correct!");
 

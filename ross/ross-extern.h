@@ -182,7 +182,7 @@ extern void tw_memoryq_fossil_collect(tw_memoryq * q, tw_lp * lp, tw_fd fd);
  * tw-memory.c
  */
 extern size_t tw_memory_getsize(tw_kp * kp, int fd);
-extern size_t tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t n_mem);
+extern size_t tw_memory_allocate(tw_memoryq *);
 extern tw_memory *tw_memory_alloc(tw_lp *lp, tw_fd fd);
 extern void    tw_memory_free(tw_lp *lp, tw_memory *m, tw_fd fd);
 extern void    tw_memory_alloc_rc(tw_lp *lp, tw_memory *head, tw_fd fd);

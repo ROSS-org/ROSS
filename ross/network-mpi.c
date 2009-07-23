@@ -342,16 +342,22 @@ recv_begin(tw_pe *me)
 static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
-	tw_pe	*dest_pe;
+	tw_pe		*dest_pe;
+
+	tw_memory	*memory;
+	tw_memory	*last;
+
+	tw_fd		 mem_fd;
+
+	size_t		 mem_size;
+
+	unsigned	 position = 0;
 
 	me->s_nrecv_network++;
 	me->s_nwhite_recv++;
 
 	memcpy(e, buffer, g_tw_event_msg_sz);
-memset(buffer, 0, BUFFER_SIZE);
-
-if(!e->event_id)
-	tw_error(TW_LOC, "bad event recv!");
+	position += g_tw_event_msg_sz;
 
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 	dest_pe = e->dest_lp->pe;
@@ -398,9 +404,31 @@ if(!e->event_id)
 	}
 
 	tw_hash_insert(me->hash_t, e, e->send_pe);
-
-	//memset(&e->state, 0, sizeof(e->state));
 	e->state.remote = 1;
+
+	mem_size = (size_t) e->memory;
+	mem_fd = (tw_fd) e->prev;
+
+	last = NULL;
+	while(mem_size)
+	{
+		memory = tw_memory_alloc(e->dest_lp, mem_fd);
+
+		if(last)
+			last->next = memory;
+		else
+			e->memory = memory;
+
+		memcpy(memory, &buffer[position], mem_size);
+		position += mem_size;
+
+		memory->prev = (tw_memory *) mem_fd;
+
+		mem_size = (size_t) memory->next;
+		mem_fd = (tw_fd) memory->prev;
+
+		last = memory;
+	}
 
 	if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
 		/* Fast case, we are sending to our own PE and
@@ -444,10 +472,17 @@ send_begin(tw_pe *me)
 	{
 		tw_event *e = tw_eventq_peek(&outq);
 		tw_event *tmp_prev = NULL;
+
+		tw_kp *kp;
 		tw_lp *tmp_lp = NULL;
 		tw_node	*dest_node = NULL;
 
+		tw_memory *memory = NULL;
+		tw_memory *m = NULL;
+
 		char *buffer = NULL;
+
+		size_t mem_size = 0;
 
 		unsigned position = 0;
 		unsigned id = posted_sends.cur;
@@ -465,6 +500,7 @@ send_begin(tw_pe *me)
 			e->event_id = (tw_eventid) ++me->seq_num;
 
 		e->send_pe = (tw_peid) g_tw_mynode;
+		kp = e->src_lp->kp;
 
 		// pack pointers
 		tmp_prev = e->prev;
@@ -473,6 +509,15 @@ send_begin(tw_pe *me)
 		// delete when working
 		e->src_lp = NULL;
 
+		memory = NULL;
+		if(e->memory)
+		{
+			memory = e->memory;
+			e->memory = (tw_memory *) tw_memory_getsize(kp, (tw_fd) memory->prev);
+			e->prev = (tw_event *) memory->prev;
+			mem_size = (size_t) e->memory;
+		}
+
 		buffer = posted_sends.buffers[id];
 		memcpy(&buffer[position], e, g_tw_event_msg_sz);
 		position += g_tw_event_msg_sz;
@@ -480,6 +525,32 @@ send_begin(tw_pe *me)
 		// restore pointers
 		e->prev = tmp_prev;
 		e->src_lp = tmp_lp;
+
+		m = NULL;
+		while(memory)
+		{
+			m = memory->next;
+
+			if(m)
+			{
+				memory->next = (tw_memory *)
+						tw_memory_getsize(kp, (tw_fd) m->prev);
+				memory->prev = (tw_memory *) m->prev;
+			}
+
+			if(position + mem_size > BUFFER_SIZE)
+				tw_error(TW_LOC, "Out of buffer space!");
+
+			memcpy(&buffer[position], memory, mem_size);
+			position += mem_size;
+
+			tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
+
+			if(NULL != (memory = m))
+				mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
+		}
+
+		e->memory = NULL;
 
 #if 1
 		//if (MPI_Isend(e,

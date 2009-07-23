@@ -181,7 +181,7 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
 	q->d_size = d_sz;
 	q->grow = mult;
 
-	tw_memory_allocate(q, sizeof(tw_memory), q->start_size);
+	tw_memory_allocate(q);
 
 	kp->s_mem_buffers_used = 0;
 

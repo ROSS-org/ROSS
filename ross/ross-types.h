@@ -185,7 +185,6 @@ DEF(struct, tw_memory)
 	tw_stime         ts;
 
 	int		 bit;
-	void		*data;
 };
 
 DEF(struct, tw_eventq)

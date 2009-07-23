@@ -32,13 +32,12 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 
 	if(!q->size)
 	{
-#if 0
-		kp->s_mem_buffers_used += 
-			tw_memory_allocate(q, sizeof(tw_memory), fd);
+#if 1
+		kp->s_mem_buffers_used += tw_memory_allocate(q);
 #endif
 
-#if 0
-		printf("Allocating %ld bytes in memory fd: %lld \n", 
+#if 1
+		printf("Allocating %ld bytes in memory fd: %ld \n", 
 			((sizeof(tw_memory) + q->d_size) * q->start_size * q->grow), 
 			fd);
 #endif
@@ -78,7 +77,7 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	kp = lp->kp;
 
 	/* If seq sim, just reclaim buffer now. */
-	if(g_tw_npe == 1)
+	if((tw_nnodes() * g_tw_npe) == 1)
 		q = tw_kp_getqueue(kp, fd);
 	else
 		q = tw_kp_getqueue(kp, fd + 1);
@@ -142,30 +141,25 @@ tw_memory_getsize(tw_kp * kp, int fd)
 }
 
 size_t
-tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t cnt)
+tw_memory_allocate(tw_memoryq * q)
 {
 	tw_memory	*head;
 	tw_memory	*tail;
 
-	char           *d;
+	void           *d;
 	size_t		mem_sz;
 	size_t		mem_len;
 
-/*
-	size_t          multiple;
-	size_t		mod;
-*/
+	size_t          align;
 
-        mem_len = buf_size + q->d_size;
+	unsigned 	cnt;
 
-/*
-	mod = sizeof(int *);
-        if(mem_len % mod  != 0)
-        {
-                multiple = mem_len / mod;
-                mem_len = mod * (multiple+1);
-        }
-*/
+	align = max(sizeof(double), sizeof(void *));
+        mem_len = sizeof(tw_memory) + q->d_size;
+
+        if(mem_len & (align - 1))
+                mem_len += align - (mem_len & (align - 1));
+
 	mem_sz = mem_len * q->start_size * q->grow;
 
 	q->size += q->start_size * q->grow;
@@ -175,26 +169,20 @@ tw_memory_allocate(tw_memoryq * q, size_t buf_size, size_t cnt)
 	printf("Allocating %d bytes in memory subsystem...", mem_sz);
 #endif
 
-	d = tw_calloc(TW_LOC, "Memory Queue", mem_sz, 1);
+	d = head = tail = tw_calloc(TW_LOC, "Memory Queue", mem_sz, 1);
 
 	if (!d)
 		tw_error(TW_LOC, "\nCannot allocate %u events! \n", q->size);
-
-	head = tail = (tw_memory *) d;
 
 	cnt = q->size;
 	while (--cnt)
 	{
 		tail->next = (tw_memory *) (((char *)tail) + mem_len);
-		tail->data = (void *)(((char *)tail) + buf_size);
-
-		tail = tail->next;
 		tail->prev = (tw_memory *) (((char *)tail) - mem_len);
+		tail = tail->next;
 	}
 
-	tail->next = NULL;
-	tail->data = (void *)(((char *)tail) + buf_size);
-	head->prev = NULL;
+	head->prev = tail->next = NULL;
 
 	if(q->head == NULL)
 	{

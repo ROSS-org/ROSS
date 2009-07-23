@@ -58,6 +58,9 @@ tw_event_grab(tw_pe *pe)
 
 		memset(&e->state, 0, sizeof(e->state));
 		memset(&e->event_id, 0, sizeof(e->event_id));
+
+		if(e->memory)
+			tw_error(TW_LOC, "membuf remaining on event!");
 	}
 
 	return e;
@@ -84,17 +87,6 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 			e = send_pe->abort_event;
 	}
 
-#if 0
-#ifndef ROSS_NETWORK_none
-	if(e->event_id && e->state.remote)
-	{
-		tw_hash_remove(send_pe->hash_t, e, e->src_lp->pe->id);
-		e->state.remote = 0;
-		e->event_id = 0;
-	}
-#endif
-#endif
-
 	e->dest_lp = (tw_lp *) dest_gid;
 	e->src_lp = sender;
 	e->recv_ts = recv_ts;
@@ -105,7 +97,26 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 INLINE(void)
 tw_event_free(tw_pe *pe, tw_event *e)
 {
+	tw_memory	*next;
+	tw_memory	*m;
+
+	m = next = e->memory;
+
+	while(m)
+	{
+		next = m->next;
+
+		if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
+			tw_memory_free_single(e->src_lp->kp, m, (tw_fd) m->prev);
+		else
+			tw_memory_free_single(e->dest_lp->kp, m, (tw_fd) m->prev);
+
+		m = next;
+	}
+
 	e->state.owner = TW_pe_free_q;
+	e->memory = NULL;
+
 	tw_eventq_unshift(&pe->free_q, e);
 }
 
@@ -176,9 +187,9 @@ tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 }
 
 INLINE(void *)
-tw_memory_data(tw_memory * m)
+tw_memory_data(tw_memory * memory)
 {
-	return (void *)m->data;
+	return memory + 1;
 }
 
 INLINE(void *)
