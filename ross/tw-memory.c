@@ -160,9 +160,9 @@ tw_memory_allocate(tw_memoryq * q)
         if(mem_len & (align - 1))
                 mem_len += align - (mem_len & (align - 1));
 
-	mem_sz = mem_len * q->start_size * q->grow;
+	mem_sz = floor(mem_len * q->start_size * q->grow);
 
-	q->size += q->start_size * q->grow;
+	q->size += floor(q->start_size * q->grow);
 	q->grow *= q->grow;
 
 #if ROSS_VERIFY_MEMORY
