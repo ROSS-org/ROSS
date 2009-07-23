@@ -162,7 +162,7 @@ tw_memory_allocate(tw_memoryq * q)
 	mem_sz = mem_len * cnt;
 
 	q->size += cnt;
-	q->grow *= q->grow;
+	q->start_size += cnt;
 
 #if ROSS_VERIFY_MEMORY
 	printf("Allocating %d bytes in memory subsystem...", mem_sz);
