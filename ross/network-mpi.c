@@ -62,7 +62,7 @@ struct act_q
 	unsigned int	  cur;
 };
 
-#define BUFFER_SIZE 2000
+#define BUFFER_SIZE 500
 #define EVENT_TAG 1
 //#define EVENT_SIZE(e) g_tw_event_msg_sz
 #define EVENT_SIZE(e) BUFFER_SIZE

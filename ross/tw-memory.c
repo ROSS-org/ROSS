@@ -37,7 +37,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 		kp->s_mem_buffers_used += cnt;
 #endif
 
-#if 1
+#if 0
 		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
 #endif
 	}
@@ -158,11 +158,11 @@ tw_memory_allocate(tw_memoryq * q)
         if(mem_len & (align - 1))
                 mem_len += align - (mem_len & (align - 1));
 
-	cnt = align = floor(q->start_size * q->grow);
+	cnt = align = q->start_size + ceil(q->start_size * q->grow);
 	mem_sz = mem_len * cnt;
 
 	q->size += cnt;
-	q->start_size += cnt;
+	q->start_size += ceil(q->start_size * q->grow);
 
 #if ROSS_VERIFY_MEMORY
 	printf("Allocating %d bytes in memory subsystem...", mem_sz);
@@ -171,7 +171,9 @@ tw_memory_allocate(tw_memoryq * q)
 	d = head = tail = tw_calloc(TW_LOC, "Memory Queue", mem_sz, 1);
 
 	if (!d)
-		tw_error(TW_LOC, "\nCannot allocate %u events! \n", q->size);
+		tw_error(TW_LOC, "\nCannot allocate %u buffers! \n", q->size);
+	else
+		printf("Allocated %ld buffers\n", cnt);
 
 	while (--cnt)
 	{

@@ -175,14 +175,16 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
 	int             fd;
 
 	fd = tw_kp_next_free_q(kp);
+	kp->s_mem_buffers_used = 0;
 
 	q = tw_kp_getqueue(kp, fd);
 
+	q->size = 0;
 	q->start_size = n_mem;
 	q->d_size = d_sz;
 	q->grow = mult;
 
-	kp->s_mem_buffers_used = tw_memory_allocate(q);
+	tw_memory_allocate(q);
 
 	/*
 	 * setup the processed buffer queue for this memory init 
