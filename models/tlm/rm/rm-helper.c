@@ -134,7 +134,7 @@ printf("%ld: GETLOCATION: id %d\n", lp->gid, id);
 
 	if(rm_getcell(position) != lp->gid)
 	{
-		printf("%d %ld %ld %ld: (%lf, %lf, %lf (%lf)) gid: %ld != %ld\n", g_tw_mynode, lp->gid, lp->id, id, position[0], position[1], temp, position[2], lp->gid, rm_getcell(position));
+		printf("%d %lld %lld %lld: (%lf, %lf, %lf (%lf)) gid: %lld != %lld\n", g_tw_mynode, lp->gid, lp->id, id, position[0], position[1], temp, position[2], lp->gid, rm_getcell(position));
 
 		if(_rm_map(rm_getcell(position)) == g_tw_mynode)
 		{

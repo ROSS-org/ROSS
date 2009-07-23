@@ -1,10 +1,10 @@
-LIBDIR	:= ~/work/projects/ross-4.0
+LIBDIR	:= ../../../ross
 CC	:= $(shell $(LIBDIR)/ross-config --cc)
-AR	:= ar
-RANLIB	:= ranlib
-CFLAGS	:= -g -I. -std=c99
+CFLAGS	:= -g -Wall -I. -std=c99
 OPTIONS	:= $(shell $(LIBDIR)/ross-config --cflags)
 LDFLAGS	:= $(shell $(LIBDIR)/ross-config --ldflags)
+AR	:= ar
+RANLIB	:= ranlib
 
 -include config.mak
 

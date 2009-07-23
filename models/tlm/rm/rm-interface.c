@@ -84,7 +84,7 @@ rm_wave_initiate(double * position, double signal, tw_lp * lp)
 
 if(0 && gid > 10000499)
 {
-	printf("%d %d: (%lf, %lf, %lf) %lf\n", lp->gid, lp->id, 
+	printf("%lld %lld: (%lf, %lf, %lf) %lf\n", lp->gid, lp->id, 
 		position[0], position[1], position[2], rm_getelevation(position));
 	tw_error(TW_LOC, "here");
 }
@@ -141,11 +141,11 @@ rm_move(double range, double position[], double velocity[], tw_lp * lp)
 	if((x < 0 || x > g_rm_spatial_grid[0]) ||
 	   (y < 0 || y > g_rm_spatial_grid[1]))
 	{
-		printf("%ld: walked off grid! (%d, %d)\n", lp->id, x, y);
+		printf("%lld: walked off grid! (%d, %d)\n", lp->id, x, y);
 		return 0.0;
 	}
 
-	fprintf(g_rm_nodes_plt_f, "%ld %lf %lf %lf\n", lp->id, 
+	fprintf(g_rm_nodes_plt_f, "%lld %lf %lf %lf\n", lp->id, 
 		position[0], position[1], position[2]);
 
 #if RM_RANGE_PARTICLES

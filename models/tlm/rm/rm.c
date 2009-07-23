@@ -64,7 +64,7 @@ _rm_init(rm_state *state, tw_lp * lp)
 			n_z1 = rm_getelevation(np);
 if(0 && !g_tw_mynode)
 {
-	printf("%d: %d: (%lf, %lf, %lf)\n", lp->gid, i, np[0], np[1], np[2]);
+	printf("%lld: %d: (%lf, %lf, %lf)\n", lp->gid, i, np[0], np[1], np[2]);
 
 	if(lp->gid == 6)
 	{
