@@ -997,7 +997,7 @@ printf("Enter TWnpe, TWnkp, additional_memory_buffers \n" );
 
 			tw_lp_settype(x + (y * NUM_CELLS_X), &mylps[0]);
                         tw_lp_onkp(lp, kp);
-			tw_lp_onpe(lp, tw_getpe((xvp + (yvp * NUM_VP_X)) / vp_per_proc));
+			tw_lp_onpe(lp->id, tw_getpe((xvp + (yvp * NUM_VP_X)) / vp_per_proc), lp->gid);
 			tw_kp_onpe(kp, tw_getpe((xvp + (yvp * NUM_VP_X)) / vp_per_proc));
 		}
 	}
