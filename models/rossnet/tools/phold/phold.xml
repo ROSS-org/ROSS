@@ -1,0 +1,18 @@
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='0' type='c_router'>
+					<stream port='169'>
+						<layer name='phold' level='transport'/>
+					</stream>
+				</node>
+				<node id='1' links='0' type='c_router'>
+					<stream port='169'>
+						<layer name='phold' level='transport'/>
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+</rossnet>

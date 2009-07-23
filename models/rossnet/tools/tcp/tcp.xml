@@ -1,0 +1,46 @@
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='1' type='c_host'>
+					<link src='0' addr='1' bandwidth='1202000000' delay='1.0' status='up'/>
+
+					<stream port='169'>
+						<layer name='tcp' level='transport'>
+							<mss>4096</mss>
+							<recv_wnd>32</recv_wnd>
+						</layer>
+						<layer name='ip' level='network'/>
+					</stream>
+				</node>
+				<node id='1' links='2' type='c_router'>
+					<link src='1' addr='0' bandwidth='1202000000' delay='1.0' status='up'/>
+					<link src='1' addr='2' bandwidth='1202000000' delay='1.0' status='up'/>
+					<stream port='169'>
+						<layer name='ip' level='network'/>
+					</stream>
+				</node>
+				<node id='2' links='2' type='c_router'>
+					<link src='2' addr='1' bandwidth='1202000000' delay='1.0' status='up'/>
+					<link src='2' addr='3' bandwidth='1202000000' delay='1.0' status='up'/>
+					<stream port='169'>
+						<layer name='ip' level='network'/>
+					</stream>
+				</node>
+				<node id='3' links='1' type='c_host'>
+					<link src='3' addr='2' bandwidth='1202000000' delay='1.0' status='up'/>
+
+					<stream port='169'>
+						<layer name='tcp' level='transport'>
+							<mss>4096</mss>
+							<recv_wnd>32</recv_wnd>
+						</layer>
+						<layer name='ip' level='network'/>
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+
+	<connect src='0' dst='3'/>
+</rossnet>

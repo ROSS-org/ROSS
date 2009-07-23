@@ -1,0 +1,42 @@
+set terminal png transparent nocrop enhanced size 1200,800
+
+set out "~/public_html/rn/cumulative-distribution.png"
+
+set multiplot layout 3,1
+
+set title "Cumulative Distribution of Users to Access Networks Routers"
+
+set grid layerdefault linetype 0 linewidth 1.000, linetype 0 linewidth 1.000
+#set key bmargin center horizontal Left reverse enhanced autotitles columnhead box
+set nokey
+set style fill solid 1.0 border
+set data style lines
+
+set xlabel "# of Routers"
+#set xtics 10
+#set xrange [0:80]
+
+set ylabel "# of Users"
+#set ytics 20
+#set yrange [0:100]
+
+#
+# plot: CTR
+#
+set title "Access Network: Census Tract Routers"
+
+plot 'ct.dat' notitle lw 3
+
+#
+# plot: COR
+#
+set title "Access Network: Telecom Central Office Routers"
+
+plot 'co.dat' notitle lw 3
+
+#
+# plot: OGR
+#
+set title "Access Network: Office Gateway Routers"
+
+plot 'og.dat' notitle lw 3

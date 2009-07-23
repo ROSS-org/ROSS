@@ -1,0 +1,201 @@
+<!--
+		                    Total Hosts:	          0
+		                  Total Routers:	        226
+			                           Core:        107
+			                            PoP:        119
+
+
+		            Total Network Nodes:	        226
+		              Total Connections:	        147
+
+
+		          Most Connected Router:	         30
+		           Most Connected Links:	         19
+
+
+		                     Max Levels:	          7
+-->
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='2' type='c_router'>
+					<link src='0' addr='3' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='0' addr='6' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='0' addr='3' cost='10'/>
+							<interface src='0' addr='6' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='1' links='2' type='c_router'>
+					<link src='1' addr='6' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='1' addr='11' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='1' addr='6' cost='10'/>
+							<interface src='1' addr='11' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='2' links='2' type='c_router'>
+					<link src='2' addr='4' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='2' addr='5' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='2' addr='4' cost='10'/>
+							<interface src='2' addr='5' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='3' links='2' type='c_router'>
+					<link src='3' addr='0' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='3' addr='11' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='3' addr='0' cost='10'/>
+							<interface src='3' addr='11' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='4' links='2' type='c_router'>
+					<link src='4' addr='2' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='4' addr='7' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='4' addr='2' cost='10'/>
+							<interface src='4' addr='7' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='5' links='2' type='c_router'>
+					<link src='5' addr='2' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='5' addr='13' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='5' addr='2' cost='10'/>
+							<interface src='5' addr='13' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='6' links='2' type='c_router'>
+					<link src='6' addr='0' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='6' addr='1' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='6' addr='0' cost='10'/>
+							<interface src='6' addr='1' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='7' links='2' type='c_router'>
+					<link src='7' addr='4' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='7' addr='15' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='7' addr='4' cost='10'/>
+							<interface src='7' addr='15' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='8' links='2' type='c_router'>
+					<link src='8' addr='10' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='8' addr='11' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='8' addr='10' cost='10'/>
+							<interface src='8' addr='11' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='9' links='2' type='c_router'>
+					<link src='9' addr='10' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='9' addr='13' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='9' addr='10' cost='10'/>
+							<interface src='9' addr='13' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='10' links='2' type='c_router'>
+					<link src='10' addr='8' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='10' addr='9' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='10' addr='8' cost='10'/>
+							<interface src='10' addr='9' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='11' links='3' type='c_router'>
+					<link src='11' addr='1' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='11' addr='3' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='11' addr='8' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='11' addr='1' cost='10'/>
+							<interface src='11' addr='3' cost='10'/>
+							<interface src='11' addr='8' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='12' links='2' type='c_router'>
+					<link src='12' addr='14' bandwidth='45000000' delay='0.00150' status='up'/>
+					<link src='12' addr='13' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='12' addr='14' cost='10'/>
+							<interface src='12' addr='13' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='13' links='3' type='c_router'>
+					<link src='13' addr='5' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='13' addr='9' bandwidth='155000000' delay='0.00150' status='up'/>
+					<link src='13' addr='12' bandwidth='155000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='13' addr='5' cost='10'/>
+							<interface src='13' addr='9' cost='10'/>
+							<interface src='13' addr='12' cost='10'/>
+						</layer>
+					</stream>
+				</node>
+				<node id='14' links='1' type='c_router'>
+					<link src='14' addr='12' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='14' addr='12' cost='10'/>
+					</layer>
+					</stream>
+				</node>
+				<node id='15' links='1' type='c_router'>
+					<link src='15' addr='7' bandwidth='45000000' delay='0.00150' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='15' addr='7' cost='10'/>
+					</layer>
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+</rossnet>

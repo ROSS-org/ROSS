@@ -1,0 +1,322 @@
+bgp-rc-router.lo bgp-rc-router.o: bgp-rc-router.c bgp.h \
+  ../../../rossnet/rossnet.h /usr/include/sys/types.h \
+  /usr/include/features.h /usr/include/sys/cdefs.h \
+  /usr/include/gnu/stubs.h /usr/include/bits/types.h \
+  /usr/include/bits/wordsize.h \
+  /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h \
+  /usr/include/bits/typesizes.h /usr/include/time.h /usr/include/endian.h \
+  /usr/include/bits/endian.h /usr/include/sys/select.h \
+  /usr/include/bits/select.h /usr/include/bits/sigset.h \
+  /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
+  /usr/include/bits/pthreadtypes.h /usr/include/bits/sched.h \
+  /usr/include/sys/stat.h /usr/include/bits/stat.h /usr/include/fcntl.h \
+  /usr/include/bits/fcntl.h /usr/include/unistd.h \
+  /usr/include/bits/posix_opt.h /usr/include/bits/confname.h \
+  /usr/include/getopt.h /usr/local/include/libxml2/libxml/xpointer.h \
+  /usr/local/include/libxml2/libxml/tree.h /usr/include/stdio.h \
+  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/include/bits/wchar.h /usr/include/gconv.h \
+  /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stdarg.h \
+  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+  /usr/local/include/libxml2/libxml/xmlversion.h \
+  /usr/local/include/libxml2/libxml/xmlregexp.h \
+  /usr/local/include/libxml2/libxml/xmlmemory.h \
+  /usr/local/include/libxml2/libxml/threads.h \
+  /usr/local/include/libxml2/libxml/globals.h \
+  /usr/local/include/libxml2/libxml/parser.h \
+  /usr/local/include/libxml2/libxml/valid.h \
+  /usr/local/include/libxml2/libxml/list.h \
+  /usr/local/include/libxml2/libxml/xmlautomata.h \
+  /usr/local/include/libxml2/libxml/entities.h \
+  /usr/local/include/libxml2/libxml/encoding.h /usr/include/iconv.h \
+  /usr/local/include/libxml2/libxml/xmlIO.h \
+  /usr/local/include/libxml2/libxml/xmlerror.h \
+  /usr/local/include/libxml2/libxml/SAX.h /usr/include/stdlib.h \
+  /usr/include/alloca.h /usr/local/include/libxml2/libxml/xlink.h \
+  /usr/local/include/libxml2/libxml/xpath.h \
+  /usr/local/include/libxml2/libxml/hash.h \
+  /usr/local/include/libxml2/libxml/debugXML.h \
+  /usr/local/include/libxml2/libxml/parserInternals.h \
+  /usr/local/include/libxml2/libxml/HTMLparser.h \
+  /usr/local/include/libxml2/libxml/xpathInternals.h \
+  /u/bauerd/work/projects/ross/ross.h \
+  /u/bauerd/work/projects/ross/dsr_inlineopts.h \
+  /u/bauerd/work/projects/ross/ross_config.h /usr/include/errno.h \
+  /usr/include/bits/errno.h /usr/include/linux/errno.h \
+  /usr/include/asm/errno.h /usr/include/math.h \
+  /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h \
+  /usr/include/bits/mathcalls.h \
+  /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/limits.h \
+  /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/syslimits.h \
+  /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+  /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+  /usr/include/bits/posix2_lim.h /usr/include/string.h \
+  /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/float.h \
+  /usr/include/sys/time.h /u/bauerd/work/projects/ross/socket-tcp.h \
+  /usr/include/sys/socket.h /usr/include/sys/uio.h \
+  /usr/include/bits/uio.h /usr/include/bits/socket.h \
+  /usr/include/bits/sockaddr.h /usr/include/asm/socket.h \
+  /usr/include/asm/sockios.h /usr/include/netinet/in.h \
+  /usr/include/stdint.h /usr/include/bits/in.h \
+  /usr/include/bits/byteswap.h /usr/include/netdb.h \
+  /usr/include/rpc/netdb.h /usr/include/bits/netdb.h \
+  /usr/include/arpa/inet.h /u/bauerd/work/projects/ross/thread-pthread.h \
+  /usr/include/pthread.h /usr/include/sched.h /usr/include/signal.h \
+  /usr/include/bits/initspin.h /usr/include/bits/sigthread.h \
+  /u/bauerd/work/projects/ross/barrier-pthread.h \
+  /u/bauerd/work/projects/ross/clock-pentium.h \
+  /u/bauerd/work/projects/ross/tw-timing.h \
+  /u/bauerd/work/projects/ross/ross-types.h \
+  /u/bauerd/work/projects/ross/tw-rand.h \
+  /u/bauerd/work/projects/ross/rand-clcg4.h \
+  /u/bauerd/work/projects/ross/ross-extern.h \
+  /u/bauerd/work/projects/ross/network-tcp.h \
+  /u/bauerd/work/projects/ross/ross-inline.h \
+  /u/bauerd/work/projects/ross/tw-sched.h \
+  /u/bauerd/work/projects/ross/ross-rc-api.h \
+  ../../../rossnet/rossnet_config.h ../../../rossnet/rn-types.h \
+  ../../../rossnet/rn-extern.h bgp-types.h bgp-extern.h
+
+bgp.h:
+
+../../../rossnet/rossnet.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stddef.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/time.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/bits/sched.h:
+
+/usr/include/sys/stat.h:
+
+/usr/include/bits/stat.h:
+
+/usr/include/fcntl.h:
+
+/usr/include/bits/fcntl.h:
+
+/usr/include/unistd.h:
+
+/usr/include/bits/posix_opt.h:
+
+/usr/include/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/local/include/libxml2/libxml/xpointer.h:
+
+/usr/local/include/libxml2/libxml/tree.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/gconv.h:
+
+/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/local/include/libxml2/libxml/xmlversion.h:
+
+/usr/local/include/libxml2/libxml/xmlregexp.h:
+
+/usr/local/include/libxml2/libxml/xmlmemory.h:
+
+/usr/local/include/libxml2/libxml/threads.h:
+
+/usr/local/include/libxml2/libxml/globals.h:
+
+/usr/local/include/libxml2/libxml/parser.h:
+
+/usr/local/include/libxml2/libxml/valid.h:
+
+/usr/local/include/libxml2/libxml/list.h:
+
+/usr/local/include/libxml2/libxml/xmlautomata.h:
+
+/usr/local/include/libxml2/libxml/entities.h:
+
+/usr/local/include/libxml2/libxml/encoding.h:
+
+/usr/include/iconv.h:
+
+/usr/local/include/libxml2/libxml/xmlIO.h:
+
+/usr/local/include/libxml2/libxml/xmlerror.h:
+
+/usr/local/include/libxml2/libxml/SAX.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/alloca.h:
+
+/usr/local/include/libxml2/libxml/xlink.h:
+
+/usr/local/include/libxml2/libxml/xpath.h:
+
+/usr/local/include/libxml2/libxml/hash.h:
+
+/usr/local/include/libxml2/libxml/debugXML.h:
+
+/usr/local/include/libxml2/libxml/parserInternals.h:
+
+/usr/local/include/libxml2/libxml/HTMLparser.h:
+
+/usr/local/include/libxml2/libxml/xpathInternals.h:
+
+/u/bauerd/work/projects/ross/ross.h:
+
+/u/bauerd/work/projects/ross/dsr_inlineopts.h:
+
+/u/bauerd/work/projects/ross/ross_config.h:
+
+/usr/include/errno.h:
+
+/usr/include/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/asm/errno.h:
+
+/usr/include/math.h:
+
+/usr/include/bits/huge_val.h:
+
+/usr/include/bits/mathdef.h:
+
+/usr/include/bits/mathcalls.h:
+
+/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/limits.h:
+
+/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
+
+/usr/include/string.h:
+
+/usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include/float.h:
+
+/usr/include/sys/time.h:
+
+/u/bauerd/work/projects/ross/socket-tcp.h:
+
+/usr/include/sys/socket.h:
+
+/usr/include/sys/uio.h:
+
+/usr/include/bits/uio.h:
+
+/usr/include/bits/socket.h:
+
+/usr/include/bits/sockaddr.h:
+
+/usr/include/asm/socket.h:
+
+/usr/include/asm/sockios.h:
+
+/usr/include/netinet/in.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/in.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/netdb.h:
+
+/usr/include/rpc/netdb.h:
+
+/usr/include/bits/netdb.h:
+
+/usr/include/arpa/inet.h:
+
+/u/bauerd/work/projects/ross/thread-pthread.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/signal.h:
+
+/usr/include/bits/initspin.h:
+
+/usr/include/bits/sigthread.h:
+
+/u/bauerd/work/projects/ross/barrier-pthread.h:
+
+/u/bauerd/work/projects/ross/clock-pentium.h:
+
+/u/bauerd/work/projects/ross/tw-timing.h:
+
+/u/bauerd/work/projects/ross/ross-types.h:
+
+/u/bauerd/work/projects/ross/tw-rand.h:
+
+/u/bauerd/work/projects/ross/rand-clcg4.h:
+
+/u/bauerd/work/projects/ross/ross-extern.h:
+
+/u/bauerd/work/projects/ross/network-tcp.h:
+
+/u/bauerd/work/projects/ross/ross-inline.h:
+
+/u/bauerd/work/projects/ross/tw-sched.h:
+
+/u/bauerd/work/projects/ross/ross-rc-api.h:
+
+../../../rossnet/rossnet_config.h:
+
+../../../rossnet/rn-types.h:
+
+../../../rossnet/rn-extern.h:
+
+bgp-types.h:
+
+bgp-extern.h:

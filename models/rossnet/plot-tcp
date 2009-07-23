@@ -1,0 +1,25 @@
+set border 3
+set terminal png
+set size 1.5
+
+set autoscale
+set parametric
+set data style points
+
+set title "Server TCP Dump"
+set out "~/public_html/rn/server-tcpdump3.png"
+
+set xlabel "Time (seconds)"
+set ylabel "Number (bytes mod 60000)"
+
+plot "tcp.data" using ($1 == 0 && $2 < 378021 ? $2 : 1/0):3 title "SEQ Number", \
+     "tcp.data" using ($1 == 1 && $2 < 378021 ? $2 : 1/0):3 title "ACK Number"
+
+set out "~/public_html/rn/server-tcpdump4.png"
+plot "tcp.data" using ($1 == 0 && $2 < 378015 ? $2 : 1/0):3 title "SEQ Number", \
+     "tcp.data" using ($1 == 1 && $2 < 378015 ? $2 : 1/0):3 title "ACK Number"
+
+set out "~/public_html/rn/server-congestion-window3.png"
+set ylabel "CWND, RWND, SSTHRESH (bytes)"
+plot "tcp.data" using ($1 == 2 ? $2 : 1/0):3 title "cwnd", \
+     "tcp.data" using ($1 == 3 ? $2 : 1/0):3 title "rwnd"
