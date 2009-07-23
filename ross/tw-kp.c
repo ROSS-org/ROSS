@@ -139,10 +139,12 @@ tw_init_kps(tw_pe * me)
 
 	for (i = 0; i < g_tw_nkp; i++)
 	{
-		tw_kp *kp = &g_tw_kp[i];
+		tw_kp *kp = tw_getkp(i);
+
 		if (kp->pe != me)
 			continue;
 
+		kp->id = i;
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
@@ -168,7 +170,6 @@ tw_kp_next_free_q(tw_kp * kp)
 tw_fd
 tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
 {
-#
 	tw_memoryq	*q;
 
 	int             fd;
@@ -181,9 +182,7 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
 	q->d_size = d_sz;
 	q->grow = mult;
 
-	tw_memory_allocate(q);
-
-	kp->s_mem_buffers_used = 0;
+	kp->s_mem_buffers_used = tw_memory_allocate(q);
 
 	/*
 	 * setup the processed buffer queue for this memory init 
