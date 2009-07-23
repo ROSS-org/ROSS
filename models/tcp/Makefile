@@ -1,4 +1,4 @@
-CFLAGS = -g -I../../src -L../../lib
+CFLAGS = -g -I../../ross -L../../ross
 
 TCP_OBJECTS=\
 	tcp-main.o\
@@ -11,14 +11,10 @@ TCP_OBJECTS=\
 	tcp-router-rc.o \
 	tcp-util.o 
 
-all:	tcp-par\
-	tcp-seq
+all:	tcp
 
-tcp-par: $(TCP_MAIN_PAR) $(TCP_OBJECTS)
-	gcc $(CFLAGS) -o tcp-par $(TCP_OBJECTS) -lROSSpar -lpthread -lm 
-
-tcp-seq: $(TCP_MAIN_SEQ) $(TCP_OBJECTS)
-	gcc $(CFLAGS) -o tcp-seq $(TCP_OBJECTS) -lROSSseq -lpthread -lm 
+tcp: $(TCP_OBJECTS)
+	gcc $(CFLAGS) -o tcp $(TCP_OBJECTS) -lROSS -lpthread -lm 
 
 clean:
 	rm -f tcp*.o
