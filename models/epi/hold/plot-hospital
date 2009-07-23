@@ -1,0 +1,35 @@
+set terminal png transparent nocrop enhanced size 1200,800
+set output 'hospital20.png'
+
+set multiplot layout 2,1
+set grid layerdefault
+
+set boxwidth 0.5 absolute
+
+set style fill solid 0.5 border -1
+set style histogram rows 
+
+# NO TITLE
+#set title "EPI Model: Common Influenza, Chicago \nGlobal Medical Reports\nbeta = 3e-5, Pop 10K\nTotal Infections: "
+
+set xlabel "Day"
+set ylabel "Number Symptomatic"
+set yrange [0:500]
+set xtics 1 rotate 4
+set xrange [1.3:88]
+
+set nokey
+plot "hospital.log" using 3 with hist lt -1 title "Infectious", \
+	'' u 4 with hist title "Worried Well"
+#	'' u 5 with hist title "Working Sick"
+
+set key outside right top Left reverse enhanced autotitles nobox
+set key bmargin center horizontal samplen 4 spacing 1 width 0 height 0 
+
+plot "hospital-ww.log" using 3 with hist lt -1 title "Actual Infection", \
+	'' u 4 with hist title "Worried Well"
+#	'' u 5 with hist title "Working Sick"
+
+#set output 'hospital16.png'
+#set title "EPI Model: Common Influenza, Chicago \nGlobal Medical Reports\nbeta = 1e-7, Pop 9.3M\nTotal Infections: 18914"
+#plot "hospital-full.log" using 1:3 with boxes lt -1 notitle

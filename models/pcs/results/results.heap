@@ -1,0 +1,69 @@
+ba1 pcs > ./pcs-par
+Enter TWnpe, g_tw_ts_end, g_tw_gvt_interval, g_tw_mblock, TWnkp, additional_memory_buffers 
+4 2000 16 16 64 1024
+Running simulation with following configuration: 
+    Processors Used = 4
+    KPs Used = 64
+    LPs Used = 262144
+    End Time = 2000.000000 
+    Buffers Allocated Per PE = 1049600
+    Gvt Interval = 16
+    Message Block Size (i.e., Batch) = 16
+
+
+rng_init: setting up 262144 Generators (1 for each LP) 
+MOVE CALL MEAN   = 4500.000000
+NEXT CALL MEAN   = 360.000000
+CALL TIME MEAN   = 180.000000
+NUM CELLS X      = 512
+NUM CELLS Y      = 512
+Initialized Heap. Allocated 8396800 bytes
+tw_event_alloc: allocating 117555200 bytes for Event Msgs 
+Initialized Heap. Allocated 8396800 bytes
+tw_event_alloc: allocating 117555200 bytes for Event Msgs 
+Initialized Heap. Allocated 8396800 bytes
+tw_event_alloc: allocating 117555200 bytes for Event Msgs 
+Initialized Heap. Allocated 8396800 bytes
+tw_event_alloc: allocating 117555200 bytes for Event Msgs 
+
+*** START SIMULATION ***
+*** END SIMULATION ***
+
+Collecting ROSS stats:
+	PE 0: Run Time = 232.170529 
+
+	PE 1: Run Time = 232.176609 
+
+	PE 2: Run Time = 232.129922 
+
+	PE 3: Run Time = 232.170536 
+
+TW Library Statistics:
+	Total Events Processed              31722159
+	Events Aborted (part of RBs)               0
+	Events Rolled Back                      8454
+	Net Events Processed                31713705
+	Remote Events Sent                      2611
+
+	Total Roll Backs                        1125
+	Primary Roll Backs                      1121
+	Secondary Roll Backs                       4
+	Fossil Collect Attempts               123949
+
+	Event Rate                         136596.60 (event/sec)
+
+	Total Execution Time                  232.17 (secs)
+
+DSR sizes in bytes (sizeof): 
+	PE struct 	 156 
+	LP struct 	 60 
+	Msg struct 	 36 
+
+Call Attempts......................................23962878
+Channel Blocks.....................................133248
+Busy Lines.........................................7922360
+Handoff Blocks.....................................7541
+Portables In.......................................4194304
+Portables Out......................................0
+Blocking Probability...............................0.008777
+

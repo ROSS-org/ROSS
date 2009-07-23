@@ -1,0 +1,1 @@
+CC=/usr/local/mpich2-1.1.0a1/bin/mpicc CFLAGS=-g -I. -std=c99 OPTIONS=-DROSS_MAPPING_linear -DROSS_QUEUE_heap -DROSS_RAND_clcg4 -DROSS_NETWORK_mpi -DROSS_CLOCK_none -DROSS_THREAD_none -DROSS_GVT_mpi_allreduce -DROSS_NET_conservative -DROSS_RAND_clcg4 -DARCH_  -I/home/bauerd/work/projects/ross-4.0 

@@ -1,0 +1,12 @@
+Add infectivity to locations (based on ncontagious)
+
+Lower infectivity rate dramatically (watch round-off)
+
+Factor location populatiom into transition computation
+
+R_t = number exposed / number infected_t-1 * D where D = average infection duration (3.5)
+
+number of newly exposed for day t
+number of total infected people on day t-1
+
+have different R_0 by type

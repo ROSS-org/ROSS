@@ -1,0 +1,39 @@
+Collecting ROSS stats:
+	PE 0: Run Time = 5.315357 
+
+TW Library Statistics:
+	Total Events Processed                                     314
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Efficiency                                              100.00 %
+	Total Remote (non-network) Events Processed                  0
+	Percent Remote Events                                     0.00 %
+	Total Remote Network Events Processed                        0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+
+	Net Events Processed                                       314 *
+	Event Rate                                             59.0741 (event/sec)
+
+TW Event Statistics:
+	Total Events Allocated by Model                             12
+
+TW Memory Statistics:
+	Addit'l Buffers Allocated                                    0
+
+TW Data Structure sizes in bytes (sizeof): 
+	PE struct                                                  368
+	KP struct                                                   96
+	LP struct                                                  136
+
+	Event struct                                               128
+	Event Message struct                                        24
+	Application Message Data                                     0
+	Total Event Size                                           152
+
+TW GVT Statistics:
+	Total GVT Computations                                       0

@@ -1,0 +1,6 @@
+tcp dml time configfile
+tcp simple time configfile
+tcp rockfuel time load/build rock.config routing_table_file
+
+in simple g_type -1 means load from router_table.data, other wise easy 
+inferible network structure.

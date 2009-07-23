@@ -1,0 +1,312 @@
+
+Epi User Specified Input Parameters: 
+
+	Probability Agents are Sick                         0.001000
+	Hospital File                                      hospital-full.log
+
+EPI Disease Stage Initialization: ic.txt
+
+	Stage 1: Incubating
+		Min Duration                                    1.00
+		Max Duration                                    5.00
+		LN Mult                                       0
+
+	Stage 2: Symptomatic
+		Min Duration                                    2.00
+		Max Duration                                    5.00
+		Start Mult                               0.000000100
+		Stop Mult                                0.000000100
+		LN Mult                                       -1e-07
+
+	Stage 3: Recovered
+		Min Duration                                 1000.00
+		Max Duration                                 1000.00
+		LN Mult                                       0
+
+
+EPI Agent Initialization: homes.dat
+
+	Max Location                                         3363605
+
+*** START SEQUENTIAL SIMULATION ***
+0.1 complete...
+0.2 complete...
+0.3 complete...
+Collecting ROSS stats:
+	PE 0: Run Time = 20250.780246 
+
+TW Library Statistics:
+	Total Events Processed                              1953266848
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Efficiency                                              100.00 %
+	Total Remote (non-network) Events Processed                  0
+	Percent Remote Events                                     0.00 %
+	Total Remote Network Events Processed                        0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+
+	Net Events Processed                                1953266848 *
+	Event Rate                                          96453.9057 (event/sec)
+
+TW Event Statistics:
+	Total Events Allocated by Model                       13454420
+
+TW Memory Statistics:
+	Addit'l Buffers Allocated                                    0
+
+TW Data Structure sizes in bytes (sizeof): 
+	PE struct                                                  368
+	KP struct                                                   96
+	LP struct                                                  136
+
+	Event struct                                               128
+	Event Message struct                                        24
+	Application Message Data                                     0
+	Total Event Size                                           152
+
+TW GVT Statistics:
+	Total GVT Computations                                       0
+Thread 47138073460112:
+tw-signal.c:103: Caught SIGINT.  Terminating.
+
+Epi User Specified Input Parameters: 
+
+	Probability Agents are Sick                         0.001000
+	Hospital File                                      hospital-full.log
+
+EPI Disease Stage Initialization: ic.txt
+
+	Stage 1: Incubating
+		Min Duration                                    1.00
+		Max Duration                                    5.00
+		LN Mult                                       0
+
+	Stage 2: Symptomatic
+		Min Duration                                    2.00
+		Max Duration                                    5.00
+		Start Mult                               0.000000001
+		Stop Mult                                0.000000001
+		LN Mult                                       -1e-09
+
+	Stage 3: Recovered
+		Min Duration                                 1000.00
+		Max Duration                                 1000.00
+		LN Mult                                       0
+
+
+EPI Agent Initialization: homes.dat
+
+	Max Location                                         3363605
+
+*** START SEQUENTIAL SIMULATION ***
+*** END SIMULATION ***
+
+Collecting ROSS stats:
+	PE 0: Run Time = 1912.006593 
+
+TW Library Statistics:
+	Total Events Processed                               546086269
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Efficiency                                              100.00 %
+	Total Remote (non-network) Events Processed                  0
+	Percent Remote Events                                     0.00 %
+	Total Remote Network Events Processed                        0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+
+	Net Events Processed                                 546086269 *
+	Event Rate                                         285608.9885 (event/sec)
+
+TW Event Statistics:
+	Total Events Allocated by Model                       13454420
+
+TW Memory Statistics:
+	Addit'l Buffers Allocated                                    0
+
+TW Data Structure sizes in bytes (sizeof): 
+	PE struct                                                  368
+	KP struct                                                   96
+	LP struct                                                  136
+
+	Event struct                                               128
+	Event Message struct                                        24
+	Application Message Data                                     0
+	Total Event Size                                           152
+
+TW GVT Statistics:
+	Total GVT Computations                                       0
+
+EPI Statistics: 
+	Initial Infection Probability                      0.0010000000
+	Initial Infection Population                              9372
+	Ttl Number of Infected Agents                            18914
+	Ttl Number of Dead Agents                                    0
+
+
+Epi User Specified Input Parameters: 
+
+	Probability Agents are Sick                         0.001000
+	Hospital File                                      hospital-full.log
+
+EPI Disease Stage Initialization: ic.txt
+
+	Stage 1: Incubating
+		Min Duration                                    1.00
+		Max Duration                                    5.00
+		LN Mult                                       0
+
+	Stage 2: Symptomatic
+		Min Duration                                    2.00
+		Max Duration                                    5.00
+		Start Mult                               0.000000100
+		Stop Mult                                0.000000100
+		LN Mult                                       -1e-07
+
+	Stage 3: Recovered
+		Min Duration                                 1000.00
+		Max Duration                                 1000.00
+		LN Mult                                       0
+
+
+EPI Agent Initialization: homes.dat
+
+	Max Location                                           14334
+
+*** START SEQUENTIAL SIMULATION ***
+*** END SIMULATION ***
+
+Collecting ROSS stats:
+	PE 0: Run Time = 0.464237 
+
+TW Library Statistics:
+	Total Events Processed                                  273490
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Efficiency                                              100.00 %
+	Total Remote (non-network) Events Processed                  0
+	Percent Remote Events                                     0.00 %
+	Total Remote Network Events Processed                        0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+
+	Net Events Processed                                    273490 *
+	Event Rate                                         589117.1966 (event/sec)
+
+TW Event Statistics:
+	Total Events Allocated by Model                          57336
+
+TW Memory Statistics:
+	Addit'l Buffers Allocated                                    0
+
+TW Data Structure sizes in bytes (sizeof): 
+	PE struct                                                  368
+	KP struct                                                   96
+	LP struct                                                  136
+
+	Event struct                                               128
+	Event Message struct                                        24
+	Application Message Data                                     0
+	Total Event Size                                           152
+
+TW GVT Statistics:
+	Total GVT Computations                                       0
+
+EPI Statistics: 
+	Initial Infection Probability                      0.0010000000
+	Initial Infection Population                                 8
+	Ttl Number of Infected Agents                               16
+	Ttl Number of Dead Agents                                    0
+
+Epi User Specified Input Parameters: 
+
+	Probability Agents are Sick                         0.001000
+	Hospital File                                      hospital-full.log
+
+EPI Disease Stage Initialization: ic.txt
+
+	Stage 1: Incubating
+		Min Duration                                    1.00
+		Max Duration                                    5.00
+		LN Mult                                       0
+
+	Stage 2: Symptomatic
+		Min Duration                                    2.00
+		Max Duration                                    5.00
+		Start Mult                               0.000000100
+		Stop Mult                                0.000000100
+		LN Mult                                       -1e-07
+
+	Stage 3: Recovered
+		Min Duration                                 1000.00
+		Max Duration                                 1000.00
+		LN Mult                                       0
+
+
+EPI Agent Initialization: homes.dat
+
+	Max Location                                         3363605
+
+*** START SEQUENTIAL SIMULATION ***
+0.1 complete...
+*** END SIMULATION ***
+
+Collecting ROSS stats:
+	PE 0: Run Time = 2043.987810 
+
+TW Library Statistics:
+	Total Events Processed                               576943517
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Efficiency                                              100.00 %
+	Total Remote (non-network) Events Processed                  0
+	Percent Remote Events                                     0.00 %
+	Total Remote Network Events Processed                        0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+
+	Net Events Processed                                 576943517 *
+	Event Rate                                         282263.6780 (event/sec)
+
+TW Event Statistics:
+	Total Events Allocated by Model                       13454420
+
+TW Memory Statistics:
+	Addit'l Buffers Allocated                                    0
+
+TW Data Structure sizes in bytes (sizeof): 
+	PE struct                                                  368
+	KP struct                                                   96
+	LP struct                                                  136
+
+	Event struct                                               128
+	Event Message struct                                        24
+	Application Message Data                                     0
+	Total Event Size                                           152
+
+TW GVT Statistics:
+	Total GVT Computations                                       0
+
+EPI Statistics: 
+	Initial Infection Probability                      0.0010000000
+	Initial Infection Population                              9372
+	Ttl Number of Infected Agents                            19098
+	Ttl Number of Dead Agents                                    0
+

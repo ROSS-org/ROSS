@@ -11,8 +11,10 @@ phold_init(phold_state * s, tw_lp * lp)
 {
 	int              i;
 
+#if 0
 	if(g_tw_rng_default == TW_FALSE)
 		tw_rand_init_streams(lp, 1);
+#endif
 
 	for (i = 0; i < g_phold_start_events; i++)
 	{
@@ -99,11 +101,10 @@ main(int argc, char **argv, char **env)
 	ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
 	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
 				optimistic_memory;
-	g_tw_rng_default = TW_FALSE;
+	//g_tw_rng_default = TW_FALSE;
 
 	tw_define_lps(nlp_per_pe, sizeof(phold_message), 0);
 
-	// use g_tw_nlp now
 	for(i = 0; i < g_tw_nlp; i++)
 		tw_lp_settype(i, &mylps[0]);
 
