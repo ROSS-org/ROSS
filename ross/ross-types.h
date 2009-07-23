@@ -152,7 +152,7 @@ DEF(struct, tw_memoryq)
 	int		 size;
 	unsigned int	 start_size;
 	unsigned int	 d_size;
-	unsigned int	 grow;
+	tw_stime	 grow;
 
 	tw_memory	*head;
 	tw_memory	*tail;

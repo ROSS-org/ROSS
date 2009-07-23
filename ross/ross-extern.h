@@ -117,7 +117,7 @@ extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
 extern int	 tw_kp_fossil_memory(tw_kp * me);
 extern tw_fd	 tw_kp_next_free_q(tw_kp * kp);
 extern tw_fd	 tw_kp_memory_init(tw_kp * kp, size_t n_mem, 
-					size_t d_sz, size_t mult);
+					size_t d_sz, tw_stime mult);
 
 INLINE(tw_kp *)		 tw_getkp(tw_kpid kp);
 INLINE(tw_memoryq *)	 tw_kp_getqueue(tw_kp * kp, tw_fd fd);

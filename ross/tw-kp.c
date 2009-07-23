@@ -166,7 +166,7 @@ tw_kp_next_free_q(tw_kp * kp)
 }
 
 tw_fd
-tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, size_t mult)
+tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
 {
 #
 	tw_memoryq	*q;

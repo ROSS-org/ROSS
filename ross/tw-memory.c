@@ -33,13 +33,12 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 	if(!q->size)
 	{
 #if 1
-		kp->s_mem_buffers_used += tw_memory_allocate(q);
+		int cnt = tw_memory_allocate(q);
+		kp->s_mem_buffers_used += cnt;
 #endif
 
 #if 1
-		printf("Allocating %ld bytes in memory fd: %ld \n", 
-			((sizeof(tw_memory) + q->d_size) * q->start_size * q->grow), 
-			fd);
+		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
 #endif
 	}
 
@@ -151,18 +150,18 @@ tw_memory_allocate(tw_memoryq * q)
 	size_t		mem_len;
 
 	size_t          align;
-
-	unsigned 	cnt;
-
+	size_t		cnt;
+	
 	align = max(sizeof(double), sizeof(void *));
         mem_len = sizeof(tw_memory) + q->d_size;
 
         if(mem_len & (align - 1))
                 mem_len += align - (mem_len & (align - 1));
 
-	mem_sz = floor(mem_len * q->start_size * q->grow);
+	cnt = align = floor(q->start_size * q->grow);
+	mem_sz = mem_len * cnt;
 
-	q->size += floor(q->start_size * q->grow);
+	q->size += cnt;
 	q->grow *= q->grow;
 
 #if ROSS_VERIFY_MEMORY
@@ -174,7 +173,6 @@ tw_memory_allocate(tw_memoryq * q)
 	if (!d)
 		tw_error(TW_LOC, "\nCannot allocate %u events! \n", q->size);
 
-	cnt = q->size;
 	while (--cnt)
 	{
 		tail->next = (tw_memory *) (((char *)tail) + mem_len);
@@ -199,5 +197,5 @@ tw_memory_allocate(tw_memoryq * q)
 	printf("successful! \n");
 #endif
 
-	return q->start_size * q->grow;
+	return align;
 }
