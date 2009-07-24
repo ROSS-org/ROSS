@@ -61,7 +61,8 @@ tw_event_grab(tw_pe *pe)
 
 		if(e->memory)
 			tw_error(TW_LOC, "membuf remaining on event!");
-	}
+	} else
+		e = pe->abort_event;
 
 	return e;
 }
@@ -81,11 +82,8 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 	 */
 	if (recv_ts >= g_tw_ts_end)
 		e = send_pe->abort_event;
-	else {
+	else 
 		e = tw_event_grab(send_pe);
-		if (!e)
-			e = send_pe->abort_event;
-	}
 
 	e->dest_lp = (tw_lp *) dest_gid;
 	e->src_lp = sender;

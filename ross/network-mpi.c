@@ -292,13 +292,13 @@ recv_begin(tw_pe *me)
 
 		if(flag)
 		{
-			e = tw_event_grab(me);
+			if(me->abort_event == (e = tw_event_grab(me)))
+			{
+				if(tw_gvt_inprogress(me))
+					tw_error(TW_LOC, "out of events in GVT!");
 
-			if(!e && tw_gvt_inprogress(me))
-				tw_error(TW_LOC, "out of events in GVT!");
-
-			if(!e)
 				break;
+			}
 		} else
 		{
 			return changed;

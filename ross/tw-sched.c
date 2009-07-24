@@ -277,7 +277,7 @@ tw_scheduler_seq(tw_pe * me)
 	tw_sched_init(me);
 	tw_wall_now(&me->start_time);
 	while ((cev = tw_pq_dequeue(me->pq))) {
-		tw_lp *clp = (tw_lp*)cev->dest_lp;
+		tw_lp *clp = cev->dest_lp;
 		tw_kp *ckp = clp->kp;
 
 		me->cur_event = cev;

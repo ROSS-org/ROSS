@@ -326,8 +326,8 @@ tw_socket_read_event(tw_pe * me)
 	 * Get a free event from our freeq and save the pointers
 	 * to the message and the data for later use.
 	 */
-	if(NULL == (recv_event = tw_event_grab(me)))
-		return NULL; //tw_error(TW_LOC, "Event grab failed!");
+	if(me->abort_event == (recv_event = tw_event_grab(me)))
+		return NULL;
 
 	//temp_message = recv_event->message;
 	//temp_data = recv_event->message->data;
