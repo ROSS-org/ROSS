@@ -140,7 +140,7 @@ rw_move(rw_state * state, rw_message * m, tw_bf * bf, tw_lp * lp)
 
 	// need to call RM interface function
 	// tlm_move2 simply logs the movement of the node
-	tlm_move2(state->range, state->position, state->velocity, lp);
+	//tlm_move2(state->range, state->position, state->velocity, lp);
 
 #if 0
 	if(signal)
@@ -150,7 +150,6 @@ rw_move(rw_state * state, rw_message * m, tw_bf * bf, tw_lp * lp)
 
 	// send ourselves an event for the next timestep
 	e = rn_event_direct(lp->gid, tw_rand_exponential(lp->rng, 1.0), lp);
-	//e = tw_event_new(lp->gid, 1.0, lp);
 	b = tw_memory_alloc(lp, g_rw_fd);
 
 	msg = tw_memory_data(b);

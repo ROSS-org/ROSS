@@ -85,7 +85,6 @@ extern double	*tlm_getlocation(tw_lp * lp);
 /*
  * tlm-global.c: global variables
  */
-extern tw_fd		 g_tlm_fd;
 extern unsigned int	 g_tlm_optmem;
 
 extern FILE		*g_tlm_waves_plt_f;

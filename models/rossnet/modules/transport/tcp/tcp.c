@@ -1,5 +1,7 @@
 #include <tcp.h>
 
+#define TCP_DEBUG 1
+
 void
 stop_transfer(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 {

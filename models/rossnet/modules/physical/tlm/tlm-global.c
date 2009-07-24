@@ -1,6 +1,5 @@
 #include <tlm.h>
 
-tw_fd		 g_tlm_fd = -1;
 unsigned int	 g_tlm_optmem = 1000;
 
 FILE		*g_tlm_waves_plt_f = NULL;
@@ -51,8 +50,6 @@ char		g_tlm_spatial_scenario_fn[255];
 char		g_tlm_spatial_terrain_fn[255];
 char		g_tlm_spatial_urban_fn[255];
 char		g_tlm_spatial_vegatation_fn[255];
-
-tw_fd		 g_tlm_fd;
 
 	/*
 	 * Wave propagation global variables:

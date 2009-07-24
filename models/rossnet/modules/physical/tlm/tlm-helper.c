@@ -1,6 +1,6 @@
 #include <tlm.h>
 
-static tw_lpid lpid;
+#define DEBUG 0
 
 inline
 double
@@ -128,11 +128,12 @@ printf("%ld: GETLOCATION: id %d\n", lp->gid, id);
 	printf("\t\tp2 after %lf \n", position[2]);
 #endif
 
-	lpid = lp->gid;
-
 	if(tlm_getcell(position) != lp->gid)
 	{
-		printf("%d %lld %lld %lld: (%lf, %lf, %lf) gid: %lld != %lld\n", g_tw_mynode, lp->gid, lp->id, id, position[0], position[1], position[2], lp->gid, tlm_getcell(position));
+		printf("%d %lld %lld %lld: (%lf, %lf, %lf) gid: %lld != %lld\n", 
+			g_tw_mynode, lp->gid, lp->id, id, 
+			position[0], position[1], position[2], 
+			lp->gid, tlm_getcell(position));
 
 		if(rn_map(tlm_getcell(position)) == g_tw_mynode)
 		{
@@ -141,7 +142,8 @@ printf("%ld: GETLOCATION: id %d\n", lp->gid, id);
 		}
 
 		if(tlm_getcell(position) != lp->gid)
-			tw_error(TW_LOC, "%d: Did not get correct cell location!", g_tw_mynode);
+			tw_error(TW_LOC, "%d: Did not get correct cell location!", 
+				 g_tw_mynode);
 	}
 
 	return position;

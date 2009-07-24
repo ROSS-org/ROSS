@@ -60,7 +60,6 @@ extern void rw_sort(double * p);
  * rw-global.c
  */
 extern tw_fd		 g_rw_fd;
-extern unsigned int	 g_rw_nnodes;
 
 extern rw_statistics 	*g_rw_stats;
 extern int 	 	 g_rw_plot;

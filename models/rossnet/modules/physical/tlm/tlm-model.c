@@ -25,12 +25,6 @@ tlm_md_init(int argc, char ** argv, char ** env)
 
 	g_tlm_stats = tw_calloc(TW_LOC, "", sizeof(*g_tlm_stats), 1);
 
-#if DWB
-	for(i = 0; i < g_tw_nkp; i++)
-		g_tlm_fd = tw_kp_memory_init(tw_getkp(i), 1000000 / g_tw_nkp, 
-					sizeof(tlm_message), 1);
-#endif
-
 	// g_tlm_output_fix up global variables
 	g_tw_ts_end += 0.1;
 

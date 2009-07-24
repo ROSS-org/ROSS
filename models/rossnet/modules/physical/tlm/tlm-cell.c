@@ -33,6 +33,7 @@ tlm_cell_handler(tlm_state * state, tw_bf * bf, tlm_message * m, tw_lp * lp)
 		// note: it is possible another wave is currently passing
 		//       through this cell
 		case RM_WAVE_INIT:
+			printf("%lld: wave init at %lf \n", lp->gid, tw_now(lp));
 			tlm_cell_scatter(state, m, bf, lp);
 			state->stats->s_ncell_initiate++;
 			break;
@@ -58,7 +59,6 @@ tlm_cell_scatter(tlm_state * state, tlm_message * m, tw_bf * bf, tw_lp * lp)
 
 	int		 i;
 
-
 	// state-save vars
 	m->prev_time = state->next_time;
 	m->displ = state->displacement;
@@ -74,7 +74,8 @@ tlm_cell_scatter(tlm_state * state, tlm_message * m, tw_bf * bf, tw_lp * lp)
 #endif
 
 #if VERIFY_RM_CELL
-	printf("%d %ld: SCATTER at %.10lf from dir %d, U=%lf\n", lp->pe->id, lp->id, tw_now(lp), m->direction, state->displacement);
+	printf("%d %lld: SCATTER at %.10lf from dir %d, U=%lf\n", 
+		lp->pe->id, lp->gid, tw_now(lp), m->direction, state->displacement);
 #endif
 
 	// For each direction i, send total displacement minus the contributed
@@ -106,8 +107,9 @@ tlm_cell_scatter(tlm_state * state, tlm_message * m, tw_bf * bf, tw_lp * lp)
 		msg->id = m->id;
 
 #if VERIFY_RM_CELL
-		printf("\t%d %ld: scatter dir %d (lp %ld) at %.10lf, U=%lf \n", lp->pe->id,  
-			lp->gid, i, state->nbrs[i], e->recv_ts, msg->displacement);
+		printf("\t%d %lld: scatter dir %d (lp %lld) at %.10lf, U=%lf \n", 
+			lp->pe->id, lp->gid, i, 
+			state->nbrs[i], e->recv_ts, msg->displacement);
 #endif
 
 		tw_event_send(e);
@@ -127,7 +129,7 @@ tlm_cell_scatter(tlm_state * state, tlm_message * m, tw_bf * bf, tw_lp * lp)
 void
 tlm_cell_gather(tlm_state * state, tw_bf * bf, tlm_message * m, tw_lp * lp)
 {
-	tw_event	*e;
+	tw_event	*e = NULL;
 	tlm_message	*msg;
 
 	int	 i;
@@ -151,7 +153,7 @@ tlm_cell_gather(tlm_state * state, tw_bf * bf, tlm_message * m, tw_lp * lp)
 		state->next_time = e->recv_ts;
 
 #if VERIFY_RM_CELL
-		printf("%d %ld: GATHER next scatter time %.10lf (was %.10lf)\n",
+		printf("%d %lld: GATHER next scatter time %.10lf (was %.10lf)\n",
 			lp->pe->id, lp->id, state->next_time, m->prev_time);
 #endif
 	}
@@ -172,7 +174,7 @@ tlm_cell_gather(tlm_state * state, tw_bf * bf, tlm_message * m, tw_lp * lp)
 	state->displacement += m->displacement;// * g_tlm_wave_loss_coeff);
 
 #if VERIFY_RM_CELL
-	printf("\t%d %ld: gather from dir %d at %.10lf, U=%lf \n", lp->pe->id, 
-		lp->id, m->direction, tw_now(lp), state->displacement);
+	printf("\t%d %lld: gather from dir %d at %.10lf, U=%lf \n", 
+		lp->pe->id, lp->id, m->direction, tw_now(lp), state->displacement);
 #endif
 }

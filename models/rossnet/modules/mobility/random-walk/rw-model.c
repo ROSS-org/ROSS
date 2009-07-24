@@ -2,7 +2,6 @@
 
 static const tw_optdef rw_options [] =
 {
-	TWOPT_UINT("nradios", g_rw_nnodes, "number of radios"),
 	TWOPT_UINT("rw-min", g_rw_mu, "random walk min change dir"),
 	TWOPT_UINT("rw-max", g_rw_distr_sd, "random walk max change dir"),
 	TWOPT_STIME("wave-percent", percent_wave, "percentage of waves per move"),
@@ -38,7 +37,6 @@ rw_md_final()
 
 	printf("\nRandom Walk Model Statistics: \n\n");
 	printf("\t%-50s %11.2lf\n", "Waves Percentage", percent_wave);
-	printf("\t%-50s %11d\n", "Number of Radios", g_rw_nnodes * g_tw_npe * tw_nnodes());
 	printf("\t%-50s %11lld\n", "Number of Waves", g_rw_stats->s_nwaves);
 	printf("\t%-50s %11lld\n", "Number of Moves", g_rw_stats->s_move_ev);
 

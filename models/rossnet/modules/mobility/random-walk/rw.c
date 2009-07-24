@@ -42,11 +42,6 @@ rw_init(rw_state * state, tw_lp * lp)
 	if(g_rw_mu > g_rw_distr_sd)
 		g_rw_distr_sd = g_rw_mu;
 
-#if ONE
-if(lp->gid)
-	return;
-#endif
-
 	state->position[0] = tw_rand_integer(lp->rng, 0, g_tlm_spatial_grid[0]-1);
 	state->position[0] *= g_tlm_spatial_d[0];
 
@@ -56,8 +51,8 @@ if(lp->gid)
 	//state->position[2] = tlm_getelevation(state->position) + spacing[2];
 	state->position[2] = tlm_getelevation(state->position);
 
-#if 0
-	printf("%d: (%lf, %lf, %lf)\n", 
+#if 1
+	printf("%lld: START_LOC (%lf, %lf, %lf)\n", 
 			lp->gid, state->position[0], 
 			state->position[1], state->position[2]);
 #endif
@@ -65,9 +60,6 @@ if(lp->gid)
 	// velocity is zero since we only compute one step of radio movement
 	state->velocity[0] = 1.0 * g_tlm_spatial_d[0];
 	state->velocity[1] = 1.0 * g_tlm_spatial_d[1];
-
-	if(lp->gid)
-		return;
 
 	// setup event to self to move
 	e = rn_event_direct(lp->gid, tw_rand_exponential(lp->rng, 1.0), lp);
