@@ -133,7 +133,7 @@ rw_move(rw_state * state, rw_message * m, tw_bf * bf, tw_lp * lp)
 
 	state->position[2] = tlm_getelevation(state->position);
 
-#if VERIFY_RW_NODE || 1
+#if VERIFY_RW_NODE
 	printf("%lld: (%lf, %lf, %lf) next %d\n", lp->gid, state->position[0],
 		state->position[1], state->position[2], state->change_dir);
 #endif

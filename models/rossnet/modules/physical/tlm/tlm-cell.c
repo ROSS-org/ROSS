@@ -33,7 +33,7 @@ tlm_cell_handler(tlm_state * state, tw_bf * bf, tlm_message * m, tw_lp * lp)
 		// note: it is possible another wave is currently passing
 		//       through this cell
 		case RM_WAVE_INIT:
-			printf("%lld: wave init at %lf \n", lp->gid, tw_now(lp));
+			//printf("%lld: wave init at %lf \n", lp->gid, tw_now(lp));
 			tlm_cell_scatter(state, m, bf, lp);
 			state->stats->s_ncell_initiate++;
 			break;

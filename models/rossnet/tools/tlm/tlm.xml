@@ -9,7 +9,7 @@
 			<spacing>
 				<x>1000</x>
 				<y>1000</y>
-				<z>1000</z>
+				<z>10</z>
 			</spacing>
 		</layer>
 	</environment>
@@ -22,6 +22,36 @@
 					</mobility>
 				</node>
 				<node id='1' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='2' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='3' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='4' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='5' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='6' links='0' type='c_router'>
+					<mobility>
+						<layer name='random-walk' />
+					</mobility>
+				</node>
+				<node id='7' links='0' type='c_router'>
 					<mobility>
 						<layer name='random-walk' />
 					</mobility>

@@ -51,7 +51,7 @@ rw_init(rw_state * state, tw_lp * lp)
 	//state->position[2] = tlm_getelevation(state->position) + spacing[2];
 	state->position[2] = tlm_getelevation(state->position);
 
-#if 1
+#if 0
 	printf("%lld: START_LOC (%lf, %lf, %lf)\n", 
 			lp->gid, state->position[0], 
 			state->position[1], state->position[2]);

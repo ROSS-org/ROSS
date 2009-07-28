@@ -54,7 +54,7 @@ tlm_md_init(int argc, char ** argv, char ** env)
 
 	g_tlm_spatial_grid_i = tw_calloc(TW_LOC, "spatial grid i", sizeof(int), g_tlm_spatial_dim);
 	g_tlm_spatial_offset_ts = tw_calloc(TW_LOC, "spatial offset ts", sizeof(tw_stime), g_tlm_spatial_dir);
-	g_tlm_spatial_offset = g_rn_nmachines;
+	g_tlm_spatial_offset = g_rn_nmachines / (tw_nnodes() * g_tw_npe);
 
 	g_tlm_spatial_ground_coeff = 0.75;
 
@@ -66,7 +66,8 @@ tlm_md_init(int argc, char ** argv, char ** env)
 			printf("\n\tSETTING WAVE LOSS COEFF %lf! \n\n", g_tlm_wave_loss_coeff);
 	}
 
-	g_tlm_wave_velocity = 3.0 * 1000.0 * 1000.0 * 1000.0;
+	// speed of light in m/s
+	g_tlm_wave_velocity = 299792458.0;
 
 	nlp_grid = tlm_grid_init();
 	ntlm_lp_per_pe = ceil(nlp_grid / (tw_nnodes() * g_tw_npe));
