@@ -544,7 +544,7 @@ send_begin(tw_pe *me)
 			memcpy(&buffer[position], memory, mem_size);
 			position += mem_size;
 
-			tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
+			//tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
 
 			if(NULL != (memory = m))
 				mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
@@ -601,7 +601,8 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 			 */
 			e->state.cancel_asend = 0;
 			e->state.cancel_q = 1;
-			tw_eventq_unshift(&outq, e);
+			//tw_eventq_unshift(&outq, e);
+			tw_eventq_push(&outq, e);
 		} else {
 			/* Event finished transmission and was not cancelled.
 			 * Add to our sent event queue so we can retain the

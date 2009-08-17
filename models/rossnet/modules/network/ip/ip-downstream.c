@@ -94,7 +94,6 @@ ip_downstream_source(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp)
 void
 ip_downstream_forward(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp)
 {
-	tw_memory	*b;
 	tw_event	*e;
 
 	rn_message	*m;
@@ -108,25 +107,6 @@ ip_downstream_forward(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp
 
 	if(NULL == (e = forward(state, bf, msg, lp)))
 		return;
-
-	// TODO: Move this logic into rn_event_send
-
-	if(e == lp->pe->abort_event)
-	{
-		printf("got abort event in IP\n");
-		rn_event_send(e);
-		return;
-	}
-
-	if(!lp->pe->cur_event->memory)
-		tw_error(TW_LOC, "No membuf on event!");
-
-	e->memory = b = lp->pe->cur_event->memory;
-	while(b)
-	{
-		b->ts = tw_now(lp);
-		b = b->next;
-	}
 
 	// fixup the message source
 	m = tw_event_data(e);

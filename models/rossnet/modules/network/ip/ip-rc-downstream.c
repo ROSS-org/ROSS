@@ -56,13 +56,6 @@ ip_rc_downstream(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp)
 		return;
 	}
 
-	b = lp->pe->cur_event->memory;
-	while(b)
-	{
-		b->ts = tw_now(lp);
-		b = b->next;
-	}
-
 	if(NULL == (b = tw_memoryq_pop(state->link_q)))
 		tw_error(TW_LOC, "no membuf!");
 

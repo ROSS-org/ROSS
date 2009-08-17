@@ -1,11 +1,9 @@
 #include <tcp.h>
 
-#define TCP_DEBUG 1
-
 void
 stop_transfer(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 {
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 	printf("%lld: STOP XFER: %d of %d bytes at %lf\n", 
 		lp->gid, state->unack, state->len, tw_now(lp));
 #endif
@@ -38,7 +36,7 @@ start_transfer(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 	state->ssthresh = TCP_SND_WND;
 	state->rto = 3.0;
 
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 	printf("%lld: START XFER: %d bytes at %lf to %lld\n", 
 		lp->gid, state->len, tw_now(lp), state->connection);
 #endif
@@ -66,7 +64,7 @@ start_transfer(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 
 		tw_event_memory_set(state->timer, b, g_tcp_fd);
 
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: RTO timer at %lf \n", lp->gid, state->timer->recv_ts);
 #endif
 	}
@@ -94,7 +92,7 @@ tcp_init(tcp_state * state, tw_lp * lp)
 
 	g_state = state;
 
-#ifdef TCP_LOG
+#if TCP_LOG
 	state->log = stdout;
 #endif
 
@@ -118,12 +116,10 @@ tcp_event_handler(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 	*(int *) bf = 0;
 
 	// if no membuf, then must be application layer
-	if(NULL != (b = tw_event_memory_get(lp)))
-		in = tw_memory_data(b);
-
-	if(!b)
+	if(NULL == (b = tw_event_memory_get(lp)))
 		tw_error(TW_LOC, "%lld: no membuf on TCP event!", lp->gid);
 
+	in = tw_memory_data(b);
 	memset(&in->RC, 0, sizeof(RC));
 
 	if(m->type == DOWNSTREAM)
@@ -134,7 +130,7 @@ tcp_event_handler(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 			stop_transfer(state, bf, m, lp);
 	} else if(m->type == TIMER)
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: RTO at %.8lf (%ld)\n",
 			lp->gid, tw_now(lp), (long int) lp->pe->cur_event);
 #endif
@@ -142,20 +138,19 @@ tcp_event_handler(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 		tcp_timeout(state, bf, in, lp);
 	} else if(state->connection != -1)
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: ACK from %lld at %.8lf \n", lp->gid, in->src, tw_now(lp));
 #endif
 		tcp_process_ack(state, bf, in, lp);
 	} else
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: DATA from %lld at %.8lf \n", lp->gid, in->src, tw_now(lp));
 #endif
 		tcp_process_data(state, bf, in, lp);
 	}
 
-	if(b)
-		tw_memory_free(lp, b, g_tcp_fd);
+	tw_memory_free(lp, b, g_tcp_fd);
 }
 
 /*
@@ -174,29 +169,28 @@ tcp_rc_event_handler(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 
 	if(m->type == TIMER)
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: RC RTO at %.8lf \n",
 			lp->gid, tw_now(lp));
 #endif
 		tcp_rc_timeout(state, bf, in, lp);
 	} else if(state->connection != -1)
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: RC ACK from %lld at %.8lf \n",
 			lp->gid, in->src, tw_now(lp));
 #endif
 		tcp_rc_process_ack(state, bf, in, lp);
 	} else
 	{
-#ifdef TCP_DEBUG
+#if TCP_DEBUG
 		printf("%lld: RC DATA from %lld at %.8lf \n",
 			lp->gid, in->src, tw_now(lp));
 #endif
 		tcp_rc_process_data(state, bf, in, lp);
 	}
 
-	if(b)
-		tw_event_memory_get_rc(lp, b, g_tcp_fd);
+	tw_event_memory_get_rc(lp, b, g_tcp_fd);
 }
 
 /*
@@ -205,7 +199,7 @@ tcp_rc_event_handler(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 void
 tcp_final(tcp_state * state, tw_lp * lp)
 {
-#ifdef TCP_LOG
+#if TCP_LOG
 	char	log[255];
 
 	if(state->log && state->log != stdout)

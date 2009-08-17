@@ -182,10 +182,9 @@ DEF(struct, tw_memory)
 	//tw_memory	*volatile up;
 	tw_memory	*volatile lp_next;
 
-	int		 heap_index;
 	tw_stime         ts;
 
-	int		 bit;
+	int		 heap_index;
 };
 
 DEF(struct, tw_eventq)

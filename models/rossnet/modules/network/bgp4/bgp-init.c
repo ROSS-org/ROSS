@@ -31,9 +31,9 @@ init_rib(bgp_state *state, tw_lp * lp)
 		fscanf(g_bgp_rt_fd, "%hd ", &dst);
 
 		state->rib[i] = tw_memory_alloc(lp, g_bgp_fd_rtes);
-		state->rib[i]->bit = TW_FALSE;
-
 		r = tw_memory_data(state->rib[i]);
+		r->bit = TW_FALSE;
+
 		q = &r->as_path;
 		q->size = as_path_size = 0;
 		fscanf(g_bgp_rt_fd, "%hd %d %hd %hd %d", 

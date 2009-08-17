@@ -94,7 +94,7 @@ bgp_route_add(bgp_state * state, tw_memory * b)
 	state->rib[r->dst] = b;
 
 	// reset the MRAI timer as needed
-	b->bit = TW_TRUE;
+	r->bit = TW_TRUE;
 	bgp_mrai_tmr(state, tw_getlp(state->m->id));
 
 	state->stats->s_nroute_adds++;
@@ -241,8 +241,8 @@ bgp_route_copy(bgp_state * state, bgp_route * to_be_copied, bgp_nbr * n,
 	d_as = rn_getas(rn_getmachine(n->id));
 
 	new_route = tw_memory_alloc(lp, g_bgp_fd_rtes);
-	new_route->bit = 0;
 	r = tw_memory_data(new_route);
+	r->bit = 0;
 
 	// If IP drops pkt, it does not know to free these bufs
 	if(r->as_path.head || r->as_path.tail)

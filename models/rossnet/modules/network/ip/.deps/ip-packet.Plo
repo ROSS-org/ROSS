@@ -18,32 +18,30 @@ ip-packet.lo: ip-packet.c ip.h ../../../rossnet/rossnet.h \
   /usr/include/_G_config.h /usr/include/wchar.h \
   /usr/lib64/gcc/x86_64-suse-linux/4.3/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
-  /usr/include/bits/stdio.h /usr/include/libxml/xmlstring.h \
-  /usr/include/libxml/xmlregexp.h /usr/include/libxml/dict.h \
-  /usr/include/libxml/xmlmemory.h /usr/include/libxml/threads.h \
-  /usr/include/libxml/globals.h /usr/include/libxml/parser.h \
-  /usr/include/libxml/hash.h /usr/include/libxml/valid.h \
-  /usr/include/libxml/xmlerror.h /usr/include/libxml/list.h \
-  /usr/include/libxml/xmlautomata.h /usr/include/libxml/entities.h \
-  /usr/include/libxml/encoding.h /usr/include/iconv.h \
-  /usr/include/libxml/xmlIO.h /usr/include/libxml/SAX.h \
-  /usr/include/stdlib.h /usr/include/alloca.h /usr/include/libxml/xlink.h \
-  /usr/include/libxml/SAX2.h /usr/include/libxml/xpath.h \
-  /usr/include/libxml/debugXML.h /usr/include/libxml/parserInternals.h \
-  /usr/include/libxml/HTMLparser.h /usr/include/libxml/chvalid.h \
-  /usr/include/libxml/xpathInternals.h \
+  /usr/include/libxml/xmlstring.h /usr/include/libxml/xmlregexp.h \
+  /usr/include/libxml/dict.h /usr/include/libxml/xmlmemory.h \
+  /usr/include/libxml/threads.h /usr/include/libxml/globals.h \
+  /usr/include/libxml/parser.h /usr/include/libxml/hash.h \
+  /usr/include/libxml/valid.h /usr/include/libxml/xmlerror.h \
+  /usr/include/libxml/list.h /usr/include/libxml/xmlautomata.h \
+  /usr/include/libxml/entities.h /usr/include/libxml/encoding.h \
+  /usr/include/iconv.h /usr/include/libxml/xmlIO.h \
+  /usr/include/libxml/SAX.h /usr/include/stdlib.h /usr/include/alloca.h \
+  /usr/include/libxml/xlink.h /usr/include/libxml/SAX2.h \
+  /usr/include/libxml/xpath.h /usr/include/libxml/debugXML.h \
+  /usr/include/libxml/parserInternals.h /usr/include/libxml/HTMLparser.h \
+  /usr/include/libxml/chvalid.h /usr/include/libxml/xpathInternals.h \
   /home/bauerd/work/pdes/trunk/ross/ross.h /usr/include/errno.h \
   /usr/include/bits/errno.h /usr/include/linux/errno.h \
   /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
   /usr/include/asm-generic/errno-base.h /usr/include/math.h \
   /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h \
-  /usr/include/bits/mathcalls.h /usr/include/bits/mathinline.h \
+  /usr/include/bits/mathcalls.h \
   /usr/lib64/gcc/x86_64-suse-linux/4.3/include-fixed/limits.h \
   /usr/lib64/gcc/x86_64-suse-linux/4.3/include-fixed/syslimits.h \
   /usr/include/limits.h /usr/include/bits/posix1_lim.h \
   /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
   /usr/include/bits/posix2_lim.h /usr/include/string.h \
-  /usr/include/bits/string.h /usr/include/bits/string2.h \
   /usr/include/stdint.h /usr/include/bits/wchar.h \
   /usr/lib64/gcc/x86_64-suse-linux/4.3/include/float.h \
   /usr/include/sys/time.h /home/bauerd/work/pdes/trunk/ross/ross-random.h \
@@ -159,8 +157,6 @@ ip.h:
 
 /usr/include/bits/sys_errlist.h:
 
-/usr/include/bits/stdio.h:
-
 /usr/include/libxml/xmlstring.h:
 
 /usr/include/libxml/xmlregexp.h:
@@ -237,8 +233,6 @@ ip.h:
 
 /usr/include/bits/mathcalls.h:
 
-/usr/include/bits/mathinline.h:
-
 /usr/lib64/gcc/x86_64-suse-linux/4.3/include-fixed/limits.h:
 
 /usr/lib64/gcc/x86_64-suse-linux/4.3/include-fixed/syslimits.h:
@@ -254,10 +248,6 @@ ip.h:
 /usr/include/bits/posix2_lim.h:
 
 /usr/include/string.h:
-
-/usr/include/bits/string.h:
-
-/usr/include/bits/string2.h:
 
 /usr/include/stdint.h:
 

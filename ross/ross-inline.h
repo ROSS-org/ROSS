@@ -95,6 +95,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 INLINE(void)
 tw_event_free(tw_pe *pe, tw_event *e)
 {
+#if 0
 	tw_memory	*next;
 	tw_memory	*m;
 
@@ -111,6 +112,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
 		m = next;
 	}
+#endif
 
 	e->state.owner = TW_pe_free_q;
 	e->memory = NULL;

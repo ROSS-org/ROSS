@@ -88,7 +88,7 @@ bgp_keepalive(bgp_state * state, int src, int ttl, tw_lp * lp)
 			r = tw_memory_data(state->rib[i]);
 			if(r->src == n->id)
 			{
-				state->rib[i]->bit = TW_TRUE;
+				r->bit = TW_TRUE;
 				bgp_mrai_tmr(state, lp);
 			}
 		}

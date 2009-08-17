@@ -86,14 +86,14 @@ AUTOMAKE = ${SHELL} /home/bauerd/work/pdes/trunk/models/rossnet/build/missing --
 AWK = gawk
 CC = /usr/local/mpich2-1.1.0a1/bin/mpicc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2
+CFLAGS = -g 
 COMPAT_OBJECTS = 
 CPP = gcc -E
 CPPFLAGS =  -DROSS_MAPPING_linear -DROSS_QUEUE_splay -DROSS_RAND_clcg4 -DROSS_NETWORK_mpi -DROSS_CLOCK_none -DROSS_THREAD_none -DROSS_GVT_mpi_allreduce -DROSS_NET_conservative -DROSS_RAND_clcg4 -DARCH_  -I/home/bauerd/work/pdes/trunk/ross
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2
+CXXFLAGS = -g 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -105,7 +105,7 @@ ECHO_T =
 EGREP = /usr/bin/grep -E
 EXEEXT = 
 F77 = g77
-FFLAGS = -g -O2
+FFLAGS = -g 
 GREP = /usr/bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
@@ -190,7 +190,7 @@ top_srcdir = ../../..
 INCLUDES = -I$(top_srcdir)
 
 #AM_CFLAGS=-O6 -Wall
-AM_CFLAGS = -g -Wall -DVERIFY_TCP_TIMER -DTCP_DEBUG
+AM_CFLAGS = -g -Wall #-DVERIFY_TCP_TIMER -DTCP_DEBUG
 lib_LTLIBRARIES = libtcp.la
 include_HEADERS = \
 	tcp-extern.h \

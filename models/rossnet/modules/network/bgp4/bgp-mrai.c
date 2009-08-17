@@ -34,13 +34,13 @@ bgp_mrai_timer(bgp_state * state, tw_bf * bf, bgp_message * msg, tw_lp * lp)
 	for(i = 0; i < g_rn_nas; i++)
 	{
 		b = state->rib[i];
+		r = tw_memory_data(b);
 
 		// Route has not been updated since previous MRAI timer fired
-		if(!b || b->bit == TW_FALSE)
+		if(!b || r->bit == TW_FALSE)
 			continue;
 
-		r = tw_memory_data(b);
-		b->bit = TW_FALSE;
+		r->bit = TW_FALSE;
 		bgp_update_all(state, msg, lp->id, r, lp);
 	}
 }

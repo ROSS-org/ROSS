@@ -53,6 +53,7 @@ DEF(struct, bgp_route)
 
 	unsigned short int		 origin;
 	unsigned short int		 med;
+	unsigned short int		 bit;
 };
 
 DEF(enum, bgp_message_type)

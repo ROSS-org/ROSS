@@ -82,7 +82,6 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 		q = tw_kp_getqueue(kp, fd + 1);
 
 	m->ts = tw_now(lp);
-	m->bit = 1;
 
 	/*
 	 * Now we need to link this buffer into the LPs queue
@@ -106,7 +105,6 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 	 * processed memory Q
 	 */
 	m = tw_memoryq_pop(q);
-	m->bit = 0;
 
 	if(m && m->ts < lp->pe->GVT)
 	{
@@ -121,7 +119,6 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 void
 tw_memory_free_single(tw_kp * kp, tw_memory * m, tw_fd fd)
 {
-	m->bit = 0;
 	tw_memoryq_push(tw_kp_getqueue(kp, fd),  m);
 }
 

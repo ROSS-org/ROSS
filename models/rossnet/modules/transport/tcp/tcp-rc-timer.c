@@ -32,6 +32,18 @@ tcp_timer_reset(tw_event * timer, tw_bf * bf, tcp_message * old,
 tw_event	*
 tcp_rc_timer_reset(tw_event * timer, tw_bf * bf, tcp_message * old, tw_lp * lp)
 {
+	if(bf->c13)
+	{
+		tcp_message	*m;
+
+		if(NULL == timer->memory)
+			timer->memory = tw_memory_alloc(lp, g_tcp_fd);
+
+		m = tw_memory_data(timer->memory);
+		m->seq_num = old->RC.timer_seq;
+		m->src = old->src;
+	}
+
 	if(bf->c14)
 	{
 		// If I init'd a timer, cancel it.
@@ -83,18 +95,6 @@ tcp_rc_timer_reset(tw_event * timer, tw_bf * bf, tcp_message * old, tw_lp * lp)
 	else
 		printf("\t%lld: restored RTO no previous\n", lp->gid);
 #endif
-
-	if(bf->c13)
-	{
-		tcp_message	*m;
-
-		if(NULL == timer->memory)
-			timer->memory = tw_memory_alloc(lp, g_tcp_fd);
-
-		m = tw_memory_data(timer->memory);
-		m->seq_num = old->RC.timer_seq;
-		m->src = old->src;
-	}
 
 	return timer;
 }
