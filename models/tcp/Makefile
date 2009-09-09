@@ -1,4 +1,8 @@
-CFLAGS = -g -I../../ross -L../../ross
+LIBDIR  := ../../ross/
+CC      := $(shell $(LIBDIR)/ross-config --cc)
+CFLAGS  := -g -Wall
+OPTIONS := $(shell $(LIBDIR)/ross-config --cflags)
+LDFLAGS := $(shell $(LIBDIR)/ross-config --ldflags)
 
 TCP_OBJECTS=\
 	tcp-main.o\
@@ -11,10 +15,13 @@ TCP_OBJECTS=\
 	tcp-router-rc.o \
 	tcp-util.o 
 
+.c.o:
+	$(QUIET_CC)$(CC) $(CFLAGS) $(OPTIONS) -c $<
+
 all:	tcp
 
 tcp: $(TCP_OBJECTS)
-	gcc $(CFLAGS) -o tcp $(TCP_OBJECTS) -lROSS -lpthread -lm 
+	$(CC) $(CFLAGS) $(OPTIONS) -o tcp $(TCP_OBJECTS) $(LDFLAGS)
 
 clean:
 	rm -f tcp*.o
