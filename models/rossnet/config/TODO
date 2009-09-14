@@ -1,0 +1,17 @@
+Fix doxygen so that it no longer seg faults.
+
+Re-create XML schema and parsing for RN config files.  Somehow I lost what I had on czpc7 in the last couple of weeks.
+
+Find a way to call the xml function handlers within the modules to handle unknown module XML descriptors.
+
+Start/Finish the IP layer Garrett started.
+
+Ensure API is correct for connection/connectionless protocols.
+
+Try to run OSPF and TCP models together inside ROSSNET.
+
+Get the lps init'ed properly.
+
+Fix the configure.in to not link in unnecessary modules.
+
+Design/Add connection-based/traffic/model schemas.
