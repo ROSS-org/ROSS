@@ -1,40 +1,15 @@
+To compile:
 
-Configure options:
+	./configure --with-ross=<path to ross> --with-<model_name>
+	make
 
-  --with-ross=PATH              Specify path to ROSS instance
+	Available models: 	tcp, ospfv2, bgp4, ip, multicast, epi, num, 
+				random-walk, tlm, phold 
 
-	This option allows you to specify the location of the ROSS instance you would like to use.
+To execute:
 
-  --with-ross-seq               Enable ROSS sequential scheduler
+	rossnet/rn
 
-	This option specifies to use ROSS's sequential scheduler, rather than to run in parallel,
-	which would invoke the GVT routine, and mutexes.
+TODO:
 
-  --with-pe                     Number of processors to use
-
-	This option allows you to specify the number of processors to use for the simulation run.
-	Specifying --with-ross-seq overrides this value to be 1.
-
-  --with-kp                     Number of kernel processes to use
-
-	This option allows you to specify the number of kernel processes to use during the simulation.
-
-  --with-tcp                     Use TCP module
-
-	This option includes the TCP module in the rossnet core.  When this is selected, space is
-	allocated in ROSS events for the TCP messages, and adds the TCP function handlers to rossnet.
-
-  --with-ospf                    Use OSPF module
-
-	This option includes the OSPF module in the rossnet core.  When this is selected, space is
-	allocated in ROSS events for the OSPF messages, and adds the OSPF function handlers to rossnet.
-
-  --with-ftp                     Use FTP module
-
-	This option includes the FTP module in the rossnet core.  When this is selected, space is
-	allocated in ROSS events for the FTP messages, and adds the FTP function handlers to rossnet.
-
-	TODO:
-
-	Although there are options for the modules, they still are all getting linked in to the 
-	executable.. which is unnecessary.
+	Too many to mention here.
