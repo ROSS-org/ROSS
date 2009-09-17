@@ -1029,5 +1029,7 @@ printf("Enter TWnpe, TWnkp, additional_memory_buffers \n" );
 	CellStatistics_Compute(&TWAppStats);
 	CellStatistics_Print(&TWAppStats);
 
+	tw_end();
+
 	return 0;
 }
