@@ -577,7 +577,17 @@ tw_lptype	env_lps[] = {
 void
 rn_print_statistics()
 {
-	tw_stat	 events;
+	rn_statistics	 stats;
+	tw_stat		 events;
+
+	if(MPI_Reduce(&(g_rn_stats->s_nevents_processed),
+			&stats,
+			2,
+			MPI_LONG_LONG,
+			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
 
 	if(!tw_ismaster())
 		return;
@@ -585,13 +595,12 @@ rn_print_statistics()
 	printf("\nROSS.Net Library Statistics: \n\n");
 	printf("\t%-50s %11d\n", "Event Size", (int) g_tw_msg_sz);
 	printf("\t%-50s %11lld\n", "Total Events Processed",
-		   g_rn_stats->s_nevents_processed);
-
+		   	stats.s_nevents_processed);
 	printf("\t%-50s %11lld\n", "Events Rolled Back",
-		   g_rn_stats->s_nevents_rollback);
+			stats.s_nevents_rollback);
 	printf("\n");
 
-	events = g_rn_stats->s_nevents_processed - g_rn_stats->s_nevents_rollback;
+	events = stats.s_nevents_processed - stats.s_nevents_rollback;
 	printf("\t%-50s %11lld *\n", "Network Events Processed", events);
 	printf("\t%-50s %11.2f (events/sec)\n", "Event Rate", 
 		(double) (events / g_tw_pe[0]->statistics.max_run_time));
