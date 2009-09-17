@@ -35,10 +35,9 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 #if 1
 		int cnt = tw_memory_allocate(q);
 		kp->s_mem_buffers_used += cnt;
-#endif
-
-#if 0
 		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
+#else
+		tw_error(TW_LOC, "Out of buffers in fd: %ld\n", fd);
 #endif
 	}
 
@@ -169,8 +168,10 @@ tw_memory_allocate(tw_memoryq * q)
 
 	if (!d)
 		tw_error(TW_LOC, "\nCannot allocate %u buffers! \n", q->size);
+#if ROSS_VERIFY_MEMORY
 	else
 		printf("Allocated %ld buffers\n", cnt);
+#endif
 
 	while (--cnt)
 	{

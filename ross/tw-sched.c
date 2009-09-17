@@ -258,7 +258,7 @@ tw_scheduler(tw_pe * me)
 	if((tw_nnodes() > 1 || g_tw_npe > 1) &&
 		tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
 		me->local_master)
-		printf("*** END SIMULATION ***\n\n");
+		printf("\n*** END SIMULATION ***\n\n");
 
 	tw_barrier_sync(&g_tw_simend);
 	tw_net_barrier(me);

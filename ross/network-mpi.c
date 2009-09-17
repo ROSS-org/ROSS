@@ -544,12 +544,15 @@ send_begin(tw_pe *me)
 			memcpy(&buffer[position], memory, mem_size);
 			position += mem_size;
 
-			//tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
+			tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
 
 			if(NULL != (memory = m))
 				mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
 		}
 
+		//
+		// MEMORY LEAK!
+		//
 		e->memory = NULL;
 
 #if 1

@@ -95,7 +95,13 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 INLINE(void)
 tw_event_free(tw_pe *pe, tw_event *e)
 {
-#if 0
+	/*
+	 * During the course of a rollback, events are supposed to put
+	 * the membufs back on the event.  The event is then cancelled
+	 * and freed -- which is how a membuf could end up on a freed
+	 * event.
+	 */
+#if 1
 	tw_memory	*next;
 	tw_memory	*m;
 
@@ -112,6 +118,8 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
 		m = next;
 	}
+#else
+	tw_error(TW_LOC, "Freed event contains membuf(s)!");
 #endif
 
 	e->state.owner = TW_pe_free_q;
