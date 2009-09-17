@@ -174,6 +174,10 @@ tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
 
 	int             fd;
 
+#ifndef ROSS_MEMORY
+	tw_error(TW_LOC, "Support for memory queues is disabled!");
+#endif
+
 	fd = tw_kp_next_free_q(kp);
 	kp->s_mem_buffers_used = 0;
 

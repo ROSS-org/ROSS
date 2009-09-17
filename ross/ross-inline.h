@@ -101,7 +101,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
 	 * and freed -- which is how a membuf could end up on a freed
 	 * event.
 	 */
-#if 1
+#if ROSS_MEMORY
 	tw_memory	*next;
 	tw_memory	*m;
 
@@ -118,8 +118,6 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
 		m = next;
 	}
-#else
-	tw_error(TW_LOC, "Freed event contains membuf(s)!");
 #endif
 
 	e->state.owner = TW_pe_free_q;

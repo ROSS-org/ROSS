@@ -54,19 +54,24 @@ struct act_q
 	const char	 *name;
 
 	tw_event	**event_list;
-	char		**buffers;
 	MPI_Request	 *req_list;
 	int		 *idx_list;
 	MPI_Status	 *status_list;
+#if ROSS_MEMORY
+	char		**buffers;
+#endif
 
 	unsigned int	  cur;
 };
 
-#define BUFFER_SIZE 500
 #define EVENT_TAG 1
-//#define EVENT_SIZE(e) g_tw_event_msg_sz
-#define EVENT_SIZE(e) BUFFER_SIZE
-#define STATS_TAG 2
+
+#if ROSS_MEMORY
+  #define BUFFER_SIZE 500
+  #define EVENT_SIZE(e) BUFFER_SIZE
+#else
+  #define EVENT_SIZE(e) g_tw_event_msg_sz
+#endif
 
 static struct act_q posted_sends;
 static struct act_q posted_recvs;
@@ -102,21 +107,16 @@ tw_net_init(int *argc, char ***argv)
 	g_tw_masternode = 0;
 	g_tw_mynode = my_rank;
 
-	if(tw_node_eq(&g_tw_mynode, &g_tw_masternode))
-#if ROSS_NET_aggressive
-		printf("ROSS Network Mode: aggressive\n");
-#else
-		printf("ROSS Network Mode: conservative\n");
-#endif
-
 	return mpi_opts;
 }
 
 static void
 init_q(struct act_q *q, const char *name)
 {
-	unsigned int i;
 	unsigned int n;
+#if ROSS_MEMORY
+	unsigned int i;
+#endif
 
 	if(q == &posted_sends)
 		n = send_buffer;
@@ -128,10 +128,13 @@ init_q(struct act_q *q, const char *name)
 	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
 	q->idx_list = tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+
+#if ROSS_MEMORY
 	q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
 
 	for(i = 0; i < n; i++)
 		q->buffers[i] = tw_calloc(TW_LOC, "", BUFFER_SIZE, 1);
+#endif
 }
 
 unsigned int
@@ -212,7 +215,10 @@ test_q(
 	void (*finish)(tw_pe *, tw_event *, char *))
 {
 	int ready, i, n;
+
+#if ROSS_MEMORY
 	char *tmp;
+#endif
 
 	if (!q->cur)
 		return 0;
@@ -241,7 +247,11 @@ test_q(
 		e = q->event_list[n];
 		q->event_list[n] = NULL;
 
+#if ROSS_MEMORY
 		finish(me, e, q->buffers[n]);
+#else
+		finish(me, e, NULL);
+#endif
 	}
 
 	/* Collapse the lists to remove any holes we left. */
@@ -251,16 +261,18 @@ test_q(
 				// swap the event pointers
 				q->event_list[n] = q->event_list[i];
 
-				// swap the buffers
-				tmp = q->buffers[n];
-				q->buffers[n] = q->buffers[i];
-				q->buffers[i] = tmp;
-
 				// copy the request handles
 				memcpy(
 					&q->req_list[n],
 					&q->req_list[i],
 					sizeof(q->req_list[0]));
+
+#if ROSS_MEMORY
+				// swap the buffers
+				tmp = q->buffers[n];
+				q->buffers[n] = q->buffers[i];
+				q->buffers[i] = tmp;
+#endif
 			}
 			n++;
 		}
@@ -304,9 +316,8 @@ recv_begin(tw_pe *me)
 			return changed;
 		}
 
-#if 1
+#if ROSS_MEMORY
 		if(!flag || 
-			//MPI_Irecv(e,
 			MPI_Irecv(posted_recvs.buffers[id],
 				EVENT_SIZE(e),
 				MPI_BYTE,
@@ -315,24 +326,22 @@ recv_begin(tw_pe *me)
 				MPI_COMM_WORLD,
 				&posted_recvs.req_list[id]) != MPI_SUCCESS)
 #else
-		if(MPI_Recv(e,
+		if(!flag || 
+			MPI_Irecv(e,
 				EVENT_SIZE(e),
 				MPI_BYTE,
 				MPI_ANY_SOURCE,
 				EVENT_TAG,
-				MPI_COMM_WORLD, &status) != MPI_SUCCESS)
+				MPI_COMM_WORLD,
+				&posted_recvs.req_list[id]) != MPI_SUCCESS)
 #endif
 		{
 			tw_event_free(me, e);
 			return changed;
 		}
 
-#if 1
 		posted_recvs.event_list[id] = e;
 		posted_recvs.cur++;
-#else
-	recv_finish(me, e);
-#endif
 		changed = 1;
 	}
 
@@ -344,6 +353,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
 	tw_pe		*dest_pe;
 
+#if ROSS_MEMORY
 	tw_memory	*memory;
 	tw_memory	*last;
 
@@ -353,11 +363,12 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
 	unsigned	 position = 0;
 
-	me->s_nrecv_network++;
-	me->s_nwhite_recv++;
-
 	memcpy(e, buffer, g_tw_event_msg_sz);
 	position += g_tw_event_msg_sz;
+#endif
+
+	me->s_nrecv_network++;
+	me->s_nwhite_recv++;
 
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 	dest_pe = e->dest_lp->pe;
@@ -406,6 +417,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	tw_hash_insert(me->hash_t, e, e->send_pe);
 	e->state.remote = 1;
 
+#if ROSS_MEMORY
 	mem_size = (size_t) e->memory;
 	mem_fd = (tw_fd) e->prev;
 
@@ -429,6 +441,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
 		last = memory;
 	}
+#endif
 
 	if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
 		/* Fast case, we are sending to our own PE and
@@ -471,11 +484,15 @@ send_begin(tw_pe *me)
 	while (posted_sends.cur < send_buffer)
 	{
 		tw_event *e = tw_eventq_peek(&outq);
+		tw_node	*dest_node = NULL;
+
+		unsigned id = posted_sends.cur;
+
+#if ROSS_MEMORY
 		tw_event *tmp_prev = NULL;
 
 		tw_kp *kp;
 		tw_lp *tmp_lp = NULL;
-		tw_node	*dest_node = NULL;
 
 		tw_memory *memory = NULL;
 		tw_memory *m = NULL;
@@ -485,7 +502,7 @@ send_begin(tw_pe *me)
 		size_t mem_size = 0;
 
 		unsigned position = 0;
-		unsigned id = posted_sends.cur;
+#endif
 
 		if (!e)
 			break;
@@ -500,6 +517,8 @@ send_begin(tw_pe *me)
 			e->event_id = (tw_eventid) ++me->seq_num;
 
 		e->send_pe = (tw_peid) g_tw_mynode;
+
+#if ROSS_MEMORY
 		kp = e->src_lp->kp;
 
 		// pack pointers
@@ -550,13 +569,8 @@ send_begin(tw_pe *me)
 				mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
 		}
 
-		//
-		// MEMORY LEAK!
-		//
 		e->memory = NULL;
 
-#if 1
-		//if (MPI_Isend(e,
 		if (MPI_Isend(buffer,
 			EVENT_SIZE(e),
 			MPI_BYTE,
@@ -567,12 +581,13 @@ send_begin(tw_pe *me)
 			return changed;
 		}
 #else
-		if (MPI_Send(e,
+		if (MPI_Isend(e,
 			EVENT_SIZE(e),
 			MPI_BYTE,
 			*dest_node,
 			EVENT_TAG,
-			MPI_COMM_WORLD) != MPI_SUCCESS) {
+			MPI_COMM_WORLD,
+			&posted_sends.req_list[id]) != MPI_SUCCESS) {
 			return changed;
 		}
 #endif
@@ -666,24 +681,18 @@ void
 tw_net_send(tw_event *e)
 {
 	tw_pe * me = e->src_lp->pe;
+	int changed = 0;
 
 	e->state.remote = 0;
 	e->state.owner = TW_net_outq;
 	tw_eventq_unshift(&outq, e);
 
-#if ROSS_NET_aggressive
-	service_queues(me);
-#else
-	{
-		int changed = 0;
 
-		do
-		{
-			changed = test_q(&posted_sends, me, send_finish);
-			changed |= send_begin(me);
-		} while (changed);
-	}
-#endif
+	do
+	{
+		changed = test_q(&posted_sends, me, send_finish);
+		changed |= send_begin(me);
+	} while (changed);
 }
 
 void
