@@ -293,7 +293,11 @@ tw_run(void)
 		tw_scheduler_seq(me);
 	else
 		tw_scheduler(me);
+}
 
+void
+tw_end(void)
+{
 	if(tw_ismaster())
 	{
 		fprintf(g_tw_csv, "\n");

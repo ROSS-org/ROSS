@@ -138,6 +138,7 @@ extern void tw_pe_fossil_collect(tw_pe * me);
 extern void tw_init(int *argc, char ***argv);
 extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed);
 extern void tw_run(void);
+extern void tw_end(void);
 
 /*
  * tw-sched.c
