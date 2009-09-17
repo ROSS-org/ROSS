@@ -189,6 +189,7 @@ main(int argc, char **argv, char **env)
 		//f = fopen("/dev/null", "w");
 
 	tw_run();
+	tw_end();
 
 	return 0;
 }
