@@ -38,24 +38,39 @@
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-#MEMORY=MEMORY
+MEMORY=MEMORY
 
 #########################################################################
 #
-# MPI configuration
+# Network configuration
 #
-# for NET select from:
-#   1. aggressive	-- try to read during event sends
-#   2. conservative	-- do not try to read (probe) during sends
+# for NETWORK select from:
+#   1. mpi	-- use MPI for message passing
+#   2. tcp	-- use TCP network module
+#   3. none	-- no message passing
+#
+# for THREAD select from:
+#   1. pthread  -- use PTHREADS (do not select with MPI!)
+#   2. none	-- no threads (used with MPI or sequential)
+#
+# for CLOCK select from:
+#
+#   1. none	-- use with NETWORK=mpi or sequential
+#   2. amd64	-- use with 64-bit Opeteron processors
+#   3. i386	-- standard 32-bit 386 hardware
+#   4. ppc	-- use with PowerPC (Mac, not Blue Gene!)
 #########################################################################
+
+#
+# Standard MPI-based configuration settings
+#
 NETWORK=mpi
 THREAD=none
 CLOCK=none
 GVT=mpi_allreduce
-NET=conservative
 
 #
-# POSIX threads / sockets
+# Standard POSIX threads / TCP sockets  configuration settings
 #
 #THREAD=pthread
 #NETWORK=tcp
@@ -65,7 +80,7 @@ NET=conservative
 #GVT=7oclock
 
 #
-# SMP Only
+# Shared Memory (SMP) only configuration settings
 #
 #THREAD=pthread
 #NETWORK=none
@@ -73,7 +88,7 @@ NET=conservative
 #GVT=7oclock
 
 #
-# Sequential execution
+# Sequential execution configuration settings
 #
 #THREAD=none
 #NETWORK=none
