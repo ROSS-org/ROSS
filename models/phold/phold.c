@@ -109,6 +109,7 @@ main(int argc, char **argv, char **env)
 		tw_lp_settype(i, &mylps[0]);
 
 	tw_run();
+	tw_end();
 
 	return 0;
 }
