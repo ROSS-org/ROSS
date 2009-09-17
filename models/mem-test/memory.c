@@ -263,5 +263,7 @@ main(int argc, char **argv, char **env)
 
 	mem_stats_print();
 
+	tw_end();
+
 	return 0;
 }
