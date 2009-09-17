@@ -3,26 +3,37 @@
 void
 mem_stats_print()
 {
+	mem_statistics	 stats;
+
+	if(MPI_Reduce(&(g_stats.s_rb),
+			&(stats.s_rb),
+			9,
+			MPI_LONG_LONG,
+			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+
 	if(!tw_ismaster())
 		return;
 
 	printf("\nMemory Model Statistics:\n");
 	printf("\n");
-	printf("\t%-50s %11lld\n", "Total Rollbacks", g_stats.s_rb);
-	printf("\t%-50s %11lld\n", "Total Events Sent", g_stats.s_sent);
-	printf("\t%-50s %11lld\n", "Total Events Recv", g_stats.s_recv);
+	printf("\t%-50s %11lld\n", "Total Rollbacks", stats.s_rb);
+	printf("\t%-50s %11lld\n", "Total Events Sent", stats.s_sent);
+	printf("\t%-50s %11lld\n", "Total Events Recv", stats.s_recv);
 	printf("\n");
-	printf("\t%-50s %11lld\n", "Total Allocated", g_stats.s_mem_alloc);
-	printf("\t%-50s %11lld\n", "Total Allocated RC", g_stats.s_mem_alloc_rc);
-	printf("\t%-50s %11lld\n", "NET Allocated", g_stats.s_mem_alloc - g_stats.s_mem_alloc_rc);
+	printf("\t%-50s %11lld\n", "Total Allocated", stats.s_mem_alloc);
+	printf("\t%-50s %11lld\n", "Total Allocated RC", stats.s_mem_alloc_rc);
+	printf("\t%-50s %11lld\n", "NET Allocated", stats.s_mem_alloc - stats.s_mem_alloc_rc);
 	printf("\n");
-	printf("\t%-50s %11lld\n", "Total Freed", g_stats.s_mem_free);
-	printf("\t%-50s %11lld\n", "Total Freed RC", g_stats.s_mem_free_rc);
-	printf("\t%-50s %11lld *\n", "NET Freed", g_stats.s_mem_free - g_stats.s_mem_free_rc);
+	printf("\t%-50s %11lld\n", "Total Freed", stats.s_mem_free);
+	printf("\t%-50s %11lld\n", "Total Freed RC", stats.s_mem_free_rc);
+	printf("\t%-50s %11lld *\n", "NET Freed", stats.s_mem_free - stats.s_mem_free_rc);
 	printf("\n");
-	printf("\t%-50s %11lld\n", "Total Gets", g_stats.s_mem_get);
-	printf("\t%-50s %11lld\n", "Total Gets RC", g_stats.s_mem_get_rc);
-	printf("\t%-50s %11lld *\n", "NET Gets", g_stats.s_mem_get - g_stats.s_mem_get_rc);
+	printf("\t%-50s %11lld\n", "Total Gets", stats.s_mem_get);
+	printf("\t%-50s %11lld\n", "Total Gets RC", stats.s_mem_get_rc);
+	printf("\t%-50s %11lld *\n", "NET Gets", stats.s_mem_get - stats.s_mem_get_rc);
 	printf("\n");
 }
 
