@@ -206,6 +206,8 @@ main(int argc, char **argv, char **env)
 		printf("\t%-50s %11lld\n", "Number of planes", 
 			planes_per_airport * nlp_per_pe * g_tw_npe * tw_nnodes());
 	}
+
+	tw_end();
 	
 	return 0;
 }
