@@ -43,6 +43,7 @@ extern double rm_move2(double, double [], double [], tw_lp * lp);
 extern void rm_rc_move(tw_lp * lp);
 extern int rm_initialize(tw_petype *, tw_lptype *, tw_peid, tw_kpid, tw_lpid, size_t);
 extern void rm_run(char **argv);
+extern void rm_end(void);
 
 /*
  * rm.c - Cell LP file with simulation engine function definitions

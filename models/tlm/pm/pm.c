@@ -239,5 +239,7 @@ main(int argc, char **argv, char **env)
 
 	pm_stats_print();
 
+	rm_end();
+
 	return 0;
 }

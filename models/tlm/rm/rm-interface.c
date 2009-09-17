@@ -417,3 +417,9 @@ rm_run(char ** argv)
 	//fclose(g_rm_nodes_plt_f);
 	//fclose(g_rm_parts_plt_f);
 }
+
+void
+rm_end(void)
+{
+	tw_end();
+}
