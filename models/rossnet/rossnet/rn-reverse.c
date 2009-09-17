@@ -38,7 +38,7 @@ rn_reverse_event_send(tw_lpid dst, tw_lp * src, rn_message_type dir, unsigned lo
 		// restore my state
 		s->cur_layer++;
 		state->cur_lp = &s->layers[s->cur_layer].lp;
-		state->l_stats.s_nevents_processed--;
+		state->l_stats.s_nevents_rollback++;
 	} else if(dir == DOWNSTREAM && s->cur_layer < s->nlayers - 1)
 	{
 		// RC layer below us
@@ -50,7 +50,7 @@ rn_reverse_event_send(tw_lpid dst, tw_lp * src, rn_message_type dir, unsigned lo
 		// restore my state
 		s->cur_layer--;
 		state->cur_lp = &s->layers[s->cur_layer].lp;
-		state->l_stats.s_nevents_processed--;
+		state->l_stats.s_nevents_rollback++;
 	} else if(dir == DOWNSTREAM)
 	{
 		// bottom of stack, no more layers to RC

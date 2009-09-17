@@ -455,7 +455,7 @@ rn_rc_event_handler(rn_lp_state * state, tw_bf * bf, rn_message * msg, tw_lp * l
 
 	rn_stream	*cur_stream;
 
-	state->l_stats.s_nevents_processed--;
+	state->l_stats.s_nevents_rollback++;
 
 	if (msg->type == TIMER)
 	{
@@ -593,16 +593,16 @@ rn_print_statistics()
 		return;
 
 	printf("\nROSS.Net Library Statistics: \n\n");
-	printf("\t%-50s %11d\n", "Event Size", (int) g_tw_msg_sz);
-	printf("\t%-50s %11lld\n", "Total Events Processed",
+	//printf("\t%-50s %11d\n", "Event Size", (int) g_tw_msg_sz);
+	printf("\t%-50s %11lld\n", "Total Packets Processed",
 		   	stats.s_nevents_processed);
-	printf("\t%-50s %11lld\n", "Events Rolled Back",
+	printf("\t%-50s %11lld\n", "Total Packets Rolled Back",
 			stats.s_nevents_rollback);
 	printf("\n");
 
 	events = stats.s_nevents_processed - stats.s_nevents_rollback;
-	printf("\t%-50s %11lld *\n", "Network Events Processed", events);
-	printf("\t%-50s %11.2f (events/sec)\n", "Event Rate", 
+	printf("\t%-50s %11lld *\n", "Net Packets Processed", events);
+	printf("\t%-50s %11.2f (pkts/sec)\n", "Packet Rate", 
 		(double) (events / g_tw_pe[0]->statistics.max_run_time));
 }
 
