@@ -720,5 +720,7 @@ main(int argc, char **argv, char **env)
 	rn_models_final(layer_types);
 	rn_print_statistics();
 
+	tw_end();
+
 	return 0;
 }
