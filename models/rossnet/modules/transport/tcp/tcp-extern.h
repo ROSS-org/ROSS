@@ -73,7 +73,5 @@ extern tw_fd		 g_tcp_fd;
 extern tcp_statistics	*g_tcp_stats;
 extern int		 g_tcp_mss;
 extern int		 g_tcp_rwd;
-extern FILE		*g_tcp_f;
-
 
 #endif

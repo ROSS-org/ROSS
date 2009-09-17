@@ -22,10 +22,6 @@ tcp_md_init(int argc, char ** argv, char ** env)
 	nbufs = 1;
 
 	g_tcp_stats = tw_calloc(TW_LOC, "", sizeof(*g_tcp_stats), 1);
-	g_tcp_f = fopen("tcp.data", "w");
-
-	if(!g_tcp_f)
-		tw_error(TW_LOC, "Unable to open TCP validation file!");
 
 	for(i = 0; i < g_tw_nkp; i++)
 		g_tcp_fd = tw_kp_memory_init(tw_getkp(i), nbufs,
@@ -43,9 +39,6 @@ void
 tcp_md_final()
 {
 	tcp_statistics	stats;
-
-	if(g_tcp_f)
-		fclose(g_tcp_f);
 
 	if(MPI_Reduce(&(g_tcp_stats->bad_msgs),
 			&stats,

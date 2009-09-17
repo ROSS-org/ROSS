@@ -16,11 +16,6 @@ if(state->connection != -1)
 {
 	printf("\t\t%lld %lld: SEND DATA at %lf (%d) to %lld \n", 
 		lp->gid, src, tw_now(lp) + ts, seq_num, dst);
-
-	fprintf(g_tcp_f, "0 %lf %d\n", tw_now(lp) + ts, seq_num % 60000);
-	fprintf(g_tcp_f, "2 %lf %lf\n", tw_now(lp) + ts, state->cwnd * state->mss);
-	fprintf(g_tcp_f, "3 %lf %d\n", tw_now(lp) + ts, state->recv_wnd* state->mss);
-	fprintf(g_tcp_f, "4 %lf %lf\n", tw_now(lp) + ts, state->ssthresh * state->mss);
 } else
 {
 	printf("\t\t%lld: SEND ACK at %lf (%d) to %lld \n", 

@@ -8,5 +8,3 @@ int		 g_tcp_rwd = 32;
 
 tw_fd		 g_tcp_fd = 0;
 tcp_statistics	*g_tcp_stats;
-
-FILE		*g_tcp_f = NULL;
