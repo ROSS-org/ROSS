@@ -59,6 +59,12 @@ MEMORY=MEMORY
 #   2. amd64	-- use with 64-bit Opeteron processors
 #   3. i386	-- standard 32-bit 386 hardware
 #   4. ppc	-- use with PowerPC (Mac, not Blue Gene!)
+#
+# for GVT select from:
+#
+#   1. mpi_allreduce	-- use with NETWORK=mpi only
+#   2. 7oclock		-- hardware clock supported GVT algorithm (no MPI)
+#   3. none		-- no GVT, sequential only
 #########################################################################
 
 #
