@@ -55,22 +55,37 @@ ip_md_init(int argc, char ** argv, char ** env)
 void
 ip_md_final()
 {
+	ip_stats	 stats;
+
+	if(MPI_Reduce(&(g_ip_stats->s_ncomplete),
+			&stats,
+			8,
+			MPI_LONG_LONG,
+			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+
 	if(!tw_ismaster())
 		return;
 
 	printf("\nIP Model Statistics:\n\n");
-	printf("\t%-50s %11ld \n", "Total Packets Completed", g_ip_stats->s_ncomplete);
-	printf("\t%-50s %11ld \n", "Total Packets Dropped", g_ip_stats->s_ndropped);
-	printf("\t%-50s %11ld \n", "Packets Dropped at Source", 
-		g_ip_stats->s_ndropped_source);
-	printf("\t%-50s %11ld \n", "Packets Dropped (TTL)", g_ip_stats->s_ndropped_ttl);
-	printf("\t%-50s %11ld \n", "Packets Dropped by Network Failure", 
-		g_ip_stats->s_nnet_failures);
-	printf("\t%-50s %11ld \n", "Packets Forwarded", g_ip_stats->s_nforward);
+	printf("\t%-50s %11lld \n", "Total Packets Completed", 
+			stats.s_ncomplete);
+	printf("\t%-50s %11lld \n", "Total Packets Dropped", 
+			stats.s_ndropped);
+	printf("\t%-50s %11lld \n", "Packets Dropped at Source", 
+			stats.s_ndropped_source);
+	printf("\t%-50s %11lld \n", "Packets Dropped (TTL)", 
+			stats.s_ndropped_ttl);
+	printf("\t%-50s %11lld \n", "Packets Dropped by Network Failure", 
+			stats.s_nnet_failures);
+	printf("\t%-50s %11lld \n", "Packets Forwarded", 
+			stats.s_nforward);
 	printf("\n");
-	printf("\t%-50s %11d \n", "Packet Avg TTL", 
-		g_ip_stats->s_avg_ttl ? 
-			(int) (g_ip_stats->s_avg_ttl / g_ip_stats->s_ncomplete) :
-			(int) g_ip_stats->s_avg_ttl);
-	printf("\t%-50s %11ld \n", "Packet Max TTL", g_ip_stats->s_max_ttl);
+	printf("\t%-50s %11lld \n", "Packet Avg TTL", 
+			stats.s_avg_ttl ? 
+				(tw_stat) (stats.s_avg_ttl / stats.s_ncomplete) :
+				(tw_stat) stats.s_avg_ttl);
+	printf("\t%-50s %11lld \n", "Packet Max TTL", stats.s_max_ttl);
 }

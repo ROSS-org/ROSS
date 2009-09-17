@@ -83,10 +83,12 @@ tcp_rc_timer_reset(tw_event * timer, tw_bf * bf, tcp_message * old, tw_lp * lp)
 			old->RC.timer_ts = 0.0;
 		}
 
+#if VERIFY_TCP_TIMER
 		if(timer)
 			printf("\t%lld: reset timer to %lf\n", lp->gid, timer->recv_ts);
 		else
 			printf("\t%lld: unable to reset timer\n", lp->gid);
+#endif
 	}
 
 #if VERIFY_TCP_TIMER

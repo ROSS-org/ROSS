@@ -249,6 +249,13 @@ tcp_final(tcp_state * state, tw_lp * lp)
 	fprintf(state->log, "\t%-50s %11d\n", "ACK Invalid", state->stats->ack_invalid);
 #endif
 
+	if(state->connection != -1)
+	{
+ 		g_tcp_stats->throughput +=
+			(((state->len * 8.0)/ 
+				(tw_now(lp) - state->stats->start_time)) / 1024);
+	}
+
 	g_tcp_stats->sent += state->stats->sent;
 	g_tcp_stats->recv += state->stats->recv;
 	g_tcp_stats->tout += state->stats->tout;
@@ -257,7 +264,4 @@ tcp_final(tcp_state * state, tw_lp * lp)
 	g_tcp_stats->ack_invalid += state->stats->ack_invalid;
 	g_tcp_stats->bad_msgs += state->stats->bad_msgs;
 	g_tcp_stats->dropped_packets += state->stats->dropped_packets;
-
-	if(0 && lp->gid % 100000 == 0)
-		printf("Finalizing TCP LP %lld \n", lp->gid);
 }

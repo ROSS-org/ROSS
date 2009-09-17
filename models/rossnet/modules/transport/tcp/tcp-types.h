@@ -91,19 +91,19 @@ DEF(struct, tcp_message)
 
 DEF(struct, tcp_statistics)
 {
-	int		bad_msgs;
-	int             sent;
-	int             tout;
-	int             recv;
-	int             dropped_packets;
+	tw_stat		bad_msgs;
+	tw_stat		sent;
+	tw_stat		tout;
+	tw_stat		recv;
+	tw_stat		dropped_packets;
+
+	tw_stat		ack_invalid;
+	tw_stat		ack_sent;
+	tw_stat		ack_recv;
 
 	tw_stime	throughput;
 	tw_stime	start_time;
 	tw_stime	final_time;
-
-	int		ack_invalid;
-	int		ack_sent;
-	int		ack_recv;
 };
 
 #endif

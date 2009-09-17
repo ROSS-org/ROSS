@@ -42,19 +42,39 @@ tcp_md_init(int argc, char ** argv, char ** env)
 void
 tcp_md_final()
 {
+	tcp_statistics	stats;
+
 	if(g_tcp_f)
 		fclose(g_tcp_f);
 
+	if(MPI_Reduce(&(g_tcp_stats->bad_msgs),
+			&stats,
+			8,
+			MPI_LONG_LONG,
+			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+
+	if(MPI_Reduce(&(g_tcp_stats->throughput),
+			&(stats.throughput),
+			3,
+			MPI_DOUBLE,
+			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+			
 	if(!tw_ismaster())
 		return;
 
 	printf("\nTCP Model Statistics: \n\n");
-	printf("\t%-50s %11d\n", "Sent Packets", g_tcp_stats->sent);
-	printf("\t%-50s %11d\n", "Recv Packets", g_tcp_stats->recv);
-	printf("\t%-50s %11d\n", "Sent ACKs", g_tcp_stats->ack_sent);
-	printf("\t%-50s %11d\n", "Recv ACKs", g_tcp_stats->ack_recv);
-	printf("\t%-50s %11d\n", "Invalid ACKs", g_tcp_stats->ack_invalid);
-	printf("\t%-50s %11d\n", "TimeOut Packets", g_tcp_stats->tout);
-	printf("\t%-50s %11d\n", "Drop Packets", g_tcp_stats->dropped_packets);
-	//printf("\t%-50s %11.4lf\n", "Throughput", g_tcp_stats->throughput);
+	printf("\t%-50s %11lld\n", "Sent Packets", stats.sent);
+	printf("\t%-50s %11lld\n", "Recv Packets", stats.recv);
+	printf("\t%-50s %11lld\n", "Sent ACKs", stats.ack_sent);
+	printf("\t%-50s %11lld\n", "Recv ACKs", stats.ack_recv);
+	printf("\t%-50s %11lld\n", "Invalid ACKs", stats.ack_invalid);
+	printf("\t%-50s %11lld\n", "TimeOut Packets", stats.tout);
+	printf("\t%-50s %11lld\n", "Drop Packets", stats.dropped_packets);
+	printf("\t%-50s %11.4lf Kbps\n", "Total Throughput", stats.throughput);
 }

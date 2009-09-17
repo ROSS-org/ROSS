@@ -15,7 +15,7 @@ DEF(struct, ip_state)
 
 	float		 max_delay;
 
-	unsigned long int capacity;
+	tw_stat		 capacity;
 	tw_memoryq	*link_q;
 };
 
@@ -28,14 +28,14 @@ DEF(struct, ip_stats)
 	 * s_nforward  -- # of pkts forwarded on from this node
 	 * s_ndropped  -- # of pkts which could not be forwarded
 	 */
-	unsigned long int s_ncomplete;
-	unsigned long int s_nforward;
-	unsigned long int s_ndropped;
-	unsigned long int s_ndropped_source;
-	unsigned long int s_nnet_failures;
-	unsigned long int s_ndropped_ttl;
-	unsigned long int s_avg_ttl;
-	unsigned long int s_max_ttl;
+	tw_stat s_ncomplete;
+	tw_stat s_nforward;
+	tw_stat s_ndropped;
+	tw_stat s_ndropped_source;
+	tw_stat s_nnet_failures;
+	tw_stat s_ndropped_ttl;
+	tw_stat s_avg_ttl;
+	tw_stat s_max_ttl;
 };
 
 DEF(struct, ip_message)
