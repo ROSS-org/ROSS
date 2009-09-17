@@ -8,19 +8,27 @@ const tw_optdef ip_opts[] =
 };
 
 void
+ip_md_opts()
+{
+	tw_opt_add(ip_opts);
+}
+
+void
 ip_md_init(int argc, char ** argv, char ** env)
 {
+	int	 nbufs;
 	int	 i;
 
 	char	 log[1024];
 
 	g_ip_stats = tw_calloc(TW_LOC, "", sizeof(ip_stats), 1);
 
+	nbufs = 10000 / g_tw_nkp;
+	nbufs = 1;
+
 	// in secs..
 	g_ip_minor_interval = 60;
 	g_ip_major_interval = 86400;
-
-	tw_opt_add(ip_opts);
 
 	if(g_ip_log_on)
 	{
@@ -32,17 +40,15 @@ ip_md_init(int argc, char ** argv, char ** env)
 	}
 
 	for(i = 0; i < g_tw_nkp; i++)
-		g_ip_fd = tw_kp_memory_init(tw_getkp(i), 10000, sizeof(ip_message), 1);
+		g_ip_fd = tw_kp_memory_init(tw_getkp(i), nbufs, sizeof(ip_message), 1);
 
 	ip_routing_init();
 
 	if(tw_ismaster())
 	{
 		printf("\nInitializing Model: IPv4\n");
-#if 0
 		printf("\t%-50s %11d (%ld)\n", 
-			"IP Membufs", 1000000, g_ip_fd);
-#endif
+			"IP Membufs", nbufs, g_ip_fd);
 	}
 }
 

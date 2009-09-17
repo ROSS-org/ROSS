@@ -56,6 +56,7 @@ extern void epi_init_scenario();
 /*
  * epi.c - main model file with simulation engine function definitions and main
  */
+extern void epi_md_opts();
 extern void epi_main(int argc, char ** argv, char ** env);
 extern void epi_xml(epi_state * state, const xmlNodePtr node, tw_lp * lp);
 extern void epi_md_final();

@@ -20,6 +20,7 @@ extern void tcp_xml(tcp_state *, const xmlNodePtr node, tw_lp *);
 /*
  * tcp-model.c
  */
+extern void	tcp_md_opts();
 extern void     tcp_md_init(int argc, char ** argv, char ** env);
 extern void     tcp_md_final();
 

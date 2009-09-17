@@ -9,6 +9,7 @@ extern void rw_xml(rw_state *, const xmlNodePtr node, tw_lp *);
 /*
  * rw-model.c
  */
+extern void rw_md_opts();
 extern void rw_md_init(int argc, char ** argv, char ** env);
 extern void rw_md_final();
 

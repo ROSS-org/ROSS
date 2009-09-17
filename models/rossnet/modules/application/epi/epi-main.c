@@ -1,5 +1,11 @@
 #include <epi.h>
 
+void
+epi_md_opts()
+{
+	//tw_opt_add(epi_options);
+}
+
 /*
  * main	- start function for the model, setup global state space of model and
  *	  init and run the simulation executive.  Also must map LPs to PEs

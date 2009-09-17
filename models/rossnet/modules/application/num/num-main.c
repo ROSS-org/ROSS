@@ -1,5 +1,11 @@
 #include <num.h>
 
+void
+num_md_opts()
+{
+	//tw_opt_ad(num_opts);
+}
+
 /*
  * main	- start function for the model, setup global state space of model and
  *	  init and run the simulation executive. 

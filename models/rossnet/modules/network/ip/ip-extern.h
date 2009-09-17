@@ -53,6 +53,7 @@ extern void	 ip_xml(tw_lp * lp, xmlNodePtr node);
 /*
  * ip-model.c
  */
+extern void	 ip_md_opts();
 extern void	 ip_md_init(int argc, char ** argv, char ** env);
 extern void	 ip_md_final();
 

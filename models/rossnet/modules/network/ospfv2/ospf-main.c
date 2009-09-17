@@ -2,6 +2,12 @@
 
 #define VERIFY_OSPF_MAIN 0
 
+void
+ospf_md_opts()
+{
+	//tw_opt_add(ospf_options);
+}
+
 	/*
 	 * Parse OSPF model specific command line arguments
 	 */

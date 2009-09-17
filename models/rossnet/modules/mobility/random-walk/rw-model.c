@@ -9,23 +9,32 @@ static const tw_optdef rw_options [] =
 };
 
 void
+rw_md_opts()
+{
+	tw_opt_add(rw_options);
+}
+	
+void
 rw_md_init(int argc, char ** argv, char ** env)
 {
+	int	 nbufs;
 	int	 i;
 
-	tw_opt_add(rw_options);
 
 	g_rw_stats = tw_calloc(TW_LOC, "", sizeof(*g_rw_stats), 1);
 
+	nbufs = 1000000 / g_tw_nkp;
+	nbufs = 10000 / g_tw_nkp;
+
 	for(i = 0; i < g_tw_nkp; i++)
-		g_rw_fd = tw_kp_memory_init(tw_getkp(i), 1000000 / g_tw_nkp, 
+		g_rw_fd = tw_kp_memory_init(tw_getkp(i), nbufs,
 					sizeof(rw_message), 1);
 
 	if(tw_ismaster())
 	{
 		printf("\nInitializing Model: Random Walk\n");
 		printf("\t%-50s %11d (%ld)\n", 
-			"Membufs Allocated", 1000000, g_rw_fd);
+			"Membufs Allocated", nbufs, g_rw_fd);
 	}
 }
 

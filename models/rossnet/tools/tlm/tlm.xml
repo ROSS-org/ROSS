@@ -2,8 +2,8 @@
 	<environment>
 		<layer name='tlm' dimensions='3'>
 			<grid>
-				<x>100</x>
-				<y>100</y>
+				<x>1000</x>
+				<y>1000</y>
 				<z>4</z>
 			</grid>
 			<spacing>

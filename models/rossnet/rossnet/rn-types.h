@@ -18,6 +18,7 @@ FWD(struct, rn_message);
 FWD(struct, rn_lptype);
 
 typedef void	(*rn_xml_init_f) (void *sv, xmlNodePtr node, tw_lp *me);
+typedef void	(*md_opt_f) ();
 typedef void	(*md_init_f) (int argc, char ** argv, char **env);
 typedef void	(*md_final_f) ();
 
@@ -36,6 +37,7 @@ DEF(struct, rn_lptype)
 	 */
 	char	sname[255];
 	rn_xml_init_f	xml_init;
+	md_opt_f	md_opts;
 	md_init_f	md_init;
 	md_final_f	md_final;
 };

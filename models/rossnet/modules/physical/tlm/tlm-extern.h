@@ -9,6 +9,7 @@ extern void tlm_xml(tlm_state *, const xmlNodePtr node, tw_lp *);
 /*
  * tlm-model.c
  */
+extern void tlm_md_opts();
 extern void tlm_md_init(int argc, char ** argv, char ** env);
 extern void tlm_md_final();
 

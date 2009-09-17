@@ -12,6 +12,25 @@ static char run_id[1024] = "undefined";
 // rate for timestamp exponential distribution
 static tw_stime mean = 1.0;
 
+const tw_optdef phold_opts[] =
+{
+	TWOPT_GROUP("PHOLD Model"),
+	TWOPT_STIME("remote", percent_remote, "desired remote event rate"),
+	TWOPT_UINT("nlp", nlp, "number of LPs per processor"),
+	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
+	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
+	TWOPT_UINT("start-events", g_phold_start_events, "number of initial messages per LP"),
+	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),
+	TWOPT_CHAR("run", run_id, "user supplied run name"),
+	TWOPT_END()
+};
+
+void
+phold_md_opts()
+{
+	tw_opt_add(phold_opts);
+}
+
 void
 phold_init(phold_state * s, tw_lp * lp)
 {
@@ -66,26 +85,9 @@ phold_finish(phold_state * s, tw_lp * lp)
 {
 }
 
-const tw_optdef app_opt[] =
-{
-	TWOPT_GROUP("PHOLD Model"),
-	TWOPT_STIME("remote", percent_remote, "desired remote event rate"),
-	TWOPT_UINT("nlp", nlp, "number of LPs per processor"),
-	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
-	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
-	TWOPT_UINT("start-events", g_phold_start_events, "number of initial messages per LP"),
-	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),
-	TWOPT_CHAR("run", run_id, "user supplied run name"),
-	TWOPT_END()
-};
-
 int
 phold_main(int argc, char **argv, char **env)
 {
-	int		 i;
-
-	tw_opt_add(app_opt);
-
 	offset_lpid = g_tw_mynode * g_tw_nlp;
 	ttl_lps = tw_nnodes() * g_tw_npe * g_tw_nlp;
 

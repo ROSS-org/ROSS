@@ -1,9 +1,25 @@
 #include <tcp.h>
 
+const tw_optdef tcp_opts[] =
+{
+	TWOPT_GROUP("TCP Model"),
+	TWOPT_END()
+};
+
+void
+tcp_md_opts()
+{
+	tw_opt_add(tcp_opts);
+}
+
 void
 tcp_md_init(int argc, char ** argv, char ** env)
 {
+	int	 nbufs;
 	int	 i;
+
+	nbufs = 1000000 / g_tw_nkp;
+	nbufs = 1;
 
 	g_tcp_stats = tw_calloc(TW_LOC, "", sizeof(*g_tcp_stats), 1);
 	g_tcp_f = fopen("tcp.data", "w");
@@ -12,14 +28,14 @@ tcp_md_init(int argc, char ** argv, char ** env)
 		tw_error(TW_LOC, "Unable to open TCP validation file!");
 
 	for(i = 0; i < g_tw_nkp; i++)
-		g_tcp_fd = tw_kp_memory_init(tw_getkp(i), 1000000 / g_tw_nkp, 
+		g_tcp_fd = tw_kp_memory_init(tw_getkp(i), nbufs,
 					sizeof(tcp_message), 1);
 
 	if(tw_ismaster())
 	{
 		printf("\nInitializing Model: TCP Tahoe\n");
 		printf("\t%-50s %11d (%ld)\n", 
-			"TCP Membufs", 1000000, g_tcp_fd);
+			"TCP Membufs", nbufs, g_tcp_fd);
 	}
 }
 

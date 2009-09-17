@@ -47,6 +47,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(rw_state),
 	 "random-walk",
 	 (rn_xml_init_f) rw_xml,
+	 (md_opt_f) rw_md_opts,
 	 (md_init_f) rw_md_init,
 	 (md_final_f) rw_md_final}
 	,
@@ -61,6 +62,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(tlm_state),
 	 "tlm",
 	 (rn_xml_init_f) tlm_xml,
+	 (md_opt_f) tlm_md_opts,
 	 (md_init_f) tlm_md_init,
 	 (md_final_f) tlm_md_final}
 	,
@@ -75,6 +77,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(ospf_state),
 	 "ospf",
 	 (rn_xml_init_f) ospf_xml,
+	 (md_opt_f) ospf_md_opts,
 	 (md_init_f) ospf_main,
 	 (md_final_f) ospf_md_final}
 	,
@@ -89,6 +92,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(epi_state),
 	 "epi",
 	 (rn_xml_init_f) epi_xml,
+	 (md_opt_f) epi_md_opts,
 	 (md_init_f) epi_main,
 	 (md_final_f) epi_md_final}
 	,
@@ -102,6 +106,7 @@ rn_lptype       layer_types[] = {
 	 (map_f) NULL,
 	 sizeof(num_state),
 	 "num",
+	 (md_opt_f) num_md_opts,
 	 (rn_xml_init_f) num_xml,
 	 (md_init_f) num_main,
 	 (md_final_f) num_md_final}
@@ -117,6 +122,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(bgp_state),
 	 "bgp",
 	 (rn_xml_init_f) bgp_xml,
+	 (md_opt_f) bgp_md_opts,
 	 (md_init_f) bgp_main,
 	 (md_final_f) bgp_md_final}
 	,
@@ -131,6 +137,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(tcp_state),
 	 "tcp",
 	 (rn_xml_init_f) tcp_xml,
+	 (md_opt_f) tcp_md_opts,
 	 (md_init_f) tcp_md_init,
 	 (md_final_f) tcp_md_final}
 	,
@@ -145,6 +152,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(NodeState),
 	 "mcast",
 	 (rn_xml_init_f) McastXml,
+	 (md_opt_f) NULL,
 	 (md_init_f) NULL,
 	 (md_final_f) NULL}
 	,
@@ -159,6 +167,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(ip_state),
 	 "ip",
 	 (rn_xml_init_f) NULL,
+	 (md_opt_f) ip_md_opts,
 	 (md_init_f) ip_md_init,
 	 (md_final_f) ip_md_final}
 	,
@@ -173,6 +182,7 @@ rn_lptype       layer_types[] = {
 	 sizeof(phold_state),
 	 "phold",
 	 (rn_xml_init_f) phold_xml,
+	 (md_opt_f) phold_md_opts,
 	 (md_init_f) NULL,
 	 (md_final_f) NULL}
 	,
@@ -617,6 +627,8 @@ main(int argc, char **argv, char **env)
 	tw_lpid		 nnetlps_per_pe;
 	tw_lpid		 nenvlps_per_pe;
 
+	rn_lptype	*t;
+
 	int		 i;
 
 	g_rn_stats = tw_calloc(TW_LOC, "RN Statistics", sizeof(*g_rn_stats), 1);
@@ -625,15 +637,9 @@ main(int argc, char **argv, char **env)
 	/* add command line args */
 	tw_opt_add(rn_opts);
 
-	for(i = 0; i < argc; i++)
-	{
-		if(0 == strcmp("--help", argv[i]))
-		{
-			//strcpy(argv[i], "\0");
-			help = i;
-			g_tw_nlp = g_tw_nkp = 1;
-		}
-	}
+	for(t = layer_types, i = 0; t && t->init; t = &layer_types[++i])
+		if(*t->md_opts)
+			(*t->md_opts) ();
 
 	/* Initialize ROSS */
 	tw_init(&argc, &argv);

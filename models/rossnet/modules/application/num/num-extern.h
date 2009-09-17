@@ -36,6 +36,7 @@ extern char	*get_tod(tw_stime);
 /*
  * num-main.c
  */
+extern void num_md_opts();
 extern void num_main(int argc, char ** argv, char ** env);
 extern void num_xml(num_state * state, const xmlNodePtr node, tw_lp * lp);
 extern void num_md_final();

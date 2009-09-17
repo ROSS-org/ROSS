@@ -220,6 +220,7 @@ extern unsigned int OSPF_LSA_REFRESH_AGE;
 /*
  * ospf-main.c
  */
+extern void ospf_md_opts();
 extern void ospf_main(int argc, char ** argv, char ** env);
 extern void ospf_md_final();
 

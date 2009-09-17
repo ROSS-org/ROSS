@@ -11,14 +11,17 @@ static const tw_optdef tlm_options [] =
 };
 
 void
+tlm_md_opts()
+{
+	tw_opt_add(tlm_options);
+}
+
+void
 tlm_md_init(int argc, char ** argv, char ** env)
 {
 	tw_lpid		 nlp_grid;
 
 	int		 i;
-
-	// add command line options
-	tw_opt_add(tlm_options);
 
 	if(!g_rn_environment)
 		return;

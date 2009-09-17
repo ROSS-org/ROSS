@@ -1,5 +1,11 @@
 #include <bgp.h>
 
+void
+bgp_md_opts()
+{
+	//tw_opt_add(bgp_opts);
+}
+
 	/*
 	 * Parse BGP model specific command line arguments
 	 */

@@ -31,6 +31,7 @@ extern void	  bgp_route_print(bgp_state * state, bgp_route * r);
  * bgp-main.c
  */
 extern void	bgp_rt_file(int * read);
+extern void	bgp_md_opts();
 extern void     bgp_main(int argc, char **argv, char **env);
 extern void	bgp_md_final();
 
