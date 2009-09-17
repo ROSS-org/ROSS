@@ -603,12 +603,13 @@ const tw_optdef rn_opts [] =
 	TWOPT_UINT("link-prob", g_rn_link_prob, "link failure rate"),
 	TWOPT_UINT("bgp", g_rn_converge_bgp, "pre-converge BGP model"),
 	TWOPT_UINT("ospf", g_rn_converge_ospf, "pre-converge OSPFv2 model"),
-	TWOPT_CHAR("log-dir", g_rn_logs_dir, "user specified log directory"),
-	TWOPT_CHAR("topology", g_rn_xml_topology, "user specified XML config file"),
+	TWOPT_CHAR("logs", g_rn_logs_dir, "user specified log directory"),
+	TWOPT_CHAR("topology", g_rn_xml_topology, "user specified network topology"),
 	TWOPT_CHAR("route-table", g_rn_rt_table, "user specified routing table"),
-	TWOPT_CHAR("model", g_rn_xml_model, "user specified model"),
+	TWOPT_CHAR("model", g_rn_xml_model, "user specified traffic model (unimplemented"),
 	TWOPT_CHAR("link-topology", g_rn_xml_link_topology, "user specified link topology"),
 	TWOPT_CHAR("scenario", g_rn_tools_dir, "tools scenario"),
+	TWOPT_CHAR("run", g_rn_run, "user supplied run identifier"),
 	TWOPT_END()
 };
 

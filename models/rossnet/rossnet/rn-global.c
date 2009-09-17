@@ -17,6 +17,7 @@ int	g_rn_dst = -1;
  *
  * g_rn_stats	-- rossnet statistics struct
  */
+char			 g_rn_run[1024] = "undefined";
 unsigned char		 g_rn_ttl = 32;
 unsigned int	         g_rn_msg_sz;
 

@@ -166,6 +166,7 @@ extern xmlXPathContextPtr ctxt_model;
 
 extern xmlNodePtr g_rn_environment;
 
+extern char		 g_rn_run[1024];
 extern unsigned char	 g_rn_ttl;
 extern unsigned int	 g_rn_msg_sz;
 
