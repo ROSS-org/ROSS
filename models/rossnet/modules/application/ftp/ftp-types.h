@@ -41,4 +41,6 @@ DEF(struct, ftp_statistics)
 	unsigned long int	s_files_read;
 };
 
+static tw_fd    g_tcp_fd;
+
 #endif
