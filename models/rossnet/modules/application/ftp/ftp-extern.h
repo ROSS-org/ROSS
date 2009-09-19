@@ -28,7 +28,7 @@ extern void     ftp_final(ftp_lp_state * state, tw_lp * lp);
 extern char    *g_ftp_buffer;
 extern unsigned int g_ftp_buffer_size;
 extern unsigned long int g_ftp_chunk_size;
-extern tw_fd	 g_ftp_fd;
+extern tw_fd	 g_ftp_fd = 0;
 
 extern ftp_statistics g_ftp_stats;
 

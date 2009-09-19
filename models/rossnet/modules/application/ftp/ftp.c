@@ -24,7 +24,7 @@ ftp_init(ftp_lp_state * state, tw_lp * lp)
 	ftp_msg = tw_memory_data(b);
 	ftp_msg->type = FTP_SEND;
 			
-	tw_event_memory_set(new_event, b, g_tcp_fd);
+	tw_event_memory_set(new_event, b, g_ftp_fd);
 	rn_event_send(new_event);
 
 	state->bytes_sent += g_ftp_chunk_size;
@@ -98,7 +98,7 @@ ftp_event_handler(ftp_lp_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp
 			printf("%d: ftp sending %d bytes to lp %d %g\n",
 			       lp->id, g_ftp_chunk_size, dst, tw_now(lp));
 #endif
-			tw_event_memory_set(new_event, b_out, g_tcp_fd);
+			tw_event_memory_set(new_event, b_out, g_ftp_fd);
 			rn_event_send(new_event);
 			
 			state->bytes_sent += g_ftp_chunk_size;
@@ -147,7 +147,7 @@ ftp_rc_event_handler(ftp_lp_state * state, tw_bf * bf, rn_message * msg, tw_lp *
 			break;
 	}
 
-	tw_event_memory_get_rc(lp, b, g_tcp_fd);
+	tw_event_memory_get_rc(lp, b, g_ftp_fd);
 }
 
 	/*
