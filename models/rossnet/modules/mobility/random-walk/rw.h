@@ -6,5 +6,6 @@
 #include "rw-types.h"
 #include "rw-extern.h"
 
-#include <tlm.h>
+#include "../../physical/tlm/tlm.h"
+
 #endif
