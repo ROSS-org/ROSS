@@ -6,26 +6,26 @@
 tw_memory         *
 tw_memory_alloc(tw_lp * lp, tw_fd fd)
 {
-	tw_kp			*kp;
+	tw_pe			*pe;
 	tw_memoryq		*q;
 	tw_memory		*m;
 
-	kp = lp->kp;
+	pe = lp->pe;
 
-	q = tw_kp_getqueue(kp, fd);
+	q = tw_pe_getqueue(pe, fd);
 
 	/*
 	 * First try to fossil collect.. then allocate more
 	 */	
 	if(!q->size)
-		tw_kp_fossil_memory(kp);
+		tw_kp_fossil_memory(lp->kp);
 
 	if(!q->size)
 	{
 #if 1
 		int cnt = tw_memory_allocate(q);
-		kp->s_mem_buffers_used += cnt;
-		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
+		pe->s_mem_buffers_used += cnt;
+		printf("Allocating %d buffers in memory fd: %d \n", cnt, fd);
 #else
 		tw_error(TW_LOC, "Out of buffers in fd: %ld\n", fd);
 #endif
@@ -59,30 +59,27 @@ tw_memory_alloc_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 	if(m->nrefs)
 		tw_error(TW_LOC, "membuf stills has refs: %d", m->nrefs);
 
-	tw_memoryq_push(tw_kp_getqueue(lp->kp, fd), m);
+	tw_memoryq_push(tw_pe_getqueue(lp->pe, fd), m);
 }
 
 void
 tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
-	tw_kp		*kp;
 	tw_memoryq	*q;
-
-	kp = lp->kp;
 
 	/* If seq sim, just reclaim buffer now. */
 	if((tw_nnodes() * g_tw_npe) == 1)
-		q = tw_kp_getqueue(kp, fd);
+		q = tw_pe_getqueue(lp->pe, fd);
 	else
-		q = tw_kp_getqueue(kp, fd + 1);
+		q = tw_kp_getqueue(lp->kp, fd + 1);
 
 	m->ts = tw_now(lp);
 
 	/*
-	 * Now we need to link this buffer into the LPs queue
-	 * for RC memory and the processed memory queue.
+	 * Now we need to link this buffer into the KPs
+	 * processed memory queue.
 	 */
-	tw_memoryq_push(q,  m);
+	tw_memoryq_push(q, m);
 
 	//printf("%d: mem free, remain: %d, fd %d \n", lp->id, q->size, fd);
 }
@@ -93,7 +90,7 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 	tw_memoryq	*q;
 	tw_memory	*m;
 
-	q = tw_kp_getqueue(lp->kp, fd+1);
+	q = tw_kp_getqueue(lp->kp, fd);
 
 	/*
 	 * We also need to unthread this event from the PE
@@ -112,18 +109,18 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 }
 
 void
-tw_memory_free_single(tw_kp * kp, tw_memory * m, tw_fd fd)
+tw_memory_free_single(tw_pe * pe, tw_memory * m, tw_fd fd)
 {
 	if(m->nrefs)
 		return;
 
-	tw_memoryq_push(tw_kp_getqueue(kp, fd),  m);
+	tw_memoryq_push(tw_pe_getqueue(pe, fd),  m);
 }
 
 size_t
-tw_memory_getsize(tw_kp * kp, int fd)
+tw_memory_getsize(tw_pe * pe, int fd)
 {
-	return tw_kp_getqueue(kp, fd)->d_size + g_tw_memory_sz;
+	return tw_pe_getqueue(pe, fd)->d_size + g_tw_memory_sz;
 }
 
 size_t

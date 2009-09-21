@@ -30,7 +30,7 @@ extern tw_lpid  g_tw_nlp;
 extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
 extern tw_lp	**g_tw_lp;
-extern tw_kp   *g_tw_kp;
+extern tw_kp	**g_tw_kp;
 extern int      g_tw_sv_growcnt;
 extern int      g_tw_fossil_attempts;
 extern unsigned int	g_tw_nRNG_per_lp;
@@ -107,6 +107,7 @@ INLINE(tw_stime)	 tw_now(tw_lp * lp);
 /*
  * tw-kp.c
  */
+extern void	 tw_kp_onpe(tw_lpid id, tw_pe * pe);
 extern void	 kp_fossil_remote(tw_kp * kp);
 extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
 extern void	 tw_init_kps(tw_pe * me);
@@ -114,9 +115,6 @@ extern void	 tw_init_kps(tw_pe * me);
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
 extern int	 tw_kp_fossil_memory(tw_kp * me);
-extern tw_fd	 tw_kp_next_free_q(tw_kp * kp);
-extern tw_fd	 tw_kp_memory_init(tw_kp * kp, size_t n_mem, 
-					size_t d_sz, tw_stime mult);
 
 INLINE(tw_kp *)		 tw_getkp(tw_kpid kp);
 INLINE(tw_memoryq *)	 tw_kp_getqueue(tw_kp * kp, tw_fd fd);
@@ -124,12 +122,14 @@ INLINE(tw_memoryq *)	 tw_kp_getqueue(tw_kp * kp, tw_fd fd);
 /*
  * tw-pe.c
  */
-extern tw_pe * tw_pe_next(tw_pe * last);
-extern void tw_pe_settype(tw_pe *, const tw_petype * type);
-extern void tw_pe_create(tw_peid npe);
-extern void tw_pe_init(tw_peid id, tw_peid global);
-static inline tw_pe   *tw_getpe(tw_peid id);
-extern void tw_pe_fossil_collect(tw_pe * me);
+extern tw_pe		*tw_pe_next(tw_pe * last);
+extern void		 tw_pe_settype(tw_pe *, const tw_petype * type);
+extern void		 tw_pe_create(tw_peid npe);
+extern void		 tw_pe_init(tw_peid id, tw_peid global);
+static inline tw_pe	*tw_getpe(tw_peid id);
+extern void		 tw_pe_fossil_collect(tw_pe * me);
+extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem, 
+					   size_t d_sz, tw_stime mult);
 
 /*
  * tw-setup.c
@@ -168,13 +168,13 @@ extern   double   tw_wall_to_double(tw_wtime * t);
 /*
  * tw-memory.c
  */
-extern size_t tw_memory_getsize(tw_kp * kp, int fd);
+extern size_t tw_memory_getsize(tw_pe * pe, int fd);
 extern size_t tw_memory_allocate(tw_memoryq *);
 extern tw_memory *tw_memory_alloc(tw_lp *lp, tw_fd fd);
 extern void    tw_memory_free(tw_lp *lp, tw_memory *m, tw_fd fd);
 extern void    tw_memory_alloc_rc(tw_lp *lp, tw_memory *head, tw_fd fd);
 extern tw_memory *tw_memory_free_rc(tw_lp *lp, tw_fd fd);
-extern void tw_memory_free_single(tw_kp * kp, tw_memory * m, tw_fd fd);
+extern void tw_memory_free_single(tw_pe * pe, tw_memory * m, tw_fd fd);
 
 INLINE(void *) tw_memory_data(tw_memory * m);
 

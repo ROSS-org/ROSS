@@ -56,7 +56,7 @@
 	 * g_tw_lp_offset   -- global id of g_tw_lp[0]
 	 * g_tw_nkp         -- Number of KPs in simulation.
 	 * g_tw_lp          -- Public LP objects.
-	 * g_tw_lp          -- Public KP objects.
+	 * g_tw_kp          -- Public KP objects.
 	 * g_tw_sv_growcnt  -- Add this many SV's to an LP if it is empty.
 	 * g_tw_fossil_attempts  -- Number of times fossil_collect is called
          * g_tw_nRNG_per_lp -- Number of RNG per LP
@@ -64,8 +64,8 @@
 tw_lpid         g_tw_nlp = 0;
 tw_lpid		g_tw_lp_offset = 0;
 tw_kpid         g_tw_nkp = 1;
-tw_lp		**g_tw_lp;
-tw_kp          *g_tw_kp = NULL;
+tw_lp		**g_tw_lp = NULL;
+tw_kp		**g_tw_kp = NULL;
 int             g_tw_sv_growcnt = 10;
 int             g_tw_fossil_attempts = 0;
 unsigned int    g_tw_nRNG_per_lp = 1;
@@ -95,7 +95,7 @@ tw_stime        g_tw_ts_end = 100000.0;
 	 *                         MUST be > 1 because of abort buffer.
 	 */
 tw_peid		g_tw_npe = 1;
-tw_pe **g_tw_pe;
+tw_pe		**g_tw_pe;
 int             g_tw_events_per_pe = 2048;
 unsigned int	g_tw_master = 0;
 

@@ -49,6 +49,21 @@
 #include <ross.h>
 
 void
+tw_kp_onpe(tw_lpid id, tw_pe * pe)
+{
+	if(id >= g_tw_nkp)
+		tw_error(TW_LOC, "ID %d exceeded MAX KPs", id);
+
+	if(g_tw_kp[id])
+		tw_error(TW_LOC, "KP already allocated: %lld\n", id);
+
+	g_tw_kp[id] = tw_calloc(TW_LOC, "Local KP", sizeof(tw_kp), 1);
+
+	g_tw_kp[id]->id = id;
+	g_tw_kp[id]->pe = pe;
+}
+
+void
 tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 {
         tw_event       *e;
@@ -146,56 +161,6 @@ tw_init_kps(tw_pe * me)
 	}
 }
 
-tw_fd
-tw_kp_next_free_q(tw_kp * kp)
-{
-
-	unsigned int             i;
-
-	for (i = 0; i < g_tw_memory_nqueues; i++)
-		if (kp->queues[i].size == -1)
-			return i;
-
-	tw_error(TW_LOC, "No more free queues on kp %d \n", kp->id);
-
-	return -1;
-}
-
-tw_fd
-tw_kp_memory_init(tw_kp * kp, size_t n_mem, size_t d_sz, tw_stime mult)
-{
-	tw_memoryq	*q;
-
-	int             fd;
-
-#ifndef ROSS_MEMORY
-	tw_error(TW_LOC, "Support for memory queues is disabled!");
-#endif
-
-	fd = tw_kp_next_free_q(kp);
-	kp->s_mem_buffers_used = 0;
-
-	q = tw_kp_getqueue(kp, fd);
-
-	q->size = 0;
-	q->start_size = n_mem;
-	q->d_size = d_sz;
-	q->grow = mult;
-
-	tw_memory_allocate(q);
-
-	/*
-	 * setup the processed buffer queue for this memory init 
-	 */
-	q = tw_kp_getqueue(kp, fd + 1);
-
-	q->start_size = 0;
-	q->size = 0;
-	q->head = q->tail = NULL;
-
-	return fd;
-}
-
 int
 tw_kp_fossil_memory(tw_kp * me)
 {
@@ -214,9 +179,9 @@ tw_kp_fossil_memory(tw_kp * me)
 
 	rv = 0;
 
-	for (i = 1; i < g_tw_memory_nqueues; i+=2)
+	for(i = 0; i < g_tw_memory_nqueues; i++)
 	{
-		q = &me->queues[i];
+		q = &me->pmemory_q[i];
 
 		if (q->head == NULL)
 		{

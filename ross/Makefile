@@ -30,15 +30,10 @@
 # for RAND select from:
 #   1. clcg4	-- Combined Linear Congruential Generator 4
 #
-# for MEMORY select from:
-#   1. MEMORY -- used memory buffer library
-#   2. <empty> -- do not use memory buffer library
-#
 #########################################################################
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-MEMORY=MEMORY
 
 #########################################################################
 #
@@ -145,6 +140,7 @@ HEADERS = \
 	rand-$(RAND).h \
 	ross-extern.h \
 	ross-inline.h \
+	ross-kernel-inline.h \
 	ross-network.h \
 	ross-thread.h \
 	ross-types.h \
@@ -167,7 +163,6 @@ OPTIONS = \
 	-DROSS_GVT_$(GVT) \
 	-DROSS_NET_$(NET) \
 	-DROSS_RAND_$(RAND) \
-	-DROSS_$(MEMORY) \
 	-DARCH_$(ARCH) \
 #end OPTIONS
 
@@ -179,7 +174,6 @@ TRACK_VARS = \
 	NET=$(NET) \
 	CLOCK=$(CLOCK) \
 	GVT=$(GVT) \
-	MEMORY=$(MEMORY) \
 	ARCH=$(ARCH) \
 	$(subst ','\'',CC=$(CC)) \
 	$(subst ','\'',CFLAGS=$(CFLAGS)) \

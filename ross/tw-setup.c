@@ -97,23 +97,27 @@ early_sanity_check(void)
 			g_tw_nkp, g_tw_npe);
 		g_tw_nkp = g_tw_npe;
 	}
+
+	if(g_tw_memory_nqueues)
+	{
+#define ROSS_MEMORY
+		if(tw_ismaster())
+			printf("Enabling ROSS Memory library.\n");
+	}
+}
+
+void
+map_none(void)
+{
 }
 
 /*
- * map: perform mapping function as defined by compiler option
- *
- * 1. none: the model provides all LP to KP to PE mappings
- * 2. linear: linear mapping of LPs to KPs to PEs
- * 3. rrobin: round robin mapping of LPs to KPs to PEs
+ * map: map LPs->KPs->PEs linearly
  */
 void
-map(void)
+map_linear(void)
 {
-#ifdef ROSS_MAPPING_none
-	// just a place-holder, move on, nothing to see here
-#elif ROSS_MAPPING_linear
 	tw_pe	*pe;
-	tw_kp	*kp;
 
 	int	 nlp_per_kp;
 	int	 lpid;
@@ -127,13 +131,12 @@ map(void)
 	if(!nlp_per_kp)
 		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
 
-	g_tw_memory_nqueues *= 2;
 	g_tw_memory_sz = sizeof(tw_memory);
 	g_tw_lp_offset = g_tw_mynode * g_tw_nlp;
 
 #if VERIFY_MAPPING
-		printf("NODE %d: nlp %lld, offset %lld\n", 
-			g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
+	printf("NODE %d: nlp %lld, offset %lld\n", 
+		g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
 #endif
 
 	for(kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); )
@@ -142,28 +145,21 @@ map(void)
 		printf("\tPE %d\n", pe->id);
 #endif
 
+		pe->memory_q = tw_calloc(TW_LOC, "PE memory queues",
+					 sizeof(tw_memoryq), g_tw_memory_nqueues);
+
 		for(i = 0; i < nkp_per_pe; i++, kpid++)
 		{
-			kp = &g_tw_kp[kpid];
-			kp->id = kpid;
-
-			tw_kp_onpe(kp, pe);
-
-			kp->queues = tw_calloc(TW_LOC, "KP queue",
-					sizeof(tw_memoryq),
-					g_tw_memory_nqueues);
-
-			for(j = 0; j < g_tw_memory_nqueues; j++)
-				kp->queues[j].size = -1;
+			tw_kp_onpe(kpid, pe);
 
 #if VERIFY_MAPPING
-			printf("\t\tKP %d", kp->id);
+			printf("\t\tKP %d", kpid);
 #endif
 
 			for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++)
 			{
 				tw_lp_onpe(lpid, pe, g_tw_lp_offset+lpid);
-				tw_lp_onkp(g_tw_lp[lpid], kp); 
+				tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]); 
 
 #if VERIFY_MAPPING
 				if(0 == j % 20)
@@ -183,10 +179,12 @@ map(void)
 
 	if(g_tw_lp[g_tw_nlp-1]->gid != g_tw_lp_offset + g_tw_nlp - 1)
 		tw_error(TW_LOC, "LPs not sequentially enumerated!");
+}
 
-#elif ROSS_MAPPING_rrobin
+void
+map_round_robin(void)
+{
 	tw_pe	*pe;
-	tw_kp	*kp;
 
 	int	 kpid;
 	int	 i;
@@ -194,20 +192,16 @@ map(void)
 	for(i = 0; i < g_tw_nlp; i++)
 	{
 		kpid = i % g_tw_nkp;
-		kp = &g_tw_kp[kpid];
 		pe = tw_getpe(kpid % g_tw_npe);
 
-		kp->id = kpid;
-	
 		tw_lp_onpe(i, pe, g_tw_lp_offset+i);
-		tw_lp_onkp(g_tw_lp[i], kp);
-		tw_kp_onpe(kp, pe);
+		tw_kp_onpe(kpid, pe);
+		tw_lp_onkp(g_tw_lp[i], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
 		printf("LP %4d KP %4d PE %4d\n", i, kp->id, pe->id);
 #endif
 	}
-#endif
 }
 
 void
@@ -223,29 +217,43 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 
 	/*
 	 * Construct the KP array.
-	 * Default KP on PE mapping is linear.
 	 */
 	g_tw_nkp = nkp_per_pe * g_tw_npe;
-	g_tw_kp = tw_calloc(TW_LOC, "KPs", sizeof(tw_kp), g_tw_nkp);
+	g_tw_kp = tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
 	/*
 	 * Construct the LP array.
-	 * LP to PE mapping is model-defined.
 	 */
 	g_tw_lp = tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
 
-	map();
+#if ROSS_MAPPING_linear
+	map_linear();
+#elif ROSS_MAPPING_linear
+	map_round_robin();
+#else
+	map_none();
+#endif
 
 	// init LP RNG stream(s)
 	for(i = 0; i < g_tw_nlp; i++)
 		if(g_tw_rng_default == TW_TRUE)
 			tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
+
+	/*
+	 * init KP and PE memory queues
+	 */
+	for(i = 0; i < g_tw_npe; i++)
+		g_tw_pe[i]->memory_q = tw_calloc(TW_LOC, "KP memory queues",
+					sizeof(tw_memoryq), g_tw_memory_nqueues);
+
+	for(i = 0; i < g_tw_nkp; i++)
+		g_tw_kp[i]->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
+					sizeof(tw_memoryq), g_tw_memory_nqueues);
 }
 
 static void
 late_sanity_check(void)
 {
-	tw_kp	*kp;
 	tw_kpid	 i;
 	tw_lptype null_type;
 
@@ -260,7 +268,6 @@ late_sanity_check(void)
 	}
 
 	/* LPs KP and PE must agree. */
-	kp = &g_tw_kp[0];
 	for (i = 0; i < g_tw_nlp; i++)
 	{
 		tw_lp *lp = g_tw_lp[i];

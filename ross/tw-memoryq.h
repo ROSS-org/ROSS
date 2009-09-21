@@ -3,7 +3,7 @@
 
 #include <ross.h>
 
-INLINE(tw_memoryq *)
+INLINE(tw_memoryq)
 tw_memoryq_init()
 {
 	tw_memoryq	*q;
@@ -13,7 +13,9 @@ tw_memoryq_init()
 	if(!q)
 		tw_error(TW_LOC, "Error allocating queue!");
 
-	return q;
+	q->size = -1;
+
+	return *q;
 }
 
 INLINE(void)

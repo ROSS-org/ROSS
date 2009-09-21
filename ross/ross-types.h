@@ -69,7 +69,7 @@ FWD(struct, tw_log);
  * tw_fd   -- used to distinguish between memory and event arrays
  */
 typedef tw_peid tw_kpid;
-typedef unsigned long tw_fd;
+typedef unsigned int tw_fd;
 typedef long long tw_stat;
 
 	/*
@@ -389,9 +389,9 @@ DEF(struct, tw_kp)
 	tw_eventq pevent_q;
 
 	/*
-	 * queues -- TW memory buffer queues
+	 * queues -- TW processed memory buffer queues
 	 */
-	tw_memoryq	*queues;
+	tw_memoryq	*pmemory_q;
 
 	/* s_nevent_processed -- Number of events processed.
 	 * s_e_rbs -- Number of events rolled back by this LP.
@@ -399,10 +399,10 @@ DEF(struct, tw_kp)
 	 * s_rb_secondary -- Number of secondary rollbacks by this LP.
 	 */
 	tw_stat s_nevent_processed;
-	tw_stat s_mem_buffers_used;
-	long s_e_rbs;
-	long s_rb_total;
-	long s_rb_secondary;
+
+	tw_stat s_e_rbs;
+	tw_stat s_rb_total;
+	tw_stat s_rb_secondary;
 };
 
 	/*
@@ -436,11 +436,13 @@ DEF(struct, tw_pe)
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.
+	 * memory_q -- array of free tw_memory buffers linked lists
 	 * abort_event -- Placeholder event for when free_q is empty.
 	 * cur_event -- Current event being processed.
 	 * sevent_q -- events already sent over the network.
 	 */
 	tw_eventq free_q;
+	tw_memoryq *memory_q;
 	tw_event *abort_event;
 	tw_event *cur_event;
 	tw_eventq sevent_q;
@@ -493,6 +495,7 @@ DEF(struct, tw_pe)
 	tw_stat s_nrecv_network;
 	tw_stat s_nsend_remote_rb;
 	tw_stat s_ngvts;
+	tw_stat s_mem_buffers_used;
 
 	/*
 	 * rng  -- pointer to the random number generator on this PE

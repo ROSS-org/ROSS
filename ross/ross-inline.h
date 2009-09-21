@@ -1,43 +1,6 @@
 #ifndef INC_ross_inline_h
 #define	INC_ross_inline_h
 
-INLINE(tw_memoryq *)
-tw_kp_getqueue(tw_kp * kp, tw_fd fd)
-{
-	if(fd == -1)
-		tw_error(TW_LOC, "Queue not found!");
-
-	return &kp->queues[fd];
-}
-
-INLINE(int)
-tw_ismaster(void)
-{
-	return tw_node_eq(&g_tw_mynode, &g_tw_masternode);
-}
-
-INLINE(void *)
-tw_getstate(tw_lp * lp)
-{
-	return lp->cur_state;
-}
-
-INLINE(tw_kp *)
-tw_getkp(tw_kpid id)
-{
-	if (id >= g_tw_nkp)
-		tw_error(TW_LOC, "ID %d exceeded MAX KPs", id);
-	if (id != g_tw_kp[id].id)
-		tw_error(TW_LOC, "Inconsistent KP Mapping");
-	return &g_tw_kp[id];
-}
-
-INLINE(tw_stime)
-tw_now(tw_lp * lp)
-{
-	return (lp->kp->last_time);
-}
-
 INLINE(tw_event *)
 tw_event_grab(tw_pe *pe)
 {

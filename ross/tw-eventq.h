@@ -106,6 +106,27 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 			h->state.owner = TW_pe_free_q;
 		}
 
+#if ROSS_MEMORY && 0
+		if(h->memory)
+		{
+			tw_memory *m = h->memory;
+			while(m)
+			{
+				if(0 == --m->nrefs)
+				{
+					if(h->state.owner >= TW_net_outq && h->state.owner <= TW_pe_sevent_q)
+						tw_error(TW_LOC, "here!"); //tw_memory_free_single(e->src_lp->kp, m, m->fd);
+					tw_memory_free_single(h->dest_lp->kp, m, m->fd);
+
+				}
+
+				m = m->next;
+			}
+
+			h->memory = NULL;
+		}
+#endif
+
 		pe->free_q.size++;
 		h = h->next;
 	}
