@@ -1,6 +1,9 @@
+#ifndef INC_tw_memoryq_h
+#define INC_tw_memoryq_h
+
 #include <ross.h>
 
-tw_memoryq	*
+INLINE(tw_memoryq *)
 tw_memoryq_init()
 {
 	tw_memoryq	*q;
@@ -13,17 +16,14 @@ tw_memoryq_init()
 	return q;
 }
 
-void
+INLINE(void)
 tw_memoryq_debug(tw_memoryq * q)
 {
+#if ROSS_DEBUG
 	tw_memory	*next;
 	tw_memory	*last;
 
 	int		 cnt;
-
-#if !ROSS_DEBUG
-	tw_error(TW_LOC, "This function for DEBUGGING ONLY!");
-#endif
 
 	cnt = 0;
 	next = q->head;
@@ -46,14 +46,13 @@ tw_memoryq_debug(tw_memoryq * q)
 
 	if(cnt != q->size)
 		tw_error(TW_LOC, "Size not correct!");	
+#endif
 }
 
- void
+INLINE(void)
 tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 {
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	buf->next = q->head;
 	buf->prev = NULL;
@@ -71,17 +70,13 @@ tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 
 	q->size++;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 }
 
- void
+INLINE(void)
 tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	t->next = q->head;
 	h->prev = NULL;
@@ -100,19 +95,15 @@ tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 
 	q->size += cnt;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 }
 
- tw_memory *
+INLINE(tw_memory *)
 tw_memoryq_pop(tw_memoryq * q)
 {
 	tw_memory	*buf;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	if(!q->head)
 		return NULL;
@@ -130,30 +121,24 @@ tw_memoryq_pop(tw_memoryq * q)
 
 	buf->next = buf->prev = NULL;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	return buf;
 }
 
- tw_memory *
+INLINE(tw_memory *)
 tw_memoryq_pop_list(tw_memoryq * q)
 {
 	tw_memory	*b;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	q->size = 0;
 
 	b = q->head;
 	q->head = q->tail = NULL;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	return b;
 }
@@ -164,12 +149,10 @@ tw_memoryq_pop_list(tw_memoryq * q)
  * buffer, or from some inner buffer to tail.  I only care about the
  * last case.. 
  */
- void
+INLINE(void)
 tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	if(h == q->head && t == q->tail)
 	{
@@ -190,19 +173,15 @@ tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 
 	q->size -= cnt;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 }
 
- void
+INLINE(void)
 tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 {
 	tw_memory	*next;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	next = q->head;
 	while(next)
@@ -219,9 +198,7 @@ tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 		return;
 	}
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 
 	if(buf->prev != NULL)
 		buf->prev->next = buf->next;
@@ -237,7 +214,7 @@ tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 
 	q->size--;
 
-#if ROSS_DEBUG
 	tw_memoryq_debug(q);
-#endif
 }
+
+#endif

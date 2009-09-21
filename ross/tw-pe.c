@@ -1,7 +1,5 @@
 #include <ross.h>
 
-#define VERIFY_PE_FC_MEM 0
-
 static void dummy_pe_f (tw_pe *pe)
 {
 }
@@ -99,5 +97,7 @@ tw_pe_fossil_collect(tw_pe * me)
 #endif
 	}
 
+#ifdef ROSS_NETWORK_tcp
 	tw_eventq_fossil_collect(&me->sevent_q, me);
+#endif
 }

@@ -33,4 +33,10 @@ tw_getpe(tw_peid index)
 	return g_tw_pe[index];
 }
 
+INLINE(void)
+tw_kp_onpe(tw_kp * kp, tw_pe * pe)
+{
+	kp->pe = pe;
+}
+
 #endif

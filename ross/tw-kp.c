@@ -48,12 +48,6 @@
 
 #include <ross.h>
 
-inline void
-tw_kp_onpe(tw_kp * kp, tw_pe * pe)
-{
-	kp->pe = pe;
-}
-
 void
 tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 {

@@ -125,7 +125,6 @@ BASIC_OBJS = \
 	tw-pe.o \
 	tw-timer.o \
 	tw-memory.o \
-	tw-memoryq.o \
 	ross-random.o \
 	tw-sched.o \
 	tw-setup.o \
@@ -155,6 +154,7 @@ HEADERS = \
 	ross-random.h \
 	tw-timing.h \
 	tw-eventq.h \
+	tw-memoryq.h \
 #end HEADERS
 
 OPTIONS = \

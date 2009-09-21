@@ -211,7 +211,9 @@ typedef unsigned long long tw_lpid;
 #  include "gvt-mpi_allreduce.h"
 #endif
 
+// data structures to simplify event and memory list management
 #include "tw-eventq.h"
+#include "tw-memoryq.h"
 #include "ross-inline.h"
 
 #endif
