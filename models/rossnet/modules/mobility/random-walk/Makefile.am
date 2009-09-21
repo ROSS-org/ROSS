@@ -3,8 +3,7 @@ INCLUDES=-I$(top_srcdir)
 #AM_CFLAGS=-O6 -Wall
 AM_CFLAGS=-g -Wall -D_GNU_SOURCE
 
-INCLUDES=\
-	-I../../physical/tlm/
+#INCLUDES=-I../../physical/tlm/
 
 lib_LTLIBRARIES=librw.la
 
