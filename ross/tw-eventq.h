@@ -1,18 +1,19 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
-#define ROSS_DEBUG 0
-
 #include <ross.h>
 
 INLINE(void)
 tw_eventq_debug(tw_eventq * q)
 {
-#if ROSS_DEBUG
 	tw_event	*next;
 	tw_event	*last;
 
 	int		 cnt;
+
+#if !ROSS_DEBUG
+	tw_error(TW_LOC, "This function for DEBUGGING ONLY!");
+#endif
 
 	cnt = 0;
 	next = q->head;
@@ -34,7 +35,6 @@ tw_eventq_debug(tw_eventq * q)
 
 	if(cnt != q->size)
 		tw_error(TW_LOC, "Size not correct!");	
-#endif
 }
 
 INLINE(void)

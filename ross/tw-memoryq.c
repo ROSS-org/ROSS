@@ -1,7 +1,5 @@
 #include <ross.h>
 
-#define ROSS_DEBUG 0
-
 tw_memoryq	*
 tw_memoryq_init()
 {
