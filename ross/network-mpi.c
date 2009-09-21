@@ -434,10 +434,11 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 		memcpy(memory, &buffer[position], mem_size);
 		position += mem_size;
 
-		memory->prev = (tw_memory *) mem_fd;
+		memory->fd = mem_fd;
+		memory->nrefs = 1;
 
 		mem_size = (size_t) memory->next;
-		mem_fd = (tw_fd) memory->prev;
+		mem_fd = memory->fd;
 
 		last = memory;
 	}
@@ -532,8 +533,8 @@ send_begin(tw_pe *me)
 		if(e->memory)
 		{
 			memory = e->memory;
-			e->memory = (tw_memory *) tw_memory_getsize(kp, (tw_fd) memory->prev);
-			e->prev = (tw_event *) memory->prev;
+			e->memory = (tw_memory *) tw_memory_getsize(kp, memory->fd);
+			e->prev = (tw_event *) memory->fd;
 			mem_size = (size_t) e->memory;
 		}
 
@@ -553,8 +554,8 @@ send_begin(tw_pe *me)
 			if(m)
 			{
 				memory->next = (tw_memory *)
-						tw_memory_getsize(kp, (tw_fd) m->prev);
-				memory->prev = (tw_memory *) m->prev;
+						tw_memory_getsize(kp, m->fd);
+				memory->fd = m->fd;
 			}
 
 			if(position + mem_size > BUFFER_SIZE)
@@ -563,10 +564,11 @@ send_begin(tw_pe *me)
 			memcpy(&buffer[position], memory, mem_size);
 			position += mem_size;
 
-			tw_memory_free_single(kp, memory, (tw_fd) memory->prev);
+			memory->nrefs--;
+			tw_memory_free_single(kp, memory, memory->fd);
 
 			if(NULL != (memory = m))
-				mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
+				mem_size = tw_memory_getsize(kp, memory->fd);
 		}
 
 		e->memory = NULL;
@@ -619,7 +621,6 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 			 */
 			e->state.cancel_asend = 0;
 			e->state.cancel_q = 1;
-			//tw_eventq_unshift(&outq, e);
 			tw_eventq_push(&outq, e);
 		} else {
 			/* Event finished transmission and was not cancelled.

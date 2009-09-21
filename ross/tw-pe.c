@@ -92,8 +92,11 @@ tw_pe_fossil_collect(tw_pe * me)
 		kp = &g_tw_kp[i];
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
 
+#if 0
+		// membufs should be collected as their events are freed
 		if(kp->queues)
 			tw_kp_fossil_memory(kp);
+#endif
 	}
 
 	tw_eventq_fossil_collect(&me->sevent_q, me);

@@ -183,6 +183,8 @@ DEF(struct, tw_memory)
 	tw_memory	*volatile lp_next;
 
 	tw_stime         ts;
+	tw_fd		 fd;
+	unsigned int	 nrefs;
 
 	int		 heap_index;
 };

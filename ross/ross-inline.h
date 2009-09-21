@@ -111,10 +111,20 @@ tw_event_free(tw_pe *pe, tw_event *e)
 	{
 		next = m->next;
 
-		if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
-			tw_memory_free_single(e->src_lp->kp, m, (tw_fd) m->prev);
-		else
-			tw_memory_free_single(e->dest_lp->kp, m, (tw_fd) m->prev);
+		if(m == next)
+			tw_error(TW_LOC, "loop");
+
+		if(0 == --m->nrefs)
+		{
+			if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
+				tw_memory_free_single(e->src_lp->kp, m, m->fd);
+			else
+				tw_memory_free_single(e->dest_lp->kp, m, m->fd);
+		}
+#if 0
+		 else
+			tw_error(TW_LOC, "leaving membuf on event: %d", m->nrefs);
+#endif
 
 		m = next;
 	}
@@ -146,7 +156,6 @@ INLINE(void)
 tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
 	m->next = lp->pe->cur_event->memory;
-	m->prev = (tw_memory *)fd;
 	lp->pe->cur_event->memory = m;
 }
 
@@ -161,7 +170,7 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 		return;
 	}
 
-	m->prev = (tw_memory *)fd;
+	m->fd = fd;
 
 	if(NULL == e->memory)
 	{
@@ -188,8 +197,25 @@ tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 	}
 
 	m->next = e->memory;
-	m->prev = (tw_memory *)fd;
 	e->memory = m;
+}
+
+INLINE(void)
+tw_event_memory_forward(tw_event * e)
+{
+	tw_memory	*m;
+
+	if(e == e->src_lp->pe->abort_event)
+		return;
+
+	e->memory = e->src_lp->pe->cur_event->memory;
+
+	m = e->memory;
+	while(m)
+	{
+		m->nrefs++;
+		m = m->next;
+	}
 }
 
 INLINE(void *)

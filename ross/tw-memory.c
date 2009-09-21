@@ -1,15 +1,5 @@
 #include <ross.h>
 
-#if 0
-/*
-Garrett points out that since the mem qs are on the KP now, we do not need to put 
-mem bufs onto both a RC Q and a processed mem queue since the KP will always roll back
-properly, and take the events/mem bufs with it.
-*/
-#endif
-
-#define ROSS_VERIFY_MEMORY 0
-
 /*
  * Use this function to allocate a memory buffer in model event handlers.
  */
@@ -18,7 +8,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 {
 	tw_kp			*kp;
 	tw_memoryq		*q;
-	tw_memory		*rv;
+	tw_memory		*m;
 
 	kp = lp->kp;
 
@@ -41,15 +31,16 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 #endif
 	}
 
-	if(NULL == (rv = tw_memoryq_pop(q)))
+	if(NULL == (m = tw_memoryq_pop(q)))
 		tw_error(TW_LOC, "No memory buffers to allocate!");
 
-	rv->next = rv->prev = NULL;
-	rv->lp_next = NULL;
+	m->next = m->prev = NULL;
+	m->lp_next = NULL;
+	m->nrefs = 1;
 
 	//printf("%ld: mem alloc, remain: %d, fd %ld \n", lp->id, q->size, fd);
 
-	return rv;
+	return m;
 }
 
 /*
@@ -63,6 +54,11 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 void
 tw_memory_alloc_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
+	m->nrefs--;
+
+	if(m->nrefs)
+		tw_error(TW_LOC, "membuf stills has refs: %d", m->nrefs);
+
 	tw_memoryq_push(tw_kp_getqueue(lp->kp, fd), m);
 }
 
@@ -118,16 +114,11 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 void
 tw_memory_free_single(tw_kp * kp, tw_memory * m, tw_fd fd)
 {
+	if(m->nrefs)
+		return;
+
 	tw_memoryq_push(tw_kp_getqueue(kp, fd),  m);
 }
-
-#if 0
-void
-tw_memory_free_list(tw_pe * pe, tw_memory * h, tw_memory * t, int cnt, tw_fd fd)
-{
-	tw_memoryq_push_list(tw_pe_getqueue(pe, fd - 1), (tw_memory *)h, (tw_memory *)t, cnt);
-}
-#endif
 
 size_t
 tw_memory_getsize(tw_kp * kp, int fd)

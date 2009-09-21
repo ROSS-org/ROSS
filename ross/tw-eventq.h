@@ -95,7 +95,7 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 
 	int	 cnt;
 
-	/* Nothing to collect from this event list? */
+	/* Nothing to collect from this event list. */
 	if (!t || t->recv_ts >= gvt)
 		return;
 
@@ -131,8 +131,6 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 
 		/* Free h..t (inclusive) */
 		tw_eventq_push_list(&pe->free_q, h, t, cnt);
-		//t->next = pe->free_q->head;
-		//pe->free_q = h;
 	}
 }
 
