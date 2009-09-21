@@ -367,8 +367,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	position += g_tw_event_msg_sz;
 #endif
 
-	me->s_nrecv_network++;
-	me->s_nwhite_recv++;
+	me->stats.s_nread_network++;
 
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 	dest_pe = e->dest_lp->pe;
@@ -601,7 +600,6 @@ send_begin(tw_pe *me)
 
 		posted_sends.event_list[id] = e;
 		posted_sends.cur++;
-		me->s_nwhite_sent++;
 
 		changed = 1;
 	}
@@ -611,7 +609,7 @@ send_begin(tw_pe *me)
 static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
-	me->s_nsend_network++;
+	me->stats.s_nsend_network++;
 
 	if (e->state.owner == TW_net_asend) {
 		if (e->state.cancel_asend) {
@@ -753,8 +751,8 @@ tw_net_cancel(tw_event *e)
 tw_statistics	*
 tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
-	if(MPI_Reduce(&(s->max_run_time), 
-			&me->statistics.max_run_time,
+	if(MPI_Reduce(&(s->s_max_run_time), 
+			&me->stats.s_max_run_time,
 			1,
 			MPI_DOUBLE,
 			MPI_MAX,
@@ -762,14 +760,14 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 			MPI_COMM_WORLD) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Unable to reduce statistics!");
 
-	if(MPI_Reduce(&s->tw_s_net_events, 
-			&me->statistics.tw_s_net_events,
-			14,
+	if(MPI_Reduce(&s->s_net_events, 
+			&me->stats.s_net_events,
+			16,
 			MPI_LONG_LONG,
 			MPI_SUM,
 			g_tw_masternode,
 			MPI_COMM_WORLD) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Unable to reduce statistics!");
 
-	return &me->statistics;
+	return &me->stats;
 }

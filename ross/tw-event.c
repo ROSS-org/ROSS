@@ -102,7 +102,7 @@ tw_event_send(tw_event * event)
 			tw_mutex_unlock(&dest_pe->event_q_lck);
 
 			if(send_pe != dest_pe)
-				send_pe->s_nsend_loc_remote++;
+				send_pe->stats.s_nsend_loc_remote++;
 		}
 	} else
 	{
@@ -110,7 +110,7 @@ tw_event_send(tw_event * event)
 		 * We need to send it over the network to the other PE
 		 * for processing.
 		 */
-		send_pe->s_nsend_net_remote++;
+		send_pe->stats.s_nsend_net_remote++;
 		event->state.owner = TW_net_asend;
 		tw_net_send(event);
 	}
@@ -144,7 +144,7 @@ event_cancel(tw_event * event)
 		 * it in the first place.
 		 */
 		tw_net_cancel(event);
-		send_pe->s_nsend_net_remote--;
+		send_pe->stats.s_nsend_net_remote--;
 
 		if(tw_gvt_inprogress(send_pe))
 			send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, event->recv_ts);
@@ -185,7 +185,7 @@ event_cancel(tw_event * event)
 		 * top of dest_pe->cancel_q for final deletion.
 		 */
 		local_cancel(event->dest_lp->pe, event);
-		send_pe->s_nsend_loc_remote--;
+		send_pe->stats.s_nsend_loc_remote--;
 
 		if(tw_gvt_inprogress(send_pe))
 			send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, event->recv_ts);

@@ -24,7 +24,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 	{
 #if 1
 		int cnt = tw_memory_allocate(q);
-		pe->s_mem_buffers_used += cnt;
+		pe->stats.s_mem_buffers_used += cnt;
 		printf("Allocating %d buffers in memory fd: %d \n", cnt, fd);
 #else
 		tw_error(TW_LOC, "Out of buffers in fd: %ld\n", fd);
@@ -71,7 +71,7 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	if((tw_nnodes() * g_tw_npe) == 1)
 		q = tw_pe_getqueue(lp->pe, fd);
 	else
-		q = tw_kp_getqueue(lp->kp, fd + 1);
+		q = tw_kp_getqueue(lp->kp, fd);
 
 	m->ts = tw_now(lp);
 

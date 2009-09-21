@@ -170,7 +170,7 @@ tw_sched_batch(tw_pe * me)
 		 * cannot continue without doing GVT and fossil collect.
 		 */
 		if (me->cev_abort) {
-			me->s_nevent_abort++;
+			me->stats.s_nevent_abort++;
 			me->cev_abort = 0;
 
 			tw_event_rollback(cev);

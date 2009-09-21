@@ -127,24 +127,27 @@ DEF(struct, tw_lptype)
 
 DEF(struct, tw_statistics)
 {
-	double max_run_time;
+	double s_max_run_time;
 
-	tw_stat tw_s_net_events;
-	tw_stat tw_s_nevent_processed;
-	tw_stat tw_s_nevent_abort;
-	tw_stat tw_s_e_rbs;
-	tw_stat tw_s_rb_total;
-	tw_stat tw_s_rb_primary;
-	tw_stat tw_s_rb_secondary;
-	tw_stat tw_s_fc_attempts;
-	tw_stat tw_s_pq_qsize;
+	tw_stat s_net_events;
+	tw_stat s_nevent_processed;
+	tw_stat s_nevent_abort;
+	tw_stat s_e_rbs;
 
-	tw_stat tw_s_nsend_network;
-	tw_stat tw_s_nrecv_network;
+	tw_stat s_rb_total;
+	tw_stat s_rb_primary;
+	tw_stat s_rb_secondary;
+	tw_stat s_fc_attempts;
 
-	tw_stat tw_s_nsend_remote_rb;
-	tw_stat tw_s_nsend_loc_remote;
-	tw_stat tw_s_nsend_net_remote;
+	tw_stat s_pq_qsize;
+	tw_stat s_nsend_network;
+	tw_stat s_nread_network;
+	tw_stat s_nsend_remote_rb;
+
+	tw_stat s_nsend_loc_remote;
+	tw_stat s_nsend_net_remote;
+	tw_stat s_ngvts;
+	tw_stat s_mem_buffers_used;
 };
 
 DEF(struct, tw_memoryq)
@@ -487,15 +490,7 @@ DEF(struct, tw_pe)
 	/* s_nevent_abort -- Number of events aborted.
 	 * s_nsend_remote -- Number of events sent to another processor.
 	 */
-	tw_statistics	statistics;
-	tw_stat s_nevent_abort;
-	tw_stat s_nsend_net_remote;
-	tw_stat s_nsend_loc_remote;
-	tw_stat s_nsend_network;
-	tw_stat s_nrecv_network;
-	tw_stat s_nsend_remote_rb;
-	tw_stat s_ngvts;
-	tw_stat s_mem_buffers_used;
+	tw_statistics	stats;
 
 	/*
 	 * rng  -- pointer to the random number generator on this PE

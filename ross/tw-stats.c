@@ -49,24 +49,24 @@ tw_stats(tw_pe * me)
 
 		tw_wall_sub(&rt, &pe->end_time, &pe->start_time);
 
-		s.max_run_time = max(s.max_run_time, tw_wall_to_double(&rt));
-		s.tw_s_nevent_abort += pe->s_nevent_abort;
-		s.tw_s_pq_qsize += tw_pq_get_size(me->pq);
+		s.s_max_run_time = max(s.s_max_run_time, tw_wall_to_double(&rt));
+		s.s_nevent_abort += pe->stats.s_nevent_abort;
+		s.s_pq_qsize += tw_pq_get_size(me->pq);
 
-		s.tw_s_nsend_net_remote += pe->s_nsend_net_remote;
-		s.tw_s_nsend_loc_remote += pe->s_nsend_loc_remote;
+		s.s_nsend_net_remote += pe->stats.s_nsend_net_remote;
+		s.s_nsend_loc_remote += pe->stats.s_nsend_loc_remote;
 
-		s.tw_s_nsend_network += pe->s_nsend_network;
-		s.tw_s_nrecv_network += pe->s_nrecv_network;
-		s.tw_s_nsend_remote_rb += pe->s_nsend_remote_rb;
+		s.s_nsend_network += pe->stats.s_nsend_network;
+		s.s_nread_network += pe->stats.s_nread_network;
+		s.s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
 			kp = tw_getkp(i);
-			s.tw_s_nevent_processed += kp->s_nevent_processed;
-			s.tw_s_e_rbs += kp->s_e_rbs;
-			s.tw_s_rb_total += kp->s_rb_total;
-			s.tw_s_rb_secondary += kp->s_rb_secondary;
+			s.s_nevent_processed += kp->s_nevent_processed;
+			s.s_e_rbs += kp->s_e_rbs;
+			s.s_rb_total += kp->s_rb_total;
+			s.s_rb_secondary += kp->s_rb_secondary;
 		}
 
 		for(i = 0; i < g_tw_nlp; i++)
@@ -77,9 +77,9 @@ tw_stats(tw_pe * me)
 		}
 	}
 
-	s.tw_s_fc_attempts = g_tw_fossil_attempts;
-	s.tw_s_net_events = s.tw_s_nevent_processed - s.tw_s_e_rbs;
-	s.tw_s_rb_primary = s.tw_s_rb_total - s.tw_s_rb_secondary;
+	s.s_fc_attempts = g_tw_fossil_attempts;
+	s.s_net_events = s.s_nevent_processed - s.s_e_rbs;
+	s.s_rb_primary = s.s_rb_total - s.s_rb_secondary;
 
 	s = *(tw_net_statistics(me, &s));
 
@@ -87,43 +87,43 @@ tw_stats(tw_pe * me)
 		return;
 
 #ifndef ROSS_DO_NOT_PRINT
-	printf("\n\t: Running Time = %.3f seconds\n", s.max_run_time);
-	fprintf(g_tw_csv, "%.4f,", s.max_run_time);
+	printf("\n\t: Running Time = %.3f seconds\n", s.s_max_run_time);
+	fprintf(g_tw_csv, "%.4f,", s.s_max_run_time);
 
 	printf("\nTW Library Statistics:\n");
-	show_lld("Total Events Processed", s.tw_s_nevent_processed);
-	show_lld("Events Aborted (part of RBs)", s.tw_s_nevent_abort);
-	show_lld("Events Rolled Back", s.tw_s_e_rbs);
-	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.tw_s_e_rbs / (double) s.tw_s_net_events)));
-	show_lld("Total Remote (shared mem) Events Processed", s.tw_s_nsend_loc_remote);
+	show_lld("Total Events Processed", s.s_nevent_processed);
+	show_lld("Events Aborted (part of RBs)", s.s_nevent_abort);
+	show_lld("Events Rolled Back", s.s_e_rbs);
+	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
+	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
 
 	show_2f(
 		"Percent Remote Events",
-		( (double)s.tw_s_nsend_loc_remote
-		/ (double)s.tw_s_net_events)
+		( (double)s.s_nsend_loc_remote
+		/ (double)s.s_net_events)
 		* 100.0
 	);
 
-	show_lld("Total Remote (network) Events Processed", s.tw_s_nsend_net_remote);
+	show_lld("Total Remote (network) Events Processed", s.s_nsend_net_remote);
 	show_2f(
 		"Percent Remote Events",
-		( (double)s.tw_s_nsend_net_remote
-		/ (double)s.tw_s_net_events)
+		( (double)s.s_nsend_net_remote
+		/ (double)s.s_net_events)
 		* 100.0
 	);
 
 	printf("\n");
-	show_lld("Total Roll Backs ", s.tw_s_rb_total);
-	show_lld("Primary Roll Backs ", s.tw_s_rb_primary);
-	show_lld("Secondary Roll Backs ", s.tw_s_rb_secondary);
-	show_lld("Fossil Collect Attempts", s.tw_s_fc_attempts);
+	show_lld("Total Roll Backs ", s.s_rb_total);
+	show_lld("Primary Roll Backs ", s.s_rb_primary);
+	show_lld("Secondary Roll Backs ", s.s_rb_secondary);
+	show_lld("Fossil Collect Attempts", s.s_fc_attempts);
 	show_lld("Total GVT Computations", g_tw_gvt_done);
 
 	printf("\n");
-	show_lld("Net Events Processed", s.tw_s_net_events);
+	show_lld("Net Events Processed", s.s_net_events);
 	show_4f(
 		"Event Rate (events/sec)",
-		((double)s.tw_s_net_events / s.max_run_time)
+		((double)s.s_net_events / s.s_max_run_time)
 	);
 
 	printf("\n");
@@ -135,8 +135,8 @@ tw_stats(tw_pe * me)
 	if (tw_nnodes() > 1) {
 		printf("\n");
 		printf("TW Network Statistics:\n");
-		show_lld("Remote sends", s.tw_s_nsend_network);
-		show_lld("Remote recvs", s.tw_s_nrecv_network);
+		show_lld("Remote sends", s.s_nsend_network);
+		show_lld("Remote recvs", s.s_nread_network);
 	}
 
 	printf("\n");
