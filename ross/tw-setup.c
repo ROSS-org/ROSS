@@ -98,12 +98,12 @@ early_sanity_check(void)
 		g_tw_nkp = g_tw_npe;
 	}
 
-	if(g_tw_memory_nqueues)
-	{
-#define ROSS_MEMORY
-		if(tw_ismaster())
-			printf("Enabling ROSS Memory library.\n");
-	}
+#if (0 == g_tw_memory_nqueues)
+	#undef ROSS_MEMORY
+
+	if(tw_ismaster())
+		printf("Disabling ROSS Memory library.\n");
+#endif
 }
 
 void
@@ -242,6 +242,7 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	/*
 	 * init KP and PE memory queues
 	 */
+#if ROSS_MEMORY
 	for(i = 0; i < g_tw_npe; i++)
 		g_tw_pe[i]->memory_q = tw_calloc(TW_LOC, "KP memory queues",
 					sizeof(tw_memoryq), g_tw_memory_nqueues);
@@ -249,6 +250,7 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	for(i = 0; i < g_tw_nkp; i++)
 		g_tw_kp[i]->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
 					sizeof(tw_memoryq), g_tw_memory_nqueues);
+#endif
 }
 
 static void
@@ -291,7 +293,6 @@ tw_run(void)
 {
 	tw_pe *me;
 
-	early_sanity_check();
 	late_sanity_check();
 
 	init_locks();

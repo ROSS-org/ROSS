@@ -86,11 +86,15 @@ extern void     tw_register_signals(void);
  */
 extern void		 tw_event_send(tw_event * event);
 extern void		 tw_event_rollback(tw_event * event);
+
+/*
+ * ross-inline.h
+ */
 INLINE(void)		 tw_event_free(tw_pe *, tw_event *);
 INLINE(void)		*tw_event_data(tw_event * event);
-//INLINE(void *)		 tw_pe_data(tw_pe * pe);
-
+INLINE(void *)		 tw_memory_data(tw_memory * m);
 INLINE(tw_event *)	 tw_event_new(tw_lpid, tw_stime, tw_lp *);
+INLINE(tw_pe *)		 tw_getpe(tw_peid id);
 
 /*
  * tw-lp.c
@@ -100,9 +104,6 @@ extern void		 tw_lp_settype(tw_lpid lp, const tw_lptype * type);
 extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
 extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
 extern void		 tw_init_lps(tw_pe * me);
-
-INLINE(void *)		 tw_getstate(tw_lp * lp);
-INLINE(tw_stime)	 tw_now(tw_lp * lp);
 
 /*
  * tw-kp.c
@@ -114,10 +115,7 @@ extern void	 tw_init_kps(tw_pe * me);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
-extern int	 tw_kp_fossil_memory(tw_kp * me);
-
-INLINE(tw_kp *)		 tw_getkp(tw_kpid kp);
-INLINE(tw_memoryq *)	 tw_kp_getqueue(tw_kp * kp, tw_fd fd);
+extern void	 tw_kp_fossil_memory(tw_kp * me);
 
 /*
  * tw-pe.c
@@ -126,7 +124,6 @@ extern tw_pe		*tw_pe_next(tw_pe * last);
 extern void		 tw_pe_settype(tw_pe *, const tw_petype * type);
 extern void		 tw_pe_create(tw_peid npe);
 extern void		 tw_pe_init(tw_peid id, tw_peid global);
-static inline tw_pe	*tw_getpe(tw_peid id);
 extern void		 tw_pe_fossil_collect(tw_pe * me);
 extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem, 
 					   size_t d_sz, tw_stime mult);
@@ -175,8 +172,7 @@ extern void    tw_memory_free(tw_lp *lp, tw_memory *m, tw_fd fd);
 extern void    tw_memory_alloc_rc(tw_lp *lp, tw_memory *head, tw_fd fd);
 extern tw_memory *tw_memory_free_rc(tw_lp *lp, tw_fd fd);
 extern void tw_memory_free_single(tw_pe * pe, tw_memory * m, tw_fd fd);
-
-INLINE(void *) tw_memory_data(tw_memory * m);
+extern tw_fd tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult);
 
 /*
  * tw-util.c

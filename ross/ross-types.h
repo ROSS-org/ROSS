@@ -69,7 +69,7 @@ FWD(struct, tw_log);
  * tw_fd   -- used to distinguish between memory and event arrays
  */
 typedef tw_peid tw_kpid;
-typedef unsigned int tw_fd;
+typedef unsigned long tw_fd;
 typedef long long tw_stat;
 
 	/*

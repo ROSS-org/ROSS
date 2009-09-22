@@ -491,7 +491,6 @@ send_begin(tw_pe *me)
 #if ROSS_MEMORY
 		tw_event *tmp_prev = NULL;
 
-		tw_kp *kp;
 		tw_lp *tmp_lp = NULL;
 
 		tw_memory *memory = NULL;
@@ -519,8 +518,6 @@ send_begin(tw_pe *me)
 		e->send_pe = (tw_peid) g_tw_mynode;
 
 #if ROSS_MEMORY
-		kp = e->src_lp->kp;
-
 		// pack pointers
 		tmp_prev = e->prev;
 		tmp_lp = e->src_lp;
@@ -532,7 +529,7 @@ send_begin(tw_pe *me)
 		if(e->memory)
 		{
 			memory = e->memory;
-			e->memory = (tw_memory *) tw_memory_getsize(kp, memory->fd);
+			e->memory = (tw_memory *) tw_memory_getsize(me, memory->fd);
 			e->prev = (tw_event *) memory->fd;
 			mem_size = (size_t) e->memory;
 		}
@@ -553,7 +550,7 @@ send_begin(tw_pe *me)
 			if(m)
 			{
 				memory->next = (tw_memory *)
-						tw_memory_getsize(kp, m->fd);
+						tw_memory_getsize(me, m->fd);
 				memory->fd = m->fd;
 			}
 
@@ -564,10 +561,10 @@ send_begin(tw_pe *me)
 			position += mem_size;
 
 			memory->nrefs--;
-			tw_memory_free_single(kp, memory, memory->fd);
+			tw_memory_free_single(me, memory, memory->fd);
 
 			if(NULL != (memory = m))
-				mem_size = tw_memory_getsize(kp, memory->fd);
+				mem_size = tw_memory_getsize(me, memory->fd);
 		}
 
 		e->memory = NULL;

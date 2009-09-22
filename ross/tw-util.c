@@ -172,11 +172,6 @@ tw_calloc(
 {
 	void *r;
 
-#if 0
-	if(n & (pool_align - 1))
-		n += pool_align - (n & (pool_align - 1));
-#endif
-
 	e_sz *= n;
 	if (!e_sz)
 		return NULL;

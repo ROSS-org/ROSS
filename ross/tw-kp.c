@@ -161,9 +161,10 @@ tw_init_kps(tw_pe * me)
 	}
 }
 
-int
+void
 tw_kp_fossil_memory(tw_kp * me)
 {
+#if ROSS_MEMORY
 	tw_memoryq	*q;
 
 	tw_memory      *b;
@@ -171,13 +172,10 @@ tw_kp_fossil_memory(tw_kp * me)
 
 	tw_memory      *last;
 
-	tw_stime	GVT = me->pe->GVT;
+	tw_stime	gvt = me->pe->GVT;
 
-	unsigned int             i;
-	int             rv;
+	unsigned int    i;
 	int             cnt;
-
-	rv = 0;
 
 	for(i = 0; i < g_tw_memory_nqueues; i++)
 	{
@@ -188,28 +186,27 @@ tw_kp_fossil_memory(tw_kp * me)
 #if VERIFY_PE_FC_MEM
 			printf("%d no bufs in pmemory_q! \n", me->id);
 #endif
-			return 0;
+			continue;
 		}
 
 		tail = q->tail;
 
-		if (tail->ts >= GVT)
-			return 0;
+		if (tail->ts >= gvt)
+			continue;
 
-		if (q->head->ts < GVT)
+		if (q->head->ts < gvt)
 		{
 #if VERIFY_PE_FC_MEM
 			printf("%d: collecting all bufs! \n", me->id);
 #endif
 
-			tw_memoryq_push_list(tw_kp_getqueue(me, i - 1), q->head, q->tail,
+			tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), q->head, q->tail,
 							   q->size);
 
 			q->head = q->tail = NULL;
-			rv = q->size;
 			q->size = 0;
 
-			return rv;
+			continue;
 		}
 
 		/*
@@ -219,7 +216,7 @@ tw_kp_fossil_memory(tw_kp * me)
 		cnt = 0;
 
 		b = q->head;
-		while (b->ts >= GVT)
+		while (b->ts >= gvt)
 		{
 			last = b;
 			cnt++;
@@ -227,8 +224,7 @@ tw_kp_fossil_memory(tw_kp * me)
 			b = b->next;
 		}
 
-		rv = q->size - cnt;
-		tw_memoryq_push_list(tw_kp_getqueue(me, i - 1), b, q->tail, rv);
+		tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), b, q->tail, cnt);
 
 		/* fix what remains of our pmemory_q */
 		q->tail = last;
@@ -239,6 +235,5 @@ tw_kp_fossil_memory(tw_kp * me)
 		printf("%d: direct search yielded %d bufs! \n", me->id, rv);
 #endif
 	}
-
-	return rv;
+#endif
 }

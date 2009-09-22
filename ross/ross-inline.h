@@ -80,9 +80,9 @@ tw_event_free(tw_pe *pe, tw_event *e)
 		if(0 == --m->nrefs)
 		{
 			if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
-				tw_memory_free_single(e->src_lp->kp, m, m->fd);
+				tw_memory_free_single(e->src_lp->pe, m, m->fd);
 			else
-				tw_memory_free_single(e->dest_lp->kp, m, m->fd);
+				tw_memory_free_single(e->dest_lp->pe, m, m->fd);
 		}
 #if 0
 		 else

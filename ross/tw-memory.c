@@ -25,7 +25,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 #if 1
 		int cnt = tw_memory_allocate(q);
 		pe->stats.s_mem_buffers_used += cnt;
-		printf("Allocating %d buffers in memory fd: %d \n", cnt, fd);
+		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
 #else
 		tw_error(TW_LOC, "Out of buffers in fd: %ld\n", fd);
 #endif
@@ -80,8 +80,6 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	 * processed memory queue.
 	 */
 	tw_memoryq_push(q, m);
-
-	//printf("%d: mem free, remain: %d, fd %d \n", lp->id, q->size, fd);
 }
 
 tw_memory         *
@@ -121,6 +119,12 @@ size_t
 tw_memory_getsize(tw_pe * pe, int fd)
 {
 	return tw_pe_getqueue(pe, fd)->d_size + g_tw_memory_sz;
+}
+
+tw_fd
+tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult)
+{
+	return tw_pe_memory_init(tw_getpe(0), n_mem, d_sz, mult);
 }
 
 size_t

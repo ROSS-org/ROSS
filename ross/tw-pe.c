@@ -81,6 +81,7 @@ void
 tw_pe_fossil_collect(tw_pe * me)
 {
 	tw_kp	*kp;
+
 	int	 i;
 
 	g_tw_fossil_attempts++;
@@ -89,6 +90,7 @@ tw_pe_fossil_collect(tw_pe * me)
 	{
 		kp = tw_getkp(i);
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
+		tw_kp_fossil_memory(kp);
 	}
 
 #ifdef ROSS_NETWORK_tcp

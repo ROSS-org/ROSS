@@ -13,7 +13,7 @@ tw_getlocal_lp(tw_lpid gid)
 	int id = gid - g_tw_lp_offset;
 
 	if (id >= g_tw_nlp)
-		tw_error(TW_LOC, "ID %d exceeded MAX LPs", index);
+		tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
 	if (gid != g_tw_lp[id]->gid)
 		tw_error(TW_LOC, "Inconsistent LP Mapping");
 
@@ -24,7 +24,7 @@ INLINE(tw_lp *)
 tw_getlp(tw_lpid id)
 {
 	if (id >= g_tw_nlp)
-		tw_error(TW_LOC, "ID %d exceeded MAX LPs", index);
+		tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
 	if (id != g_tw_lp[id]->id)
 		tw_error(TW_LOC, "Inconsistent LP Mapping");
 
@@ -46,11 +46,8 @@ INLINE(tw_pe *)
 tw_getpe(tw_peid id)
 {
 	if (id >= g_tw_npe)
-		tw_error(TW_LOC, "ID %d exceeded MAX PEs", index);
-/*
-	if (id != g_tw_pe[id]->id)
-		tw_error(TW_LOC, "Inconsistent PE Mapping");
-*/
+		tw_error(TW_LOC, "ID %d exceeded MAX PEs", id);
+
 	return g_tw_pe[id];
 }
 
