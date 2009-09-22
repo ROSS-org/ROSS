@@ -368,6 +368,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 #endif
 
 	me->stats.s_nread_network++;
+	me->s_nwhite_recv++;
 
 	e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
 	dest_pe = e->dest_lp->pe;
@@ -597,6 +598,7 @@ send_begin(tw_pe *me)
 
 		posted_sends.event_list[id] = e;
 		posted_sends.cur++;
+		me->s_nwhite_sent++;
 
 		changed = 1;
 	}
@@ -682,7 +684,6 @@ tw_net_send(tw_event *e)
 	e->state.remote = 0;
 	e->state.owner = TW_net_outq;
 	tw_eventq_unshift(&outq, e);
-
 
 	do
 	{

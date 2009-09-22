@@ -224,7 +224,8 @@ tw_kp_fossil_memory(tw_kp * me)
 			b = b->next;
 		}
 
-		tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), b, q->tail, cnt);
+		tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), b, q->tail, 
+					q->size - cnt);
 
 		/* fix what remains of our pmemory_q */
 		q->tail = last;
