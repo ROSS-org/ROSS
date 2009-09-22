@@ -1,5 +1,5 @@
 # Uncomment for verbose output.
-#V=1
+V=1
 
 ########################################################################
 # for ARCH select from: 

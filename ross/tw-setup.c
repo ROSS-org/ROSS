@@ -58,7 +58,7 @@ static const tw_optdef kernel_options[] = {
 	TWOPT_GROUP("ROSS Kernel"),
 	TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
 	TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
-	TWOPT_UINT("batch-size", g_tw_mblock, "messages per scheduler block"),
+	TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
 	TWOPT_END()
 };
 
