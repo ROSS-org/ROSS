@@ -73,7 +73,7 @@ char	 g_rn_xml_topology[1024];
 char	 g_rn_xml_link_topology[1024];
 char	 g_rn_xml_model[1024];
 char	 g_rn_rt_table[1024];
-char	 g_rn_tools_dir[1024] = "tcp-ip-square";
+char	 g_rn_tools_dir[1024] = "tcp2";
 char	 g_rn_logs_dir[1024] = "logs";
 
 xmlDocPtr document_network = NULL;

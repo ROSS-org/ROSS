@@ -68,9 +68,11 @@ ip_rc_downstream(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp)
 
 	rn_reverse_event_send(l->addr, lp, DOWNSTREAM, msg->size);
 
+#if 0
 	if(bf->c31)
 	{
 		state->stats->s_nnet_failures--;
 		msg->ttl--;
 	}
+#endif
 }

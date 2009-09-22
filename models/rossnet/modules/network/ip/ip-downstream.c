@@ -65,12 +65,14 @@ forward(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp)
 
 	e = rn_event_new(l->addr, ts, lp, DOWNSTREAM, msg->size);
 
+#if 0
 	if((bf->c31 = (e == lp->pe->abort_event && e->recv_ts <= g_tw_ts_end)))
 	{
 		tw_error(TW_LOC, "Got abort event ...");
 		state->stats->s_nnet_failures++;
 		msg->ttl++;
 	}
+#endif
 
 #if VERIFY_IP
 	printf("\t\t%lld IP FWD: to %lld at ts %lf (sz %d bw %lf del %lf)\n", 

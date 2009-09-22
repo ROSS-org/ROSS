@@ -3,7 +3,7 @@ To compile:
 	./configure --with-ross=<path to ross> --with-<model_name>
 	make
 
-	Available models: 	tcp, ospfv2, bgp4, ip, multicast, epi, num, 
+	Available models: 	tcp, ospf, bgp, ip, multicast, epi, num, 
 				random-walk, tlm, phold 
 
 To execute:
