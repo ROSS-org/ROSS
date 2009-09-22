@@ -108,6 +108,11 @@ ip_downstream_forward(ip_state * state, tw_bf * bf, rn_message * msg, tw_lp * lp
 	if(NULL == (e = forward(state, bf, msg, lp)))
 		return;
 
+	// forward the membufs on the incoming event to the next hop in the network
+	//printf("%lld: forward membuf: %lld to %lld at %lf\n", 
+		//lp->gid, msg->src, msg->dst, tw_now(lp));
+	tw_event_memory_forward(e);
+
 	// fixup the message source
 	m = tw_event_data(e);
 

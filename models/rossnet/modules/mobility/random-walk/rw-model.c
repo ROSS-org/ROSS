@@ -18,17 +18,13 @@ void
 rw_md_init(int argc, char ** argv, char ** env)
 {
 	int	 nbufs;
-	int	 i;
-
 
 	g_rw_stats = tw_calloc(TW_LOC, "", sizeof(*g_rw_stats), 1);
 
 	nbufs = 1000000 / g_tw_nkp;
 	nbufs = 10000 / g_tw_nkp;
 
-	for(i = 0; i < g_tw_nkp; i++)
-		g_rw_fd = tw_kp_memory_init(tw_getkp(i), nbufs,
-					sizeof(rw_message), 1);
+	g_rw_fd = tw_memory_init(nbufs, sizeof(rw_message), 1);
 
 	if(tw_ismaster())
 	{

@@ -145,13 +145,13 @@ rn_event_new(tw_lpid dst, tw_stime ts, tw_lp * src,
 void
 rn_event_send(tw_event * new_event)
 {
-	tw_memory	*b;
+	//tw_memory	*b;
 	tw_lp		*lp = NULL;
 
 	rn_lp_state	*state = NULL;
 	rn_stream	*s = NULL;
 	rn_message	*rn_msg;
-	rn_message	*m;
+	//rn_message	*m = NULL;
 
 	rn_msg = tw_event_data(new_event);
 
@@ -242,18 +242,22 @@ rn_event_send(tw_event * new_event)
 	{
 		// Ok, so now we have reached the bottom of the stack and
 		// can remove the event finally.
+#if 0
+// I think tw_event_memory_set handles this already.. and tw_sched handles
+// the abort event properly.
 		if(new_event->src_lp->pe->cev_abort)
 		{
-#if 0
-			while(NULL != (b = new_event->memory))
+			while(new_event->memory)
 			{
+				b = new_event->memory;
 				new_event->memory = b->next;
-				tw_memory_alloc_rc(new_event->src_lp, b, (tw_fd) b->prev);
+
+				tw_memory_free_single(new_event->src_lp->pe, b, b->fd);
 			}
-#endif
 
 			return;
 		}
+#endif
 
 #if VERIFY_RN
 		printf("%d: RN sending remote event from layer %d: %lld -%lf-> %lld \n",
@@ -263,21 +267,24 @@ rn_event_send(tw_event * new_event)
 				new_event->recv_ts,
 				(tw_lpid) new_event->dest_lp);
 #endif
+
+#if 0
 		// forward any membufs on the event
-	m = tw_event_data(new_event->src_lp->pe->cur_event);
-	if(new_event->src_lp->pe->cur_event->memory && m->type != TIMER)
-	{
-		if(new_event->memory)
-			tw_error(TW_LOC, "membuf already on event?");
-
-		b = new_event->memory = new_event->src_lp->pe->cur_event->memory;
-
-		while(b)
+		m = tw_event_data(new_event->src_lp->pe->cur_event);
+		if(new_event->src_lp->pe->cur_event->memory && m->type != TIMER)
 		{
-			b->ts = tw_now(new_event->src_lp);
-			b = b->next;
+			if(new_event->memory)
+				tw_error(TW_LOC, "membuf already on event?");
+
+			b = new_event->memory = new_event->src_lp->pe->cur_event->memory;
+
+			while(b)
+			{
+				b->ts = tw_now(new_event->src_lp);
+				b = b->next;
+			}
 		}
-	}
+#endif
 
 		/*
 		 * This is where we would want to do things like fixing up 

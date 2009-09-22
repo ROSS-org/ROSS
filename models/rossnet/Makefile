@@ -84,7 +84,7 @@ CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
 COMPAT_OBJECTS = 
 CPP = gcc -E
-CPPFLAGS =  -DROSS_MAPPING_linear -DROSS_QUEUE_splay -DROSS_RAND_clcg4 -DROSS_NETWORK_mpi -DROSS_CLOCK_none -DROSS_THREAD_none -DROSS_GVT_mpi_allreduce -DROSS_NET_conservative -DROSS_RAND_clcg4 -DARCH_  -I/home/bauerd/work/pdes/trunk/ross
+CPPFLAGS =  -DROSS_MAPPING_linear -DROSS_QUEUE_splay -DROSS_RAND_clcg4 -DROSS_NETWORK_mpi -DROSS_CLOCK_none -DROSS_THREAD_none -DROSS_GVT_mpi_allreduce -DROSS_NET_ -DROSS_RAND_clcg4 -DROSS_MEMORY -DARCH_  -I/home/bauerd/work/pdes/trunk/ross
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3

@@ -159,24 +159,17 @@ bgp_main(int argc, char **argv, char **env)
 	char		file[1024];
 #endif
 
-	tw_kp          *kp;
-	int             i;
-
 	printf("\nInitializing BGP memory buffers... ");
-	for (i = 0; i < g_tw_nkp; i++)
-	{
-		kp = tw_getkp(i);
 
 /*
-		// Commented out for NCS
-		g_bgp_fd_rtes = tw_kp_memory_init(kp, 1000 * g_tw_nlp, sizeof(bgp_route), 1);
-		g_bgp_fd_asp = tw_kp_memory_init(kp, 1000 * g_tw_nlp, sizeof(int), 1);
-		g_bgp_fd = tw_kp_memory_init(kp, 2000 * g_tw_nlp, sizeof(bgp_message), 1);
+	// Commented out for NCS
+	g_bgp_fd_rtes = tw_kp_memory_init(kp, 1000 * g_tw_nlp, sizeof(bgp_route), 1);
+	g_bgp_fd_asp = tw_kp_memory_init(kp, 1000 * g_tw_nlp, sizeof(int), 1);
+	g_bgp_fd = tw_kp_memory_init(kp, 2000 * g_tw_nlp, sizeof(bgp_message), 1);
 */
-		g_bgp_fd_rtes = tw_kp_memory_init(kp, g_tw_nlp, sizeof(bgp_route), 1);
-		g_bgp_fd_asp = tw_kp_memory_init(kp, g_tw_nlp, sizeof(int), 1);
-		g_bgp_fd = tw_kp_memory_init(kp, g_tw_nlp, sizeof(bgp_message), 1);
-	}
+	g_bgp_fd_rtes = tw_memory_init(g_tw_nlp, sizeof(bgp_route), 1);
+	g_bgp_fd_asp = tw_memory_init(g_tw_nlp, sizeof(int), 1);
+	g_bgp_fd = tw_memory_init(g_tw_nlp, sizeof(bgp_message), 1);
 
 	printf("done!\n");
 

@@ -603,7 +603,7 @@ rn_print_statistics()
 	events = stats.s_nevents_processed - stats.s_nevents_rollback;
 	printf("\t%-50s %11lld *\n", "Net Packets Processed", events);
 	printf("\t%-50s %11.2f (pkts/sec)\n", "Packet Rate", 
-		(double) (events / g_tw_pe[0]->statistics.max_run_time));
+		(double) (events / g_tw_pe[0]->stats.s_max_run_time));
 }
 
 const tw_optdef rn_opts [] =

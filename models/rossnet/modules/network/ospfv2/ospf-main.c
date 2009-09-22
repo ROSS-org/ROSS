@@ -287,7 +287,6 @@ void
 ospf_main(int argc, char **argv, char **env)
 {
 	char		 file[255];
-	int		 i;
 
 	xmlXPathObjectPtr	l_obj;
 
@@ -307,41 +306,30 @@ ospf_main(int argc, char **argv, char **env)
 		tw_error(TW_LOC, "Cannot use DD membufs for LSA links!");
 
 	/*
-	 * Init the memory queues needed by this model
+	 * Init the nemory queues needed by this model
 	 */
-	for(i = 0; i < g_tw_nkp; i++)
-	{
-		printf("\nInitializing OSPF memory buffers... ");
-		tw_kp_memory_init(tw_getkp(i), 20000, sizeof(ospf_db_entry), 1);
+	printf("\nInitializing OSPF memory buffers... ");
+	tw_memory_init(20000, sizeof(ospf_db_entry), 1);
 
 /*
-		// Commented out for NCS
-		g_ospf_fd = tw_kp_memory_init(tw_getkp(i), 
-					400 * l_obj->nodesetval->nodeNr, 
-					sizeof(ospf_db_entry), 1);
-		g_ospf_lsa_fd = tw_kp_memory_init(tw_getkp(i), 
-					100 * l_obj->nodesetval->nodeNr, 
-					sizeof(ospf_lsa), 1);
-		g_ospf_dd_fd = tw_kp_memory_init(tw_getkp(i), 
-					1 * l_obj->nodesetval->nodeNr, 
-					sizeof(ospf_dd_pkt), 1);
-		g_ospf_ll_fd = tw_kp_memory_init(tw_getkp(i), 
-					100 * l_obj->nodesetval->nodeNr, 
-					sizeof(ospf_lsa_link), 1);
+	// Commented out for NCS
+	g_ospf_fd = tw_kp_memory_init(tw_getkp(i), 
+				400 * l_obj->nodesetval->nodeNr, 
+				sizeof(ospf_db_entry), 1);
+	g_ospf_lsa_fd = tw_kp_memory_init(tw_getkp(i), 
+				100 * l_obj->nodesetval->nodeNr, 
+				sizeof(ospf_lsa), 1);
+	g_ospf_dd_fd = tw_kp_memory_init(tw_getkp(i), 
+				1 * l_obj->nodesetval->nodeNr, 
+				sizeof(ospf_dd_pkt), 1);
+	g_ospf_ll_fd = tw_kp_memory_init(tw_getkp(i), 
+				100 * l_obj->nodesetval->nodeNr, 
+				sizeof(ospf_lsa_link), 1);
 */
-		g_ospf_fd = tw_kp_memory_init(tw_getkp(i), 
-					2000000,
-					sizeof(ospf_db_entry), 1);
-		g_ospf_lsa_fd = tw_kp_memory_init(tw_getkp(i), 
-					2000000,
-					sizeof(ospf_lsa), 1);
-		g_ospf_dd_fd = tw_kp_memory_init(tw_getkp(i), 
-					100000,
-					sizeof(ospf_dd_pkt), 1);
-		g_ospf_ll_fd = tw_kp_memory_init(tw_getkp(i), 
-					1000000,
-					sizeof(ospf_lsa_link), 1);
-		printf("done!\n");
+	g_ospf_fd = tw_memory_init(2000000, sizeof(ospf_db_entry), 1);
+	g_ospf_lsa_fd = tw_memory_init(2000000, sizeof(ospf_lsa), 1);
+	g_ospf_dd_fd = tw_memory_init(100000, sizeof(ospf_dd_pkt), 1);
+	g_ospf_ll_fd = tw_memory_init(1000000, sizeof(ospf_lsa_link), 1);
 
 		//g_tw_kp[0].queues[g_ospf_fd].debug = 1;
 		//g_tw_kp[0].queues[g_ospf_lsa_fd].debug = 1;
@@ -358,15 +346,14 @@ ospf_main(int argc, char **argv, char **env)
 		printf("\tLL  q: %10.0f bufs %10ld fd\n",
 			(float) (100 * l_obj->nodesetval->nodeNr), g_ospf_ll_fd);
 */
-		printf("\tDB  q: %10.0f bufs %10ld fd\n",
-			(float) 2000000.0, g_ospf_fd);
-		printf("\tLSA q: %10.0f bufs %10ld fd\n",
-			(float) 2000000, g_ospf_lsa_fd);
-		printf("\tDD  q: %10.0f bufs %10ld fd\n",
-			(float) 100000, g_ospf_dd_fd);
-		printf("\tLL  q: %10.0f bufs %10ld fd\n",
-			(float) 1000000, g_ospf_ll_fd);
-	}
+	printf("\tDB  q: %10.0f bufs %10ld fd\n",
+		(float) 2000000.0, g_ospf_fd);
+	printf("\tLSA q: %10.0f bufs %10ld fd\n",
+		(float) 2000000, g_ospf_lsa_fd);
+	printf("\tDD  q: %10.0f bufs %10ld fd\n",
+		(float) 100000, g_ospf_dd_fd);
+	printf("\tLL  q: %10.0f bufs %10ld fd\n",
+		(float) 1000000, g_ospf_ll_fd);
 
 	ospf_setup_options(argc, argv);
 

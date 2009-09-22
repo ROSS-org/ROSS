@@ -16,16 +16,13 @@ void
 tcp_md_init(int argc, char ** argv, char ** env)
 {
 	int	 nbufs;
-	int	 i;
 
 	nbufs = 1000000 / g_tw_nkp;
 	nbufs = 1;
 
 	g_tcp_stats = tw_calloc(TW_LOC, "", sizeof(*g_tcp_stats), 1);
 
-	for(i = 0; i < g_tw_nkp; i++)
-		g_tcp_fd = tw_kp_memory_init(tw_getkp(i), nbufs,
-					sizeof(tcp_message), 1);
+	g_tcp_fd = tw_memory_init(nbufs, sizeof(tcp_message), 1);
 
 	if(tw_ismaster())
 	{

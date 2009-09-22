@@ -93,7 +93,7 @@
 #define HAVE_PTHREAD_H 1
 
 /* Random Walk module */
-#define HAVE_RANDOM_WALK_H 1
+/* #undef HAVE_RANDOM_WALK_H */
 
 /* Define to 1 if you have the `sigaction' function. */
 #define HAVE_SIGACTION 1
@@ -135,7 +135,7 @@
 #define HAVE_TCP_H 1
 
 /* TLM module */
-#define HAVE_TLM_H 1
+/* #undef HAVE_TLM_H */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1

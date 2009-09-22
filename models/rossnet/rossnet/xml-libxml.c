@@ -361,7 +361,7 @@ xml_link_topology()
 void
 rn_xml_model()
 {
-	tw_error(TW_LOC, "Seperate file for model not implemented yet!!");
+	tw_error(TW_LOC, "Traffic model not implemented yet!!");
 }
 
 /* 
@@ -494,12 +494,7 @@ rn_xml_topology()
 	} else
 		tw_error(TW_LOC, "No machines found in XML!");
 
-#if 0
-	if(g_tw_mynode == tw_nnodes() - 1)
-		g_tw_nlp = obj->nodesetval->nodeNr / tw_nnodes();
-	else
-#endif
-		g_tw_nlp = ceil((double) obj->nodesetval->nodeNr / (double) tw_nnodes());
+	g_tw_nlp = ceil((double) obj->nodesetval->nodeNr / (double) tw_nnodes());
 
 	node = *obj->nodesetval->nodeTab;
 

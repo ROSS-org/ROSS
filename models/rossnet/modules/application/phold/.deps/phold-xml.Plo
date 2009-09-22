@@ -67,15 +67,10 @@ phold-xml.lo: phold-xml.c phold.h ../../../rossnet/rossnet.h \
   /usr/local/mpich2-1.1.0a1/include/mpi.h \
   /home/bauerd/work/pdes/trunk/ross/gvt-mpi_allreduce.h \
   /home/bauerd/work/pdes/trunk/ross/tw-eventq.h \
+  /home/bauerd/work/pdes/trunk/ross/tw-memoryq.h \
   /home/bauerd/work/pdes/trunk/ross/ross-inline.h \
   ../../../rossnet/rossnet_config.h ../../../rossnet/rn-types.h \
   ../../../rossnet/rn-extern.h ../../../rossnet/rn_config.h \
-  ../../../rossnet/../modules/mobility/random-walk/rw.h \
-  ../../../rossnet/../modules/mobility/random-walk/rw-types.h \
-  ../../../rossnet/../modules/mobility/random-walk/rw-extern.h \
-  ../../../rossnet/../modules/physical/tlm/tlm.h \
-  ../../../rossnet/../modules/physical/tlm/tlm-types.h \
-  ../../../rossnet/../modules/physical/tlm/tlm-extern.h \
   ../../../rossnet/../modules/transport/tcp/tcp.h \
   ../../../rossnet/../modules/transport/tcp/tcp-types.h \
   ../../../rossnet/../modules/transport/tcp/tcp-extern.h \
@@ -311,6 +306,8 @@ phold.h:
 
 /home/bauerd/work/pdes/trunk/ross/tw-eventq.h:
 
+/home/bauerd/work/pdes/trunk/ross/tw-memoryq.h:
+
 /home/bauerd/work/pdes/trunk/ross/ross-inline.h:
 
 ../../../rossnet/rossnet_config.h:
@@ -320,18 +317,6 @@ phold.h:
 ../../../rossnet/rn-extern.h:
 
 ../../../rossnet/rn_config.h:
-
-../../../rossnet/../modules/mobility/random-walk/rw.h:
-
-../../../rossnet/../modules/mobility/random-walk/rw-types.h:
-
-../../../rossnet/../modules/mobility/random-walk/rw-extern.h:
-
-../../../rossnet/../modules/physical/tlm/tlm.h:
-
-../../../rossnet/../modules/physical/tlm/tlm-types.h:
-
-../../../rossnet/../modules/physical/tlm/tlm-extern.h:
 
 ../../../rossnet/../modules/transport/tcp/tcp.h:
 
