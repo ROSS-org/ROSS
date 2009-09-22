@@ -622,8 +622,6 @@ const tw_optdef rn_opts [] =
 	TWOPT_END()
 };
 
-int help = 0;
-
 	/*
 	 * Map LPs->KPs->PEs, 
 	 * initialize the ROSS engine, 
@@ -701,18 +699,11 @@ main(int argc, char **argv, char **env)
 	g_tw_ts_end = 100.0;
 	g_tw_rng_default = TW_FALSE;
 
-	ttl_lps_per_pe = (g_rn_nmachines + g_rn_env_nlps) / (tw_nnodes() * g_tw_npe);
+	ttl_lps_per_pe = ceil( (double) (g_rn_nmachines + g_rn_env_nlps) / (double) (tw_nnodes() * g_tw_npe));
 	tw_define_lps(ttl_lps_per_pe, g_rn_msg_sz, NULL);
 
 	/* initialize the models */
 	rn_models_init(layer_types, argc, argv, env);
-
-	if(help)
-	{
-		g_tw_csv = stdout;
-		tw_opt_print();
-		tw_exit(0);
-	}
 
 	nnetlps_per_pe = g_rn_nmachines / (tw_nnodes() * g_tw_npe);
 	for(i = 0; i < nnetlps_per_pe; i++)
@@ -722,6 +713,10 @@ main(int argc, char **argv, char **env)
 	nenvlps_per_pe += i;
 	for(; i < nenvlps_per_pe; i++)
 		tw_lp_settype(i, &env_lps[0]);
+
+	// extra LPs to pad out nlp per pe
+	for(; i < g_tw_nlp; i++)
+		tw_lp_settype(i, &rnlps[0]);
 
 	tw_run();
 
