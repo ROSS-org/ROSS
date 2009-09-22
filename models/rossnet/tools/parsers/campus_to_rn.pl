@@ -27,7 +27,6 @@ print OUTPUT "64\n";
 print OUTPUT $rnodes * $nsubnets, "\n";
 print OUTPUT 1008 * $nsubnets, "\n";
 
-
 print "Creating $nsubnets subnets:\n";
 
 # Create the routers
