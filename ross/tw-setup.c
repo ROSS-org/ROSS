@@ -236,6 +236,9 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	 * init KP and PE memory queues
 	 */
 #if ROSS_MEMORY
+	if(0 == g_tw_memory_nqueues)
+		tw_error(TW_LOC, "ROSS memory library enabled!");
+		
 	for(i = 0; i < g_tw_npe; i++)
 		g_tw_pe[i]->memory_q = tw_calloc(TW_LOC, "KP memory queues",
 					sizeof(tw_memoryq), g_tw_memory_nqueues);

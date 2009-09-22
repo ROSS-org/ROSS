@@ -38,7 +38,7 @@
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-#MEMORY=
+MEMORY=MEMORY
 
 #########################################################################
 #

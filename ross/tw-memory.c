@@ -127,6 +127,10 @@ tw_memory_getsize(tw_pe * pe, int fd)
 tw_fd
 tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult)
 {
+#ifndef ROSS_MEMORY
+	tw_error(TW_LOC, "ROSS memory library disabled!");
+#endif
+
 	return tw_pe_memory_init(tw_getpe(0), n_mem, d_sz, mult);
 }
 
