@@ -97,13 +97,6 @@ early_sanity_check(void)
 			g_tw_nkp, g_tw_npe);
 		g_tw_nkp = g_tw_npe;
 	}
-
-#if (0 == g_tw_memory_nqueues)
-	#undef ROSS_MEMORY
-
-	if(tw_ismaster())
-		printf("Disabling ROSS Memory library.\n");
-#endif
 }
 
 void

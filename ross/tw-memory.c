@@ -17,7 +17,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 	/*
 	 * First try to fossil collect.. then allocate more
 	 */	
-#if 0
+#if 1
 	// not certain we can rely on membuf timestamps to be sorted
 	if(!q->size)
 		tw_kp_fossil_memory(lp->kp);
