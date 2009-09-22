@@ -3,7 +3,7 @@
 
 #include <ross.h>
 
-INLINE(tw_memoryq)
+INLINE(tw_memoryq *)
 tw_memoryq_init()
 {
 	tw_memoryq	*q;
@@ -15,7 +15,7 @@ tw_memoryq_init()
 
 	q->size = -1;
 
-	return *q;
+	return q;
 }
 
 INLINE(void)
