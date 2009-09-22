@@ -23,7 +23,12 @@ tw_event_grab(tw_pe *pe)
 		memset(&e->event_id, 0, sizeof(e->event_id));
 
 		if(e->memory)
-			tw_error(TW_LOC, "membuf remaining on event!");
+		{
+			if(!e->memory->nrefs)
+				tw_printf(TW_LOC, "membuf remaining on event: %d", 
+					  e->memory->nrefs);
+			e->memory = NULL;
+		}
 	} else
 		e = pe->abort_event;
 

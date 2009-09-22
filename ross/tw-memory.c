@@ -28,7 +28,8 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 #if 1
 		int cnt = tw_memory_allocate(q);
 		pe->stats.s_mem_buffers_used += cnt;
-		printf("Allocating %d buffers in memory fd: %ld \n", cnt, fd);
+		printf("%d: Allocating %d buffers in memory fd: %ld \n", 
+			g_tw_mynode, cnt, fd);
 #else
 		tw_error(TW_LOC, "Out of buffers in fd: %ld\n", fd);
 #endif
