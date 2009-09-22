@@ -22,8 +22,7 @@ ip_md_init(int argc, char ** argv, char ** env)
 
 	g_ip_stats = tw_calloc(TW_LOC, "", sizeof(ip_stats), 1);
 
-	nbufs = 10000 / g_tw_nkp;
-	nbufs = 30;
+	nbufs = 1000000 / g_tw_nkp;
 
 	// in secs..
 	g_ip_minor_interval = 60;
@@ -46,7 +45,7 @@ ip_md_init(int argc, char ** argv, char ** env)
 	{
 		printf("\nInitializing Model: IPv4\n");
 		printf("\t%-50s %11d (%ld)\n", 
-			"IP Membufs", nbufs, g_ip_fd);
+			"IP Membufs per KP", nbufs, g_ip_fd);
 	}
 }
 

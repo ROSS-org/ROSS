@@ -18,7 +18,6 @@ tcp_md_init(int argc, char ** argv, char ** env)
 	int	 nbufs;
 
 	nbufs = 1000000 / g_tw_nkp;
-	nbufs = 1;
 
 	g_tcp_stats = tw_calloc(TW_LOC, "", sizeof(*g_tcp_stats), 1);
 
@@ -28,7 +27,7 @@ tcp_md_init(int argc, char ** argv, char ** env)
 	{
 		printf("\nInitializing Model: TCP Tahoe\n");
 		printf("\t%-50s %11d (%ld)\n", 
-			"TCP Membufs", nbufs, g_tcp_fd);
+			"TCP Membufs per KP", nbufs, g_tcp_fd);
 	}
 }
 
