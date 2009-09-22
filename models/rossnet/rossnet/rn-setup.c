@@ -287,8 +287,11 @@ rn_setup()
 		sprintf(g_rn_xml_link_topology, "tools/%s/links.xml", dir);
 		//sprintf(g_rn_xml_model, "tools/%s/model.xml", dir);
 
-		printf("Opening config file: %s \n", g_rn_xml_topology);
-		printf("Opening link file: %s \n", g_rn_xml_link_topology);
-		printf("Opening routing table file: %s \n", g_rn_rt_table);
+		if(tw_ismaster())
+		{
+			printf("Opening config file: %s \n", g_rn_xml_topology);
+			printf("Opening link file: %s \n", g_rn_xml_link_topology);
+			printf("Opening routing table file: %s \n", g_rn_rt_table);
+		}
 	}
 }
