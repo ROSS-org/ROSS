@@ -34,11 +34,8 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Default IP Layer */
+/* IP module */
 #define HAVE_IP_H 1
-
-/* IP LAYER module */
-#define HAVE_IP_LAYER_H 1
 
 /* Define to 1 if you have the `m' library (-lm). */
 #define HAVE_LIBM 1
@@ -163,15 +160,6 @@
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
-
-/* Linear LP Mapping style */
-#define RN_MAP_LINEAR 1
-
-/* Number of ROSS kps */
-#define ROSS_NKP 1
-
-/* Number of ROSS pes */
-#define ROSS_NPE 1
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1

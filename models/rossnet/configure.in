@@ -64,23 +64,9 @@ AC_ARG_WITH(ross,
 		[  --with-ross=PATH		Specify path to ROSS instance],
 		rn_ross=$withval)
 	
-AC_ARG_WITH(ross_seq,
-		[  --with-ross-seq		Enable ROSS sequential scheduler],
-		ross_npe=1)
-
-AC_ARG_WITH(ross_npe,
-		[  --with-ross-npe		Number of processors to use],
-		ross_npe=$withval,
-		ross_npe=1)
-
-AC_ARG_WITH(ross_nkp,
-		[  --with-ross-nkp		Number of kernel processes to use],
-		ross_nkp=$withval,
-		ross_nkp=1)
-
 AC_ARG_WITH(all-modules, 
-                [ --with-all-modules            Link all modules],
-                AC_DEFINE(HAVE_IP_LAYER_H, 1,	IP LAYER module),
+                [  --with-all-modules		Link all modules],
+                AC_DEFINE(HAVE_IP_H, 1,		IP module),
 		AC_DEFINE(HAVE_TCP_H, 1,	TCP module),
 		AC_DEFINE(HAVE_EPI_H, 1,	EPI module),
 		AC_DEFINE(HAVE_OSPF_H, 1,	OSPF module),
@@ -92,59 +78,48 @@ AC_ARG_WITH(all-modules,
 		AC_DEFINE(HAVE_RANDOM_WALK_H, 1, Random Walk module))
 
 AC_ARG_WITH(ip,
-		[ --with-ip			Use IP LAYER module],
-		AC_DEFINE(HAVE_IP_LAYER_H, 1,	IP LAYER module))
+		[  --with-ip			Use IP module],
+		AC_DEFINE(HAVE_IP_H, 1,		IP module))
 
 AC_ARG_WITH(tcp,
-		[ --with-tcp			Use TCP module],
+		[  --with-tcp			Use TCP module],
 		AC_DEFINE(HAVE_TCP_H, 1,	TCP module))
 
 AC_ARG_WITH(epi,
-		[ --with-epi			Use EPI module],
+		[  --with-epi			Use EPI module],
 		AC_DEFINE(HAVE_EPI_H, 1,	EPI module))
 
 AC_ARG_WITH(num,
-		[ --with-num			Use Network User module],
+		[  --with-num			Use Network User module],
 		AC_DEFINE(HAVE_NUM_H, 1,	NUM module))
 
 AC_ARG_WITH(ospf,
-		[ --with-ospf			Use OSPF module],
+		[  --with-ospf			Use OSPF module],
 		AC_DEFINE(HAVE_OSPF_H, 1,	OSPF module))
 
 AC_ARG_WITH(bgp,
-		[ --with-bgp			Use BGP module],
+		[  --with-bgp			Use BGP module],
 		AC_DEFINE(HAVE_BGP_H, 1,	BGP module))
 
 AC_ARG_WITH(ftp,
-		[ --with-ftp			Use FTP module],
+		[  --with-ftp			Use FTP module],
 		AC_DEFINE(HAVE_FTP_H, 1,	FTP module))
 
 AC_ARG_WITH(phold,
-		[ --with-phold			Use PHOLD module],
+		[  --with-phold			Use PHOLD module],
 		AC_DEFINE(HAVE_PHOLD_H, 1,	PHOLD module))
 
 AC_ARG_WITH(multicast,
-		[ --with-multicast		Use Multicast module],
+		[  --with-multicast		Use Multicast module],
 		AC_DEFINE(HAVE_MULTICAST_H, 1,	Multicast module))
 
 AC_ARG_WITH(tlm,
-		[ --with-tlm			Use TLM Physical Layer],
+		[  --with-tlm			Use TLM Physical Layer],
 		AC_DEFINE(HAVE_TLM_H, 1,	TLM module))
 
 AC_ARG_WITH(random-walk,
-		[ --with-random-walk		Use random walk mobility],
-		AC_DEFINE(HAVE_RANDOM_WALK_H, 1,	Random Walk module))
-
-AC_DEFINE_UNQUOTED(HAVE_IP_H, 1,	Default IP Layer)
-
-AC_DEFINE_UNQUOTED(ROSS_NPE, $ross_npe,	Number of ROSS pes)
-if [ test "$ross_npe" '=' 1 ]; then
-	AC_DEFINE_UNQUOTED(ROSS_NKP, 1,	Number of ROSS kps)
-else
-	AC_DEFINE_UNQUOTED(ROSS_NKP, $ross_nkp,	Number of ROSS kps)
-fi
-
-AC_DEFINE_UNQUOTED(RN_MAP_LINEAR, 1, Linear LP Mapping style)
+		[  --with-random-walk		Use random walk mobility],
+		AC_DEFINE(HAVE_RANDOM_WALK_H, 1,Random Walk module))
 
 AC_MSG_CHECKING(for ROSS in $rn_ross)
 if test x$rn_ross '=' x ; then

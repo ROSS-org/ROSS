@@ -36,8 +36,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/configure COPYING INSTALL \
 	NEWS build/config.guess build/config.sub build/depcomp \
 	build/install-sh build/ltmain.sh build/missing \
-	build/mkinstalldirs config.guess config.sub install-sh \
-	ltconfig ltmain.sh missing
+	build/mkinstalldirs config.sub install-sh ltconfig ltmain.sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
