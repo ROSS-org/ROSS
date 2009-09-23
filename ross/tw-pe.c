@@ -98,6 +98,7 @@ tw_pe_fossil_collect(tw_pe * me)
 #endif
 }
 
+#ifdef ROSS_MEMORY
 static int next_mem_q = 0;
 
 tw_fd
@@ -125,3 +126,4 @@ tw_pe_memory_init(tw_pe * pe, size_t n_mem, size_t d_sz, tw_stime mult)
 
 	return fd;
 }
+#endif

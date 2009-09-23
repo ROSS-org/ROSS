@@ -80,8 +80,6 @@ GVT=mpi_allreduce
 #
 #THREAD=pthread
 #NETWORK=tcp
-#NETWORK_ADDTL=socket-tcp.o
-#NETWORK_ADDTL_HDR=socket-tcp.h
 #CLOCK=amd64
 #GVT=7oclock
 
@@ -110,7 +108,6 @@ RANLIB = ranlib
 BASIC_OBJS = \
 	clock-$(CLOCK).o  \
 	network-$(NETWORK).o \
-	$(NETWORK_ADDTL) \
 	hash-quadratic.o \
 	queue-$(QUEUE).o \
 	rand-$(RAND).o \
@@ -124,7 +121,6 @@ BASIC_OBJS = \
 	tw-opts.o \
 	tw-pe.o \
 	tw-timer.o \
-	tw-memory.o \
 	ross-random.o \
 	tw-sched.o \
 	tw-setup.o \
@@ -139,7 +135,6 @@ HEADERS = \
 	clock-$(CLOCK).h \
 	network-$(NETWORK)1.h \
 	network-$(NETWORK)2.h \
-	$(NETWORK_ADDTL_HDR) \
 	hash-quadratic.h \
 	gvt-$(GVT).h \
 	rand-$(RAND).h \
@@ -155,8 +150,6 @@ HEADERS = \
 	ross-random.h \
 	tw-timing.h \
 	tw-eventq.h \
-	tw-memoryq.h \
-	tw-memory.h \
 #end HEADERS
 
 OPTIONS = \
@@ -189,6 +182,16 @@ TRACK_VARS = \
 #end TRACK_VARS
 
 LIBS := -lm
+
+ifeq ($(MEMORY),MEMORY)
+	BASIC_OBJS := $(BASIC_OBJS) tw-memory.o
+	HEADERS := $(HEADERS) tw-memoryq.h tw-memory.h
+endif
+
+ifeq ($(NETWORK),tcp)
+	BASIC_OBJS := $(BASIC_OBJS) socket-tcp.o
+	HEADERS := $(HEADERS) socket-tcp.h
+endif
 
 ifeq ($(NETWORK),mpi)
 ifeq ($(ARCH),BLUE_GENE)
