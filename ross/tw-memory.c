@@ -17,11 +17,9 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 	/*
 	 * First try to fossil collect.. then allocate more
 	 */	
-#if 1
 	// not certain we can rely on membuf timestamps to be sorted
 	if(!q->size)
-		tw_kp_fossil_memory(lp->kp);
-#endif
+		tw_kp_fossil_memoryq(lp->kp, fd);
 
 	if(!q->size)
 	{
@@ -39,7 +37,6 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 		tw_error(TW_LOC, "No memory buffers to allocate!");
 
 	m->next = m->prev = NULL;
-	m->lp_next = NULL;
 	m->nrefs = 1;
 
 	//printf("%ld: mem alloc, remain: %d, fd %ld \n", lp->id, q->size, fd);
@@ -49,11 +46,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
 
 /*
  * The RC of an alloc is to place the buffer back into the 
- * free_q of memory buffers -- this may be bad to rely on the
- * model to call this method.. but I cannot see any other way to
- * give the model a chance to fix their space up first.
- *
- * Not in pmemory_q or in rc_memory_q
+ * free_q of memory buffers.
  */
 void
 tw_memory_alloc_rc(tw_lp * lp, tw_memory * m, tw_fd fd)

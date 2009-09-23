@@ -162,7 +162,7 @@ tw_init_kps(tw_pe * me)
 }
 
 void
-tw_kp_fossil_memory(tw_kp * me)
+tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 {
 #if ROSS_MEMORY
 	tw_memoryq	*q;
@@ -172,69 +172,60 @@ tw_kp_fossil_memory(tw_kp * me)
 
 	tw_memory      *last;
 
-	tw_stime	gvt = me->pe->GVT;
+	tw_stime	gvt = kp->pe->GVT;
 
-	unsigned int    i;
 	int             cnt;
 
-	for(i = 0; i < g_tw_memory_nqueues; i++)
+	q = &kp->pmemory_q[fd];
+	tail = q->tail;
+
+	if(0 == q->size || tail->ts >= gvt)
+		return;
+
+	if(q->head->ts < gvt)
 	{
-		q = &me->pmemory_q[i];
+		tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), 
+				     q->head, q->tail, q->size);
 
-		if (q->head == NULL)
-		{
-#if VERIFY_PE_FC_MEM
-			printf("%d no bufs in pmemory_q! \n", me->id);
-#endif
-			continue;
-		}
+		q->head = q->tail = NULL;
+		q->size = 0;
 
-		tail = q->tail;
-
-		if (tail->ts >= gvt)
-			continue;
-
-		if (q->head->ts < gvt)
-		{
-#if VERIFY_PE_FC_MEM
-			printf("%d: collecting all bufs! \n", me->id);
-#endif
-
-			tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), q->head, q->tail,
-							   q->size);
-
-			q->head = q->tail = NULL;
-			q->size = 0;
-
-			continue;
-		}
-
-		/*
-		 * Start direct search.
-		 */
-		last = NULL;
-		cnt = 0;
-
-		b = q->head;
-		while (b->ts >= gvt)
-		{
-			last = b;
-			cnt++;
-
-			b = b->next;
-		}
-
-		tw_memoryq_push_list(tw_pe_getqueue(me->pe, i), b, q->tail, 
-					q->size - cnt);
-
-		/* fix what remains of our pmemory_q */
-		q->tail = last;
-		q->tail->next = NULL;
-		q->size = cnt;
-
-#if VERIFY_PE_FC_MEM
-		printf("%d: direct search yielded %d bufs! \n", me->id, rv);
-#endif
+		return;
 	}
+
+	/*
+	 * Start direct search.
+	 */
+	last = NULL;
+	cnt = 0;
+
+	b = q->head;
+	while (b->ts >= gvt)
+	{
+		last = b;
+		cnt++;
+
+		b = b->next;
+	}
+
+	tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), b, q->tail, q->size - cnt);
+
+	/* fix what remains of our pmemory_q */
+	q->tail = last;
+	q->tail->next = NULL;
+	q->size = cnt;
+
+#if VERIFY_PE_FC_MEM
+	printf("%d: FC %d buf from FD %d \n", kp->id, cnt, fd);
 #endif
+#endif
+}
+
+void
+tw_kp_fossil_memory(tw_kp * kp)
+{
+	int	 i;
+
+	for(i = 0; i < g_tw_memory_nqueues; i++)
+		tw_kp_fossil_memoryq(kp, i);
 }

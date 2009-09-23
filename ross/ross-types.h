@@ -174,22 +174,23 @@ DEF(struct, tw_memory)
 	/*
 	 * next		-- Next pointer for all queues except the LP RC queue
 	 * prev		-- Prev pointer for all queues except the LP RC queue
-	 * lp_next	-- Next pointer for the LP processed memory queue
-	 * pe		-- PE which originally alloc'ed this buffer: needed in order
-	 *		   to return buffer to the PE that created it
-	 * ts		-- time at which this event can be collected
-	 * data		-- data segment of the memory buffer: application defined
+	 *
+	 * up		-- Up pointer for storing membufs in splay tree
+	 * heap_index	-- index for storing membufs in heap queue
+	 *
+	 * ts		-- time at which this event can be fossil collected
+	 * fd		-- source memory queue index
+	 * nrefs	-- number of references to this membuf (for forwarding)
 	 */
 	tw_memory	*volatile next;
 	tw_memory	*volatile prev;
+
 	//tw_memory	*volatile up;
-	tw_memory	*volatile lp_next;
+	//int		 heap_index;
 
 	tw_stime         ts;
 	tw_fd		 fd;
 	unsigned int	 nrefs;
-
-	int		 heap_index;
 };
 
 DEF(struct, tw_eventq)

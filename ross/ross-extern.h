@@ -115,6 +115,7 @@ extern void	 tw_init_kps(tw_pe * me);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
+extern void	 tw_kp_fossil_memoryq(tw_kp * me, tw_fd);
 extern void	 tw_kp_fossil_memory(tw_kp * me);
 
 /*
