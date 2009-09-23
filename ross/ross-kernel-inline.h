@@ -51,6 +51,7 @@ tw_getpe(tw_peid id)
 	return g_tw_pe[id];
 }
 
+#ifdef ROSS_MEMORY
 INLINE(tw_memoryq *)
 tw_kp_getqueue(tw_kp * kp, tw_fd fd)
 {
@@ -62,6 +63,7 @@ tw_pe_getqueue(tw_pe * pe, tw_fd fd)
 {
 	return &pe->memory_q[fd];
 }
+#endif
 
 INLINE(int)
 tw_ismaster(void)

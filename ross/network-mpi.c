@@ -562,7 +562,7 @@ send_begin(tw_pe *me)
 			position += mem_size;
 
 			memory->nrefs--;
-			tw_memory_free_single(me, memory, memory->fd);
+			tw_memory_unshift(e->src_lp, memory, memory->fd);
 
 			if(NULL != (memory = m))
 				mem_size = tw_memory_getsize(me, memory->fd);

@@ -45,8 +45,6 @@
  *
  *
  */
-#include <ross.h>
-
 #ifndef INC_tw_rand_h
 #define	INC_tw_rand_h
 

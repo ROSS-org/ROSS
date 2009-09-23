@@ -107,6 +107,10 @@ tw_pe_memory_init(tw_pe * pe, size_t n_mem, size_t d_sz, tw_stime mult)
 
 	int             fd;
 
+	if(!pe->memory_q)
+		pe->memory_q = tw_calloc(TW_LOC, "KP memory queues",
+					sizeof(tw_memoryq), g_tw_memory_nqueues);
+
 	fd = next_mem_q++;
 	pe->stats.s_mem_buffers_used = 0;
 

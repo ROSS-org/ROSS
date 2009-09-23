@@ -248,12 +248,12 @@ printf("%d: sending mem buf of size %d on ev %f \n", src_lp->id, mem_size, event
 				rv, mem_size);
 
 		/* We will not need these mme bufs any longer on this side */
-		tw_memory_free_single(src_lp->kp, memory, (tw_fd) memory->prev);
+		tw_memory_unshift(src_lp, memory, (tw_fd) memory->prev);
 
 		memory = m;
 
 		if(memory)
-			mem_size = tw_memory_getsize(kp, (tw_fd) memory->prev);
+			mem_size = tw_memory_getsize(src_lp, (tw_fd) memory->prev);
 	}
 #endif
 

@@ -55,14 +55,18 @@ FWD(struct, tw_lptype);
 FWD(struct, tw_petype);
 FWD(struct, tw_bf);
 FWD(struct, tw_lp_state);
-FWD(struct, tw_memoryq);
-FWD(struct, tw_memory);
 FWD(struct, tw_eventq);
 FWD(struct, tw_event);
 FWD(struct, tw_lp);
 FWD(struct, tw_kp);
 FWD(struct, tw_pe);
 FWD(struct, tw_log);
+
+#ifdef ROSS_MEMORY
+FWD(struct, tw_memoryq);
+FWD(struct, tw_memory);
+#endif
+
 
 /* 
  * tw_kpid -- Kernel Process (KP) id
@@ -150,6 +154,7 @@ DEF(struct, tw_statistics)
 	tw_stat s_mem_buffers_used;
 };
 
+#ifdef ROSS_MEMORY
 DEF(struct, tw_memoryq)
 {
 	size_t		 size;
@@ -192,6 +197,7 @@ DEF(struct, tw_memory)
 	tw_fd		 fd;
 	unsigned int	 nrefs;
 };
+#endif
 
 DEF(struct, tw_eventq)
 {
@@ -329,7 +335,9 @@ DEF(struct, tw_event)
 
 	tw_peid		 send_pe;
 
+#ifdef ROSS_MEMORY
 	tw_memory	*memory;
+#endif
 };
 
 	/*
@@ -395,7 +403,9 @@ DEF(struct, tw_kp)
 	/*
 	 * queues -- TW processed memory buffer queues
 	 */
+#ifdef ROSS_MEMORY
 	tw_memoryq	*pmemory_q;
+#endif
 
 	/* s_nevent_processed -- Number of events processed.
 	 * s_e_rbs -- Number of events rolled back by this LP.
@@ -440,16 +450,18 @@ DEF(struct, tw_pe)
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.
-	 * memory_q -- array of free tw_memory buffers linked lists
 	 * abort_event -- Placeholder event for when free_q is empty.
 	 * cur_event -- Current event being processed.
 	 * sevent_q -- events already sent over the network.
+	 * memory_q -- array of free tw_memory buffers linked lists
 	 */
 	tw_eventq free_q;
-	tw_memoryq *memory_q;
 	tw_event *abort_event;
 	tw_event *cur_event;
 	tw_eventq sevent_q;
+#ifdef ROSS_MEMORY
+	tw_memoryq *memory_q;
+#endif
 
 	/* clock_offset -- Initial clock value for this PE.
 	 * clock_time -- Most recent clock value for this PE.

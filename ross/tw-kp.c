@@ -158,6 +158,11 @@ tw_init_kps(tw_pe * me)
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
 		prev_kp = kp;
+
+#if ROSS_MEMORY
+		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
+					sizeof(tw_memoryq), g_tw_memory_nqueues);
+#endif
 	}
 }
 

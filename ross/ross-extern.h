@@ -91,10 +91,6 @@ extern void		 tw_event_rollback(tw_event * event);
  * ross-inline.h
  */
 INLINE(void)		 tw_event_free(tw_pe *, tw_event *);
-INLINE(void)		*tw_event_data(tw_event * event);
-INLINE(void *)		 tw_memory_data(tw_memory * m);
-INLINE(tw_event *)	 tw_event_new(tw_lpid, tw_stime, tw_lp *);
-INLINE(tw_pe *)		 tw_getpe(tw_peid id);
 
 /*
  * tw-lp.c
@@ -166,14 +162,9 @@ extern   double   tw_wall_to_double(tw_wtime * t);
 /*
  * tw-memory.c
  */
-extern size_t tw_memory_getsize(tw_pe * pe, int fd);
-extern size_t tw_memory_allocate(tw_memoryq *);
-extern tw_memory *tw_memory_alloc(tw_lp *lp, tw_fd fd);
-extern void    tw_memory_free(tw_lp *lp, tw_memory *m, tw_fd fd);
-extern void    tw_memory_alloc_rc(tw_lp *lp, tw_memory *head, tw_fd fd);
-extern tw_memory *tw_memory_free_rc(tw_lp *lp, tw_fd fd);
-extern void tw_memory_free_single(tw_pe * pe, tw_memory * m, tw_fd fd);
-extern tw_fd tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult);
+#ifdef ROSS_MEMORY
+extern size_t	tw_memory_allocate(tw_memoryq *);
+#endif
 
 /*
  * tw-util.c

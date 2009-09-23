@@ -22,6 +22,7 @@ tw_event_grab(tw_pe *pe)
 		memset(&e->state, 0, sizeof(e->state));
 		memset(&e->event_id, 0, sizeof(e->event_id));
 
+#ifdef ROSS_MEMORY
 		if(e->memory)
 		{
 			if(!e->memory->nrefs)
@@ -29,6 +30,7 @@ tw_event_grab(tw_pe *pe)
 					  e->memory->nrefs);
 			e->memory = NULL;
 		}
+#endif
 	} else
 		e = pe->abort_event;
 
@@ -69,7 +71,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
 	 * and freed -- which is how a membuf could end up on a freed
 	 * event.
 	 */
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
 	tw_memory	*next;
 	tw_memory	*m;
 
@@ -79,34 +81,26 @@ tw_event_free(tw_pe *pe, tw_event *e)
 	{
 		next = m->next;
 
-		if(m == next)
-			tw_error(TW_LOC, "loop");
-
 		if(0 == --m->nrefs)
 		{
 			if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
-				tw_memory_free_single(e->src_lp->pe, m, m->fd);
+				tw_memory_unshift(e->src_lp, m, m->fd);
 			else
-				tw_memory_free_single(e->dest_lp->pe, m, m->fd);
+				tw_memory_unshift(e->dest_lp, m, m->fd);
 		}
-#if 0
-		 else
-			tw_error(TW_LOC, "leaving membuf on event: %d", m->nrefs);
-#endif
 
 		m = next;
 	}
+
+	e->memory = NULL;
 #endif
 
 	e->state.owner = TW_pe_free_q;
-	e->memory = NULL;
 
 	tw_eventq_unshift(&pe->free_q, e);
 }
 
-/*
- * This function returns all of the memory buffers send on the event.
- */
+#ifdef ROSS_MEMORY
 INLINE(tw_memory *)
 tw_event_memory_get(tw_lp * lp)
 {
@@ -191,6 +185,7 @@ tw_memory_data(tw_memory * memory)
 {
 	return memory + 1;
 }
+#endif
 
 INLINE(void *)
 tw_event_data(tw_event * event)

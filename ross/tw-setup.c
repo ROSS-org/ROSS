@@ -86,6 +86,11 @@ tw_init(int *argc, char ***argv)
 static void
 early_sanity_check(void)
 {
+#if ROSS_MEMORY
+	if(0 == g_tw_memory_nqueues)
+		tw_error(TW_LOC, "ROSS memory library enabled!");
+#endif
+
 	if (!g_tw_npe)
 		tw_error(TW_LOC, "need at least one PE");
 	if (!g_tw_nlp)
@@ -124,7 +129,6 @@ map_linear(void)
 	if(!nlp_per_kp)
 		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
 
-	g_tw_memory_sz = sizeof(tw_memory);
 	g_tw_lp_offset = g_tw_mynode * g_tw_nlp;
 
 #if VERIFY_MAPPING
@@ -137,9 +141,6 @@ map_linear(void)
 #if VERIFY_MAPPING
 		printf("\tPE %d\n", pe->id);
 #endif
-
-		pe->memory_q = tw_calloc(TW_LOC, "PE memory queues",
-					 sizeof(tw_memoryq), g_tw_memory_nqueues);
 
 		for(i = 0; i < nkp_per_pe; i++, kpid++)
 		{
@@ -203,6 +204,8 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	int	 i;
 
 	1 == tw_nnodes() ? g_tw_nlp = nlp * g_tw_npe : (g_tw_nlp = nlp);
+
+	g_tw_memory_sz = sizeof(tw_memory);
 	g_tw_msg_sz = msg_sz;
 	g_tw_rng_seed = seed;
 
@@ -231,22 +234,6 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	for(i = 0; i < g_tw_nlp; i++)
 		if(g_tw_rng_default == TW_TRUE)
 			tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
-
-	/*
-	 * init KP and PE memory queues
-	 */
-#if ROSS_MEMORY
-	if(0 == g_tw_memory_nqueues)
-		tw_error(TW_LOC, "ROSS memory library enabled!");
-		
-	for(i = 0; i < g_tw_npe; i++)
-		g_tw_pe[i]->memory_q = tw_calloc(TW_LOC, "KP memory queues",
-					sizeof(tw_memoryq), g_tw_memory_nqueues);
-
-	for(i = 0; i < g_tw_nkp; i++)
-		g_tw_kp[i]->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
-					sizeof(tw_memoryq), g_tw_memory_nqueues);
-#endif
 }
 
 static void

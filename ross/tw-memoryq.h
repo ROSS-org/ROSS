@@ -1,8 +1,6 @@
 #ifndef INC_tw_memoryq_h
 #define INC_tw_memoryq_h
 
-#include <ross.h>
-
 INLINE(tw_memoryq *)
 tw_memoryq_init()
 {

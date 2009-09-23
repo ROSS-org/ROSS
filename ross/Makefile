@@ -156,6 +156,7 @@ HEADERS = \
 	tw-timing.h \
 	tw-eventq.h \
 	tw-memoryq.h \
+	tw-memory.h \
 #end HEADERS
 
 OPTIONS = \
