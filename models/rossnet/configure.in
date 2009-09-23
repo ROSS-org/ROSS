@@ -78,6 +78,19 @@ AC_ARG_WITH(ross_nkp,
 		ross_nkp=$withval,
 		ross_nkp=1)
 
+AC_ARG_WITH(all-modules, 
+                [ --with-all-modules            Link all modules],
+                AC_DEFINE(HAVE_IP_LAYER_H, 1,	IP LAYER module),
+		AC_DEFINE(HAVE_TCP_H, 1,	TCP module),
+		AC_DEFINE(HAVE_EPI_H, 1,	EPI module),
+		AC_DEFINE(HAVE_OSPF_H, 1,	OSPF module),
+		AC_DEFINE(HAVE_BGP_H, 1,	BGP module),
+		AC_DEFINE(HAVE_FTP_H, 1,	FTP module),
+		AC_DEFINE(HAVE_PHOLD_H, 1,	PHOLD module),
+		AC_DEFINE(HAVE_MULTICAST_H, 1,	Multicast module),
+		AC_DEFINE(HAVE_TLM_H, 1,	TLM module),
+		AC_DEFINE(HAVE_RANDOM_WALK_H, 1, Random Walk module))
+
 AC_ARG_WITH(ip,
 		[ --with-ip			Use IP LAYER module],
 		AC_DEFINE(HAVE_IP_LAYER_H, 1,	IP LAYER module))
