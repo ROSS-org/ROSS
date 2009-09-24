@@ -695,9 +695,8 @@ main(int argc, char **argv, char **env)
 #endif
 
 	/* ROSS configurables */
-	g_tw_events_per_pe = g_tw_nlp * 40;
+	g_tw_events_per_pe = g_tw_nlp * 10;
 	g_tw_rng_default = TW_FALSE;
-	g_tw_ts_end = 1000.0;
 
 	ttl_lps_per_pe = ceil( (double) (g_rn_nmachines + g_rn_env_nlps) / (double) (tw_nnodes() * g_tw_npe));
 	tw_define_lps(ttl_lps_per_pe, g_rn_msg_sz, NULL);

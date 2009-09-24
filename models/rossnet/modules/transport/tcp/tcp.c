@@ -52,7 +52,8 @@ start_transfer(tcp_state * state, tw_bf * bf, rn_message * m, tw_lp * lp)
 	state->rtt_time = tw_now(lp);
 
 	m->dst = state->connection;
-	ts = tw_rand_exponential(lp->rng, 10.0) + tw_rand_integer(lp->rng, 0, 100);
+	ts = tw_rand_unif(lp->rng) + tw_rand_integer(lp->rng, 0, floor(g_tw_ts_end * 0.75));
+	
 	tcp_event_send(state, lp->gid, ts, state->connection, TCP_MTU, 0, 0, lp);
 
 	state->timer = rn_timer_init(lp, tw_now(lp) + ts + state->rto);
