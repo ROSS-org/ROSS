@@ -29,7 +29,7 @@ tw_stats(tw_pe * me)
 	tw_statistics s;
 	tw_pe	*pe;
 	tw_kp	*kp;
-	tw_lp	*lp;
+	tw_lp	*lp = NULL;
 	int	 i;
 
 	size_t m_alloc, m_waste;
