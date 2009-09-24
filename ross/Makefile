@@ -184,13 +184,13 @@ TRACK_VARS = \
 LIBS := -lm
 
 ifeq ($(MEMORY),MEMORY)
-	BASIC_OBJS := $(BASIC_OBJS) tw-memory.o
-	HEADERS := $(HEADERS) tw-memoryq.h tw-memory.h
+	BASIC_OBJS += tw-memory.o
+	HEADERS += tw-memoryq.h tw-memory.h
 endif
 
 ifeq ($(NETWORK),tcp)
-	BASIC_OBJS := $(BASIC_OBJS) socket-tcp.o
-	HEADERS := $(HEADERS) socket-tcp.h
+	BASIC_OBJS += socket-tcp.o
+	HEADERS += socket-tcp.h
 endif
 
 ifeq ($(NETWORK),mpi)
