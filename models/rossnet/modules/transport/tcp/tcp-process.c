@@ -42,7 +42,7 @@ tcp_process_ack(tcp_state * state, tw_bf * bf, tcp_message * in, tw_lp * lp)
 		 */
 		if(state->len && state->unack >= state->len)
 		{
-#if 1
+#if 0
 			double	 rate = ((state->len) /
 					 (tw_now(lp) - state->stats->start_time)) /
 					  1024;
