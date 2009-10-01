@@ -1,0 +1,8 @@
+add_subdirectory (application)
+add_subdirectory (mobility)
+add_subdirectory (presentation)
+add_subdirectory (datalink)
+add_subdirectory (network)
+add_subdirectory (session)
+add_subdirectory (physical)
+add_subdirectory (transport)
