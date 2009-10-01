@@ -80,27 +80,27 @@ tw_gvt_step2(tw_pe *me)
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
 
-while(1)
-{
-	tw_net_read(me);
+	while(1)
+	  {
+	    tw_net_read(me);
 	
-	// send message counts to create consistent cut
-	local_white = me->s_nwhite_sent - me->s_nwhite_recv;
+	    // send message counts to create consistent cut
+	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 
-	if(MPI_Allreduce(
-		&local_white,
-		&total_white,
-		1,
-		MPI_LONG_LONG,
-		MPI_SUM,
-		MPI_COMM_WORLD) != MPI_SUCCESS)
-		tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-
-	if(total_white == 0)
-		break;
-	else
-		++mattern_nochange;
-}
+	    if(MPI_Allreduce(
+			     &local_white,
+			     &total_white,
+			     1,
+			     MPI_LONG_LONG,
+			     MPI_SUM,
+			     MPI_COMM_WORLD) != MPI_SUCCESS)
+	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
+	    
+	    if(total_white == 0)
+	      break;
+	    else
+	      ++mattern_nochange;
+	  }
 
 	pq_min = tw_pq_minimum(me->pq);
 	net_min = tw_net_minimum(me);
