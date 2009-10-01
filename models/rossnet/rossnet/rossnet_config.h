@@ -129,7 +129,7 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* TCP module */
-#define HAVE_TCP_H 1
+/* #undef HAVE_TCP_H */
 
 /* TLM module */
 /* #undef HAVE_TLM_H */

@@ -70,11 +70,23 @@ extern tw_node g_tw_masternode;
 
 extern FILE		*g_tw_csv;
 
+        /*
+	 * Cycle Counter variables
+	 */
+
+tw_clock g_tw_cycles_gvt;
+tw_clock g_tw_cycles_ev_abort;
+tw_clock g_tw_cycles_ev_proc;
+tw_clock g_tw_cycles_ev_queue;
+tw_clock g_tw_cycles_rbs;
+tw_clock g_tw_cycles_cancel;
+
 /*
  * clock-*
  */
 extern void tw_clock_init(tw_pe * me);
 extern tw_clock tw_clock_now(tw_pe * me);
+extern tw_clock rdtsc();
 
 /*
  * signal-*.c
@@ -197,3 +209,4 @@ extern void* tw_unsafe_realloc(
 	size_t len);
 
 #endif
+

@@ -7,7 +7,7 @@
 #  error only amd64 platform supported
 #endif
 
-static tw_clock rdtsc(void)
+tw_clock rdtsc(void)
 {
 	tw_clock result;
 

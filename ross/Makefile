@@ -1,5 +1,5 @@
 # Uncomment for verbose output.
-#V=1
+V=1
 
 ########################################################################
 # for ARCH select from: 
@@ -38,7 +38,7 @@
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-MEMORY=MEMORY
+MEMORY=none
 
 #########################################################################
 #
@@ -73,7 +73,7 @@ MEMORY=MEMORY
 #
 NETWORK=mpi
 THREAD=none
-CLOCK=bgl
+CLOCK=amd64
 GVT=mpi_allreduce
 
 #
@@ -100,7 +100,7 @@ GVT=mpi_allreduce
 #CLOCK=none
 #GVT=none
 
-CFLAGS = -g -Wall #-DROSS_DO_NOT_PRINT
+CFLAGS = -O3 -Wall #-DROSS_DO_NOT_PRINT
 AR     = ar
 RANLIB = ranlib
 
@@ -204,7 +204,7 @@ else
 endif
 else
 	CC = gcc
-	CFLAGS += -D_GNU_SOURCE
+	CFLAGS += -O6 -D_GNU_SOURCE
 	#CFLAGS += -DROSS_DIST_MANUAL
 endif
 

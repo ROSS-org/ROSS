@@ -1,6 +1,6 @@
 LIBDIR  := ../../ross/
 CC	:= $(shell $(LIBDIR)/ross-config --cc)
-CFLAGS  := -g -Wall
+CFLAGS  := -O6 -Wall
 OPTIONS := $(shell $(LIBDIR)/ross-config --cflags)
 LDFLAGS := $(shell $(LIBDIR)/ross-config --ldflags)
 

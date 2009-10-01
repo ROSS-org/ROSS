@@ -107,7 +107,7 @@ tw_gvt_step2(tw_pe *me)
 
 	lvt = me->trans_msg_ts;
 	if(lvt > pq_min)
-		lvt = pq_min;
+	  lvt = pq_min;
 	if(lvt > net_min)
 		lvt = net_min;
 

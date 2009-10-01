@@ -154,5 +154,12 @@ tw_stats(tw_pe * me)
 	tw_gvt_stats(stdout);
 
 	printf("\n");
+	printf("Cycle Usage Stats:\n");
+	show_lld("GVT", g_tw_cycles_gvt );
+	show_lld("Ev Abort", g_tw_cycles_ev_abort );
+	show_lld("Ev Processed", g_tw_cycles_ev_proc );
+	show_lld("Ev Queued", g_tw_cycles_ev_queue );
+	show_lld("Primary RBs", g_tw_cycles_rbs );
+	show_lld("Cancelled Events", g_tw_cycles_cancel );
 #endif
 }
