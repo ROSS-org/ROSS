@@ -23,7 +23,7 @@
 
 // default RNG seed
 long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
-
+static tw_rng	*rng = NULL;
 
 #if 0
 /*
@@ -240,7 +240,8 @@ rng_init_generator(tw_rng_stream * g, SeedType Where)
 				g->Lg[j] = g->Ig[j];
 				break;
 			case NewSeed:
-				g->Lg[j] = MultModM(g->rng->aw[j], g->Lg[j], g->rng->m[j]);
+				g->Lg[j] = MultModM(rng->aw[j], g->Lg[j], rng->m[j]);
+				//g->Lg[j] = MultModM(g->rng->aw[j], g->Lg[j], g->rng->m[j]);
 				break;
 			case LastSeed:
 				break;
@@ -265,7 +266,7 @@ tw_rand_initial_seed(tw_rng * rng, tw_rng_stream * g, tw_lpid id)
 	int j;
 	int positions = ((sizeof(tw_lpid)) * 8) - 1;
 
-	g->rng = rng;
+	//g->rng = rng;
 
 	//seed for zero
 	for(j = 0; j < 4; j++)
@@ -328,10 +329,12 @@ tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 tw_rng	*
 rng_init(int v, int w)
 {
-	tw_rng	*rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
+	//tw_rng	*rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
 
 	int	 i;
 	int	 j;
+
+	rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
 
 	rng->m[0] = 2147483647;
 	rng->m[1] = 2147483543;
@@ -438,8 +441,10 @@ rng_gen_val(tw_rng_stream * g)
 double
 rng_gen_reverse_val(tw_rng_stream * g)
 {
-  long long *b = g->rng->b;
-  long *m = g->rng->m;
+  //long long *b = g->rng->b;
+  //long *m = g->rng->m;
+  long long *b = rng->b;
+  long *m = rng->m;
   long long s;
   double u;
 

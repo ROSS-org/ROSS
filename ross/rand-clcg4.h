@@ -84,7 +84,7 @@ DEF(struct, tw_rng_stream)
 	long	 Lg[4];
 	long	 Cg[4];
 
-	tw_rng	*rng;
+	//tw_rng	*rng;
 
 #ifdef RAND_NORMAL
 	double	 tw_normal_u1;
