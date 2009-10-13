@@ -1,5 +1,5 @@
 # Uncomment for verbose output.
-V=1
+#V=1
 
 ########################################################################
 # for ARCH select from: 
@@ -38,7 +38,7 @@ V=1
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-MEMORY=none
+#MEMORY=MEMORY
 
 #########################################################################
 #
@@ -197,7 +197,7 @@ endif
 ifeq ($(NETWORK),mpi)
 ifeq ($(ARCH),BLUE_GENE)
 	CC=mpixlc
-	CFLAGS += -O5 -DARCH_$(ARCH)
+	CFLAGS += -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
 	OPTIONS := -qtune=440 -qarch=440d $(OPTIONS)
 else
 	CC = mpicc
