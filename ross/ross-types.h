@@ -397,8 +397,10 @@ DEF(struct, tw_kp)
 	/* last_time -- Time of the current event being processed.
 	 * pevent_q -- Events processed by LPs bound to this KP
 	 */
-	tw_stime last_time;
+
+	// inverted for cache alignment on BGL
 	tw_eventq pevent_q;
+	tw_stime last_time;
 
 	/*
 	 * queues -- TW processed memory buffer queues
@@ -475,6 +477,7 @@ DEF(struct, tw_pe)
 	 * gvt_status	-- bits available for gvt computation.
 	 */
 	BIT_GROUP(
+	BIT_GROUP_ITEM(_pad, 1)
 	BIT_GROUP_ITEM(cev_abort, 1)
 	BIT_GROUP_ITEM(master, 1)
 	BIT_GROUP_ITEM(local_master, 1)
