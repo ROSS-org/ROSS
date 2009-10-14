@@ -164,6 +164,9 @@ typedef unsigned long long tw_lpid;
 #ifdef ROSS_CLOCK_ppc
 #  include "clock-ppc.h"
 #endif
+#ifdef ROSS_CLOCK_bgl
+#  include "clock-bgl.h"
+#endif
 #ifdef ROSS_CLOCK_none
 #  include "clock-none.h"
 #endif
