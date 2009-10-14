@@ -1,6 +1,6 @@
 #include <ross.h>
 
-static tw_clock rdtsc(void)
+tw_clock rdtsc(void)
 {
  unsigned long long int result=0;
  unsigned long int upper, lower,tmp;

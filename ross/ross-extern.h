@@ -74,12 +74,12 @@ extern FILE		*g_tw_csv;
 	 * Cycle Counter variables
 	 */
 
-tw_clock g_tw_cycles_gvt;
-tw_clock g_tw_cycles_ev_abort;
-tw_clock g_tw_cycles_ev_proc;
-tw_clock g_tw_cycles_ev_queue;
-tw_clock g_tw_cycles_rbs;
-tw_clock g_tw_cycles_cancel;
+extern tw_clock g_tw_cycles_gvt;
+extern tw_clock g_tw_cycles_ev_abort;
+extern tw_clock g_tw_cycles_ev_proc;
+extern tw_clock g_tw_cycles_ev_queue;
+extern tw_clock g_tw_cycles_rbs;
+extern tw_clock g_tw_cycles_cancel;
 
 /*
  * clock-*
@@ -209,4 +209,5 @@ extern void* tw_unsafe_realloc(
 	size_t len);
 
 #endif
+
 
