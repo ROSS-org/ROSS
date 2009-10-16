@@ -86,7 +86,7 @@ extern tw_clock g_tw_cycles_cancel;
  */
 extern void tw_clock_init(tw_pe * me);
 extern tw_clock tw_clock_now(tw_pe * me);
-extern tw_clock rdtsc();
+extern tw_clock tw_clock_read();
 
 /*
  * signal-*.c

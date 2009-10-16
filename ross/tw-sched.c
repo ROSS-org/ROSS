@@ -8,51 +8,59 @@
 static void
 tw_sched_event_q(tw_pe * me)
 {
-	tw_kp	 *dest_kp;
-	tw_event *cev;
-	tw_event *nev;
-
-	while (me->event_q.size) {
-		tw_mutex_lock(&me->event_q_lck);
-		cev = tw_eventq_pop_list(&me->event_q);
-		tw_mutex_unlock(&me->event_q_lck);
-
-		for (; cev; cev = nev) {
-		nev = cev->next;
-
-		if(!cev->state.owner || cev->state.owner == TW_pe_free_q)
-			tw_error(TW_LOC, "no owner!");
-
-		if (cev->state.cancel_q)
+  tw_clock	 start;
+  tw_kp		*dest_kp;
+  tw_event	*cev;
+  tw_event	*nev;
+  
+  while (me->event_q.size) 
+    {
+      tw_mutex_lock(&me->event_q_lck);
+      cev = tw_eventq_pop_list(&me->event_q);
+      tw_mutex_unlock(&me->event_q_lck);
+      
+      for (; cev; cev = nev) 
+	{
+	  nev = cev->next;
+	  
+	  if(!cev->state.owner || cev->state.owner == TW_pe_free_q)
+	    tw_error(TW_LOC, "no owner!");
+	  
+	  if (cev->state.cancel_q)
+	    {
+	      cev->state.owner = TW_pe_anti_msg;
+	      cev->next = cev->prev = NULL;
+	      continue;
+	    }
+	  
+	  switch (cev->state.owner) 
+	    {
+	    case TW_pe_event_q:
+	      dest_kp = cev->dest_lp->kp;
+	      
+	      if (dest_kp->last_time > cev->recv_ts) 
 		{
-			cev->state.owner = TW_pe_anti_msg;
-			cev->next = cev->prev = NULL;
-			continue;
+		  /* cev is a straggler message which has arrived
+		   * after we processed events occuring after it.
+		   * We need to jump back to before cev's timestamp.
+		   */
+			start = tw_clock_read();
+			tw_kp_rollback_to(dest_kp, cev->recv_ts);
+			me->stats.s_rollback += tw_clock_read() - start;
 		}
-
-		switch (cev->state.owner) {
-		case TW_pe_event_q:
-			dest_kp = cev->dest_lp->kp;
-
-			if (dest_kp->last_time > cev->recv_ts) 
-			  {
-			    /* cev is a straggler message which has arrived
-			     * after we processed events occuring after it.
-			     * We need to jump back to before cev's timestamp.
-			     */
-			    tw_kp_rollback_to(dest_kp, cev->recv_ts);
-			}
-			tw_pq_enqueue(me->pq, cev);
-			break;
-
-		default:
-			tw_error(
-				TW_LOC,
-				"Event in event_q, but owner %d not recognized",
-				cev->state.owner);
-		}
-		}
+	      start = tw_clock_read();
+	      tw_pq_enqueue(me->pq, cev);
+	      me->stats.s_pq += tw_clock_read() - start;
+	      break;
+	      
+	    default:
+	      tw_error(
+		       TW_LOC,
+		       "Event in event_q, but owner %d not recognized",
+		       cev->state.owner);
+	    }
 	}
+    }
 }
 
 /*
@@ -63,9 +71,11 @@ tw_sched_event_q(tw_pe * me)
 static void
 tw_sched_cancel_q(tw_pe * me)
 {
+        tw_clock	 start;
 	tw_event 	*cev;
 	tw_event	*nev;
 
+	start = tw_clock_read();
 	while (me->cancel_q) {
 		tw_mutex_lock(&me->cancel_q_lck);
 		cev = me->cancel_q;
@@ -124,12 +134,15 @@ tw_sched_cancel_q(tw_pe * me)
 			}
 		}
 	}
+
+	me->stats.s_cancel_q += tw_clock_read() - start;
 }
 
 static void
 tw_sched_batch(tw_pe * me)
 {
-	unsigned int msg_i;
+        tw_clock	 start;
+	unsigned int	 msg_i;
 
 	/* Process g_tw_mblock events, or until the PQ is empty
 	 * (whichever comes first). 
@@ -147,8 +160,10 @@ tw_sched_batch(tw_pe * me)
 			break;
 		}
 
+		start = tw_clock_read();
 		if (!(cev = tw_pq_dequeue(me->pq)))
 			break;
+		me->stats.s_pq += tw_clock_read() - start;
 
 		clp = cev->dest_lp;
 		ckp = clp->kp;
@@ -158,23 +173,24 @@ tw_sched_batch(tw_pe * me)
 		/* Save state if no reverse computation is available */
 		if (!clp->type.revent)
 			tw_state_save(clp, cev);
-		
+
+                start = tw_clock_read();
 		(*clp->type.event)(
 			clp->cur_state,
 			&cev->cv,
 			tw_event_data(cev),
 			clp);
-
 		ckp->s_nevent_processed++;
+                me->stats.s_event_process += tw_clock_read() - start;
 
 		/* We ran out of events while processing this event.  We
 		 * cannot continue without doing GVT and fossil collect.
 		 */
 
 		if (me->cev_abort) {
+		        start = tw_clock_read();
 			me->stats.s_nevent_abort++;
 			me->cev_abort = 0;
-
 
 			tw_event_rollback(cev);
 			tw_pq_enqueue(me->pq, cev);
@@ -183,6 +199,9 @@ tw_sched_batch(tw_pe * me)
 			ckp->last_time = cev ? cev->recv_ts : me->GVT;
 
 			tw_gvt_force_update(me);
+
+		        me->stats.s_event_abort += tw_clock_read() - start;
+
 			break;
 		}
 
@@ -236,41 +255,52 @@ tw_sched_init(tw_pe * me)
 void
 tw_scheduler(tw_pe * me)
 {
-  tw_sched_init(me);
-  tw_wall_now(&me->start_time);
-  
-  for (;;)
-    {
-      if (tw_nnodes() > 1)
-	tw_net_read(me);
+        tw_clock start;
 
-      tw_gvt_step1(me);
+	tw_sched_init(me);
 
-      tw_sched_event_q(me);
-      tw_sched_cancel_q(me);
+	tw_wall_now(&me->start_time);
+        me->stats.s_total = tw_clock_read();
 
-      tw_gvt_step2(me);
+	for (;;)
+	{
+		if (tw_nnodes() > 1)
+		{
+			start = tw_clock_read();
+			tw_net_read(me);
+			me->stats.s_net_read += tw_clock_read() - start;
+		}
 
-      if (me->GVT > g_tw_ts_end)
-	break;
-      
-      tw_sched_batch(me);
-    }
-  
-  tw_wall_now(&me->end_time);
-  
-  if((tw_nnodes() > 1 || g_tw_npe > 1) &&
-     tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
-     me->local_master)
-    printf("\n*** END SIMULATION ***\n\n");
-  
-  tw_barrier_sync(&g_tw_simend);
-  tw_net_barrier(me);
-  
-  // call the model PE finalize function
-  (*me->type.final)(me);
-  
-  tw_stats(me);
+		tw_gvt_step1(me);
+
+		tw_sched_event_q(me);
+		tw_sched_cancel_q(me);
+
+                start = tw_clock_read();
+                tw_gvt_step2(me);
+                me->stats.s_gvt += tw_clock_read() - start;
+
+		if (me->GVT > g_tw_ts_end)
+			break;
+
+		tw_sched_batch(me);
+	}
+
+	tw_wall_now(&me->end_time);
+        me->stats.s_total = tw_clock_read() - me->stats.s_total;
+
+	if((tw_nnodes() > 1 || g_tw_npe > 1) &&
+		tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
+		me->local_master)
+		printf("*** END SIMULATION ***\n\n");
+
+	tw_barrier_sync(&g_tw_simend);
+	tw_net_barrier(me);
+
+	// call the model PE finalize function
+	(*me->type.final)(me);
+
+	tw_stats(me);
 }
 
 void
@@ -281,7 +311,7 @@ tw_scheduler_seq(tw_pe * me)
 	tw_sched_init(me);
 	tw_wall_now(&me->start_time);
 	while ((cev = tw_pq_dequeue(me->pq))) {
-		tw_lp *clp = cev->dest_lp;
+		tw_lp *clp = (tw_lp*)cev->dest_lp;
 		tw_kp *ckp = clp->kp;
 
 		me->cur_event = cev;

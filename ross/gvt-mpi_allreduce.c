@@ -43,7 +43,7 @@ tw_gvt_force_update(tw_pe *me)
 void
 tw_gvt_stats(FILE * f)
 {
-	fprintf(f, "TW GVT Statistics: MPI AllReduce\n");
+	fprintf(f, "\nTW GVT Statistics: MPI AllReduce\n");
 	fprintf(f, "\t%-50s %11d\n", "GVT Interval", g_tw_gvt_interval);
 	fprintf(f, "\t%-50s %11d\n", "Batch Size", g_tw_mblock);
 	fprintf(f, "\n");

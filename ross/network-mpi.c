@@ -751,18 +751,27 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
 	if(MPI_Reduce(&(s->s_max_run_time), 
 			&me->stats.s_max_run_time,
-			1,
+			16,
 			MPI_DOUBLE,
 			MPI_MAX,
 			g_tw_masternode,
 			MPI_COMM_WORLD) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Unable to reduce statistics!");
 
-	if(MPI_Reduce(&s->s_net_events, 
+	if(MPI_Reduce(&(s->s_net_events), 
 			&me->stats.s_net_events,
 			16,
 			MPI_LONG_LONG,
 			MPI_SUM,
+			g_tw_masternode,
+			MPI_COMM_WORLD) != MPI_SUCCESS)
+		tw_error(TW_LOC, "Unable to reduce statistics!");
+
+	if(MPI_Reduce(&s->s_total, 
+			&me->stats.s_total,
+			8,
+			MPI_LONG_LONG,
+			MPI_MAX,
 			g_tw_masternode,
 			MPI_COMM_WORLD) != MPI_SUCCESS)
 		tw_error(TW_LOC, "Unable to reduce statistics!");

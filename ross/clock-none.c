@@ -1,5 +1,11 @@
 #include<ross.h>
 
+tw_clock
+tw_clock_read(void)
+{
+	return 0;
+}
+
 void
 tw_clock_init(tw_pe *me)
 {

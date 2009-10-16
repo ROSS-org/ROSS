@@ -151,9 +151,19 @@ DEF(struct, tw_statistics)
 	tw_stat s_nsend_loc_remote;
 	tw_stat s_nsend_net_remote;
 	tw_stat s_ngvts;
-#if 0
 	tw_stat s_mem_buffers_used;
-#endif
+
+	tw_clock s_total;
+	tw_clock s_net_read;
+	tw_clock s_gvt;
+	tw_clock s_fossil_collect;
+
+	tw_clock s_event_abort;
+	tw_clock s_event_process;
+	tw_clock s_pq;
+	tw_clock s_rollback;
+
+	tw_clock s_cancel_q;
 };
 
 #ifdef ROSS_MEMORY
@@ -507,16 +517,16 @@ DEF(struct, tw_pe)
 	tw_stat s_nwhite_sent;
 	tw_stat s_nwhite_recv;
 #endif
+
 	/* start_time -- When this PE first started execution.
 	 * end_time -- When this PE finished its execution.
 	 */
 	tw_wtime start_time;
 	tw_wtime end_time;
 
-	/* s_nevent_abort -- Number of events aborted.
-	 * s_nsend_remote -- Number of events sent to another processor.
+	/* stats	-- per PE counters
 	 */
-	tw_statistics	stats;
+	tw_statistics		stats;
 
 #ifndef ROSS_NETWORK_none
         /*

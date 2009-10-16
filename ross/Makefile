@@ -7,13 +7,12 @@
 #
 # Otherwise, undefined.
 #
-#
 # for DATA_LAYOUT select from:
 #   1. byte_per_bit
 #
 # Otherwise, undefined.
 ########################################################################
-#ARCH=BLUE_GENE
+ARCH=BLUE_GENE
 #DATA_LAYOUT=byte_per_bit
 
 ########################################################################
@@ -31,14 +30,21 @@
 #   1. clcg4	-- Combined Linear Congruential Generator 4
 #
 # for MEMORY select from:
-#   1. MEMORY	 -- used memory buffer library
-#   2. none	 -- do not use memory buffer library
+#   1. true	-- include memory buffer library
+#
+# Otherwise, undefined.
+#
+# for TIMING select from:
+#   1. true	-- include clock cycle counter statistics (requires clock module)
+#
+# Otherwise, undefined.
 #
 #########################################################################
 QUEUE=splay
 MAPPING=linear
 RAND=clcg4
-#MEMORY=MEMORY
+#MEMORY=true
+TIMING=true
 
 #########################################################################
 #
@@ -57,9 +63,9 @@ RAND=clcg4
 #
 #   1. none	-- use with NETWORK=mpi or sequential
 #   2. amd64	-- use with 64-bit Opeteron processors
-#   3. i386	-- standard 32-bit 386 hardware
-#   4. ppc	-- use with PowerPC (Mac, not Blue Gene!)
-#   5. bgl      -- use Blue Gene only!!
+#   3. i386	-- use with 32-bit 386 hardware
+#   4. ppc	-- use with Mac PowerPC
+#   5. bgl      -- use with IBM Blue Gene/L PowerPC 400
 #
 # for GVT select from:
 #
@@ -73,7 +79,7 @@ RAND=clcg4
 #
 NETWORK=mpi
 THREAD=none
-CLOCK=none
+CLOCK=bgl
 GVT=mpi_allreduce
 
 #
@@ -81,7 +87,7 @@ GVT=mpi_allreduce
 #
 #THREAD=pthread
 #NETWORK=tcp
-#CLOCK=amd64
+#CLOCK=bgl
 #GVT=7oclock
 
 #
@@ -161,9 +167,7 @@ OPTIONS = \
 	-DROSS_CLOCK_$(CLOCK) \
 	-DROSS_THREAD_$(THREAD) \
 	-DROSS_GVT_$(GVT) \
-	-DROSS_NET_$(NET) \
 	-DROSS_RAND_$(RAND) \
-	-DROSS_$(MEMORY) \
 	-DARCH_$(ARCH) \
 #end OPTIONS
 
@@ -172,9 +176,9 @@ TRACK_VARS = \
 	RAND=$(RAND) \
 	THREAD=$(THREAD) \
 	NETWORK=$(NETWORK) \
-	NET=$(NET) \
 	CLOCK=$(CLOCK) \
 	GVT=$(GVT) \
+	TIMING=$(TIMING) \
 	MEMORY=$(MEMORY) \
 	ARCH=$(ARCH) \
 	$(subst ','\'',CC=$(CC)) \
@@ -184,9 +188,14 @@ TRACK_VARS = \
 
 LIBS := -lm
 
-ifeq ($(MEMORY),MEMORY)
+ifeq ($(MEMORY),true)
 	BASIC_OBJS += tw-memory.o
 	HEADERS += tw-memoryq.h tw-memory.h
+	OPTIONS += -DROSS_MEMORY
+endif
+
+ifeq ($(TIMING),true)
+	OPTIONS += -DROSS_timing
 endif
 
 ifeq ($(NETWORK),tcp)
@@ -197,8 +206,9 @@ endif
 ifeq ($(NETWORK),mpi)
 ifeq ($(ARCH),BLUE_GENE)
 	CC=mpixlc
+	#CFLAGS += -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
 	CFLAGS += -O5 -DARCH_$(ARCH)
-	OPTIONS := -qtune=440 -qarch=440d $(OPTIONS)
+	OPTIONS += -qtune=440 -qarch=440d
 else
 	CC = mpicc
 endif

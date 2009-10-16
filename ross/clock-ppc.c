@@ -7,7 +7,7 @@
 #  error only ppc platform supported
 #endif
 
-static tw_clock rdtsc(void)
+static tw_clock tw_clock_read(void)
 {
 	unsigned long tbu;
 	unsigned long tb1;
@@ -28,12 +28,12 @@ void
 tw_clock_init(tw_pe * me)
 {
 	me->clock_time = 0;
-	me->clock_offset = rdtsc();
+	me->clock_offset = tw_clock_read();
 }
 
 tw_clock
 tw_clock_now(tw_pe * me)
 {
-	me->clock_time = rdtsc() - me->clock_offset;
+	me->clock_time = tw_clock_read() - me->clock_offset;
 	return me->clock_time;
 }

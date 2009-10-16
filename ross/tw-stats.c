@@ -18,8 +18,8 @@ show_2f(const char *name, double v)
 static void
 show_4f(const char *name, double v)
 {
-	printf("\t%-50s %11.4f %%\n", name, v);
-	fprintf(g_tw_csv, "%.4f,", v);
+	printf("\t%-50s %11.4lf\n", name, v);
+	fprintf(g_tw_csv, "%.4lf,", v);
 }
 #endif
 
@@ -27,9 +27,12 @@ void
 tw_stats(tw_pe * me)
 {
 	tw_statistics s;
+
 	tw_pe	*pe;
 	tw_kp	*kp;
 	tw_lp	*lp = NULL;
+
+	tw_clock nprocs = tw_nnodes() * g_tw_npe * 750000000;
 	int	 i;
 
 	size_t m_alloc, m_waste;
@@ -60,6 +63,16 @@ tw_stats(tw_pe * me)
 		s.s_nread_network += pe->stats.s_nread_network;
 		s.s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
+		s.s_total += pe->stats.s_total;
+		s.s_net_read += pe->stats.s_net_read;
+		s.s_gvt += pe->stats.s_gvt;
+		s.s_fossil_collect += pe->stats.s_fossil_collect;
+		s.s_event_abort += pe->stats.s_event_abort;
+		s.s_event_process += pe->stats.s_event_process;
+		s.s_pq += pe->stats.s_pq;
+		s.s_rollback += pe->stats.s_rollback;
+		s.s_cancel_q += pe->stats.s_cancel_q;
+
 		for(i = 0; i < g_tw_nkp; i++)
 		{
 			kp = tw_getkp(i);
@@ -87,7 +100,7 @@ tw_stats(tw_pe * me)
 		return;
 
 #ifndef ROSS_DO_NOT_PRINT
-	printf("\n\t: Running Time = %.3f seconds\n", s.s_max_run_time);
+	printf("\n\t: Running Time = %.4f seconds\n", s.s_max_run_time);
 	fprintf(g_tw_csv, "%.4f,", s.s_max_run_time);
 
 	printf("\nTW Library Statistics:\n");
@@ -121,13 +134,12 @@ tw_stats(tw_pe * me)
 
 	printf("\n");
 	show_lld("Net Events Processed", s.s_net_events);
-	show_4f(
+	show_2f(
 		"Event Rate (events/sec)",
 		((double)s.s_net_events / s.s_max_run_time)
 	);
 
-	printf("\n");
-	printf("TW Memory Statistics:\n");
+	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated", g_tw_events_per_pe * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);
 	show_lld("Memory Wasted", m_waste / 1024);
@@ -139,8 +151,7 @@ tw_stats(tw_pe * me)
 		show_lld("Remote recvs", s.s_nread_network);
 	}
 
-	printf("\n");
-	printf("TW Data Structure sizes in bytes (sizeof):\n");
+	printf("\nTW Data Structure sizes in bytes (sizeof):\n");
 	show_lld("PE struct", sizeof(tw_pe));
 	show_lld("KP struct", sizeof(tw_kp));
 	show_lld("LP struct", sizeof(tw_lp));
@@ -150,7 +161,20 @@ tw_stats(tw_pe * me)
 	show_lld("Event struct", sizeof(tw_event));
 	show_lld("Event struct with Model", sizeof(tw_event) + g_tw_msg_sz);
 
+#ifdef ROSS_timing
+	printf("\nTW Clock Cycle Statistics (AVG Values in secs at 750MHz):\n");
+	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / nprocs);
+	show_4f("Event Processing", (double) s.s_event_process / nprocs);
+	show_4f("Event Cancel", (double) s.s_cancel_q / nprocs);
+	show_4f("Event Abort", (double) s.s_event_abort / nprocs);
 	printf("\n");
+	show_4f("GVT", (double) s.s_gvt / nprocs);
+	show_4f("Fossil Collect", (double) s.s_fossil_collect / nprocs);
+	show_4f("Primary Rollbacks", (double) s.s_rollback / nprocs);
+	show_4f("Network Read", (double) s.s_net_read / nprocs);
+	show_4f("Total Time", (double) s.s_total / nprocs);
+#endif
+
 	tw_gvt_stats(stdout);
 #endif
 }
