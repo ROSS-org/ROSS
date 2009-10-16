@@ -126,19 +126,3 @@ tw_node		g_tw_mynode = -1;
 tw_node		g_tw_masternode = -1;
 
 FILE		*g_tw_csv = NULL;
-
-        /*
-	 * Cycle Counter variables
-	 * g_tw_cycles_gvt       -- number of cycles spent doing GVT
-         * g_tw_cycles_events    -- number of cycles spent processing events
-         * g_tw_cycles_rbs       -- number of cycles spent in primary rollbacks
-         * g_tw_cycles_cancel    -- number of cycles spent in event cancelation
-	 */
-
-tw_clock g_tw_cycles_gvt=0;
-tw_clock g_tw_cycles_ev_abort=0;
-tw_clock g_tw_cycles_ev_proc=0;
-tw_clock g_tw_cycles_ev_queue=0;
-tw_clock g_tw_cycles_rbs=0;
-tw_clock g_tw_cycles_cancel=0;
-

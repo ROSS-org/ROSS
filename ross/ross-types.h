@@ -74,7 +74,7 @@ FWD(struct, tw_memory);
  */
 typedef tw_peid tw_kpid;
 typedef unsigned long tw_fd;
-typedef long long tw_stat;
+typedef unsigned long long tw_stat;
 
 	/*
 	 * User model implements virtual functions for per PE operations.  Currently,
@@ -151,20 +151,22 @@ DEF(struct, tw_statistics)
 	tw_stat s_nsend_loc_remote;
 	tw_stat s_nsend_net_remote;
 	tw_stat s_ngvts;
+#if 0
 	tw_stat s_mem_buffers_used;
+#endif
 };
 
 #ifdef ROSS_MEMORY
 DEF(struct, tw_memoryq)
 {
+	tw_memory	*head;
+	tw_memory	*tail;
+
 	size_t		 size;
 	size_t		 start_size;
 	size_t		 d_size;
 
 	tw_stime	 grow;
-
-	tw_memory	*head;
-	tw_memory	*tail;
 };
 
 	/*
@@ -315,6 +317,7 @@ DEF(struct, tw_event)
 
 		/* Indicates union addr is in 'remote' storage */
 		BIT_GROUP_ITEM(remote, 1)
+		BIT_GROUP_ITEM(__pad, 1)
 		)
 	} state;
 
@@ -366,11 +369,11 @@ DEF(struct, tw_lp)
 	 * pe_next  -- Next LP in the PE's service list.
 	 */
 	tw_kp *kp;
-	//tw_lp *pe_next;
 
-	/* cur_state -- Current application LP data.
-	 * state_qh -- Head of [free] state queue (for state saving).
-	 * type -- Type of this LP, including service callbacks.
+	/* cur_state	-- Current application LP data.
+	 * state_qh	-- Head of [free] state queue (for state saving).
+	 * rng		-- RNG stream array for this LP
+	 * type		-- Type of this LP, including service callbacks.
 	 */
 	void		*cur_state;
 	tw_lp_state	*state_qh;
@@ -394,20 +397,11 @@ DEF(struct, tw_kp)
 	tw_pe *pe;
 	tw_kp *next;
 
-	/* last_time -- Time of the current event being processed.
-	 * pevent_q -- Events processed by LPs bound to this KP
+	/* pevent_q -- Events processed by LPs bound to this KP
+	 * last_time -- Time of the current event being processed.
 	 */
-
-	// inverted for cache alignment on BGL
 	tw_eventq pevent_q;
 	tw_stime last_time;
-
-	/*
-	 * queues -- TW processed memory buffer queues
-	 */
-#ifdef ROSS_MEMORY
-	tw_memoryq	*pmemory_q;
-#endif
 
 	/* s_nevent_processed -- Number of events processed.
 	 * s_e_rbs -- Number of events rolled back by this LP.
@@ -416,9 +410,24 @@ DEF(struct, tw_kp)
 	 */
 	tw_stat s_nevent_processed;
 
+#if 0
 	tw_stat s_e_rbs;
 	tw_stat s_rb_total;
 	tw_stat s_rb_secondary;
+#endif
+
+	long s_e_rbs;
+	long s_rb_total;
+	long s_rb_secondary;
+
+	long long test;
+
+	/*
+	 * queues -- TW processed memory buffer queues
+	 */
+#ifdef ROSS_MEMORY
+	tw_memoryq	*pmemory_q;
+#endif
 };
 
 	/*
@@ -449,6 +458,7 @@ DEF(struct, tw_pe)
 	tw_mutex event_q_lck;
 	tw_mutex cancel_q_lck;
 	tw_pq *pq;
+	tw_kp *kp_list;
 	tw_pe **pe_next;
 
 	/* free_q -- Linked list of free tw_events.
@@ -477,7 +487,7 @@ DEF(struct, tw_pe)
 	 * gvt_status	-- bits available for gvt computation.
 	 */
 	BIT_GROUP(
-	BIT_GROUP_ITEM(_pad, 1)
+	BIT_GROUP_ITEM(__pad, 1)
 	BIT_GROUP_ITEM(cev_abort, 1)
 	BIT_GROUP_ITEM(master, 1)
 	BIT_GROUP_ITEM(local_master, 1)
@@ -508,11 +518,6 @@ DEF(struct, tw_pe)
 	 */
 	tw_statistics	stats;
 
-	/*
-	 * rng  -- pointer to the random number generator on this PE
-	 */
-	tw_rng  *rng;
-
 #ifndef ROSS_NETWORK_none
         /*
          * hash_t  -- array of incoming events from remote pes
@@ -527,6 +532,11 @@ DEF(struct, tw_pe)
         tw_eventid	*seq_num;
 #endif
 #endif
+
+	/*
+	 * rng  -- pointer to the random number generator on this PE
+	 */
+	tw_rng  *rng;
 };
 
 DEF(struct, tw_log)

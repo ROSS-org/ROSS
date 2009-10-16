@@ -52,7 +52,6 @@
 typedef long * tw_seed;
 
 FWD(enum, SeedType);
-//FWD(struct, tw_rng_stream);
 
 DEF(struct, tw_rng)
 {

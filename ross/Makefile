@@ -73,7 +73,7 @@ RAND=clcg4
 #
 NETWORK=mpi
 THREAD=none
-CLOCK=amd64
+CLOCK=none
 GVT=mpi_allreduce
 
 #
@@ -100,7 +100,7 @@ GVT=mpi_allreduce
 #CLOCK=none
 #GVT=none
 
-CFLAGS = -O3 -Wall #-DROSS_DO_NOT_PRINT
+CFLAGS = #-DROSS_DO_NOT_PRINT
 AR     = ar
 RANLIB = ranlib
 
@@ -197,7 +197,7 @@ endif
 ifeq ($(NETWORK),mpi)
 ifeq ($(ARCH),BLUE_GENE)
 	CC=mpixlc
-	CFLAGS += -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
+	CFLAGS += -O5 -DARCH_$(ARCH)
 	OPTIONS := -qtune=440 -qarch=440d $(OPTIONS)
 else
 	CC = mpicc

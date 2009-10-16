@@ -1,6 +1,10 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
+#define ROSS_DEBUG 0
+
+#include <ross.h>
+
 INLINE(void)
 tw_eventq_debug(tw_eventq * q)
 {
@@ -34,60 +38,32 @@ tw_eventq_debug(tw_eventq * q)
 }
 
 INLINE(void)
-tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
+tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
-	tw_stime gvt = pe->GVT;
+	tw_event	*e;
+	tw_event	*cev;
+	tw_event	*next;
 
-	tw_event *h = q->head;
-	tw_event *t = q->tail;
+	tw_eventq_debug(q);
 
-	tw_event *cev;
-	tw_event *next;
+	t->next = q->head;
 
-	/* Nothing to collect from this event list. */
-	if (!t || t->recv_ts >= gvt)
-		return;
+	if(q->head)
+		q->head->prev = t;
 
-	if (h->recv_ts < gvt)
-	{
-		/* Everything in the queue can be collected */
-		q->head = q->tail = NULL;
-		q->size = 0;
-	} else {
-		/* Only some of the list can be collected.  We'll wind up
-		 * with at least one event being collected and at least
-		 * another event staying behind in the eventq structure.
-		 */
-		q->size = 0;
+	q->head = h;
+	q->head->prev = NULL;
 
-		while(h->recv_ts >= gvt)
-		{
-			h = h->next;
-			q->size++;
-		}
-
-		q->tail = h->prev;
-		q->tail->next = NULL;
-	}
-
-	// thread fossil collected events into pe free_q
-	t->next = pe->free_q.head;
-
-	if(pe->free_q.head)
-		pe->free_q.head->prev = t;
-
-	pe->free_q.head = h;
-	pe->free_q.head->prev = NULL;
-
-	if(!pe->free_q.tail)
-		pe->free_q.tail = t;
+	if(!q->tail)
+		q->tail = t;
 
 	// iterate through list to collect sent events
-	while(h)
+	t = t->next;
+	for(e = h; e != t; e = e->next)
 	{
-		if(h->caused_by_me)
+		if(e->caused_by_me)
 		{
-			cev = next = h->caused_by_me;
+			cev = next = e->caused_by_me;
 
 			while(cev)
 			{
@@ -100,12 +76,61 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 				cev = next;
 			}
 
-			h->caused_by_me = NULL;
-			h->state.owner = TW_pe_free_q;
+			e->caused_by_me = NULL;
+			e->state.owner = TW_pe_free_q;
 		}
+	}
+	q->size += cnt;
 
-		pe->free_q.size++;
+	tw_eventq_debug(q);
+}
+
+INLINE(void)
+tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
+{
+	tw_stime gvt = pe->GVT;
+
+	tw_event *h = q->head;
+	tw_event *t = q->tail;
+
+	int	 cnt;
+
+	/* Nothing to collect from this event list? */
+	if (!t || t->recv_ts >= gvt)
+		return;
+
+	if (h->recv_ts < gvt)
+	{
+		/* Everything in the queue can be collected */
+		tw_eventq_push_list(&pe->free_q, h, t, q->size);
+		q->head = q->tail = NULL;
+		q->size = 0;
+	} else {
+		/* Only some of the list can be collected.  We'll wind up
+		 * with at least one event being collected and at least
+		 * another event staying behind in the eventq structure so
+		 * we can really optimize this list splicing operation for
+		 * these conditions.
+		 */
+		tw_event *n;
+
+		/* Search the leading part of the list... */
+		for (h = t->prev, cnt = 1; h && h->recv_ts < gvt; cnt++)
+			h = h->prev;
+
+		/* t isn't eligible for collection; its the new head */
+		n = h;
+
+		/* Back up one cell, we overshot where to cut the list */
 		h = h->next;
+
+		/* Cut h..t out of the event queue */
+		q->tail = n;
+		n->next = NULL;
+		q->size -= cnt;
+
+		/* Free h..t (inclusive) */
+		tw_eventq_push_list(&pe->free_q, h, t, cnt);
 	}
 }
 

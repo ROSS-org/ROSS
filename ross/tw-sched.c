@@ -11,7 +11,6 @@ tw_sched_event_q(tw_pe * me)
 	tw_kp	 *dest_kp;
 	tw_event *cev;
 	tw_event *nev;
-        tw_clock start_clock, finish_clock;
 
 	while (me->event_q.size) {
 		tw_mutex_lock(&me->event_q_lck);
@@ -41,15 +40,9 @@ tw_sched_event_q(tw_pe * me)
 			     * after we processed events occuring after it.
 			     * We need to jump back to before cev's timestamp.
 			     */
-			    start_clock = rdtsc();
 			    tw_kp_rollback_to(dest_kp, cev->recv_ts);
-			    finish_clock = rdtsc();
-			    g_tw_cycles_rbs += finish_clock - start_clock;
 			}
-			start_clock = rdtsc();
 			tw_pq_enqueue(me->pq, cev);
-			finish_clock = rdtsc();
-			g_tw_cycles_ev_queue += finish_clock - start_clock;
 			break;
 
 		default:
@@ -72,9 +65,7 @@ tw_sched_cancel_q(tw_pe * me)
 {
 	tw_event 	*cev;
 	tw_event	*nev;
-        tw_clock start_clock, finish_clock;
 
-	start_clock = rdtsc();
 	while (me->cancel_q) {
 		tw_mutex_lock(&me->cancel_q_lck);
 		cev = me->cancel_q;
@@ -133,15 +124,12 @@ tw_sched_cancel_q(tw_pe * me)
 			}
 		}
 	}
-	finish_clock = rdtsc();
-	g_tw_cycles_cancel += finish_clock - start_clock;
 }
 
 static void
 tw_sched_batch(tw_pe * me)
 {
 	unsigned int msg_i;
-        tw_clock start_clock, finish_clock;
 
 	/* Process g_tw_mblock events, or until the PQ is empty
 	 * (whichever comes first). 
@@ -159,11 +147,8 @@ tw_sched_batch(tw_pe * me)
 			break;
 		}
 
-		start_clock = rdtsc();
 		if (!(cev = tw_pq_dequeue(me->pq)))
 			break;
-		finish_clock = rdtsc();
-		g_tw_cycles_ev_queue += finish_clock - start_clock;
 
 		clp = cev->dest_lp;
 		ckp = clp->kp;
@@ -174,14 +159,11 @@ tw_sched_batch(tw_pe * me)
 		if (!clp->type.revent)
 			tw_state_save(clp, cev);
 		
-		start_clock = rdtsc();
 		(*clp->type.event)(
 			clp->cur_state,
 			&cev->cv,
 			tw_event_data(cev),
 			clp);
-		finish_clock = rdtsc();
-		g_tw_cycles_ev_proc += finish_clock - start_clock;
 
 		ckp->s_nevent_processed++;
 
@@ -189,7 +171,6 @@ tw_sched_batch(tw_pe * me)
 		 * cannot continue without doing GVT and fossil collect.
 		 */
 
-		start_clock = rdtsc();
 		if (me->cev_abort) {
 			me->stats.s_nevent_abort++;
 			me->cev_abort = 0;
@@ -204,8 +185,6 @@ tw_sched_batch(tw_pe * me)
 			tw_gvt_force_update(me);
 			break;
 		}
-		finish_clock = rdtsc();
-		g_tw_cycles_ev_abort += finish_clock - start_clock;
 
 		/* Thread current event into processed queue of kp */
 		cev->state.owner = TW_kp_pevent_q;
@@ -257,8 +236,6 @@ tw_sched_init(tw_pe * me)
 void
 tw_scheduler(tw_pe * me)
 {
-  tw_clock start_clock, finish_clock;
-  
   tw_sched_init(me);
   tw_wall_now(&me->start_time);
   
@@ -272,10 +249,7 @@ tw_scheduler(tw_pe * me)
       tw_sched_event_q(me);
       tw_sched_cancel_q(me);
 
-      start_clock = rdtsc();
       tw_gvt_step2(me);
-      finish_clock = rdtsc();
-      g_tw_cycles_gvt += finish_clock - start_clock;
 
       if (me->GVT > g_tw_ts_end)
 	break;

@@ -90,7 +90,10 @@ tw_pe_fossil_collect(tw_pe * me)
 	{
 		kp = tw_getkp(i);
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
+
+#ifdef ROSS_MEMORY
 		tw_kp_fossil_memory(kp);
+#endif
 	}
 
 #ifdef ROSS_NETWORK_tcp

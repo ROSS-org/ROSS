@@ -125,7 +125,7 @@ init_q(struct act_q *q, const char *name)
 
 	q->name = name;
 	q->event_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
-	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
+	q->req_list = tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
 	q->idx_list = tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
 	q->status_list = tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
 

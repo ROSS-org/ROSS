@@ -1,3 +1,5 @@
+#include <ross.h>
+
 /*********************************************************************
  *
  * clcg4.c   Implementation module
@@ -8,7 +10,6 @@
  *
  ********************************************************************/
 
-#include <ross.h>
 
 /*********************************************************************
  *
@@ -16,45 +17,14 @@
  *
  ********************************************************************/
 
-/*
- * H = 2^15 : use in MultModM.           
- */
+// H = 2^15 : use in MultModM.           
 #define H   32768
+
+// One RNG per PE
+static tw_rng	*rng = NULL;
 
 // default RNG seed
 long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
-static tw_rng	*rng = NULL;
-
-#if 0
-/*
- * a[j]^{2^w} et a[j]^{2^{v+w}}.     
- */
-long	*m;
-long	*a;
-long	*aw;
-long	*avw;
-
-/*
- * equals a[i]^{m[i]-2} mod m[i] 
- */
-long long	*b;
-
-/*
- * RNG Seed
- */
-long	*seed;
-#endif
-
-/*
- * variables for normal distribution
- */
-#if 0
-extern volatile double *g_tw_normal_u1;
-extern volatile double *g_tw_normal_u2;
-extern volatile int *g_tw_normal_flipflop;
-#endif
-
-//short i, j;
 
 /*
  * FindB -- Find B which is a[i]^{m[i] - 2} mod m[i]                   
@@ -65,10 +35,11 @@ extern volatile int *g_tw_normal_flipflop;
 long long
 FindB(long long a, long long k, long long m)
 {
-  int i;
   long long sqrs[32];
   long long power_of_2;
   long long b;
+
+  int i;
 
   sqrs[0] = a;
   for(i = 1; i < 32; i++)
@@ -241,7 +212,6 @@ rng_init_generator(tw_rng_stream * g, SeedType Where)
 				break;
 			case NewSeed:
 				g->Lg[j] = MultModM(rng->aw[j], g->Lg[j], rng->m[j]);
-				//g->Lg[j] = MultModM(g->rng->aw[j], g->Lg[j], g->rng->m[j]);
 				break;
 			case LastSeed:
 				break;
@@ -255,7 +225,7 @@ rng_init_generator(tw_rng_stream * g, SeedType Where)
  * rng_set_initial_seed                                                   
  */
 void
-tw_rand_initial_seed(tw_rng * rng, tw_rng_stream * g, tw_lpid id)
+tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 {
 	tw_lpid mask_bit = 1;
 
@@ -265,8 +235,6 @@ tw_rand_initial_seed(tw_rng * rng, tw_rng_stream * g, tw_lpid id)
 	int i;
 	int j;
 	int positions = ((sizeof(tw_lpid)) * 8) - 1;
-
-	//g->rng = rng;
 
 	//seed for zero
 	for(j = 0; j < 4; j++)
@@ -319,8 +287,7 @@ tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 			 nstreams, g_tw_rng_max);
 
 	for(i = 0; i < nstreams; i++)
-		tw_rand_initial_seed(lp->pe->rng, &lp->rng[i], 
-					(lp->gid * g_tw_rng_max) + i);
+		tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_rng_max) + i);
 }
 
 /*
@@ -329,8 +296,6 @@ tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 tw_rng	*
 rng_init(int v, int w)
 {
-	//tw_rng	*rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
-
 	int	 i;
 	int	 j;
 
@@ -441,8 +406,6 @@ rng_gen_val(tw_rng_stream * g)
 double
 rng_gen_reverse_val(tw_rng_stream * g)
 {
-  //long long *b = g->rng->b;
-  //long *m = g->rng->m;
   long long *b = rng->b;
   long *m = rng->m;
   long long s;
