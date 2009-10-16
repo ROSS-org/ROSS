@@ -162,7 +162,7 @@ tw_stats(tw_pe * me)
 	show_lld("Event struct with Model", sizeof(tw_event) + g_tw_msg_sz);
 
 #ifdef ROSS_timing
-	printf("\nTW Clock Cycle Statistics (AVG Values in secs at 750MHz):\n");
+	printf("\nTW Clock Cycle Statistics (MAX Values in secs at 750MHz):\n");
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / nprocs);
 	show_4f("Event Processing", (double) s.s_event_process / nprocs);
 	show_4f("Event Cancel", (double) s.s_cancel_q / nprocs);
