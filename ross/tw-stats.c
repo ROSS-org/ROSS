@@ -32,7 +32,7 @@ tw_stats(tw_pe * me)
 	tw_kp	*kp;
 	tw_lp	*lp = NULL;
 
-	tw_clock nprocs = tw_nnodes() * g_tw_npe * 750000000;
+	tw_clock mhz = 700000000;
 	int	 i;
 
 	size_t m_alloc, m_waste;
@@ -163,16 +163,16 @@ tw_stats(tw_pe * me)
 
 #ifdef ROSS_timing
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at 750MHz):\n");
-	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / nprocs);
-	show_4f("Event Processing", (double) s.s_event_process / nprocs);
-	show_4f("Event Cancel", (double) s.s_cancel_q / nprocs);
-	show_4f("Event Abort", (double) s.s_event_abort / nprocs);
+	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / mhz);
+	show_4f("Event Processing", (double) s.s_event_process / mhz);
+	show_4f("Event Cancel", (double) s.s_cancel_q / mhz);
+	show_4f("Event Abort", (double) s.s_event_abort / mhz);
 	printf("\n");
-	show_4f("GVT", (double) s.s_gvt / nprocs);
-	show_4f("Fossil Collect", (double) s.s_fossil_collect / nprocs);
-	show_4f("Primary Rollbacks", (double) s.s_rollback / nprocs);
-	show_4f("Network Read", (double) s.s_net_read / nprocs);
-	show_4f("Total Time", (double) s.s_total / nprocs);
+	show_4f("GVT", (double) s.s_gvt / mhz);
+	show_4f("Fossil Collect", (double) s.s_fossil_collect / mhz);
+	show_4f("Primary Rollbacks", (double) s.s_rollback / mhz);
+	show_4f("Network Read", (double) s.s_net_read / mhz);
+	show_4f("Total Time", (double) s.s_total / mhz);
 #endif
 
 	tw_gvt_stats(stdout);
