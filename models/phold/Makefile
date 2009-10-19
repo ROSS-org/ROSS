@@ -1,4 +1,4 @@
-CFLAGS  := -O5
+CFLAGS  := -g -Wall
 LIBDIR  := ../../ross/
 CC	:= $(shell $(LIBDIR)/ross-config --cc)
 OPTIONS := $(shell $(LIBDIR)/ross-config --cflags)

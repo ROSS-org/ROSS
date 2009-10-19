@@ -7,20 +7,23 @@
 #  error only amd64 platform supported
 #endif
 
-tw_clock
-tw_clock_read(void)
+/*
+ * Our function below calls the "rdtsc" x86 assembly language function
+ * to obtain the current clock cycle value.
+ */
+static const tw_optdef clock_opts [] =
 {
-	tw_clock result;
+	TWOPT_GROUP("ROSS Timing"),
+	TWOPT_STIME("clock-rate", g_tw_clock_rate, "CPU Clock Rate"),
+	TWOPT_END()
+};
 
-	unsigned a, d; 
-
-	do {
-		__asm__ __volatile__("tw_clock_read" : "=a" (a), "=d" (d)); 
-		result = ((uint64_t)a) | (((uint64_t)d) << 32);
-	} while (__builtin_expect ((int) result == -1, 0));
-
-	return result;
+const tw_optdef *tw_clock_setup(void)
+{
+	return clock_opts;
 }
+
+
 
 void
 tw_clock_init(tw_pe * me)

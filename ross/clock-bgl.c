@@ -1,10 +1,21 @@
 #include <ross.h>
 
+static const tw_optdef clock_opts [] =
+{
+	TWOPT_GROUP("ROSS Timing"),
+	TWOPT_STIME("clock-rate", g_tw_clock_rate, "CPU Clock Rate"),
+	TWOPT_END()
+};
+
+const tw_optdef *tw_clock_setup(void)
+{
+	return clock_opts;
+}
+
 tw_clock
 tw_clock_read(void)
 {
 	tw_clock	result = 0;
-
 #if ROSS_timing
 	unsigned long int upper, lower,tmp;
 
@@ -22,7 +33,6 @@ tw_clock_read(void)
 	result = result<<32;
 	result = result|lower;
 #endif
-
 	return(result);
 }
 

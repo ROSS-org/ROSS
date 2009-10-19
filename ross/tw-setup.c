@@ -68,6 +68,7 @@ tw_init(int *argc, char ***argv)
 	tw_opt_add(tw_net_init(argc, argv));
 	tw_opt_add(kernel_options);
 	tw_opt_add(tw_gvt_setup());
+	tw_opt_add(tw_clock_setup());
 
 	// by now all options must be in
 	tw_opt_parse(argc, argv);

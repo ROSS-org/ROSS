@@ -1,5 +1,5 @@
 # Uncomment for verbose output.
-#V=1
+V=1
 
 ########################################################################
 # for ARCH select from: 
@@ -12,7 +12,7 @@
 #
 # Otherwise, undefined.
 ########################################################################
-ARCH=BLUE_GENE
+#ARCH=BLUE_GENE
 #DATA_LAYOUT=byte_per_bit
 
 ########################################################################
@@ -44,7 +44,7 @@ QUEUE=splay
 MAPPING=linear
 RAND=clcg4
 #MEMORY=true
-#TIMING=true
+TIMING=true
 
 #########################################################################
 #
@@ -79,7 +79,7 @@ RAND=clcg4
 #
 NETWORK=mpi
 THREAD=none
-CLOCK=bgl
+CLOCK=amd64
 GVT=mpi_allreduce
 
 #
@@ -211,10 +211,10 @@ ifeq ($(ARCH),BLUE_GENE)
 	OPTIONS += -qtune=440 -qarch=440d
 else
 	CC = mpicc
+	CFLAGS = -g -Wall -D_GNU_SOURCE
 endif
 else
 	CC = gcc
-	CFLAGS += -O6 -D_GNU_SOURCE
 	#CFLAGS += -DROSS_DIST_MANUAL
 endif
 

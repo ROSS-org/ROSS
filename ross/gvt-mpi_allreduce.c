@@ -77,6 +77,8 @@ tw_gvt_step2(tw_pe *me)
 	tw_stime lvt;
 	tw_stime gvt;
 
+	tw_clock start;
+
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
 
@@ -161,7 +163,9 @@ tw_gvt_step2(tw_pe *me)
 	mattern_nochange = 0;
 	gvt_cnt = 0;
 
+	start = tw_clock_read();
 	tw_pe_fossil_collect(me);
+	me->stats.s_fossil_collect += tw_clock_read() - start;
 
 	g_tw_gvt_done++;
 }
