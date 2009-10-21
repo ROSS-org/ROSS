@@ -3,17 +3,54 @@ V=1
 
 ########################################################################
 # for ARCH select from: 
-#   1. BLUE_GENE	-- Blue Gene/L
+#   1. bgl	-- Blue Gene/L using MPI
+#   2. bgp      -- Blue Gene/P using MPI
+#   2. x86_64   -- Linux/AMD or Intel 64 bit using MPI
+#   3. ppc64    -- PowerPC 64 bit system using MPI
 #
-# Otherwise, undefined.
-#
-# for DATA_LAYOUT select from:
-#   1. byte_per_bit
-#
-# Otherwise, undefined.
 ########################################################################
-#ARCH=BLUE_GENE
-#DATA_LAYOUT=byte_per_bit
+ARCH=x86_64
+
+########################################################################
+# Standard setting  -- see below for definitions
+########################################################################
+NETWORK=mpi
+THREAD=none
+GVT=mpi_allreduce
+DATA_LAYOUT=byte_per_bit
+QUEUE=splay
+MAPPING=linear
+RAND=clcg4
+MEMORY=true
+TIMING=true
+########################################################################
+
+ifeq ($(ARCH),bgl)
+	CC=mpixlc
+	CFLAGS = -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
+	OPTIONS = -qtune=440 -qarch=440d
+	CLOCK=blg
+endif
+
+ifeq ($(ARCH),bgp)
+	CC=mpixlc
+	CFLAGS = -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
+	OPTIONS = -qtune=450 -qarch=450d
+	CLOCK=blg
+endif
+
+ifeq ($(ARCH),ppc64)
+	CC=mpicc
+	CFLAGS = -g -Wall -D_GNU_SOURCE
+	CLOCK=ppc
+endif
+
+
+ifeq ($(ARCH),x86_64)
+	CC = mpicc
+	CFLAGS = -O6 -Wall -D_GNU_SOURCE
+        CLOCK=amd64
+endif
 
 ########################################################################
 # for QUEUE select from: 
@@ -39,13 +76,6 @@ V=1
 #
 # Otherwise, undefined.
 #
-#########################################################################
-QUEUE=splay
-MAPPING=linear
-RAND=clcg4
-#MEMORY=true
-TIMING=true
-
 #########################################################################
 #
 # Network configuration
@@ -74,43 +104,8 @@ TIMING=true
 #   3. none		-- no GVT, sequential only
 #########################################################################
 
-#
-# Standard MPI-based configuration settings
-#
-NETWORK=mpi
-THREAD=none
-CLOCK=amd64
-GVT=mpi_allreduce
-
-#
-# Standard POSIX threads / TCP sockets  configuration settings
-#
-#THREAD=pthread
-#NETWORK=tcp
-#CLOCK=bgl
-#GVT=7oclock
-
-#
-# Shared Memory (SMP) only configuration settings
-#
-#THREAD=pthread
-#NETWORK=none
-#CLOCK=amd64
-#GVT=7oclock
-
-#
-# Sequential execution configuration settings
-#
-#THREAD=none
-#NETWORK=none
-#CLOCK=none
-#GVT=none
-
-CFLAGS = #-DROSS_DO_NOT_PRINT
 AR     = ar
 RANLIB = ranlib
-
--include config.mak
 
 BASIC_OBJS = \
 	clock-$(CLOCK).o  \
@@ -203,24 +198,6 @@ ifeq ($(NETWORK),tcp)
 	HEADERS += socket-tcp.h
 endif
 
-ifeq ($(NETWORK),mpi)
-ifeq ($(ARCH),BLUE_GENE)
-	CC=mpixlc
-	#CFLAGS += -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
-	CFLAGS += -O5 -DARCH_$(ARCH)
-	OPTIONS += -qtune=440 -qarch=440d
-else
-	CC = mpicc
-	CFLAGS = -g -Wall -D_GNU_SOURCE
-endif
-else
-	CC = gcc
-	#CFLAGS += -DROSS_DIST_MANUAL
-endif
-
-ifeq ($(THREAD),pthread)
-	LIBS += -lpthread
-endif
 ifeq ($(DATA_LAYOUT),byte_per_bit)
 	OPTIONS += -DROSS_byte_per_bit
 endif
@@ -276,3 +253,4 @@ show-defines:
 
 .PHONY: all clean show-defines
 .PHONY: .FORCE-CFLAGS
+
