@@ -129,7 +129,7 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* TCP module */
-/* #undef HAVE_TCP_H */
+#define HAVE_TCP_H 1
 
 /* TLM module */
 /* #undef HAVE_TLM_H */
@@ -142,6 +142,10 @@
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "BUG-REPORT-ADDRESS"
