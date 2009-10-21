@@ -12,12 +12,12 @@ rn-stream.c 		rn-init.c
 rn-subnet.c 		xml-libxml.c)
 
 FIND_PACKAGE(LibXml2 REQUIRED)
-SET(MPI_COMPILER mpicc)
-FIND_PACKAGE(MPI REQUIRED)
+#SET(MPI_COMPILER mpicc)
+#FIND_PACKAGE(MPI REQUIRED)
 LINK_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
 #LINK_DIRECTORIES(/Users/laprej/pdes/trunk/ross/)
 INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
 
 ADD_LIBRARY(ROSSNET ${rn_srcs})
 ADD_EXECUTABLE(rn rn.c)
-target_link_libraries (rn ${LIBXML2_LIBRARIES} ${MPI_EXTRA_LIBRARY} tcp ip ROSSNET ROSS)
+target_link_libraries (rn ${LIBXML2_LIBRARIES} tcp ip ROSSNET ROSS)
