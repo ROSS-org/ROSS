@@ -21,4 +21,4 @@
 
 #cmakedefine HAVE_RANDOM_WALK_H 1
 
-#endif _TEST_CONFIG_H
+#endif /* _TEST_CONFIG_H */
