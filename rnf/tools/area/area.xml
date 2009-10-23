@@ -1,0 +1,242 @@
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='2' type='c_router'>
+					<link src='0' addr='1' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+					<link src='0' addr='8' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='0' addr='1' cost='1' />
+							<interface src='0' addr='8' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='1' links='2' type='c_router'>
+					<link src='1' addr='0' cost='1' bandwidth='45000000' delay='0.1' status='up'/>
+					<link src='1' addr='2' cost='1' bandwidth='45000000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='1' addr='0' cost='1' />
+							<interface src='1' addr='2' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='2' links='2' type='c_router'>
+					<link src='2' addr='1' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='2' addr='3' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='2' addr='1' cost='1' />
+							<interface src='2' addr='3' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='1'>
+			<subnet id='1'>
+				<node id='3' links='3' type='c_router'>
+					<link src='3' addr='4' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+					<link src='3' addr='2' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+					<link src='3' addr='5' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='3' addr='4' cost='1' />
+							<interface src='3' addr='2' cost='1' />
+							<interface src='3' addr='5' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='4' links='2' type='c_router'>
+					<link src='4' addr='3' cost='1' bandwidth='45000000' delay='0.1' status='up'/>
+					<link src='4' addr='5' cost='1' bandwidth='45000000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='4' addr='3' cost='1' />
+							<interface src='4' addr='5' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='5' links='3' type='c_router'>
+					<link src='5' addr='3' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='5' addr='4' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='5' addr='6' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='5' addr='3' cost='1' />
+							<interface src='5' addr='4' cost='1' />
+							<interface src='5' addr='6' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='2'>
+			<subnet id='2'>
+				<node id='6' links='5' type='c_router'>
+					<link src='6' addr='5' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='6' addr='7' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='6' addr='8' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='6' addr='9' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='6' addr='11' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='6' addr='5' cost='1' />
+							<interface src='6' addr='7' cost='1' />
+							<interface src='6' addr='8' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='9' />
+							<neighbor addr='11' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='3'>
+			<subnet id='3'>
+				<node id='7' links='1' type='c_router'>
+					<link src='7' addr='6' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='7' addr='6' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='4'>
+			<subnet id='4'>
+				<node id='8' links='4' type='c_router'>
+					<link src='8' addr='0' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='8' addr='6' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='8' addr='10' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='8' addr='12' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='8' addr='0' cost='1' />
+							<interface src='8' addr='6' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='10' />
+							<neighbor addr='12' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+	<as id='1'>
+		<area id='5'>
+			<subnet id='5'>
+				<node id='9' links='2' type='c_router'>
+					<link src='9' addr='10' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='9' addr='6' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='9' addr='10' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='6' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='6'>
+			<subnet id='6'>
+				<node id='10' links='2' type='c_router'>
+					<link src='10' addr='8' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='10' addr='9' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='10' addr='9' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='8' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+	<as id='2'>
+		<area id='7'>
+			<subnet id='7'>
+				<node id='11' links='2' type='c_router'>
+					<link src='11' addr='6' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='11' addr='12' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='11' addr='12' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='6' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+		<area id='8'>
+			<subnet id='8'>
+				<node id='12' links='2' type='c_router'>
+					<link src='12' addr='8' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='12' addr='11' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='23'>
+						<layer name='ospf' level='network'>
+							<interface src='12' addr='11' cost='1' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+					<stream port='169'>
+						<layer name='bgp' level='network'>
+							<neighbor addr='8' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+</rossnet>

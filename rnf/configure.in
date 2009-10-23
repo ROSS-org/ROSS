@@ -1,0 +1,177 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.57)
+AC_INIT(rossnet, 1.0, BUG-REPORT-ADDRESS)
+AC_CONFIG_AUX_DIR(build)
+AM_INIT_AUTOMAKE(rossnet,1.0,-)
+
+AC_CONFIG_SRCDIR([rossnet/rn-area.c])
+AM_CONFIG_HEADER([rossnet/rossnet_config.h])
+
+AC_ARG_ENABLE(debug,
+	[  --enable-debug          enable system debugging mode],
+	AC_MSG_WARN(Developer debug mode is enabled)
+	rn_cv_debug=yes
+	rn_cv_CFLAGS="$CFLAGS -g -Wall",
+	rn_cv_CFLAGS="$CFLAGS -O6 -Wall")
+
+AM_CFLAGS=$rn_cv_FLAGS
+
+CPPFLAGS="$CFLAGS"
+LDFLAGS="$LDFLAGS"
+#LIBS="$LIBS"
+
+# Checks for programs.
+AC_PROG_LN_S
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+AC_DISABLE_SHARED
+AC_PROG_LIBTOOL
+
+# Checks for libraries.
+AC_CHECK_LIB(pthread, pthread_create)
+AC_CHECK_LIB(m, acos)
+AC_CHECK_LIB(z, compress)
+AC_CHECK_LIB(xml2, xmlXPathInit)
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h unistd.h])
+AC_CHECK_HEADERS(errno.h limits.h signal.h stdarg.h)
+AC_CHECK_HEADERS(stdio.h sys/time.h sys/types.h)
+AC_CHECK_HEADERS(math.h pthread.h)
+AC_CHECK_HEADERS(libxml/xpointer.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_HEADER_STDBOOL
+
+# Checks for library functions.
+AC_HEADER_STDC
+AC_FUNC_MALLOC
+AC_FUNC_VPRINTF
+AC_FUNC_MEMCMP
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS([bzero floor pow memcpy sigaction gettimeofday])
+
+dnl Check for ROSS
+
+AC_ARG_WITH(ross,
+		[  --with-ross=PATH		Specify path to ROSS instance],
+		rn_ross=$withval)
+	
+AC_ARG_WITH(all-modules, 
+                [  --with-all-modules		Link all modules],
+                AC_DEFINE(HAVE_IP_H, 1,		IP module),
+		AC_DEFINE(HAVE_TCP_H, 1,	TCP module),
+		AC_DEFINE(HAVE_EPI_H, 1,	EPI module),
+		AC_DEFINE(HAVE_OSPF_H, 1,	OSPF module),
+		AC_DEFINE(HAVE_BGP_H, 1,	BGP module),
+		AC_DEFINE(HAVE_FTP_H, 1,	FTP module),
+		AC_DEFINE(HAVE_PHOLD_H, 1,	PHOLD module),
+		AC_DEFINE(HAVE_MULTICAST_H, 1,	Multicast module),
+		AC_DEFINE(HAVE_TLM_H, 1,	TLM module),
+		AC_DEFINE(HAVE_RANDOM_WALK_H, 1, Random Walk module))
+
+AC_ARG_WITH(ip,
+		[  --with-ip			Use IP module],
+		AC_DEFINE(HAVE_IP_H, 1,		IP module))
+
+AC_ARG_WITH(tcp,
+		[  --with-tcp			Use TCP module],
+		AC_DEFINE(HAVE_TCP_H, 1,	TCP module))
+
+AC_ARG_WITH(epi,
+		[  --with-epi			Use EPI module],
+		AC_DEFINE(HAVE_EPI_H, 1,	EPI module))
+
+AC_ARG_WITH(num,
+		[  --with-num			Use Network User module],
+		AC_DEFINE(HAVE_NUM_H, 1,	NUM module))
+
+AC_ARG_WITH(ospf,
+		[  --with-ospf			Use OSPF module],
+		AC_DEFINE(HAVE_OSPF_H, 1,	OSPF module))
+
+AC_ARG_WITH(bgp,
+		[  --with-bgp			Use BGP module],
+		AC_DEFINE(HAVE_BGP_H, 1,	BGP module))
+
+AC_ARG_WITH(ftp,
+		[  --with-ftp			Use FTP module],
+		AC_DEFINE(HAVE_FTP_H, 1,	FTP module))
+
+AC_ARG_WITH(phold,
+		[  --with-phold			Use PHOLD module],
+		AC_DEFINE(HAVE_PHOLD_H, 1,	PHOLD module))
+
+AC_ARG_WITH(multicast,
+		[  --with-multicast		Use Multicast module],
+		AC_DEFINE(HAVE_MULTICAST_H, 1,	Multicast module))
+
+AC_ARG_WITH(tlm,
+		[  --with-tlm			Use TLM Physical Layer],
+		AC_DEFINE(HAVE_TLM_H, 1,	TLM module))
+
+AC_ARG_WITH(random-walk,
+		[  --with-random-walk		Use random walk mobility],
+		AC_DEFINE(HAVE_RANDOM_WALK_H, 1,Random Walk module))
+
+AC_MSG_CHECKING(for ROSS in $rn_ross)
+if test x$rn_ross '=' x ; then
+	AC_CHECK_HEADER(ross.h)
+	AC_CHECK_LIB(ROSS, tw_event_send)
+else
+	if test -d $rn_ross; then
+		CC=`$rn_ross/ross-config --cc`
+		ROSS_CFLAGS=`$rn_ross/ross-config --cflags`
+		ROSS_LDFLAGS=`$rn_ross/ross-config --ldflags`
+		CPPFLAGS="$CPPFLAGS $ROSS_CFLAGS"
+		LDFLAGS="$LDFLAGS $ROSS_LDFLAGS"
+		LIBS="$LIBS -lROSS"
+		
+		#AC_CHECK_HEADER(ross.h)
+		#AC_CHECK_LIB(ROSS, tw_event_send)
+	fi
+fi
+AC_MSG_RESULT("$rn_ross/libROSS.a")
+
+dnl Now output them to the header file.
+
+AC_SUBST(CC)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(LIBS)
+
+AC_SUBST(COMPAT_OBJECTS)
+AC_SUBST(RN_AC)
+
+AC_CONFIG_FILES([Makefile
+		rossnet/Makefile \
+		modules/Makefile \
+		modules/mobility/Makefile \
+		modules/mobility/random-walk/Makefile \
+		modules/application/Makefile \
+		modules/application/epi/Makefile \
+		modules/application/num/Makefile \
+		modules/application/ftp/Makefile \
+		modules/application/phold/Makefile \
+		modules/application/ip-traffic/Makefile \
+		modules/datalink/Makefile \
+		modules/network/Makefile \
+		modules/network/ip/Makefile \
+		modules/network/ospfv2/Makefile \
+		modules/network/bgp4/Makefile \
+		modules/network/multicast/Makefile \
+		modules/presentation/Makefile \
+		modules/session/Makefile \
+		modules/physical/Makefile \
+		modules/physical/tlm/Makefile \
+		modules/transport/Makefile \
+		modules/transport/tcp/Makefile])
+
+AC_OUTPUT()

@@ -1,0 +1,66 @@
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='2' type='c_router'>
+					<link src='0' addr='1' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+					<link src='0' addr='2' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+
+					<stream port='169'>
+						<layer name='bgp' level='network' >
+							<neighbor addr='1' />
+							<neighbor addr='2' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='1' links='3' type='c_router'>
+					<link src='1' addr='0' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='1' addr='2' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='1' addr='3' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='169'>
+						<layer name='bgp' level='network' >
+							<neighbor addr='0' />
+							<neighbor addr='2' />
+							<neighbor addr='3' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+				<node id='2' links='3' type='c_router'>
+					<link src='2' addr='0' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='2' addr='1' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+					<link src='2' addr='3' cost='1' bandwidth='1500000' delay='0.1' status='up'/>
+
+					<stream port='169'>
+						<layer name='bgp' level='network' >
+							<neighbor addr='0' />
+							<neighbor addr='1' />
+							<neighbor addr='3' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+	<as id='1' frequency='1'>
+		<area id='1'>
+			<subnet id='1'>
+				<node id='3' links='2' type='c_router'>
+					<link src='3' addr='1' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+					<link src='3' addr='2' cost='1' bandwidth='500000' delay='0.1' status='up'/>
+
+					<stream port='169'>
+						<layer name='bgp' level='network' >
+							<neighbor addr='1' />
+							<neighbor addr='2' />
+						</layer>
+						<layer name='ip' level='network' />
+					</stream>
+				</node>
+			</subnet>
+		</area>
+	</as>
+</rossnet>

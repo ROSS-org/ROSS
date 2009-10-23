@@ -1,0 +1,32 @@
+# @configure_input@
+# $Id: variables.mk.in,v 1.1 2003/01/27 16:17:46 bauerd Exp $
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+bindir=@bindir@
+sbindir=@sbindir@
+libdir=@libdir@
+libexecdir=@libexecdir@
+includedir=@includedir@
+
+datadir=@datadir@
+localstatedir=@localstatedir@
+sharedstatedir=@sharedstatedir@
+mandir=@mandir@
+sysconfdir=@sysconfdir@
+
+top_builddir=@top_srcdir@
+
+LIBTOOL=@LIBTOOL@
+LN_S=@LN_S@
+
+CC=@CC@
+CPPFLAGS=@CPPFLAGS@ -I$(top_builddir) @DEFS@
+CFLAGS=$(CPPFLAGS) @CFLAGS@
+
+LD=@LD@
+LIBS=@LIBS@
+LDFLAGS=@LDFLAGS@
+
+COMPAT_OBJECTS=@COMPAT_OBJECTS@

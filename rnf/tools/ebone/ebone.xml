@@ -1,0 +1,3365 @@
+<!--
+		                    Total Hosts:	          0
+		                  Total Routers:	        295
+			                           Core:        163
+			                            PoP:        132
+
+
+		            Total Network Nodes:	        295
+		              Total Connections:	          0
+
+
+		          Most Connected Router:	         18
+		           Most Connected Links:	         24
+-->
+<rossnet>
+	<as id='0' frequency='1'>
+		<area id='0'>
+			<subnet id='0'>
+				<node id='0' links='2' type='c_router'>
+					<link src='0' addr='240' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='0' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='0' addr='240' cost='10'/>
+						<interface src='0' addr='104' cost='10'/>
+					</layer>
+				</node>
+				<node id='1' links='2' type='c_router'>
+					<link src='1' addr='94' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='1' addr='95' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='1' addr='94' cost='10'/>
+						<interface src='1' addr='95' cost='10'/>
+					</layer>
+				</node>
+				<node id='2' links='3' type='c_router'>
+					<link src='2' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='2' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='2' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='2' addr='86' cost='10'/>
+						<interface src='2' addr='87' cost='10'/>
+						<interface src='2' addr='88' cost='10'/>
+					</layer>
+				</node>
+				<node id='3' links='2' type='c_router'>
+					<link src='3' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='3' addr='46' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='3' addr='45' cost='10'/>
+						<interface src='3' addr='46' cost='10'/>
+					</layer>
+				</node>
+				<node id='4' links='2' type='c_router'>
+					<link src='4' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='4' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='4' addr='87' cost='10'/>
+						<interface src='4' addr='88' cost='10'/>
+					</layer>
+				</node>
+				<node id='5' links='2' type='c_router'>
+					<link src='5' addr='252' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='5' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='5' addr='252' cost='10'/>
+						<interface src='5' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='6' links='3' type='c_router'>
+					<link src='6' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='6' addr='82' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='6' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='6' addr='81' cost='10'/>
+						<interface src='6' addr='82' cost='10'/>
+						<interface src='6' addr='83' cost='10'/>
+					</layer>
+				</node>
+				<node id='7' links='2' type='c_router'>
+					<link src='7' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='7' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='7' addr='41' cost='10'/>
+						<interface src='7' addr='42' cost='10'/>
+					</layer>
+				</node>
+				<node id='8' links='2' type='c_router'>
+					<link src='8' addr='43' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='8' addr='44' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='8' addr='43' cost='10'/>
+						<interface src='8' addr='44' cost='10'/>
+					</layer>
+				</node>
+				<node id='9' links='3' type='c_router'>
+					<link src='9' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='9' addr='281' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='9' addr='139' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='9' addr='77' cost='10'/>
+						<interface src='9' addr='281' cost='10'/>
+						<interface src='9' addr='139' cost='10'/>
+					</layer>
+				</node>
+				<node id='10' links='3' type='c_router'>
+					<link src='10' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='10' addr='262' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='10' addr='263' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='10' addr='18' cost='10'/>
+						<interface src='10' addr='262' cost='10'/>
+						<interface src='10' addr='263' cost='10'/>
+					</layer>
+				</node>
+				<node id='11' links='2' type='c_router'>
+					<link src='11' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='11' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='11' addr='81' cost='10'/>
+						<interface src='11' addr='83' cost='10'/>
+					</layer>
+				</node>
+				<node id='12' links='3' type='c_router'>
+					<link src='12' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='12' addr='82' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='12' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='12' addr='81' cost='10'/>
+						<interface src='12' addr='82' cost='10'/>
+						<interface src='12' addr='83' cost='10'/>
+					</layer>
+				</node>
+				<node id='13' links='2' type='c_router'>
+					<link src='13' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='13' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='13' addr='107' cost='10'/>
+						<interface src='13' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='14' links='3' type='c_router'>
+					<link src='14' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='14' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='14' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='14' addr='86' cost='10'/>
+						<interface src='14' addr='87' cost='10'/>
+						<interface src='14' addr='88' cost='10'/>
+					</layer>
+				</node>
+				<node id='15' links='8' type='c_router'>
+					<link src='15' addr='245' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='19' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='21' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='15' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='15' addr='245' cost='10'/>
+						<interface src='15' addr='17' cost='10'/>
+						<interface src='15' addr='18' cost='10'/>
+						<interface src='15' addr='19' cost='10'/>
+						<interface src='15' addr='20' cost='10'/>
+						<interface src='15' addr='21' cost='10'/>
+						<interface src='15' addr='41' cost='10'/>
+						<interface src='15' addr='42' cost='10'/>
+					</layer>
+				</node>
+				<node id='16' links='2' type='c_router'>
+					<link src='16' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='16' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='16' addr='20' cost='10'/>
+						<interface src='16' addr='42' cost='10'/>
+					</layer>
+				</node>
+				<node id='17' links='8' type='c_router'>
+					<link src='17' addr='230' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='242' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='19' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='21' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='17' addr='61' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='17' addr='230' cost='10'/>
+						<interface src='17' addr='242' cost='10'/>
+						<interface src='17' addr='15' cost='10'/>
+						<interface src='17' addr='18' cost='10'/>
+						<interface src='17' addr='19' cost='10'/>
+						<interface src='17' addr='20' cost='10'/>
+						<interface src='17' addr='21' cost='10'/>
+						<interface src='17' addr='61' cost='10'/>
+					</layer>
+				</node>
+				<node id='18' links='24' type='c_router'>
+					<link src='18' addr='165' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='166' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='181' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='186' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='197' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='202' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='10' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='207' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='210' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='223' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='227' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='246' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='254' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='255' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='256' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='257' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='259' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='261' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='117' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='126' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='18' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='18' addr='165' cost='10'/>
+						<interface src='18' addr='166' cost='10'/>
+						<interface src='18' addr='181' cost='10'/>
+						<interface src='18' addr='186' cost='10'/>
+						<interface src='18' addr='197' cost='10'/>
+						<interface src='18' addr='202' cost='10'/>
+						<interface src='18' addr='10' cost='10'/>
+						<interface src='18' addr='207' cost='10'/>
+						<interface src='18' addr='210' cost='10'/>
+						<interface src='18' addr='223' cost='10'/>
+						<interface src='18' addr='227' cost='10'/>
+						<interface src='18' addr='246' cost='10'/>
+						<interface src='18' addr='254' cost='10'/>
+						<interface src='18' addr='255' cost='10'/>
+						<interface src='18' addr='256' cost='10'/>
+						<interface src='18' addr='257' cost='10'/>
+						<interface src='18' addr='259' cost='10'/>
+						<interface src='18' addr='261' cost='10'/>
+						<interface src='18' addr='15' cost='10'/>
+						<interface src='18' addr='17' cost='10'/>
+						<interface src='18' addr='20' cost='10'/>
+						<interface src='18' addr='117' cost='10'/>
+						<interface src='18' addr='126' cost='10'/>
+						<interface src='18' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='19' links='5' type='c_router'>
+					<link src='19' addr='170' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='19' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='19' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='19' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='19' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='19' addr='170' cost='10'/>
+						<interface src='19' addr='15' cost='10'/>
+						<interface src='19' addr='17' cost='10'/>
+						<interface src='19' addr='20' cost='10'/>
+						<interface src='19' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='20' links='9' type='c_router'>
+					<link src='20' addr='168' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='200' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='16' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='19' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='21' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='20' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='20' addr='168' cost='10'/>
+						<interface src='20' addr='200' cost='10'/>
+						<interface src='20' addr='15' cost='10'/>
+						<interface src='20' addr='16' cost='10'/>
+						<interface src='20' addr='17' cost='10'/>
+						<interface src='20' addr='18' cost='10'/>
+						<interface src='20' addr='19' cost='10'/>
+						<interface src='20' addr='21' cost='10'/>
+						<interface src='20' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='21' links='4' type='c_router'>
+					<link src='21' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='21' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='21' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='21' addr='117' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='21' addr='15' cost='10'/>
+						<interface src='21' addr='17' cost='10'/>
+						<interface src='21' addr='20' cost='10'/>
+						<interface src='21' addr='117' cost='10'/>
+					</layer>
+				</node>
+				<node id='22' links='4' type='c_router'>
+					<link src='22' addr='265' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='22' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='22' addr='277' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='22' addr='162' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='22' addr='265' cost='10'/>
+						<interface src='22' addr='23' cost='10'/>
+						<interface src='22' addr='277' cost='10'/>
+						<interface src='22' addr='162' cost='10'/>
+					</layer>
+				</node>
+				<node id='23' links='7' type='c_router'>
+					<link src='23' addr='22' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='24' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='120' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='121' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='278' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='23' addr='122' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='23' addr='22' cost='10'/>
+						<interface src='23' addr='24' cost='10'/>
+						<interface src='23' addr='74' cost='10'/>
+						<interface src='23' addr='120' cost='10'/>
+						<interface src='23' addr='121' cost='10'/>
+						<interface src='23' addr='278' cost='10'/>
+						<interface src='23' addr='122' cost='10'/>
+					</layer>
+				</node>
+				<node id='24' links='5' type='c_router'>
+					<link src='24' addr='176' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='24' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='24' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='24' addr='120' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='24' addr='121' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='24' addr='176' cost='10'/>
+						<interface src='24' addr='23' cost='10'/>
+						<interface src='24' addr='103' cost='10'/>
+						<interface src='24' addr='120' cost='10'/>
+						<interface src='24' addr='121' cost='10'/>
+					</layer>
+				</node>
+				<node id='25' links='2' type='c_router'>
+					<link src='25' addr='266' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='25' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='25' addr='266' cost='10'/>
+						<interface src='25' addr='77' cost='10'/>
+					</layer>
+				</node>
+				<node id='26' links='6' type='c_router'>
+					<link src='26' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='26' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='26' addr='34' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='26' addr='35' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='26' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='26' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='26' addr='31' cost='10'/>
+						<interface src='26' addr='33' cost='10'/>
+						<interface src='26' addr='34' cost='10'/>
+						<interface src='26' addr='35' cost='10'/>
+						<interface src='26' addr='74' cost='10'/>
+						<interface src='26' addr='97' cost='10'/>
+					</layer>
+				</node>
+				<node id='27' links='4' type='c_router'>
+					<link src='27' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='27' addr='32' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='27' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='27' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='27' addr='31' cost='10'/>
+						<interface src='27' addr='32' cost='10'/>
+						<interface src='27' addr='74' cost='10'/>
+						<interface src='27' addr='97' cost='10'/>
+					</layer>
+				</node>
+				<node id='28' links='2' type='c_router'>
+					<link src='28' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='28' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='28' addr='33' cost='10'/>
+						<interface src='28' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='29' links='2' type='c_router'>
+					<link src='29' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='29' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='29' addr='33' cost='10'/>
+						<interface src='29' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='30' links='2' type='c_router'>
+					<link src='30' addr='267' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='30' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='30' addr='267' cost='10'/>
+						<interface src='30' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='31' links='11' type='c_router'>
+					<link src='31' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='27' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='34' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='36' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='37' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='38' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='39' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='94' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='95' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='31' addr='96' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='31' addr='26' cost='10'/>
+						<interface src='31' addr='27' cost='10'/>
+						<interface src='31' addr='34' cost='10'/>
+						<interface src='31' addr='36' cost='10'/>
+						<interface src='31' addr='37' cost='10'/>
+						<interface src='31' addr='38' cost='10'/>
+						<interface src='31' addr='39' cost='10'/>
+						<interface src='31' addr='55' cost='10'/>
+						<interface src='31' addr='94' cost='10'/>
+						<interface src='31' addr='95' cost='10'/>
+						<interface src='31' addr='96' cost='10'/>
+					</layer>
+				</node>
+				<node id='32' links='5' type='c_router'>
+					<link src='32' addr='27' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='32' addr='36' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='32' addr='37' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='32' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='32' addr='96' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='32' addr='27' cost='10'/>
+						<interface src='32' addr='36' cost='10'/>
+						<interface src='32' addr='37' cost='10'/>
+						<interface src='32' addr='55' cost='10'/>
+						<interface src='32' addr='96' cost='10'/>
+					</layer>
+				</node>
+				<node id='33' links='9' type='c_router'>
+					<link src='33' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='28' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='29' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='37' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='38' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='39' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='94' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='33' addr='95' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='33' addr='26' cost='10'/>
+						<interface src='33' addr='28' cost='10'/>
+						<interface src='33' addr='29' cost='10'/>
+						<interface src='33' addr='37' cost='10'/>
+						<interface src='33' addr='38' cost='10'/>
+						<interface src='33' addr='39' cost='10'/>
+						<interface src='33' addr='55' cost='10'/>
+						<interface src='33' addr='94' cost='10'/>
+						<interface src='33' addr='95' cost='10'/>
+					</layer>
+				</node>
+				<node id='34' links='3' type='c_router'>
+					<link src='34' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='34' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='34' addr='106' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='34' addr='26' cost='10'/>
+						<interface src='34' addr='31' cost='10'/>
+						<interface src='34' addr='106' cost='10'/>
+					</layer>
+				</node>
+				<node id='35' links='2' type='c_router'>
+					<link src='35' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='35' addr='106' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='35' addr='26' cost='10'/>
+						<interface src='35' addr='106' cost='10'/>
+					</layer>
+				</node>
+				<node id='36' links='3' type='c_router'>
+					<link src='36' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='36' addr='32' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='36' addr='106' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='36' addr='31' cost='10'/>
+						<interface src='36' addr='32' cost='10'/>
+						<interface src='36' addr='106' cost='10'/>
+					</layer>
+				</node>
+				<node id='37' links='3' type='c_router'>
+					<link src='37' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='37' addr='32' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='37' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='37' addr='31' cost='10'/>
+						<interface src='37' addr='32' cost='10'/>
+						<interface src='37' addr='33' cost='10'/>
+					</layer>
+				</node>
+				<node id='38' links='2' type='c_router'>
+					<link src='38' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='38' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='38' addr='31' cost='10'/>
+						<interface src='38' addr='33' cost='10'/>
+					</layer>
+				</node>
+				<node id='39' links='5' type='c_router'>
+					<link src='39' addr='182' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='39' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='39' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='39' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='39' addr='123' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='39' addr='182' cost='10'/>
+						<interface src='39' addr='31' cost='10'/>
+						<interface src='39' addr='33' cost='10'/>
+						<interface src='39' addr='51' cost='10'/>
+						<interface src='39' addr='123' cost='10'/>
+					</layer>
+				</node>
+				<node id='40' links='2' type='c_router'>
+					<link src='40' addr='264' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='40' addr='64' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='40' addr='264' cost='10'/>
+						<interface src='40' addr='64' cost='10'/>
+					</layer>
+				</node>
+				<node id='41' links='11' type='c_router'>
+					<link src='41' addr='185' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='5' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='7' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='192' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='268' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='46' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='112' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='41' addr='113' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='41' addr='185' cost='10'/>
+						<interface src='41' addr='5' cost='10'/>
+						<interface src='41' addr='7' cost='10'/>
+						<interface src='41' addr='192' cost='10'/>
+						<interface src='41' addr='15' cost='10'/>
+						<interface src='41' addr='268' cost='10'/>
+						<interface src='41' addr='42' cost='10'/>
+						<interface src='41' addr='45' cost='10'/>
+						<interface src='41' addr='46' cost='10'/>
+						<interface src='41' addr='112' cost='10'/>
+						<interface src='41' addr='113' cost='10'/>
+					</layer>
+				</node>
+				<node id='42' links='6' type='c_router'>
+					<link src='42' addr='7' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='42' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='42' addr='16' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='42' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='42' addr='43' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='42' addr='44' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='42' addr='7' cost='10'/>
+						<interface src='42' addr='15' cost='10'/>
+						<interface src='42' addr='16' cost='10'/>
+						<interface src='42' addr='41' cost='10'/>
+						<interface src='42' addr='43' cost='10'/>
+						<interface src='42' addr='44' cost='10'/>
+					</layer>
+				</node>
+				<node id='43' links='2' type='c_router'>
+					<link src='43' addr='8' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='43' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='43' addr='8' cost='10'/>
+						<interface src='43' addr='42' cost='10'/>
+					</layer>
+				</node>
+				<node id='44' links='2' type='c_router'>
+					<link src='44' addr='8' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='44' addr='42' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='44' addr='8' cost='10'/>
+						<interface src='44' addr='42' cost='10'/>
+					</layer>
+				</node>
+				<node id='45' links='7' type='c_router'>
+					<link src='45' addr='173' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='3' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='46' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='47' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='49' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='45' addr='126' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='45' addr='173' cost='10'/>
+						<interface src='45' addr='3' cost='10'/>
+						<interface src='45' addr='41' cost='10'/>
+						<interface src='45' addr='46' cost='10'/>
+						<interface src='45' addr='47' cost='10'/>
+						<interface src='45' addr='49' cost='10'/>
+						<interface src='45' addr='126' cost='10'/>
+					</layer>
+				</node>
+				<node id='46' links='5' type='c_router'>
+					<link src='46' addr='3' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='46' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='46' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='46' addr='47' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='46' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='46' addr='3' cost='10'/>
+						<interface src='46' addr='41' cost='10'/>
+						<interface src='46' addr='45' cost='10'/>
+						<interface src='46' addr='47' cost='10'/>
+						<interface src='46' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='47' links='4' type='c_router'>
+					<link src='47' addr='179' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='47' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='47' addr='46' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='47' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='47' addr='179' cost='10'/>
+						<interface src='47' addr='45' cost='10'/>
+						<interface src='47' addr='46' cost='10'/>
+						<interface src='47' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='48' links='5' type='c_router'>
+					<link src='48' addr='49' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='48' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='48' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='48' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='48' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='48' addr='49' cost='10'/>
+						<interface src='48' addr='62' cost='10'/>
+						<interface src='48' addr='103' cost='10'/>
+						<interface src='48' addr='127' cost='10'/>
+						<interface src='48' addr='128' cost='10'/>
+					</layer>
+				</node>
+				<node id='49' links='5' type='c_router'>
+					<link src='49' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='49' addr='48' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='49' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='49' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='49' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='49' addr='45' cost='10'/>
+						<interface src='49' addr='48' cost='10'/>
+						<interface src='49' addr='54' cost='10'/>
+						<interface src='49' addr='127' cost='10'/>
+						<interface src='49' addr='128' cost='10'/>
+					</layer>
+				</node>
+				<node id='50' links='3' type='c_router'>
+					<link src='50' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='50' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='50' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='50' addr='54' cost='10'/>
+						<interface src='50' addr='55' cost='10'/>
+						<interface src='50' addr='57' cost='10'/>
+					</layer>
+				</node>
+				<node id='51' links='6' type='c_router'>
+					<link src='51' addr='39' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='51' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='51' addr='53' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='51' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='51' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='51' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='51' addr='39' cost='10'/>
+						<interface src='51' addr='52' cost='10'/>
+						<interface src='51' addr='53' cost='10'/>
+						<interface src='51' addr='54' cost='10'/>
+						<interface src='51' addr='55' cost='10'/>
+						<interface src='51' addr='129' cost='10'/>
+					</layer>
+				</node>
+				<node id='52' links='8' type='c_router'>
+					<link src='52' addr='169' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='220' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='234' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='253' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='52' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='52' addr='169' cost='10'/>
+						<interface src='52' addr='220' cost='10'/>
+						<interface src='52' addr='234' cost='10'/>
+						<interface src='52' addr='253' cost='10'/>
+						<interface src='52' addr='51' cost='10'/>
+						<interface src='52' addr='54' cost='10'/>
+						<interface src='52' addr='55' cost='10'/>
+						<interface src='52' addr='129' cost='10'/>
+					</layer>
+				</node>
+				<node id='53' links='4' type='c_router'>
+					<link src='53' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='53' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='53' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='53' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='53' addr='51' cost='10'/>
+						<interface src='53' addr='54' cost='10'/>
+						<interface src='53' addr='55' cost='10'/>
+						<interface src='53' addr='127' cost='10'/>
+					</layer>
+				</node>
+				<node id='54' links='10' type='c_router'>
+					<link src='54' addr='49' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='50' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='53' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='54' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='54' addr='49' cost='10'/>
+						<interface src='54' addr='50' cost='10'/>
+						<interface src='54' addr='51' cost='10'/>
+						<interface src='54' addr='52' cost='10'/>
+						<interface src='54' addr='53' cost='10'/>
+						<interface src='54' addr='55' cost='10'/>
+						<interface src='54' addr='56' cost='10'/>
+						<interface src='54' addr='57' cost='10'/>
+						<interface src='54' addr='103' cost='10'/>
+						<interface src='54' addr='129' cost='10'/>
+					</layer>
+				</node>
+				<node id='55' links='15' type='c_router'>
+					<link src='55' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='32' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='50' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='53' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='61' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='123' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='285' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='55' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='55' addr='31' cost='10'/>
+						<interface src='55' addr='32' cost='10'/>
+						<interface src='55' addr='33' cost='10'/>
+						<interface src='55' addr='50' cost='10'/>
+						<interface src='55' addr='51' cost='10'/>
+						<interface src='55' addr='52' cost='10'/>
+						<interface src='55' addr='53' cost='10'/>
+						<interface src='55' addr='54' cost='10'/>
+						<interface src='55' addr='56' cost='10'/>
+						<interface src='55' addr='57' cost='10'/>
+						<interface src='55' addr='61' cost='10'/>
+						<interface src='55' addr='77' cost='10'/>
+						<interface src='55' addr='123' cost='10'/>
+						<interface src='55' addr='285' cost='10'/>
+						<interface src='55' addr='129' cost='10'/>
+					</layer>
+				</node>
+				<node id='56' links='8' type='c_router'>
+					<link src='56' addr='174' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='208' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='58' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='59' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='56' addr='71' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='56' addr='174' cost='10'/>
+						<interface src='56' addr='208' cost='10'/>
+						<interface src='56' addr='54' cost='10'/>
+						<interface src='56' addr='55' cost='10'/>
+						<interface src='56' addr='57' cost='10'/>
+						<interface src='56' addr='58' cost='10'/>
+						<interface src='56' addr='59' cost='10'/>
+						<interface src='56' addr='71' cost='10'/>
+					</layer>
+				</node>
+				<node id='57' links='8' type='c_router'>
+					<link src='57' addr='196' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='50' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='58' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='59' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='57' addr='71' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='57' addr='196' cost='10'/>
+						<interface src='57' addr='50' cost='10'/>
+						<interface src='57' addr='54' cost='10'/>
+						<interface src='57' addr='55' cost='10'/>
+						<interface src='57' addr='56' cost='10'/>
+						<interface src='57' addr='58' cost='10'/>
+						<interface src='57' addr='59' cost='10'/>
+						<interface src='57' addr='71' cost='10'/>
+					</layer>
+				</node>
+				<node id='58' links='3' type='c_router'>
+					<link src='58' addr='217' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='58' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='58' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='58' addr='217' cost='10'/>
+						<interface src='58' addr='56' cost='10'/>
+						<interface src='58' addr='57' cost='10'/>
+					</layer>
+				</node>
+				<node id='59' links='2' type='c_router'>
+					<link src='59' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='59' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='59' addr='56' cost='10'/>
+						<interface src='59' addr='57' cost='10'/>
+					</layer>
+				</node>
+				<node id='60' links='3' type='c_router'>
+					<link src='60' addr='184' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='60' addr='61' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='60' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='60' addr='184' cost='10'/>
+						<interface src='60' addr='61' cost='10'/>
+						<interface src='60' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='61' links='4' type='c_router'>
+					<link src='61' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='61' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='61' addr='60' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='61' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='61' addr='17' cost='10'/>
+						<interface src='61' addr='55' cost='10'/>
+						<interface src='61' addr='60' cost='10'/>
+						<interface src='61' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='62' links='15' type='c_router'>
+					<link src='62' addr='164' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='222' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='233' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='235' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='241' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='48' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='64' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='65' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='66' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='105' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='147' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='62' addr='152' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='62' addr='164' cost='10'/>
+						<interface src='62' addr='222' cost='10'/>
+						<interface src='62' addr='233' cost='10'/>
+						<interface src='62' addr='235' cost='10'/>
+						<interface src='62' addr='241' cost='10'/>
+						<interface src='62' addr='48' cost='10'/>
+						<interface src='62' addr='63' cost='10'/>
+						<interface src='62' addr='64' cost='10'/>
+						<interface src='62' addr='65' cost='10'/>
+						<interface src='62' addr='66' cost='10'/>
+						<interface src='62' addr='80' cost='10'/>
+						<interface src='62' addr='105' cost='10'/>
+						<interface src='62' addr='136' cost='10'/>
+						<interface src='62' addr='147' cost='10'/>
+						<interface src='62' addr='152' cost='10'/>
+					</layer>
+				</node>
+				<node id='63' links='7' type='c_router'>
+					<link src='63' addr='238' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='65' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='66' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='63' addr='137' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='63' addr='238' cost='10'/>
+						<interface src='63' addr='62' cost='10'/>
+						<interface src='63' addr='65' cost='10'/>
+						<interface src='63' addr='66' cost='10'/>
+						<interface src='63' addr='107' cost='10'/>
+						<interface src='63' addr='136' cost='10'/>
+						<interface src='63' addr='137' cost='10'/>
+					</layer>
+				</node>
+				<node id='64' links='2' type='c_router'>
+					<link src='64' addr='40' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='64' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='64' addr='40' cost='10'/>
+						<interface src='64' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='65' links='2' type='c_router'>
+					<link src='65' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='65' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='65' addr='62' cost='10'/>
+						<interface src='65' addr='63' cost='10'/>
+					</layer>
+				</node>
+				<node id='66' links='2' type='c_router'>
+					<link src='66' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='66' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='66' addr='62' cost='10'/>
+						<interface src='66' addr='63' cost='10'/>
+					</layer>
+				</node>
+				<node id='67' links='6' type='c_router'>
+					<link src='67' addr='177' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='67' addr='199' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='67' addr='68' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='67' addr='69' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='67' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='67' addr='138' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='67' addr='177' cost='10'/>
+						<interface src='67' addr='199' cost='10'/>
+						<interface src='67' addr='68' cost='10'/>
+						<interface src='67' addr='69' cost='10'/>
+						<interface src='67' addr='74' cost='10'/>
+						<interface src='67' addr='138' cost='10'/>
+					</layer>
+				</node>
+				<node id='68' links='4' type='c_router'>
+					<link src='68' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='68' addr='69' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='68' addr='98' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='68' addr='138' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='68' addr='67' cost='10'/>
+						<interface src='68' addr='69' cost='10'/>
+						<interface src='68' addr='98' cost='10'/>
+						<interface src='68' addr='138' cost='10'/>
+					</layer>
+				</node>
+				<node id='69' links='5' type='c_router'>
+					<link src='69' addr='175' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='69' addr='218' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='69' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='69' addr='68' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='69' addr='274' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='69' addr='175' cost='10'/>
+						<interface src='69' addr='218' cost='10'/>
+						<interface src='69' addr='67' cost='10'/>
+						<interface src='69' addr='68' cost='10'/>
+						<interface src='69' addr='274' cost='10'/>
+					</layer>
+				</node>
+				<node id='70' links='2' type='c_router'>
+					<link src='70' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='70' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='70' addr='77' cost='10'/>
+						<interface src='70' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='71' links='2' type='c_router'>
+					<link src='71' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='71' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='71' addr='56' cost='10'/>
+						<interface src='71' addr='57' cost='10'/>
+					</layer>
+				</node>
+				<node id='72' links='8' type='c_router'>
+					<link src='72' addr='198' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='206' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='212' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='226' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='73' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='72' addr='78' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='72' addr='198' cost='10'/>
+						<interface src='72' addr='206' cost='10'/>
+						<interface src='72' addr='212' cost='10'/>
+						<interface src='72' addr='226' cost='10'/>
+						<interface src='72' addr='73' cost='10'/>
+						<interface src='72' addr='74' cost='10'/>
+						<interface src='72' addr='77' cost='10'/>
+						<interface src='72' addr='78' cost='10'/>
+					</layer>
+				</node>
+				<node id='73' links='3' type='c_router'>
+					<link src='73' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='73' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='73' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='73' addr='72' cost='10'/>
+						<interface src='73' addr='74' cost='10'/>
+						<interface src='73' addr='77' cost='10'/>
+					</layer>
+				</node>
+				<node id='74' links='18' type='c_router'>
+					<link src='74' addr='229' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='27' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='28' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='29' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='30' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='73' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='75' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='76' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='116' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='74' addr='139' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='74' addr='229' cost='10'/>
+						<interface src='74' addr='23' cost='10'/>
+						<interface src='74' addr='26' cost='10'/>
+						<interface src='74' addr='27' cost='10'/>
+						<interface src='74' addr='28' cost='10'/>
+						<interface src='74' addr='29' cost='10'/>
+						<interface src='74' addr='30' cost='10'/>
+						<interface src='74' addr='67' cost='10'/>
+						<interface src='74' addr='72' cost='10'/>
+						<interface src='74' addr='73' cost='10'/>
+						<interface src='74' addr='75' cost='10'/>
+						<interface src='74' addr='76' cost='10'/>
+						<interface src='74' addr='77' cost='10'/>
+						<interface src='74' addr='86' cost='10'/>
+						<interface src='74' addr='87' cost='10'/>
+						<interface src='74' addr='88' cost='10'/>
+						<interface src='74' addr='116' cost='10'/>
+						<interface src='74' addr='139' cost='10'/>
+					</layer>
+				</node>
+				<node id='75' links='2' type='c_router'>
+					<link src='75' addr='270' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='75' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='75' addr='270' cost='10'/>
+						<interface src='75' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='76' links='3' type='c_router'>
+					<link src='76' addr='209' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='76' addr='215' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='76' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='76' addr='209' cost='10'/>
+						<interface src='76' addr='215' cost='10'/>
+						<interface src='76' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='77' links='11' type='c_router'>
+					<link src='77' addr='172' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='9' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='25' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='70' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='73' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='288' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='77' addr='139' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='77' addr='172' cost='10'/>
+						<interface src='77' addr='9' cost='10'/>
+						<interface src='77' addr='25' cost='10'/>
+						<interface src='77' addr='55' cost='10'/>
+						<interface src='77' addr='70' cost='10'/>
+						<interface src='77' addr='72' cost='10'/>
+						<interface src='77' addr='73' cost='10'/>
+						<interface src='77' addr='74' cost='10'/>
+						<interface src='77' addr='80' cost='10'/>
+						<interface src='77' addr='288' cost='10'/>
+						<interface src='77' addr='139' cost='10'/>
+					</layer>
+				</node>
+				<node id='78' links='2' type='c_router'>
+					<link src='78' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='78' addr='271' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='78' addr='72' cost='10'/>
+						<interface src='78' addr='271' cost='10'/>
+					</layer>
+				</node>
+				<node id='79' links='15' type='c_router'>
+					<link src='79' addr='187' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='203' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='205' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='219' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='221' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='82' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='90' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='91' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='92' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='273' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='79' addr='145' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='79' addr='187' cost='10'/>
+						<interface src='79' addr='203' cost='10'/>
+						<interface src='79' addr='205' cost='10'/>
+						<interface src='79' addr='219' cost='10'/>
+						<interface src='79' addr='221' cost='10'/>
+						<interface src='79' addr='80' cost='10'/>
+						<interface src='79' addr='81' cost='10'/>
+						<interface src='79' addr='82' cost='10'/>
+						<interface src='79' addr='83' cost='10'/>
+						<interface src='79' addr='90' cost='10'/>
+						<interface src='79' addr='91' cost='10'/>
+						<interface src='79' addr='92' cost='10'/>
+						<interface src='79' addr='273' cost='10'/>
+						<interface src='79' addr='141' cost='10'/>
+						<interface src='79' addr='145' cost='10'/>
+					</layer>
+				</node>
+				<node id='80' links='20' type='c_router'>
+					<link src='80' addr='191' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='195' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='237' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='243' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='269' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='70' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='272' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='89' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='91' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='92' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='80' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='80' addr='191' cost='10'/>
+						<interface src='80' addr='195' cost='10'/>
+						<interface src='80' addr='237' cost='10'/>
+						<interface src='80' addr='243' cost='10'/>
+						<interface src='80' addr='62' cost='10'/>
+						<interface src='80' addr='269' cost='10'/>
+						<interface src='80' addr='70' cost='10'/>
+						<interface src='80' addr='77' cost='10'/>
+						<interface src='80' addr='272' cost='10'/>
+						<interface src='80' addr='79' cost='10'/>
+						<interface src='80' addr='81' cost='10'/>
+						<interface src='80' addr='85' cost='10'/>
+						<interface src='80' addr='86' cost='10'/>
+						<interface src='80' addr='87' cost='10'/>
+						<interface src='80' addr='88' cost='10'/>
+						<interface src='80' addr='89' cost='10'/>
+						<interface src='80' addr='91' cost='10'/>
+						<interface src='80' addr='92' cost='10'/>
+						<interface src='80' addr='150' cost='10'/>
+						<interface src='80' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='81' links='12' type='c_router'>
+					<link src='81' addr='6' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='11' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='12' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='84' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='93' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='81' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='81' addr='6' cost='10'/>
+						<interface src='81' addr='11' cost='10'/>
+						<interface src='81' addr='12' cost='10'/>
+						<interface src='81' addr='79' cost='10'/>
+						<interface src='81' addr='80' cost='10'/>
+						<interface src='81' addr='84' cost='10'/>
+						<interface src='81' addr='85' cost='10'/>
+						<interface src='81' addr='86' cost='10'/>
+						<interface src='81' addr='87' cost='10'/>
+						<interface src='81' addr='88' cost='10'/>
+						<interface src='81' addr='93' cost='10'/>
+						<interface src='81' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='82' links='5' type='c_router'>
+					<link src='82' addr='6' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='82' addr='12' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='82' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='82' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='82' addr='93' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='82' addr='6' cost='10'/>
+						<interface src='82' addr='12' cost='10'/>
+						<interface src='82' addr='79' cost='10'/>
+						<interface src='82' addr='83' cost='10'/>
+						<interface src='82' addr='93' cost='10'/>
+					</layer>
+				</node>
+				<node id='83' links='12' type='c_router'>
+					<link src='83' addr='6' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='11' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='12' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='82' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='93' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='290' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='83' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='83' addr='6' cost='10'/>
+						<interface src='83' addr='11' cost='10'/>
+						<interface src='83' addr='12' cost='10'/>
+						<interface src='83' addr='79' cost='10'/>
+						<interface src='83' addr='82' cost='10'/>
+						<interface src='83' addr='85' cost='10'/>
+						<interface src='83' addr='86' cost='10'/>
+						<interface src='83' addr='87' cost='10'/>
+						<interface src='83' addr='88' cost='10'/>
+						<interface src='83' addr='93' cost='10'/>
+						<interface src='83' addr='290' cost='10'/>
+						<interface src='83' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='84' links='2' type='c_router'>
+					<link src='84' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='84' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='84' addr='81' cost='10'/>
+						<interface src='84' addr='86' cost='10'/>
+					</layer>
+				</node>
+				<node id='85' links='7' type='c_router'>
+					<link src='85' addr='228' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='85' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='85' addr='228' cost='10'/>
+						<interface src='85' addr='80' cost='10'/>
+						<interface src='85' addr='81' cost='10'/>
+						<interface src='85' addr='83' cost='10'/>
+						<interface src='85' addr='86' cost='10'/>
+						<interface src='85' addr='87' cost='10'/>
+						<interface src='85' addr='88' cost='10'/>
+					</layer>
+				</node>
+				<node id='86' links='11' type='c_router'>
+					<link src='86' addr='2' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='14' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='84' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='115' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='86' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='86' addr='2' cost='10'/>
+						<interface src='86' addr='14' cost='10'/>
+						<interface src='86' addr='74' cost='10'/>
+						<interface src='86' addr='80' cost='10'/>
+						<interface src='86' addr='81' cost='10'/>
+						<interface src='86' addr='83' cost='10'/>
+						<interface src='86' addr='84' cost='10'/>
+						<interface src='86' addr='85' cost='10'/>
+						<interface src='86' addr='103' cost='10'/>
+						<interface src='86' addr='115' cost='10'/>
+						<interface src='86' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='87' links='13' type='c_router'>
+					<link src='87' addr='2' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='4' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='14' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='115' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='146' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='87' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='87' addr='2' cost='10'/>
+						<interface src='87' addr='4' cost='10'/>
+						<interface src='87' addr='14' cost='10'/>
+						<interface src='87' addr='74' cost='10'/>
+						<interface src='87' addr='80' cost='10'/>
+						<interface src='87' addr='81' cost='10'/>
+						<interface src='87' addr='83' cost='10'/>
+						<interface src='87' addr='85' cost='10'/>
+						<interface src='87' addr='103' cost='10'/>
+						<interface src='87' addr='115' cost='10'/>
+						<interface src='87' addr='146' cost='10'/>
+						<interface src='87' addr='148' cost='10'/>
+						<interface src='87' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='88' links='17' type='c_router'>
+					<link src='88' addr='2' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='4' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='14' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='115' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='140' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='146' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='147' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='149' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='88' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='88' addr='2' cost='10'/>
+						<interface src='88' addr='4' cost='10'/>
+						<interface src='88' addr='14' cost='10'/>
+						<interface src='88' addr='74' cost='10'/>
+						<interface src='88' addr='80' cost='10'/>
+						<interface src='88' addr='81' cost='10'/>
+						<interface src='88' addr='83' cost='10'/>
+						<interface src='88' addr='85' cost='10'/>
+						<interface src='88' addr='103' cost='10'/>
+						<interface src='88' addr='115' cost='10'/>
+						<interface src='88' addr='140' cost='10'/>
+						<interface src='88' addr='141' cost='10'/>
+						<interface src='88' addr='146' cost='10'/>
+						<interface src='88' addr='147' cost='10'/>
+						<interface src='88' addr='148' cost='10'/>
+						<interface src='88' addr='149' cost='10'/>
+						<interface src='88' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='89' links='5' type='c_router'>
+					<link src='89' addr='167' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='89' addr='180' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='89' addr='213' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='89' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='89' addr='90' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='89' addr='167' cost='10'/>
+						<interface src='89' addr='180' cost='10'/>
+						<interface src='89' addr='213' cost='10'/>
+						<interface src='89' addr='80' cost='10'/>
+						<interface src='89' addr='90' cost='10'/>
+					</layer>
+				</node>
+				<node id='90' links='2' type='c_router'>
+					<link src='90' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='90' addr='89' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='90' addr='79' cost='10'/>
+						<interface src='90' addr='89' cost='10'/>
+					</layer>
+				</node>
+				<node id='91' links='3' type='c_router'>
+					<link src='91' addr='232' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='91' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='91' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='91' addr='232' cost='10'/>
+						<interface src='91' addr='79' cost='10'/>
+						<interface src='91' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='92' links='3' type='c_router'>
+					<link src='92' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='92' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='92' addr='291' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='92' addr='79' cost='10'/>
+						<interface src='92' addr='80' cost='10'/>
+						<interface src='92' addr='291' cost='10'/>
+					</layer>
+				</node>
+				<node id='93' links='3' type='c_router'>
+					<link src='93' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='93' addr='82' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='93' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='93' addr='81' cost='10'/>
+						<interface src='93' addr='82' cost='10'/>
+						<interface src='93' addr='83' cost='10'/>
+					</layer>
+				</node>
+				<node id='94' links='3' type='c_router'>
+					<link src='94' addr='1' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='94' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='94' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='94' addr='1' cost='10'/>
+						<interface src='94' addr='31' cost='10'/>
+						<interface src='94' addr='33' cost='10'/>
+					</layer>
+				</node>
+				<node id='95' links='4' type='c_router'>
+					<link src='95' addr='1' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='95' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='95' addr='33' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='95' addr='287' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='95' addr='1' cost='10'/>
+						<interface src='95' addr='31' cost='10'/>
+						<interface src='95' addr='33' cost='10'/>
+						<interface src='95' addr='287' cost='10'/>
+					</layer>
+				</node>
+				<node id='96' links='2' type='c_router'>
+					<link src='96' addr='31' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='96' addr='32' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='96' addr='31' cost='10'/>
+						<interface src='96' addr='32' cost='10'/>
+					</layer>
+				</node>
+				<node id='97' links='7' type='c_router'>
+					<link src='97' addr='178' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='183' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='188' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='26' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='27' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='98' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='97' addr='153' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='97' addr='178' cost='10'/>
+						<interface src='97' addr='183' cost='10'/>
+						<interface src='97' addr='188' cost='10'/>
+						<interface src='97' addr='26' cost='10'/>
+						<interface src='97' addr='27' cost='10'/>
+						<interface src='97' addr='98' cost='10'/>
+						<interface src='97' addr='153' cost='10'/>
+					</layer>
+				</node>
+				<node id='98' links='4' type='c_router'>
+					<link src='98' addr='68' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='98' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='98' addr='275' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='98' addr='153' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='98' addr='68' cost='10'/>
+						<interface src='98' addr='97' cost='10'/>
+						<interface src='98' addr='275' cost='10'/>
+						<interface src='98' addr='153' cost='10'/>
+					</layer>
+				</node>
+				<node id='99' links='6' type='c_router'>
+					<link src='99' addr='171' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='99' addr='216' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='99' addr='251' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='99' addr='260' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='99' addr='100' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='99' addr='101' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='99' addr='171' cost='10'/>
+						<interface src='99' addr='216' cost='10'/>
+						<interface src='99' addr='251' cost='10'/>
+						<interface src='99' addr='260' cost='10'/>
+						<interface src='99' addr='100' cost='10'/>
+						<interface src='99' addr='101' cost='10'/>
+					</layer>
+				</node>
+				<node id='100' links='3' type='c_router'>
+					<link src='100' addr='231' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='100' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='100' addr='101' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='100' addr='231' cost='10'/>
+						<interface src='100' addr='99' cost='10'/>
+						<interface src='100' addr='101' cost='10'/>
+					</layer>
+				</node>
+				<node id='101' links='5' type='c_router'>
+					<link src='101' addr='249' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='101' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='101' addr='100' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='101' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='101' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='101' addr='249' cost='10'/>
+						<interface src='101' addr='99' cost='10'/>
+						<interface src='101' addr='100' cost='10'/>
+						<interface src='101' addr='102' cost='10'/>
+						<interface src='101' addr='103' cost='10'/>
+					</layer>
+				</node>
+				<node id='102' links='7' type='c_router'>
+					<link src='102' addr='201' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='214' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='225' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='244' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='101' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='102' addr='154' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='102' addr='201' cost='10'/>
+						<interface src='102' addr='214' cost='10'/>
+						<interface src='102' addr='225' cost='10'/>
+						<interface src='102' addr='244' cost='10'/>
+						<interface src='102' addr='101' cost='10'/>
+						<interface src='102' addr='103' cost='10'/>
+						<interface src='102' addr='154' cost='10'/>
+					</layer>
+				</node>
+				<node id='103' links='10' type='c_router'>
+					<link src='103' addr='211' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='24' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='48' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='101' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='103' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='103' addr='211' cost='10'/>
+						<interface src='103' addr='24' cost='10'/>
+						<interface src='103' addr='48' cost='10'/>
+						<interface src='103' addr='54' cost='10'/>
+						<interface src='103' addr='86' cost='10'/>
+						<interface src='103' addr='87' cost='10'/>
+						<interface src='103' addr='88' cost='10'/>
+						<interface src='103' addr='101' cost='10'/>
+						<interface src='103' addr='102' cost='10'/>
+						<interface src='103' addr='104' cost='10'/>
+					</layer>
+				</node>
+				<node id='104' links='6' type='c_router'>
+					<link src='104' addr='0' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='104' addr='193' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='104' addr='248' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='104' addr='258' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='104' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='104' addr='156' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='104' addr='0' cost='10'/>
+						<interface src='104' addr='193' cost='10'/>
+						<interface src='104' addr='248' cost='10'/>
+						<interface src='104' addr='258' cost='10'/>
+						<interface src='104' addr='103' cost='10'/>
+						<interface src='104' addr='156' cost='10'/>
+					</layer>
+				</node>
+				<node id='105' links='3' type='c_router'>
+					<link src='105' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='105' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='105' addr='157' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='105' addr='62' cost='10'/>
+						<interface src='105' addr='108' cost='10'/>
+						<interface src='105' addr='157' cost='10'/>
+					</layer>
+				</node>
+				<node id='106' links='3' type='c_router'>
+					<link src='106' addr='34' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='106' addr='35' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='106' addr='36' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='106' addr='34' cost='10'/>
+						<interface src='106' addr='35' cost='10'/>
+						<interface src='106' addr='36' cost='10'/>
+					</layer>
+				</node>
+				<node id='107' links='10' type='c_router'>
+					<link src='107' addr='163' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='13' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='109' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='110' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='159' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='161' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='107' addr='294' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='107' addr='163' cost='10'/>
+						<interface src='107' addr='13' cost='10'/>
+						<interface src='107' addr='63' cost='10'/>
+						<interface src='107' addr='108' cost='10'/>
+						<interface src='107' addr='109' cost='10'/>
+						<interface src='107' addr='110' cost='10'/>
+						<interface src='107' addr='158' cost='10'/>
+						<interface src='107' addr='159' cost='10'/>
+						<interface src='107' addr='161' cost='10'/>
+						<interface src='107' addr='294' cost='10'/>
+					</layer>
+				</node>
+				<node id='108' links='11' type='c_router'>
+					<link src='108' addr='236' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='239' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='13' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='46' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='105' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='109' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='110' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='161' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='108' addr='293' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='108' addr='236' cost='10'/>
+						<interface src='108' addr='239' cost='10'/>
+						<interface src='108' addr='13' cost='10'/>
+						<interface src='108' addr='46' cost='10'/>
+						<interface src='108' addr='105' cost='10'/>
+						<interface src='108' addr='107' cost='10'/>
+						<interface src='108' addr='109' cost='10'/>
+						<interface src='108' addr='110' cost='10'/>
+						<interface src='108' addr='158' cost='10'/>
+						<interface src='108' addr='161' cost='10'/>
+						<interface src='108' addr='293' cost='10'/>
+					</layer>
+				</node>
+				<node id='109' links='3' type='c_router'>
+					<link src='109' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='109' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='109' addr='111' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='109' addr='107' cost='10'/>
+						<interface src='109' addr='108' cost='10'/>
+						<interface src='109' addr='111' cost='10'/>
+					</layer>
+				</node>
+				<node id='110' links='5' type='c_router'>
+					<link src='110' addr='204' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='110' addr='250' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='110' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='110' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='110' addr='111' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='110' addr='204' cost='10'/>
+						<interface src='110' addr='250' cost='10'/>
+						<interface src='110' addr='107' cost='10'/>
+						<interface src='110' addr='108' cost='10'/>
+						<interface src='110' addr='111' cost='10'/>
+					</layer>
+				</node>
+				<node id='111' links='3' type='c_router'>
+					<link src='111' addr='247' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='111' addr='109' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='111' addr='110' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='111' addr='247' cost='10'/>
+						<interface src='111' addr='109' cost='10'/>
+						<interface src='111' addr='110' cost='10'/>
+					</layer>
+				</node>
+				<node id='112' links='3' type='c_router'>
+					<link src='112' addr='190' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='112' addr='194' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='112' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='112' addr='190' cost='10'/>
+						<interface src='112' addr='194' cost='10'/>
+						<interface src='112' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='113' links='2' type='c_router'>
+					<link src='113' addr='189' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='113' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='113' addr='189' cost='10'/>
+						<interface src='113' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='114' links='2' type='c_router'>
+					<link src='114' addr='115' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='114' addr='116' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='114' addr='115' cost='10'/>
+						<interface src='114' addr='116' cost='10'/>
+					</layer>
+				</node>
+				<node id='115' links='5' type='c_router'>
+					<link src='115' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='115' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='115' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='115' addr='114' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='115' addr='116' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='115' addr='86' cost='10'/>
+						<interface src='115' addr='87' cost='10'/>
+						<interface src='115' addr='88' cost='10'/>
+						<interface src='115' addr='114' cost='10'/>
+						<interface src='115' addr='116' cost='10'/>
+					</layer>
+				</node>
+				<node id='116' links='3' type='c_router'>
+					<link src='116' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='116' addr='114' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='116' addr='115' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='116' addr='74' cost='10'/>
+						<interface src='116' addr='114' cost='10'/>
+						<interface src='116' addr='115' cost='10'/>
+					</layer>
+				</node>
+				<node id='117' links='4' type='c_router'>
+					<link src='117' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='117' addr='21' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='117' addr='126' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='117' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='117' addr='18' cost='10'/>
+						<interface src='117' addr='21' cost='10'/>
+						<interface src='117' addr='126' cost='10'/>
+						<interface src='117' addr='133' cost='10'/>
+					</layer>
+				</node>
+				<node id='118' links='2' type='c_router'>
+					<link src='118' addr='119' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='118' addr='156' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='118' addr='119' cost='10'/>
+						<interface src='118' addr='156' cost='10'/>
+					</layer>
+				</node>
+				<node id='119' links='3' type='c_router'>
+					<link src='119' addr='118' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='119' addr='120' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='119' addr='121' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='119' addr='118' cost='10'/>
+						<interface src='119' addr='120' cost='10'/>
+						<interface src='119' addr='121' cost='10'/>
+					</layer>
+				</node>
+				<node id='120' links='3' type='c_router'>
+					<link src='120' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='120' addr='24' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='120' addr='119' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='120' addr='23' cost='10'/>
+						<interface src='120' addr='24' cost='10'/>
+						<interface src='120' addr='119' cost='10'/>
+					</layer>
+				</node>
+				<node id='121' links='4' type='c_router'>
+					<link src='121' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='121' addr='24' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='121' addr='119' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='121' addr='122' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='121' addr='23' cost='10'/>
+						<interface src='121' addr='24' cost='10'/>
+						<interface src='121' addr='119' cost='10'/>
+						<interface src='121' addr='122' cost='10'/>
+					</layer>
+				</node>
+				<node id='122' links='2' type='c_router'>
+					<link src='122' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='122' addr='121' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='122' addr='23' cost='10'/>
+						<interface src='122' addr='121' cost='10'/>
+					</layer>
+				</node>
+				<node id='123' links='2' type='c_router'>
+					<link src='123' addr='39' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='123' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='123' addr='39' cost='10'/>
+						<interface src='123' addr='55' cost='10'/>
+					</layer>
+				</node>
+				<node id='124' links='2' type='c_router'>
+					<link src='124' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='124' addr='130' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='124' addr='128' cost='10'/>
+						<interface src='124' addr='130' cost='10'/>
+					</layer>
+				</node>
+				<node id='125' links='2' type='c_router'>
+					<link src='125' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='125' addr='157' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='125' addr='136' cost='10'/>
+						<interface src='125' addr='157' cost='10'/>
+					</layer>
+				</node>
+				<node id='126' links='3' type='c_router'>
+					<link src='126' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='126' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='126' addr='117' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='126' addr='18' cost='10'/>
+						<interface src='126' addr='45' cost='10'/>
+						<interface src='126' addr='117' cost='10'/>
+					</layer>
+				</node>
+				<node id='127' links='9' type='c_router'>
+					<link src='127' addr='48' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='49' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='53' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='279' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='130' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='127' addr='286' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='127' addr='48' cost='10'/>
+						<interface src='127' addr='49' cost='10'/>
+						<interface src='127' addr='53' cost='10'/>
+						<interface src='127' addr='279' cost='10'/>
+						<interface src='127' addr='128' cost='10'/>
+						<interface src='127' addr='129' cost='10'/>
+						<interface src='127' addr='130' cost='10'/>
+						<interface src='127' addr='133' cost='10'/>
+						<interface src='127' addr='286' cost='10'/>
+					</layer>
+				</node>
+				<node id='128' links='6' type='c_router'>
+					<link src='128' addr='48' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='128' addr='49' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='128' addr='124' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='128' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='128' addr='130' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='128' addr='132' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='128' addr='48' cost='10'/>
+						<interface src='128' addr='49' cost='10'/>
+						<interface src='128' addr='124' cost='10'/>
+						<interface src='128' addr='127' cost='10'/>
+						<interface src='128' addr='130' cost='10'/>
+						<interface src='128' addr='132' cost='10'/>
+					</layer>
+				</node>
+				<node id='129' links='6' type='c_router'>
+					<link src='129' addr='51' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='129' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='129' addr='54' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='129' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='129' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='129' addr='134' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='129' addr='51' cost='10'/>
+						<interface src='129' addr='52' cost='10'/>
+						<interface src='129' addr='54' cost='10'/>
+						<interface src='129' addr='55' cost='10'/>
+						<interface src='129' addr='127' cost='10'/>
+						<interface src='129' addr='134' cost='10'/>
+					</layer>
+				</node>
+				<node id='130' links='5' type='c_router'>
+					<link src='130' addr='124' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='130' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='130' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='130' addr='131' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='130' addr='132' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='130' addr='124' cost='10'/>
+						<interface src='130' addr='127' cost='10'/>
+						<interface src='130' addr='128' cost='10'/>
+						<interface src='130' addr='131' cost='10'/>
+						<interface src='130' addr='132' cost='10'/>
+					</layer>
+				</node>
+				<node id='131' links='2' type='c_router'>
+					<link src='131' addr='276' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='131' addr='130' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='131' addr='276' cost='10'/>
+						<interface src='131' addr='130' cost='10'/>
+					</layer>
+				</node>
+				<node id='132' links='4' type='c_router'>
+					<link src='132' addr='128' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='132' addr='130' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='132' addr='133' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='132' addr='134' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='132' addr='128' cost='10'/>
+						<interface src='132' addr='130' cost='10'/>
+						<interface src='132' addr='133' cost='10'/>
+						<interface src='132' addr='134' cost='10'/>
+					</layer>
+				</node>
+				<node id='133' links='9' type='c_router'>
+					<link src='133' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='19' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='47' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='60' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='61' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='117' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='133' addr='132' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='133' addr='18' cost='10'/>
+						<interface src='133' addr='19' cost='10'/>
+						<interface src='133' addr='20' cost='10'/>
+						<interface src='133' addr='47' cost='10'/>
+						<interface src='133' addr='60' cost='10'/>
+						<interface src='133' addr='61' cost='10'/>
+						<interface src='133' addr='117' cost='10'/>
+						<interface src='133' addr='127' cost='10'/>
+						<interface src='133' addr='132' cost='10'/>
+					</layer>
+				</node>
+				<node id='134' links='2' type='c_router'>
+					<link src='134' addr='129' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='134' addr='132' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='134' addr='129' cost='10'/>
+						<interface src='134' addr='132' cost='10'/>
+					</layer>
+				</node>
+				<node id='135' links='2' type='c_router'>
+					<link src='135' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='135' addr='159' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='135' addr='136' cost='10'/>
+						<interface src='135' addr='159' cost='10'/>
+					</layer>
+				</node>
+				<node id='136' links='6' type='c_router'>
+					<link src='136' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='136' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='136' addr='125' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='136' addr='135' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='136' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='136' addr='160' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='136' addr='62' cost='10'/>
+						<interface src='136' addr='63' cost='10'/>
+						<interface src='136' addr='125' cost='10'/>
+						<interface src='136' addr='135' cost='10'/>
+						<interface src='136' addr='158' cost='10'/>
+						<interface src='136' addr='160' cost='10'/>
+					</layer>
+				</node>
+				<node id='137' links='2' type='c_router'>
+					<link src='137' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='137' addr='160' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='137' addr='63' cost='10'/>
+						<interface src='137' addr='160' cost='10'/>
+					</layer>
+				</node>
+				<node id='138' links='2' type='c_router'>
+					<link src='138' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='138' addr='68' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='138' addr='67' cost='10'/>
+						<interface src='138' addr='68' cost='10'/>
+					</layer>
+				</node>
+				<node id='139' links='4' type='c_router'>
+					<link src='139' addr='9' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='139' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='139' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='139' addr='280' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='139' addr='9' cost='10'/>
+						<interface src='139' addr='74' cost='10'/>
+						<interface src='139' addr='77' cost='10'/>
+						<interface src='139' addr='280' cost='10'/>
+					</layer>
+				</node>
+				<node id='140' links='5' type='c_router'>
+					<link src='140' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='140' addr='144' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='140' addr='146' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='140' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='140' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='140' addr='88' cost='10'/>
+						<interface src='140' addr='144' cost='10'/>
+						<interface src='140' addr='146' cost='10'/>
+						<interface src='140' addr='148' cost='10'/>
+						<interface src='140' addr='150' cost='10'/>
+					</layer>
+				</node>
+				<node id='141' links='6' type='c_router'>
+					<link src='141' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='141' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='141' addr='143' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='141' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='141' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='141' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='141' addr='79' cost='10'/>
+						<interface src='141' addr='88' cost='10'/>
+						<interface src='141' addr='143' cost='10'/>
+						<interface src='141' addr='148' cost='10'/>
+						<interface src='141' addr='150' cost='10'/>
+						<interface src='141' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='142' links='2' type='c_router'>
+					<link src='142' addr='143' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='142' addr='144' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='142' addr='143' cost='10'/>
+						<interface src='142' addr='144' cost='10'/>
+					</layer>
+				</node>
+				<node id='143' links='2' type='c_router'>
+					<link src='143' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='143' addr='142' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='143' addr='141' cost='10'/>
+						<interface src='143' addr='142' cost='10'/>
+					</layer>
+				</node>
+				<node id='144' links='3' type='c_router'>
+					<link src='144' addr='140' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='144' addr='142' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='144' addr='289' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='144' addr='140' cost='10'/>
+						<interface src='144' addr='142' cost='10'/>
+						<interface src='144' addr='289' cost='10'/>
+					</layer>
+				</node>
+				<node id='145' links='2' type='c_router'>
+					<link src='145' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='145' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='145' addr='79' cost='10'/>
+						<interface src='145' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='146' links='4' type='c_router'>
+					<link src='146' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='146' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='146' addr='140' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='146' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='146' addr='87' cost='10'/>
+						<interface src='146' addr='88' cost='10'/>
+						<interface src='146' addr='140' cost='10'/>
+						<interface src='146' addr='150' cost='10'/>
+					</layer>
+				</node>
+				<node id='147' links='4' type='c_router'>
+					<link src='147' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='147' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='147' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='147' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='147' addr='62' cost='10'/>
+						<interface src='147' addr='88' cost='10'/>
+						<interface src='147' addr='148' cost='10'/>
+						<interface src='147' addr='150' cost='10'/>
+					</layer>
+				</node>
+				<node id='148' links='6' type='c_router'>
+					<link src='148' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='148' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='148' addr='140' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='148' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='148' addr='147' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='148' addr='149' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='148' addr='87' cost='10'/>
+						<interface src='148' addr='88' cost='10'/>
+						<interface src='148' addr='140' cost='10'/>
+						<interface src='148' addr='141' cost='10'/>
+						<interface src='148' addr='147' cost='10'/>
+						<interface src='148' addr='149' cost='10'/>
+					</layer>
+				</node>
+				<node id='149' links='3' type='c_router'>
+					<link src='149' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='149' addr='148' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='149' addr='151' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='149' addr='88' cost='10'/>
+						<interface src='149' addr='148' cost='10'/>
+						<interface src='149' addr='151' cost='10'/>
+					</layer>
+				</node>
+				<node id='150' links='6' type='c_router'>
+					<link src='150' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='150' addr='140' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='150' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='150' addr='146' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='150' addr='147' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='150' addr='152' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='150' addr='80' cost='10'/>
+						<interface src='150' addr='140' cost='10'/>
+						<interface src='150' addr='141' cost='10'/>
+						<interface src='150' addr='146' cost='10'/>
+						<interface src='150' addr='147' cost='10'/>
+						<interface src='150' addr='152' cost='10'/>
+					</layer>
+				</node>
+				<node id='151' links='9' type='c_router'>
+					<link src='151' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='81' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='86' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='87' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='88' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='141' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='145' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='151' addr='149' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='151' addr='80' cost='10'/>
+						<interface src='151' addr='81' cost='10'/>
+						<interface src='151' addr='83' cost='10'/>
+						<interface src='151' addr='86' cost='10'/>
+						<interface src='151' addr='87' cost='10'/>
+						<interface src='151' addr='88' cost='10'/>
+						<interface src='151' addr='141' cost='10'/>
+						<interface src='151' addr='145' cost='10'/>
+						<interface src='151' addr='149' cost='10'/>
+					</layer>
+				</node>
+				<node id='152' links='2' type='c_router'>
+					<link src='152' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='152' addr='150' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='152' addr='62' cost='10'/>
+						<interface src='152' addr='150' cost='10'/>
+					</layer>
+				</node>
+				<node id='153' links='2' type='c_router'>
+					<link src='153' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='153' addr='98' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='153' addr='97' cost='10'/>
+						<interface src='153' addr='98' cost='10'/>
+					</layer>
+				</node>
+				<node id='154' links='3' type='c_router'>
+					<link src='154' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='154' addr='155' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='154' addr='156' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='154' addr='102' cost='10'/>
+						<interface src='154' addr='155' cost='10'/>
+						<interface src='154' addr='156' cost='10'/>
+					</layer>
+				</node>
+				<node id='155' links='2' type='c_router'>
+					<link src='155' addr='154' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='155' addr='156' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='155' addr='154' cost='10'/>
+						<interface src='155' addr='156' cost='10'/>
+					</layer>
+				</node>
+				<node id='156' links='4' type='c_router'>
+					<link src='156' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='156' addr='118' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='156' addr='154' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='156' addr='155' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='156' addr='104' cost='10'/>
+						<interface src='156' addr='118' cost='10'/>
+						<interface src='156' addr='154' cost='10'/>
+						<interface src='156' addr='155' cost='10'/>
+					</layer>
+				</node>
+				<node id='157' links='4' type='c_router'>
+					<link src='157' addr='105' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='157' addr='125' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='157' addr='292' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='157' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='157' addr='105' cost='10'/>
+						<interface src='157' addr='125' cost='10'/>
+						<interface src='157' addr='292' cost='10'/>
+						<interface src='157' addr='158' cost='10'/>
+					</layer>
+				</node>
+				<node id='158' links='8' type='c_router'>
+					<link src='158' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='282' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='283' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='284' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='157' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='158' addr='159' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='158' addr='107' cost='10'/>
+						<interface src='158' addr='108' cost='10'/>
+						<interface src='158' addr='282' cost='10'/>
+						<interface src='158' addr='283' cost='10'/>
+						<interface src='158' addr='284' cost='10'/>
+						<interface src='158' addr='136' cost='10'/>
+						<interface src='158' addr='157' cost='10'/>
+						<interface src='158' addr='159' cost='10'/>
+					</layer>
+				</node>
+				<node id='159' links='3' type='c_router'>
+					<link src='159' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='159' addr='135' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='159' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='159' addr='107' cost='10'/>
+						<interface src='159' addr='135' cost='10'/>
+						<interface src='159' addr='158' cost='10'/>
+					</layer>
+				</node>
+				<node id='160' links='2' type='c_router'>
+					<link src='160' addr='136' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='160' addr='137' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='160' addr='136' cost='10'/>
+						<interface src='160' addr='137' cost='10'/>
+					</layer>
+				</node>
+				<node id='161' links='2' type='c_router'>
+					<link src='161' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='161' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='161' addr='107' cost='10'/>
+						<interface src='161' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='162' links='2' type='c_router'>
+					<link src='162' addr='224' bandwidth='10000000' delay='0.001000' status='up'/>
+					<link src='162' addr='22' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='162' addr='224' cost='10'/>
+						<interface src='162' addr='22' cost='10'/>
+					</layer>
+				</node>
+				<node id='163' links='1' type='c_router'>
+					<link src='163' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='163' addr='107' cost='10'/>
+					</layer>
+				</node>
+				<node id='164' links='1' type='c_router'>
+					<link src='164' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='164' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='165' links='1' type='c_router'>
+					<link src='165' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='165' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='166' links='1' type='c_router'>
+					<link src='166' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='166' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='167' links='1' type='c_router'>
+					<link src='167' addr='89' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='167' addr='89' cost='10'/>
+					</layer>
+				</node>
+				<node id='168' links='1' type='c_router'>
+					<link src='168' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='168' addr='20' cost='10'/>
+					</layer>
+				</node>
+				<node id='169' links='1' type='c_router'>
+					<link src='169' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='169' addr='52' cost='10'/>
+					</layer>
+				</node>
+				<node id='170' links='1' type='c_router'>
+					<link src='170' addr='19' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='170' addr='19' cost='10'/>
+					</layer>
+				</node>
+				<node id='171' links='1' type='c_router'>
+					<link src='171' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='171' addr='99' cost='10'/>
+					</layer>
+				</node>
+				<node id='172' links='1' type='c_router'>
+					<link src='172' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='172' addr='77' cost='10'/>
+					</layer>
+				</node>
+				<node id='173' links='1' type='c_router'>
+					<link src='173' addr='45' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='173' addr='45' cost='10'/>
+					</layer>
+				</node>
+				<node id='174' links='1' type='c_router'>
+					<link src='174' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='174' addr='56' cost='10'/>
+					</layer>
+				</node>
+				<node id='175' links='1' type='c_router'>
+					<link src='175' addr='69' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='175' addr='69' cost='10'/>
+					</layer>
+				</node>
+				<node id='176' links='1' type='c_router'>
+					<link src='176' addr='24' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='176' addr='24' cost='10'/>
+					</layer>
+				</node>
+				<node id='177' links='1' type='c_router'>
+					<link src='177' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='177' addr='67' cost='10'/>
+					</layer>
+				</node>
+				<node id='178' links='1' type='c_router'>
+					<link src='178' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='178' addr='97' cost='10'/>
+					</layer>
+				</node>
+				<node id='179' links='1' type='c_router'>
+					<link src='179' addr='47' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='179' addr='47' cost='10'/>
+					</layer>
+				</node>
+				<node id='180' links='1' type='c_router'>
+					<link src='180' addr='89' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='180' addr='89' cost='10'/>
+					</layer>
+				</node>
+				<node id='181' links='1' type='c_router'>
+					<link src='181' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='181' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='182' links='1' type='c_router'>
+					<link src='182' addr='39' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='182' addr='39' cost='10'/>
+					</layer>
+				</node>
+				<node id='183' links='1' type='c_router'>
+					<link src='183' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='183' addr='97' cost='10'/>
+					</layer>
+				</node>
+				<node id='184' links='1' type='c_router'>
+					<link src='184' addr='60' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='184' addr='60' cost='10'/>
+					</layer>
+				</node>
+				<node id='185' links='1' type='c_router'>
+					<link src='185' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='185' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='186' links='1' type='c_router'>
+					<link src='186' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='186' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='187' links='1' type='c_router'>
+					<link src='187' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='187' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='188' links='1' type='c_router'>
+					<link src='188' addr='97' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='188' addr='97' cost='10'/>
+					</layer>
+				</node>
+				<node id='189' links='1' type='c_router'>
+					<link src='189' addr='113' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='189' addr='113' cost='10'/>
+					</layer>
+				</node>
+				<node id='190' links='1' type='c_router'>
+					<link src='190' addr='112' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='190' addr='112' cost='10'/>
+					</layer>
+				</node>
+				<node id='191' links='1' type='c_router'>
+					<link src='191' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='191' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='192' links='1' type='c_router'>
+					<link src='192' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='192' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='193' links='1' type='c_router'>
+					<link src='193' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='193' addr='104' cost='10'/>
+					</layer>
+				</node>
+				<node id='194' links='1' type='c_router'>
+					<link src='194' addr='112' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='194' addr='112' cost='10'/>
+					</layer>
+				</node>
+				<node id='195' links='1' type='c_router'>
+					<link src='195' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='195' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='196' links='1' type='c_router'>
+					<link src='196' addr='57' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='196' addr='57' cost='10'/>
+					</layer>
+				</node>
+				<node id='197' links='1' type='c_router'>
+					<link src='197' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='197' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='198' links='1' type='c_router'>
+					<link src='198' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='198' addr='72' cost='10'/>
+					</layer>
+				</node>
+				<node id='199' links='1' type='c_router'>
+					<link src='199' addr='67' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='199' addr='67' cost='10'/>
+					</layer>
+				</node>
+				<node id='200' links='1' type='c_router'>
+					<link src='200' addr='20' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='200' addr='20' cost='10'/>
+					</layer>
+				</node>
+				<node id='201' links='1' type='c_router'>
+					<link src='201' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='201' addr='102' cost='10'/>
+					</layer>
+				</node>
+				<node id='202' links='1' type='c_router'>
+					<link src='202' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='202' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='203' links='1' type='c_router'>
+					<link src='203' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='203' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='204' links='1' type='c_router'>
+					<link src='204' addr='110' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='204' addr='110' cost='10'/>
+					</layer>
+				</node>
+				<node id='205' links='1' type='c_router'>
+					<link src='205' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='205' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='206' links='1' type='c_router'>
+					<link src='206' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='206' addr='72' cost='10'/>
+					</layer>
+				</node>
+				<node id='207' links='1' type='c_router'>
+					<link src='207' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='207' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='208' links='1' type='c_router'>
+					<link src='208' addr='56' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='208' addr='56' cost='10'/>
+					</layer>
+				</node>
+				<node id='209' links='1' type='c_router'>
+					<link src='209' addr='76' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='209' addr='76' cost='10'/>
+					</layer>
+				</node>
+				<node id='210' links='1' type='c_router'>
+					<link src='210' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='210' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='211' links='1' type='c_router'>
+					<link src='211' addr='103' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='211' addr='103' cost='10'/>
+					</layer>
+				</node>
+				<node id='212' links='1' type='c_router'>
+					<link src='212' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='212' addr='72' cost='10'/>
+					</layer>
+				</node>
+				<node id='213' links='1' type='c_router'>
+					<link src='213' addr='89' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='213' addr='89' cost='10'/>
+					</layer>
+				</node>
+				<node id='214' links='1' type='c_router'>
+					<link src='214' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='214' addr='102' cost='10'/>
+					</layer>
+				</node>
+				<node id='215' links='1' type='c_router'>
+					<link src='215' addr='76' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='215' addr='76' cost='10'/>
+					</layer>
+				</node>
+				<node id='216' links='1' type='c_router'>
+					<link src='216' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='216' addr='99' cost='10'/>
+					</layer>
+				</node>
+				<node id='217' links='1' type='c_router'>
+					<link src='217' addr='58' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='217' addr='58' cost='10'/>
+					</layer>
+				</node>
+				<node id='218' links='1' type='c_router'>
+					<link src='218' addr='69' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='218' addr='69' cost='10'/>
+					</layer>
+				</node>
+				<node id='219' links='1' type='c_router'>
+					<link src='219' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='219' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='220' links='1' type='c_router'>
+					<link src='220' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='220' addr='52' cost='10'/>
+					</layer>
+				</node>
+				<node id='221' links='1' type='c_router'>
+					<link src='221' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='221' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='222' links='1' type='c_router'>
+					<link src='222' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='222' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='223' links='1' type='c_router'>
+					<link src='223' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='223' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='224' links='1' type='c_router'>
+					<link src='224' addr='162' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='224' addr='162' cost='10'/>
+					</layer>
+				</node>
+				<node id='225' links='1' type='c_router'>
+					<link src='225' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='225' addr='102' cost='10'/>
+					</layer>
+				</node>
+				<node id='226' links='1' type='c_router'>
+					<link src='226' addr='72' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='226' addr='72' cost='10'/>
+					</layer>
+				</node>
+				<node id='227' links='1' type='c_router'>
+					<link src='227' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='227' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='228' links='1' type='c_router'>
+					<link src='228' addr='85' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='228' addr='85' cost='10'/>
+					</layer>
+				</node>
+				<node id='229' links='1' type='c_router'>
+					<link src='229' addr='74' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='229' addr='74' cost='10'/>
+					</layer>
+				</node>
+				<node id='230' links='1' type='c_router'>
+					<link src='230' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='230' addr='17' cost='10'/>
+					</layer>
+				</node>
+				<node id='231' links='1' type='c_router'>
+					<link src='231' addr='100' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='231' addr='100' cost='10'/>
+					</layer>
+				</node>
+				<node id='232' links='1' type='c_router'>
+					<link src='232' addr='91' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='232' addr='91' cost='10'/>
+					</layer>
+				</node>
+				<node id='233' links='1' type='c_router'>
+					<link src='233' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='233' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='234' links='1' type='c_router'>
+					<link src='234' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='234' addr='52' cost='10'/>
+					</layer>
+				</node>
+				<node id='235' links='1' type='c_router'>
+					<link src='235' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='235' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='236' links='1' type='c_router'>
+					<link src='236' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='236' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='237' links='1' type='c_router'>
+					<link src='237' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='237' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='238' links='1' type='c_router'>
+					<link src='238' addr='63' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='238' addr='63' cost='10'/>
+					</layer>
+				</node>
+				<node id='239' links='1' type='c_router'>
+					<link src='239' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='239' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='240' links='1' type='c_router'>
+					<link src='240' addr='0' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='240' addr='0' cost='10'/>
+					</layer>
+				</node>
+				<node id='241' links='1' type='c_router'>
+					<link src='241' addr='62' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='241' addr='62' cost='10'/>
+					</layer>
+				</node>
+				<node id='242' links='1' type='c_router'>
+					<link src='242' addr='17' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='242' addr='17' cost='10'/>
+					</layer>
+				</node>
+				<node id='243' links='1' type='c_router'>
+					<link src='243' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='243' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='244' links='1' type='c_router'>
+					<link src='244' addr='102' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='244' addr='102' cost='10'/>
+					</layer>
+				</node>
+				<node id='245' links='1' type='c_router'>
+					<link src='245' addr='15' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='245' addr='15' cost='10'/>
+					</layer>
+				</node>
+				<node id='246' links='1' type='c_router'>
+					<link src='246' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='246' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='247' links='1' type='c_router'>
+					<link src='247' addr='111' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='247' addr='111' cost='10'/>
+					</layer>
+				</node>
+				<node id='248' links='1' type='c_router'>
+					<link src='248' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='248' addr='104' cost='10'/>
+					</layer>
+				</node>
+				<node id='249' links='1' type='c_router'>
+					<link src='249' addr='101' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='249' addr='101' cost='10'/>
+					</layer>
+				</node>
+				<node id='250' links='1' type='c_router'>
+					<link src='250' addr='110' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='250' addr='110' cost='10'/>
+					</layer>
+				</node>
+				<node id='251' links='1' type='c_router'>
+					<link src='251' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='251' addr='99' cost='10'/>
+					</layer>
+				</node>
+				<node id='252' links='1' type='c_router'>
+					<link src='252' addr='5' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='252' addr='5' cost='10'/>
+					</layer>
+				</node>
+				<node id='253' links='1' type='c_router'>
+					<link src='253' addr='52' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='253' addr='52' cost='10'/>
+					</layer>
+				</node>
+				<node id='254' links='1' type='c_router'>
+					<link src='254' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='254' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='255' links='1' type='c_router'>
+					<link src='255' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='255' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='256' links='1' type='c_router'>
+					<link src='256' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='256' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='257' links='1' type='c_router'>
+					<link src='257' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='257' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='258' links='1' type='c_router'>
+					<link src='258' addr='104' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='258' addr='104' cost='10'/>
+					</layer>
+				</node>
+				<node id='259' links='1' type='c_router'>
+					<link src='259' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='259' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='260' links='1' type='c_router'>
+					<link src='260' addr='99' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='260' addr='99' cost='10'/>
+					</layer>
+				</node>
+				<node id='261' links='1' type='c_router'>
+					<link src='261' addr='18' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='261' addr='18' cost='10'/>
+					</layer>
+				</node>
+				<node id='262' links='1' type='c_router'>
+					<link src='262' addr='10' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='262' addr='10' cost='10'/>
+					</layer>
+				</node>
+				<node id='263' links='1' type='c_router'>
+					<link src='263' addr='10' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='263' addr='10' cost='10'/>
+					</layer>
+				</node>
+				<node id='264' links='1' type='c_router'>
+					<link src='264' addr='40' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='264' addr='40' cost='10'/>
+					</layer>
+				</node>
+				<node id='265' links='1' type='c_router'>
+					<link src='265' addr='22' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='265' addr='22' cost='10'/>
+					</layer>
+				</node>
+				<node id='266' links='1' type='c_router'>
+					<link src='266' addr='25' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='266' addr='25' cost='10'/>
+					</layer>
+				</node>
+				<node id='267' links='1' type='c_router'>
+					<link src='267' addr='30' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='267' addr='30' cost='10'/>
+					</layer>
+				</node>
+				<node id='268' links='1' type='c_router'>
+					<link src='268' addr='41' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='268' addr='41' cost='10'/>
+					</layer>
+				</node>
+				<node id='269' links='1' type='c_router'>
+					<link src='269' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='269' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='270' links='1' type='c_router'>
+					<link src='270' addr='75' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='270' addr='75' cost='10'/>
+					</layer>
+				</node>
+				<node id='271' links='1' type='c_router'>
+					<link src='271' addr='78' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='271' addr='78' cost='10'/>
+					</layer>
+				</node>
+				<node id='272' links='1' type='c_router'>
+					<link src='272' addr='80' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='272' addr='80' cost='10'/>
+					</layer>
+				</node>
+				<node id='273' links='1' type='c_router'>
+					<link src='273' addr='79' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='273' addr='79' cost='10'/>
+					</layer>
+				</node>
+				<node id='274' links='1' type='c_router'>
+					<link src='274' addr='69' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='274' addr='69' cost='10'/>
+					</layer>
+				</node>
+				<node id='275' links='1' type='c_router'>
+					<link src='275' addr='98' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='275' addr='98' cost='10'/>
+					</layer>
+				</node>
+				<node id='276' links='1' type='c_router'>
+					<link src='276' addr='131' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='276' addr='131' cost='10'/>
+					</layer>
+				</node>
+				<node id='277' links='1' type='c_router'>
+					<link src='277' addr='22' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='277' addr='22' cost='10'/>
+					</layer>
+				</node>
+				<node id='278' links='1' type='c_router'>
+					<link src='278' addr='23' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='278' addr='23' cost='10'/>
+					</layer>
+				</node>
+				<node id='279' links='1' type='c_router'>
+					<link src='279' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='279' addr='127' cost='10'/>
+					</layer>
+				</node>
+				<node id='280' links='1' type='c_router'>
+					<link src='280' addr='139' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='280' addr='139' cost='10'/>
+					</layer>
+				</node>
+				<node id='281' links='1' type='c_router'>
+					<link src='281' addr='9' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='281' addr='9' cost='10'/>
+					</layer>
+				</node>
+				<node id='282' links='1' type='c_router'>
+					<link src='282' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='282' addr='158' cost='10'/>
+					</layer>
+				</node>
+				<node id='283' links='1' type='c_router'>
+					<link src='283' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='283' addr='158' cost='10'/>
+					</layer>
+				</node>
+				<node id='284' links='1' type='c_router'>
+					<link src='284' addr='158' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='284' addr='158' cost='10'/>
+					</layer>
+				</node>
+				<node id='285' links='1' type='c_router'>
+					<link src='285' addr='55' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='285' addr='55' cost='10'/>
+					</layer>
+				</node>
+				<node id='286' links='1' type='c_router'>
+					<link src='286' addr='127' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='286' addr='127' cost='10'/>
+					</layer>
+				</node>
+				<node id='287' links='1' type='c_router'>
+					<link src='287' addr='95' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='287' addr='95' cost='10'/>
+					</layer>
+				</node>
+				<node id='288' links='1' type='c_router'>
+					<link src='288' addr='77' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='288' addr='77' cost='10'/>
+					</layer>
+				</node>
+				<node id='289' links='1' type='c_router'>
+					<link src='289' addr='144' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='289' addr='144' cost='10'/>
+					</layer>
+				</node>
+				<node id='290' links='1' type='c_router'>
+					<link src='290' addr='83' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='290' addr='83' cost='10'/>
+					</layer>
+				</node>
+				<node id='291' links='1' type='c_router'>
+					<link src='291' addr='92' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='291' addr='92' cost='10'/>
+					</layer>
+				</node>
+				<node id='292' links='1' type='c_router'>
+					<link src='292' addr='157' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='292' addr='157' cost='10'/>
+					</layer>
+				</node>
+				<node id='293' links='1' type='c_router'>
+					<link src='293' addr='108' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='293' addr='108' cost='10'/>
+					</layer>
+				</node>
+				<node id='294' links='1' type='c_router'>
+					<link src='294' addr='107' bandwidth='10000000' delay='0.001000' status='up'/>
+
+					<layer name='ospf' level='network'>
+						<interface src='294' addr='107' cost='10'/>
+					</layer>
+				</node>
+			</subnet>
+		</area>
+	</as>
+</rossnet>

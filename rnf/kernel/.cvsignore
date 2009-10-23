@@ -1,0 +1,12 @@
+.libs
+config
+*.swp
+.deps
+*.a
+*.la
+*.o
+*.lo
+Makefile
+rn
+rossnet_config.h
+stamp-h1

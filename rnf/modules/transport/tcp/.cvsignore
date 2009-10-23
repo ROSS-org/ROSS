@@ -1,0 +1,9 @@
+.libs
+Makefile
+.deps
+*.a
+*.la
+*.o
+*.lo
+*~
+*.swp
