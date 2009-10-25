@@ -1,6 +1,6 @@
 IF(WITH_TLM)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/rossnet)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
+INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
 SET(tlm_srcs
 tlm-grid.c		tlm-proximity.c
 tlm-helper.c		tlm-rc-cell.c

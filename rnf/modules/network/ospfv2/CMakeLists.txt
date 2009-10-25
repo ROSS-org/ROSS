@@ -1,6 +1,6 @@
 IF(WITH_OSPF)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/rossnet)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
+INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
 SET(ospf_srcs
 ospf-lsa.c		ospf-main.c		ospf-message-types.h
 ospf-ack.c		ospf-neighbor-list.c	ospf-data-structure.h

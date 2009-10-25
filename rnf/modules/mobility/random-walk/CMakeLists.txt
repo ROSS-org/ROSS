@@ -1,6 +1,6 @@
 IF(WITH_RANDOM_WALK)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/rossnet)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
+INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
 SET(rw_srcs
 rw-global.c	rw-node.c	rw.c
 rw-helper.c	rw-types.h	rw.h

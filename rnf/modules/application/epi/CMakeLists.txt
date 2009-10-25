@@ -1,6 +1,6 @@
 IF(WITH_EPI)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/rossnet)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
+INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
 SET(epi_srcs
 epi-global.c	epi-seir.c	epi-xml.c	epi-init.c
 epi-setup.c	epi.c		epi-agent.c	epi-main.c

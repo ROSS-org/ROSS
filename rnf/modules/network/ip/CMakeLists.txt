@@ -1,6 +1,6 @@
 IF(WITH_IP)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/rossnet)
-INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/../../ross)
+INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
 SET(ip_srcs
 ip-global.c		ip-upstream.c
 ip-model.c		ip-xml.c
