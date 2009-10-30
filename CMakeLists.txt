@@ -27,10 +27,16 @@ SET(GVT           mpi_allreduce)
 #SET(GVT                  7oclock)
 #SET(GVT                  none)
 
-SET(ARCH bgl)
+#SET(ARCH bgl)
 #SET(ARCH bgp)
 #SET(ARCH x86_64)
 #SET(ARCH ppc64)
+SET(ARCH $ENV{ARCH})
+IF(NOT ARCH)
+	MESSAGE(FATAL_ERROR
+		"ARCH not defined!\n"
+		"Please set ARCH to be one of (bgl | bgp | x86_64 | ppc64)")
+ENDIF(NOT ARCH)
 
 ADD_SUBDIRECTORY(ross)
 ADD_SUBDIRECTORY(rnf)
