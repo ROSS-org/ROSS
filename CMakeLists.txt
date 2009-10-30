@@ -19,7 +19,7 @@ SET(NETWORK       mpi)
 #SET(THREAD       pthread)
 SET(THREAD        none)
 
-SET(CLOCK         amd64)
+#SET(CLOCK         amd64)
 #SET(CLOCK        i386)
 #SET(CLOCK        ppc)
 
@@ -27,9 +27,9 @@ SET(GVT           mpi_allreduce)
 #SET(GVT                  7oclock)
 #SET(GVT                  none)
 
-#SET(ARCH bgl)
+SET(ARCH bgl)
 #SET(ARCH bgp)
-SET(ARCH x86_64)
+#SET(ARCH x86_64)
 #SET(ARCH ppc64)
 
 ADD_SUBDIRECTORY(ross)

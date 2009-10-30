@@ -1,5 +1,34 @@
 PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
+
+IF(ARCH STREQUAL bgl)
+	SET(CC	 mpixlc)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
+	SET(OPTIONS "-qtune=440 -qarch=440d")
+	SET(CLOCK   bgl)
+ENDIF(ARCH STREQUAL bgl)
+
+IF(ARCH STREQUAL bgp)
+	SET(CC	 mpixlc)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
+	SET(OPTIONS "-qtune=450 -qarch=450d")
+	SET(CLOCK   bgl)
+ENDIF(ARCH STREQUAL bgp)
+
+IF(ARCH STREQUAL ppc64)
+	SET(CC	 mpicc)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+	ADD_DEFINITIONS(-D_GNU_SOURCE)
+	SET(CLOCK	ppc)
+ENDIF(ARCH STREQUAL ppc64)
+
+IF(ARCH STREQUAL x86_64)
+	SET(CC	 mpicc)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O6 -Wall")
+	ADD_DEFINITIONS(-D_GNU_SOURCE)
+	SET(CLOCK	amd64)
+ENDIF(ARCH STREQUAL x86_64)
+
 SET(ross_srcs
 clock-${CLOCK}.c
 clock-${CLOCK}.h
@@ -35,34 +64,6 @@ tw-stats.c
 tw-timing.c
 tw-timing.h
 tw-util.c)
-
-IF(ARCH STREQUAL bgl)
-	SET(CC	 mpixlc)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
-	SET(OPTIONS "-qtune=440 -qarch=440d")
-	SET(CLOCK   blg)
-ENDIF(ARCH STREQUAL bgl)
-
-IF(ARCH STREQUAL bgp)
-	SET(CC	 mpixlc)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
-	SET(OPTIONS "-qtune=450 -qarch=450d")
-	SET(CLOCK   blg)
-ENDIF(ARCH STREQUAL bgp)
-
-IF(ARCH STREQUAL ppc64)
-	SET(CC	 mpicc)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
-	ADD_DEFINITIONS(-D_GNU_SOURCE)
-	SET(CLOCK	ppc)
-ENDIF(ARCH STREQUAL ppc64)
-
-IF(ARCH STREQUAL x86_64)
-	SET(CC	 mpicc)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O6 -Wall")
-	ADD_DEFINITIONS(-D_GNU_SOURCE)
-	SET(CLOCK	amd64)
-ENDIF(ARCH STREQUAL x86_64)
 
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")

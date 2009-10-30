@@ -93,12 +93,6 @@ struct mem_pool
 
 static struct mem_pool *main_pool;
 
-#ifdef ARCH_BLUE_GENE
-static tw_mutex pool_lock;
-#else
-static tw_mutex pool_lock = TW_MUTEX_INIT;
-#endif /* BLUE_GENE */
-
 //static const size_t pool_size = 512 * 1024 - sizeof(struct mem_pool);
 static const size_t pool_size = (512 * 1024) - 32;
 static const size_t pool_align = max(sizeof(double),sizeof(void*));
@@ -126,7 +120,7 @@ pool_alloc(size_t len)
 	struct mem_pool *p;
 	void *r;
 
-	tw_mutex_lock(&pool_lock);
+	// tw_mutex_lock(&pool_lock);
 	for (p = main_pool; p; p = p->next_pool)
 		if ((p->end_free - p->next_free >= len))
 			break;
@@ -161,7 +155,7 @@ pool_alloc(size_t len)
 ret:
 	if (r)
 		total_allocated += len;
-	tw_mutex_unlock(&pool_lock);
+	// tw_mutex_unlock(&pool_lock);
 	return r;
 }
 

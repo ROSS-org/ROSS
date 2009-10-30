@@ -129,7 +129,7 @@ typedef unsigned int tw_peid;
 typedef double tw_stime;
 
 /* tw_lpid -- Logical Process "LP" id */
-#ifdef ARCH_BLUE_GENE
+#ifdef ARCH_bgl || ARCH_bgp
 typedef unsigned long long tw_lpid;
 #else
 typedef unsigned long long tw_lpid;
