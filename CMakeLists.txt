@@ -19,18 +19,9 @@ SET(NETWORK       mpi)
 #SET(THREAD       pthread)
 SET(THREAD        none)
 
-#SET(CLOCK         amd64)
-#SET(CLOCK        i386)
-#SET(CLOCK        ppc)
-
 SET(GVT           mpi_allreduce)
-#SET(GVT                  7oclock)
-#SET(GVT                  none)
-
-#SET(ARCH bgl)
-#SET(ARCH bgp)
-#SET(ARCH x86_64)
-#SET(ARCH ppc64)
+#SET(GVT          7oclock)
+#SET(GVT          none)
 
 SET(ARCH $ENV{ARCH})
 IF(NOT ARCH)
@@ -41,6 +32,7 @@ ENDIF(NOT ARCH)
 
 IF(ARCH STREQUAL bgl)
        #SET(CC   mpixlc)
+       #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
        SET(OPTIONS "-qtune=440 -qarch=440d")
        SET(CLOCK   bgl)
