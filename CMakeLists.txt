@@ -10,7 +10,10 @@ SET(RAND           clcg4)
 
 #MEMORY is either on or off depending on whether or not we desire
 #memory buffers.  If it's not set to YES, it defaults to NO
-SET(MEMORY        YES)
+OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     ON)
+#SET(MEMORY        YES)
+
+OPTION(TIMING	   "Perform ROSS timings"	OFF)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
