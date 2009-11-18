@@ -15,9 +15,7 @@ tw_sched_event_q(tw_pe * me)
   
   while (me->event_q.size) 
     {
-      tw_mutex_lock(&me->event_q_lck);
       cev = tw_eventq_pop_list(&me->event_q);
-      tw_mutex_unlock(&me->event_q_lck);
       
       for (; cev; cev = nev) 
 	{
@@ -77,10 +75,8 @@ tw_sched_cancel_q(tw_pe * me)
 
 	start = tw_clock_read();
 	while (me->cancel_q) {
-		tw_mutex_lock(&me->cancel_q_lck);
 		cev = me->cancel_q;
 		me->cancel_q = NULL;
-		tw_mutex_unlock(&me->cancel_q_lck);
 
 		for (; cev; cev = nev) {
 			nev = cev->cancel_next;
@@ -98,9 +94,7 @@ tw_sched_cancel_q(tw_pe * me)
 				 * do the actual free of this event when we receive it
 				 * as we spin out the event_q chain.
 				 */
-				tw_mutex_lock(&me->event_q_lck);
 				tw_eventq_delete_any(&me->event_q, cev);
-				tw_mutex_unlock(&me->event_q_lck);
 
 				tw_event_free(me, cev);
 				break;
@@ -219,7 +213,6 @@ tw_sched_init(tw_pe * me)
 	tw_init_lps(me);
 	(*me->type.post_lp_init)(me);
 
-	tw_barrier_sync(&g_tw_simstart);
 	tw_net_barrier(me);
 
 	/*
@@ -232,8 +225,6 @@ tw_sched_init(tw_pe * me)
 		tw_net_barrier(me);
 	}
 
-	tw_barrier_sync(&g_tw_simstart);
-
 	if (tw_nnodes() > 1)
 		tw_clock_init(me);
 
@@ -244,96 +235,207 @@ tw_sched_init(tw_pe * me)
 	if((tw_nnodes() > 1 || g_tw_npe > 1) &&
 		tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
 		me->local_master)
-		printf("*** START PARALLEL SIMULATION ***\n\n");
+	  {
+	    if( g_tw_synchronization_protocol == CONSERVATIVE )
+	      printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
+	    if( g_tw_synchronization_protocol == OPTIMISTIC )
+	      printf("*** START PARALLEL OPTIMISTIC SIMULATION ***\n\n");
+	  }
 	else if(tw_nnodes() == 1 && g_tw_npe == 1)
-		printf("*** START SEQUENTIAL SIMULATION ***\n\n");
+	  {
+	    // force the setting of SEQUENTIAL protocol
+	    if( g_tw_synchronization_protocol!=SEQUENTIAL )
+	      g_tw_synchronization_protocol=SEQUENTIAL;
+
+	    printf("*** START SEQUENTIAL SIMULATION ***\n\n");
+	  }
 
 	if (me->local_master)
 		g_tw_sim_started = 1;
 }
 
+/*************************************************************************/
+/* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
+/*************************************************************************/
+
 void
-tw_scheduler(tw_pe * me)
+tw_scheduler_sequential(tw_pe * me)
 {
-        tw_clock start;
+  tw_event *cev;
+  
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  while ((cev = tw_pq_dequeue(me->pq))) 
+    {
+      tw_lp *clp = (tw_lp*)cev->dest_lp;
+      tw_kp *ckp = clp->kp;
+      
+      me->cur_event = cev;
+      ckp->last_time = cev->recv_ts;
+      
+      (*clp->type.event)(
+			 clp->cur_state,
+			 &cev->cv,
+			 tw_event_data(cev),
+			 clp);
+      
+      if (me->cev_abort)
+	tw_error(TW_LOC, "insufficient event memory");
+      
+      ckp->s_nevent_processed++;
+      tw_event_free(me, cev);
+    }
+  tw_wall_now(&me->end_time);
+  
+  printf("*** END SIMULATION ***\n\n");
+  
+  tw_stats(me);
+  
+  (*me->type.final)(me);
+}
 
-	tw_sched_init(me);
-
-	tw_wall_now(&me->start_time);
-        me->stats.s_total = tw_clock_read();
-
-	for (;;)
+void
+tw_scheduler_conservative(tw_pe * me)
+{
+  tw_clock start;
+  unsigned int msg_i;
+  
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  me->stats.s_total = tw_clock_read();
+  
+  for (;;)
+    {
+      if (tw_nnodes() > 1)
 	{
-		if (tw_nnodes() > 1)
-		{
-			start = tw_clock_read();
-			tw_net_read(me);
-			me->stats.s_net_read += tw_clock_read() - start;
-		}
-
-		tw_gvt_step1(me);
-
-		tw_sched_event_q(me);
-		tw_sched_cancel_q(me);
-
-                start = tw_clock_read();
-                tw_gvt_step2(me);
-                me->stats.s_gvt += tw_clock_read() - start;
-
-		if (me->GVT > g_tw_ts_end)
-			break;
-
-		tw_sched_batch(me);
+	  start = tw_clock_read();
+	  tw_net_read(me);
+	  me->stats.s_net_read += tw_clock_read() - start;
 	}
+      
+      tw_gvt_step1(me);
+      
+      tw_sched_event_q(me);
+      
+      start = tw_clock_read();
+      tw_gvt_step2(me);
+      me->stats.s_gvt += tw_clock_read() - start;
+      
+      if (me->GVT > g_tw_ts_end)
+	break;
+      
+      // put "batch" loop directly here
+      /* Process g_tw_mblock events, or until the PQ is empty
+       * (whichever comes first). 
+       */
+      for (msg_i = g_tw_mblock; msg_i; msg_i--) 
+	{
+	  tw_event *cev;
+	  tw_lp *clp;
+	  tw_kp *ckp;
+	  
+	  /* OUT OF FREE EVENT BUFFERS.  BAD.
+	   * Go do fossil collect immediately.
+	   */
+	  if (me->free_q.size <= g_tw_gvt_threshold) {
+	    tw_gvt_force_update(me);
+	    break;
+	  }
+	  
+	  if(tw_pq_minimum(me->pq) > me->GVT + g_tw_lookahead)
+	    break;
+	  
+	  start = tw_clock_read();
+	  if (!(cev = tw_pq_dequeue(me->pq)))
+	    break;
+	  me->stats.s_pq += tw_clock_read() - start;
+	  
+	  clp = cev->dest_lp;
+	  ckp = clp->kp;
+	  me->cur_event = cev;
+	  ckp->last_time = cev->recv_ts;
+	  
+	  start = tw_clock_read();
+	  (*clp->type.event)(
+			     clp->cur_state,
+			     &cev->cv,
+			     tw_event_data(cev),
+			     clp);
 
-	tw_wall_now(&me->end_time);
-        me->stats.s_total = tw_clock_read() - me->stats.s_total;
+	  ckp->s_nevent_processed++;
+	  me->stats.s_event_process += tw_clock_read() - start;
+	  
+	  if (me->cev_abort)
+	    tw_error(TW_LOC, "insufficient event memory");
+	  
+	  tw_event_free(me, cev);
+	}
+    }
 
-	if((tw_nnodes() > 1 || g_tw_npe > 1) &&
-		tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
-		me->local_master)
-		printf("*** END SIMULATION ***\n\n");
-
-	tw_barrier_sync(&g_tw_simend);
-	tw_net_barrier(me);
-
-	// call the model PE finalize function
-	(*me->type.final)(me);
-
-	tw_stats(me);
+  
+  tw_wall_now(&me->end_time);
+  me->stats.s_total = tw_clock_read() - me->stats.s_total;
+  
+  if((tw_nnodes() > 1 || g_tw_npe > 1) &&
+     tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
+     me->local_master)
+    printf("*** END SIMULATION ***\n\n");
+  
+  tw_net_barrier(me);
+  
+  // call the model PE finalize function
+  (*me->type.final)(me);
+  
+  tw_stats(me);
 }
 
 void
-tw_scheduler_seq(tw_pe * me)
+tw_scheduler_optimistic(tw_pe * me)
 {
-	tw_event *cev;
-
-	tw_sched_init(me);
-	tw_wall_now(&me->start_time);
-	while ((cev = tw_pq_dequeue(me->pq))) {
-		tw_lp *clp = (tw_lp*)cev->dest_lp;
-		tw_kp *ckp = clp->kp;
-
-		me->cur_event = cev;
-		ckp->last_time = cev->recv_ts;
-
-		(*clp->type.event)(
-			clp->cur_state,
-			&cev->cv,
-			tw_event_data(cev),
-			clp);
-
-		if (me->cev_abort)
-			tw_error(TW_LOC, "insufficient event memory");
-
-		ckp->s_nevent_processed++;
-		tw_event_free(me, cev);
+  tw_clock start;
+  
+  tw_sched_init(me);
+  
+  tw_wall_now(&me->start_time);
+  me->stats.s_total = tw_clock_read();
+  
+  for (;;)
+    {
+      if (tw_nnodes() > 1)
+	{
+	  start = tw_clock_read();
+	  tw_net_read(me);
+	  me->stats.s_net_read += tw_clock_read() - start;
 	}
-	tw_wall_now(&me->end_time);
-
-	printf("*** END SIMULATION ***\n\n");
-
-	tw_stats(me);
-
-	(*me->type.final)(me);
+      
+      tw_gvt_step1(me);
+      
+      tw_sched_event_q(me);
+      tw_sched_cancel_q(me);
+      
+      start = tw_clock_read();
+      tw_gvt_step2(me);
+      me->stats.s_gvt += tw_clock_read() - start;
+      
+      if (me->GVT > g_tw_ts_end)
+	break;
+      
+      tw_sched_batch(me);
+    }
+  
+  tw_wall_now(&me->end_time);
+  me->stats.s_total = tw_clock_read() - me->stats.s_total;
+  
+  if((tw_nnodes() > 1 || g_tw_npe > 1) &&
+     tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
+     me->local_master)
+    printf("*** END SIMULATION ***\n\n");
+  
+  tw_net_barrier(me);
+  
+  // call the model PE finalize function
+  (*me->type.final)(me);
+  
+  tw_stats(me);
 }
+

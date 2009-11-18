@@ -401,13 +401,8 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 		cancel->state.cancel_q = 1;
 		cancel->state.remote = 0;
 
-		tw_mutex_lock(&dest_pe->cancel_q_lck);
 		cancel->cancel_next = dest_pe->cancel_q;
 		dest_pe->cancel_q = cancel;
-		tw_mutex_unlock(&dest_pe->cancel_q_lck);
-
-		//e->event_id = e->state.cancel_q = 0;
-		//e->state.remote = 0;
 
 		tw_event_free(me, e);
 
@@ -457,10 +452,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 		 * of dest_pe->event_q. 
 		 */
 		e->state.owner = TW_pe_event_q;
-
-		tw_mutex_lock(&dest_pe->event_q_lck);
 		tw_eventq_push(&dest_pe->event_q, e);
-		tw_mutex_unlock(&dest_pe->event_q_lck);
 		return;
 	}
 
@@ -627,6 +619,8 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 			 * back to local format for fossil collection.
 			 */
 			e->state.owner = TW_pe_sevent_q;
+			if( g_tw_synchronization_protocol == CONSERVATIVE )
+			  tw_event_free(me, e);
 		}
 
 		return;
@@ -644,11 +638,13 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 	/* Never should happen, not unless we somehow broke this
 	 * module's other functions related to sending an event.
 	 */
+
 	tw_error(
 		TW_LOC,
 		"Don't know how to finish send of owner=%u, cancel_q=%d",
 		e->state.owner,
 		e->state.cancel_q);
+
 }
 
 static void

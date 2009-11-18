@@ -1,5 +1,6 @@
 #include "phold.h"
 
+
 tw_peid
 phold_map(tw_lpid gid)
 {
@@ -20,7 +21,7 @@ phold_init(phold_state * s, tw_lp * lp)
 	{
 		tw_event_send(
 			tw_event_new(lp->gid, 
-				     tw_rand_exponential(lp->rng, mean), 
+				     tw_rand_exponential(lp->rng, mean) + lookahead, 
 				     lp));
 	}
 }
@@ -48,7 +49,7 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 	if(dest < 0 || dest >= (g_tw_nlp * tw_nnodes()))
 		tw_error(TW_LOC, "bad dest");
 
-	tw_event_send(tw_event_new(dest, tw_rand_exponential(lp->rng, mean), lp));
+	tw_event_send(tw_event_new(dest, tw_rand_exponential(lp->rng, mean) + lookahead, lp));
 }
 
 void
@@ -83,6 +84,7 @@ const tw_optdef app_opt[] =
 	TWOPT_UINT("nlp", nlp_per_pe, "number of LPs per processor"),
 	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
 	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
+	TWOPT_STIME("lookahead", lookahead, "lookahead for events"),
 	TWOPT_UINT("start-events", g_phold_start_events, "number of initial messages per LP"),
 	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),
 	TWOPT_CHAR("run", run_id, "user supplied run name"),
@@ -94,6 +96,10 @@ main(int argc, char **argv, char **env)
 {
 	int		 i;
 
+        // get rid of error if compiled w/ MEMORY queues
+        g_tw_memory_nqueues=1;
+	// set a min lookahead of 1.0
+	lookahead = 1.0;
 	tw_opt_add(app_opt);
 	tw_init(&argc, &argv);
 
@@ -102,6 +108,7 @@ main(int argc, char **argv, char **env)
 	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
 				optimistic_memory;
 	//g_tw_rng_default = TW_FALSE;
+	g_tw_lookahead = lookahead;
 
 	tw_define_lps(nlp_per_pe, sizeof(phold_message), 0);
 

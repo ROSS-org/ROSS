@@ -26,6 +26,7 @@ extern unsigned int tw_pq_max_size(tw_pq *);
 /*
  * ross-global.c
  */
+extern tw_synch g_tw_synchronization_protocol;
 extern tw_lpid  g_tw_nlp;
 extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
@@ -47,19 +48,11 @@ extern size_t		g_tw_event_msg_sz;
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
 
+extern tw_stime         g_tw_lookahead;
+
 extern tw_peid  g_tw_npe;
 extern tw_pe **g_tw_pe;
 extern int      g_tw_events_per_pe;
-
-extern tw_barrier g_tw_simstart;
-extern tw_barrier g_tw_simend;
-extern tw_barrier g_tw_network;
-extern tw_barrier g_tw_gvt_b;
-
-extern tw_mutex   g_tw_debug_lck;
-extern tw_mutex   g_tw_event_q_lck;
-extern tw_mutex   g_tw_cancel_q_lck;
-extern tw_mutex   g_tw_cancel_q_sz_lck;
 
 extern unsigned int	    g_tw_gvt_threshold;
 extern unsigned int	    g_tw_gvt_done;
@@ -150,8 +143,9 @@ extern void tw_end(void);
 /*
  * tw-sched.c
  */
-extern void tw_scheduler_seq(tw_pe * me);
-extern void tw_scheduler(tw_pe * me);
+extern void tw_scheduler_sequential(tw_pe * me);
+extern void tw_scheduler_conservative(tw_pe * me);
+extern void tw_scheduler_optimistic(tw_pe * me);
 
 /*
  * tw-signal.c

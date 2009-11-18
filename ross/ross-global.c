@@ -61,6 +61,9 @@
 	 * g_tw_fossil_attempts  -- Number of times fossil_collect is called
          * g_tw_nRNG_per_lp -- Number of RNG per LP
 	 */
+
+tw_synch   g_tw_synchronization_protocol=NO_SYNCH;
+
 tw_lpid         g_tw_nlp = 0;
 tw_lpid		g_tw_lp_offset = 0;
 tw_kpid         g_tw_nkp = 1;
@@ -72,7 +75,6 @@ unsigned int    g_tw_nRNG_per_lp = 1;
 tw_lpid         g_tw_rng_default = TW_TRUE;
 size_t          g_tw_rng_max = 1;
 tw_seed        *g_tw_rng_seed = NULL;
-
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
 
@@ -80,13 +82,19 @@ unsigned int	g_tw_memory_nqueues = 0;
 size_t		g_tw_memory_sz = 0;
 size_t		g_tw_event_msg_sz = 0;
 
+        /*
+         * Minimum lookahead for a model -- model defined when
+         * using the Simple Synchronization Protocol (conservative)
+         */
+tw_stime g_tw_lookahead=1.0;
+
 	/*
 	 * Number of messages to process at once out of the PQ before
 	 * returning back to handling things like GVT, message recption,
 	 * etc.
 	 */
 unsigned int g_tw_mblock = 16;
-tw_stime        g_tw_ts_end = 100000.0;
+tw_stime     g_tw_ts_end = 100000.0;
 
 	/*
 	 * g_tw_npe             -- Number of PEs.
@@ -98,19 +106,6 @@ tw_peid		g_tw_npe = 1;
 tw_pe		**g_tw_pe;
 int             g_tw_events_per_pe = 2048;
 unsigned int	g_tw_master = 0;
-
-	/*
-	 * Barriers and global lock objects which are needed for this
-	 * _node_ and its threads running on it.  Remote nodes do not
-	 * share these barriers and locks, they have their own. BUT,
-	 * remote nodes must be synchronized with all other remote 
-	 * nodes/pe's.
-	 */
-tw_barrier      g_tw_simstart;
-tw_barrier      g_tw_simend;
-tw_barrier      g_tw_network;
-tw_barrier      g_tw_gvt_b;
-tw_mutex        g_tw_debug_lck;
 
 unsigned int	g_tw_gvt_threshold = 1000;
 unsigned int	g_tw_gvt_done = 0;

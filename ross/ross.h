@@ -137,16 +137,6 @@ typedef unsigned long long tw_lpid;
 #endif
 
 #include "ross-random.h"
-#include "ross-thread.h"
-
-#ifdef ROSS_THREAD_pthread
-#  define tw_volatile volatile
-#  include "thread-pthread.h"
-#endif
-#ifdef ROSS_THREAD_none
-#  define tw_volatile /* thread-none */
-#  include "thread-none.h"
-#endif
 
 #ifdef ROSS_RAND_clcg4
 #  include "rand-clcg4.h"

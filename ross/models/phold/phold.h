@@ -23,7 +23,7 @@ DEF(struct, phold_message)
 	/*
 	 * PHOLD Globals
 	 */
-
+tw_stime lookahead = 1.0;
 static unsigned int offset_lpid = 0;
 static tw_stime mult = 1.4;
 static tw_stime percent_remote = 0.25;

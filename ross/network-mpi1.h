@@ -49,16 +49,6 @@
 #ifndef INC_network_mpi1_h
 #define INC_network_mpi1_h
 
-#ifndef ROSS_THREAD_none
- /* This is a total copout.  We probably could put suitable
-  * tw_mutex primitives inside of our implementation but we
-  * just don't want to be bothered with doing it right now
-  * as we only need very basic MPI support to run on most of
-  * the available supercomputer clusters.
-  */
-#  error only THREAD=none supported on NETWORK=mpi
-#endif
-
 //typedef tw_lpid tw_eventid;
 typedef unsigned int tw_eventid;
 typedef int tw_node;

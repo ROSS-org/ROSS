@@ -50,12 +50,13 @@
 
 #define VERIFY_MAPPING 0
 
-static void init_locks(void);
 static tw_pe *setup_pes(void);
 static unsigned int nkp_per_pe = 1;
 
 static const tw_optdef kernel_options[] = {
 	TWOPT_GROUP("ROSS Kernel"),
+	TWOPT_UINT("synch", g_tw_synchronization_protocol, 
+		   "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3"),
 	TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
 	TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
 	TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
@@ -278,16 +279,29 @@ late_sanity_check(void)
 void
 tw_run(void)
 {
-	tw_pe *me;
+  tw_pe *me;
+  
+  late_sanity_check();
+  
+  me = setup_pes();
+  
+  switch(g_tw_synchronization_protocol)
+    {
+    case SEQUENTIAL:    // case 1
+      tw_scheduler_sequential(me);
+      break;
+      
+    case CONSERVATIVE: // case 2
+      tw_scheduler_conservative(me);
+      break;
+      
+    case OPTIMISTIC:   // case 3
+      tw_scheduler_optimistic(me);
+      break;
 
-	late_sanity_check();
-
-	init_locks();
-	me = setup_pes();
-	if(g_tw_npe == 1 && tw_nnodes() == 1)
-		tw_scheduler_seq(me);
-	else
-		tw_scheduler(me);
+    default:
+      tw_error(TW_LOC, "No Synchronization Protocol Specified! \n");
+    }
 }
 
 void
@@ -373,19 +387,7 @@ setup_pes(void)
 		printf("\n");
 #endif
 	}
-
-	for(i = 1; i < g_tw_npe; i++)
-		tw_thread_create((void (*)(void *))tw_scheduler, g_tw_pe[i]);
-
 	return master;
 }
 
-static void
-init_locks(void)
-{
-	tw_barrier_create(&g_tw_simstart);
-	tw_barrier_create(&g_tw_simend);
-	tw_barrier_create(&g_tw_network);
-	tw_barrier_create(&g_tw_gvt_b);
-	tw_mutex_create(&g_tw_debug_lck);
-}
+

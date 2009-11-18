@@ -66,9 +66,6 @@ tw_sigsegv(int sig)
 	if(0 == g_tw_sim_started)
 		tw_net_abort();
 
-	/* only one process should */
-	tw_mutex_lock(&g_tw_debug_lck);
-
 	if (once)
 	{
 		tw_pe *master = NULL;
@@ -86,8 +83,6 @@ tw_sigsegv(int sig)
 
 	once = 0;
 
-	tw_mutex_unlock(&g_tw_debug_lck);
-	tw_barrier_sync(&g_tw_simend);
 	tw_printf(TW_LOC, "Caught SIGINT; terminating.");
 	tw_net_abort();
 }

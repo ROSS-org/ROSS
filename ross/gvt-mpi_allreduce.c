@@ -163,9 +163,13 @@ tw_gvt_step2(tw_pe *me)
 	mattern_nochange = 0;
 	gvt_cnt = 0;
 
-	start = tw_clock_read();
-	tw_pe_fossil_collect(me);
-	me->stats.s_fossil_collect += tw_clock_read() - start;
+	// only FC if OPTIMISTIC
+	if( g_tw_synchronization_protocol == OPTIMISTIC )
+	  {
+	    start = tw_clock_read();
+	    tw_pe_fossil_collect(me);
+	    me->stats.s_fossil_collect += tw_clock_read() - start;
+	  }
 
 	g_tw_gvt_done++;
 }

@@ -10,17 +10,18 @@ SET(RAND           clcg4)
 
 #MEMORY is either on or off depending on whether or not we desire
 #memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     ON)
+OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
 #SET(MEMORY        YES)
 
-OPTION(TIMING	   "Perform ROSS timings"	OFF)
+OPTION(TIMING	   "Perform ROSS timings"	ON)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
 #SET(NETWORK      none)
 
+# Pthread support is depreciate!
 #SET(THREAD       pthread)
-SET(THREAD        none)
+#SET(THREAD        none)
 
 SET(GVT           mpi_allreduce)
 #SET(GVT          7oclock)

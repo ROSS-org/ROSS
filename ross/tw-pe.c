@@ -56,8 +56,6 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	memcpy(&pe->node, &g_tw_mynode, sizeof(tw_node));
 	tw_pe_settype(pe, &no_type);
 
-	tw_mutex_create(&pe->event_q_lck);
-	tw_mutex_create(&pe->cancel_q_lck);
 	pe->trans_msg_ts = DBL_MAX;
 	pe->gvt_status = 0;
 

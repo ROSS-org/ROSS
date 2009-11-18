@@ -86,11 +86,3 @@ xmlXPathContextPtr ctxt_model = NULL;
 
 xmlNodePtr g_rn_environment = NULL;
 
-/**
- * g_rn_barrier	-- barrier used during lp initialization, gives RN a chance to 
- *		   init sequential, in multi-threaded enviroment of ROSS
- * g_rn_lp_lck	-- lock used in rn_lps, during tw_init_lps, to init local lps
- */
-tw_barrier	g_rn_barrier;
-tw_mutex	g_rn_layer_lck;
-tw_mutex	g_rn_stream_lck;

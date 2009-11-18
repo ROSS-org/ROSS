@@ -14,8 +14,6 @@ rand-${RAND}.c
 rand-${RAND}.h
 ross-global.c
 signal-sigaction.c
-thread-${THREAD}.c
-thread-${THREAD}.h
 tw-event.c
 gvt-${GVT}.c
 gvt-${GVT}.h
@@ -50,7 +48,7 @@ IF(NETWORK STREQUAL tcp)
 	   SET(ross_srcs ${ross_srcs} socket-tcp.c socket-tcp.h)
 ENDIF(NETWORK STREQUAL tcp)
 
-SET(OPTIONS "${OPTIONS} -DROSS_MAPPING_${MAPPING} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_${NETWORK} -DROSS_CLOCK_${CLOCK} -DROSS_THREAD_${THREAD} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
+SET(OPTIONS "${OPTIONS} -DROSS_MAPPING_${MAPPING} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_${NETWORK} -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
 
 ADD_DEFINITIONS(${OPTIONS})
 

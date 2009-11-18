@@ -629,9 +629,7 @@ tw_net_read(tw_pe * pe)
 		{
 			recv_event->state.owner = TW_pe_event_q;
 
-			tw_mutex_lock(&dest_pe->event_q_lck);
 			tw_eventq_unshift(&dest_pe->event_q, recv_event);
-			tw_mutex_unlock(&dest_pe->event_q_lck);
 		}
 
 		/*
@@ -719,7 +717,6 @@ tw_net_barrier(tw_pe * pe)
 		}
 
 		g_tw_net_barrier_flag = 0;
-		tw_barrier_sync(&g_tw_network);
 	} else if (pe->local_master && g_tw_mynode != 0)
 	{
 		tw_socket_send(g_tw_barrier_node->socket_fd, "NET_BARRIER_ENT", 16, 0);
@@ -728,9 +725,8 @@ tw_net_barrier(tw_pe * pe)
 						buffer, 16, 0)) < 0)
 			;
 
-		tw_barrier_sync(&g_tw_network);
-	} else
-		tw_barrier_sync(&g_tw_network);
+	}
+
 
 #if VERIFY_NETWORK
 	printf("PE %d Node %d leaving barrier. \n", pe->id, g_tw_mynode);

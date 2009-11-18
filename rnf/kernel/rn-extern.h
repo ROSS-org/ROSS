@@ -196,6 +196,4 @@ extern unsigned int	 g_rn_nrouters;
 
 extern rn_machine	*g_rn_machines;
 
-extern tw_barrier	 g_rn_barrier;
-
 #endif
