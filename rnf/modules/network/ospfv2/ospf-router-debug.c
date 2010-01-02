@@ -7,6 +7,7 @@
 void
 ospf_router_debug_rate(tw_lp * lp, int * next)
 {
+#if 0
 	if(lp->id == 0 && lp->kp->s_nevent_processed > *next)
 	{
 		tw_wall_now(&g_tw_pe[0].end_time);
@@ -22,6 +23,7 @@ ospf_router_debug_rate(tw_lp * lp, int * next)
 
 		*next += 1000000;
 	}
+#endif
 }
 
 int x = 0;

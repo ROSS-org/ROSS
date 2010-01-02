@@ -27,13 +27,13 @@ ospf_ip_route(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * lp)
 #endif
 	dest = rn_route(state->m, d);
 
-	if(0 && dest == 0xff || dest == -1)
+	if(0 && (dest == 0xff || dest == -1))
 	{
 #if PLEASE_FIX_ME
 		dest = rn_msg->final_dest;
 #endif
 
-		e = ospf_event_new(state, tw_getlp(dest), lp);
+		e = ospf_event_new(state, dest, lp->gid);
 
 		// I think this size is correct, probably not though
 		tw_printf(TW_LOC, "Check OSPF ip pkt size! \n");

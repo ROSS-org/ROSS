@@ -10,7 +10,7 @@ SET(RAND           clcg4)
 
 #MEMORY is either on or off depending on whether or not we desire
 #memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
+OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     ON)
 #SET(MEMORY        YES)
 
 OPTION(TIMING	   "Perform ROSS timings"	ON)
@@ -58,7 +58,7 @@ ENDIF(ARCH STREQUAL ppc64)
 
 IF(ARCH STREQUAL x86_64)
         #SET(CC	 mpicc)
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O6 -Wall")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
         ADD_DEFINITIONS(-D_GNU_SOURCE)
         SET(CLOCK       amd64)
 ENDIF(ARCH STREQUAL x86_64)

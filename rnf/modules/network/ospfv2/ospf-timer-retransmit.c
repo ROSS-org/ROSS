@@ -6,7 +6,7 @@
  * it could not ACK.
  */
 void
-ospf_retrans_timed_out(ospf_state * state, tw_bf * bf, ospf_retrans_timeout *msg, 
+ospf_retrans_timed_out(ospf_state * state, tw_bf * bf, ospf_message *msg, 
 			tw_lp * lp)
 {
 #if 0
