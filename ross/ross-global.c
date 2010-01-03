@@ -86,7 +86,7 @@ size_t		g_tw_event_msg_sz = 0;
          * Minimum lookahead for a model -- model defined when
          * using the Simple Synchronization Protocol (conservative)
          */
-tw_stime g_tw_lookahead=1.0;
+tw_stime g_tw_lookahead=0.005;
 
 	/*
 	 * Number of messages to process at once out of the PQ before
