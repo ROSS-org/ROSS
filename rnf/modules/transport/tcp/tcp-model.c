@@ -17,7 +17,7 @@ tcp_md_init(int argc, char ** argv, char ** env)
 {
 	int	 nbufs;
 
-	nbufs = 1000000;
+	nbufs = 1000000 / g_tw_nkp;
 
 	g_tcp_stats = tw_calloc(TW_LOC, "", sizeof(*g_tcp_stats), 1);
 

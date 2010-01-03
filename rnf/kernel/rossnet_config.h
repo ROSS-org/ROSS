@@ -17,8 +17,8 @@
 
 /* #undef HAVE_MULTICAST_H */
 
-#define HAVE_TLM_H 1
+/* #undef HAVE_TLM_H */
 
-#define HAVE_RANDOM_WALK_H 1
+/* #undef HAVE_RANDOM_WALK_H */
 
 #endif /* _TEST_CONFIG_H */
