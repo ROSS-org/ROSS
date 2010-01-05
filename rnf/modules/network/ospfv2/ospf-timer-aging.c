@@ -29,7 +29,7 @@ ospf_aging_timer_set(ospf_state * state, ospf_db_entry * dbe, int age, tw_lp * l
 	int	incr;
 
 #if VERIFY_AGING
-	printf("%ld: Aging DB for new LSA: new last ts: %f \n", lp->id, tw_now(lp));
+	printf("%ld: Aging DB for new LSA: new last ts: %f \n", lp->gid, tw_now(lp));
 #endif
 
 	/*
@@ -71,7 +71,7 @@ ospf_aging_timer_set(ospf_state * state, ospf_db_entry * dbe, int age, tw_lp * l
 
 	// now move the timer up, if the new LSA is going to cause the next
 	// timer firing
-	if(dbe->b.entry == lp->id)
+	if(dbe->b.entry == lp->gid)
 	{
 		if(ts > OSPF_LSA_REFRESH_AGE - dbe->b.age)
 			ts = OSPF_LSA_REFRESH_AGE - dbe->b.age;
@@ -164,7 +164,7 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 	state->db_last_ts = tw_now(lp);
 
 #if VERIFY_AGING
-	printf("%ld: Aging DB: new last ts: %f \n", lp->id, tw_now(lp));
+	printf("%ld: Aging DB: new last ts: %f \n", lp->gid, tw_now(lp));
 #endif
 
 	next_timer = OSPF_LSA_MAX_AGE;
@@ -179,7 +179,7 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 
 #if VERIFY_AGING
 		printf("%ld: Age before aging lsa %d: %d (incr = %d), after %d\n",
-			   lp->id, lsa->id, dbe->b.age, aging_increment,
+			   lp->gid, lsa->id, dbe->b.age, aging_increment,
 			   dbe->b.age + aging_increment);
 #endif
 
@@ -192,9 +192,9 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 				i, dbe->b.age);
 #endif
 
-			if (lsa->adv_r == lp->id)
+			if (lsa->adv_r == lp->gid)
 			{
-				//printf("%d: my LSA reached MAX AGE! \n", lp->id);
+				//printf("%d: my LSA reached MAX AGE! \n", lp->gid);
 				state->lsa_wrapping = 0;
 				state->lsa_seqnum = OSPF_MIN_LSA_SEQNUM + 1;
 
@@ -203,18 +203,18 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 			} else
 			{
 				dbe->b.free = 1;
-				//ospf_rt_build(state, lp->id);
+				//ospf_rt_build(state, lp->gid);
 				rebuild_rt = 1;
 			}
 		} else
 		{
-			if (lsa->adv_r == lp->id)
+			if (lsa->adv_r == lp->gid)
 			{
 				if (dbe->b.age >= OSPF_LSA_REFRESH_AGE)
 				{
 					dbe->b.age = 0;
 					printf("\n%lld: refresh LSA %d: now %lf \n", 
-						lp->id, dbe->b.entry, tw_now(lp));
+						lp->gid, dbe->b.entry, tw_now(lp));
 					ospf_lsa_refresh(state, dbe, lp);
 
 					ts = OSPF_LSA_REFRESH_AGE;
@@ -238,10 +238,10 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 				if (dbe->b.age >= OSPF_LSA_REFRESH_AGE)
 				{
 					printf("%lld: FLOODING LSA %d for refresh!\n", 
-						lp->id, dbe->b.entry);
+						lp->gid, dbe->b.entry);
 
 					ospf_lsa_flood(state, dbe, -1, lp);
-					//ospf_rt_build(state, lp->id);
+					//ospf_rt_build(state, lp->gid);
 					//rebuild_rt = 1;
 				}
 			} else
@@ -256,7 +256,7 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 
 					ts = floor(tw_now(lp) / OSPF_AGING_INTERVAL) *
 						OSPF_AGING_INTERVAL;
-					//printf("%d: setting (ns) ts: %f, > MAX AGE\n", lp->id, ts);
+					//printf("%d: setting (ns) ts: %f, > MAX AGE\n", lp->gid, ts);
 				} else if (ts < 0.0)
 				{
 					next_timer = min(OSPF_LSA_MAX_AGE -
@@ -264,7 +264,7 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 
 /*
 					printf("%d: setting (ns)next_timer: %d, < REFRESH \n",
-						   lp->id, next_timer);
+						   lp->gid, next_timer);
 */
 				}
 
@@ -272,10 +272,10 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 				{
 /*
 					printf("%d: FLOODING %d LSA\n", 
-								lp->id, lsa->adv_r);
+								lp->gid, lsa->adv_r);
 */
 					ospf_lsa_flood(state, dbe, -1, lp);
-					//ospf_rt_build(state, lp->id);
+					//ospf_rt_build(state, lp->gid);
 					rebuild_rt = 1;
 				}
 			}
@@ -284,7 +284,7 @@ ospf_aging_timer(ospf_state * state, tw_bf * bf, tw_lp * lp)
 	}
 
 	if(rebuild_rt)
-		ospf_rt_build(state, lp->id);
+		ospf_rt_build(state, lp->gid);
 
 	if(ts < 0.0)
 	{

@@ -118,13 +118,13 @@ extern void ospf_ls_update_process(ospf_state *state, ospf_nbr *, tw_memory *, t
 extern void ospf_ls_flood_process(ospf_state *state, ospf_nbr *, tw_memory *, tw_lp *);
 extern void ospf_ls_clear_update(ospf_message *m);
 */
-extern void ospf_ls_update_recv(ospf_state *, tw_bf *, ospf_nbr *, tw_lp *);
+extern void ospf_ls_update_recv(ospf_state *state, tw_bf *bf, ospf_nbr *nbr, tw_lp *lp);
 
 /*
  * ospf-ls-request.c
  */
 extern void ospf_ls_request(ospf_state * state, ospf_nbr * nbr, tw_lp * lp);
-extern void ospf_ls_request_recv(ospf_state *, tw_bf *, ospf_nbr *, tw_lp *);
+extern void ospf_ls_request_recv(ospf_state *state, tw_bf *bf, ospf_nbr *nbr, tw_lp *lp);
 
 /*
  * ospf-ack.c
@@ -149,9 +149,9 @@ extern void ospf_db_update(ospf_state *, ospf_nbr * nbr, ospf_db_entry *, tw_lp 
 /*
  * ospf-util.c
  */
-extern tw_event	*ospf_event_new(ospf_state *, tw_lp *, tw_stime, tw_lp *);
-extern tw_event *ospf_event_send(ospf_state * state, tw_event * event, int type,
-				tw_lp *, int size, tw_memory * mem, int area);
+extern tw_event	*ospf_event_new(ospf_state * state, tw_lpid dest, tw_stime ts, tw_lp *srclp);
+extern tw_event *ospf_event_send(ospf_state * state, tw_event * event, int type, tw_lp *src,
+				 int size, tw_memory * mem, int area);
 
 /*
  * ospf-stats.c

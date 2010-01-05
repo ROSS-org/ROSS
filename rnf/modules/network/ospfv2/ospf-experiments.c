@@ -59,18 +59,18 @@ ospf_experiment_weights(ospf_state * state, long int i, tw_lp * lp)
 
 #if VERIFY_OSPF_EXPERIMENT
 	printf("%ld: updating link %ld-%d metric: %d -> %d \n", 
-		lp->id, state->m->id, state->m->link[i].addr, 
+		lp->gid, state->m->id, state->m->link[i].addr, 
 		state->m->link[i].cost, metric);
 #endif
 
 	state->m->link[i].cost = metric;
-	dbe = &state->db[lp->id - state->ar->low];
+	dbe = &state->db[lp->gid - state->ar->low];
 
-	dbe->lsa = ospf_lsa_find(state, NULL, lp->id - state->ar->low, lp);
+	dbe->lsa = ospf_lsa_find(state, NULL, lp->gid - state->ar->low, lp);
 	dbe->cause_ospf = 1;
 	dbe->cause_bgp = 0;
 
-	ospf_rt_build(state, lp->id);
+	ospf_rt_build(state, lp->gid);
 	ospf_lsa_refresh(state, dbe, lp);
 
 	dbe->cause_ospf = 0;

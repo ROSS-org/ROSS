@@ -41,15 +41,15 @@ dd_process(ospf_state * state, ospf_nbr * nbr, tw_memory * b, tw_lp * lp)
 		if(ospf_lsa_isnewer(state, &state->db[in_dbe->b.entry], 
 				in_dbe, lp))
 		{
-printf("%lld: LS REQUEST for next dbe %d \n", lp->id, in_dbe->b.entry);
+printf("%lld: LS REQUEST for next dbe %d \n", lp->gid, in_dbe->b.entry);
 
 			nbr->requests[in_dbe->b.entry] = 1;
 			nbr->nrequests++;
 		} //else
-//printf("%ld: NO LS REQUEST for next dbe %d \n", lp->id, in_dbe->b.entry);
+//printf("%ld: NO LS REQUEST for next dbe %d \n", lp->gid, in_dbe->b.entry);
 	}
 
-	printf("%lld: LS REQUEST for %d lsas \n", lp->id, nbr->nrequests);
+	printf("%lld: LS REQUEST for %d lsas \n", lp->gid, nbr->nrequests);
 
 	if(last)
 		tw_memory_free(lp, last, g_ospf_fd);
@@ -73,7 +73,7 @@ dd_exchange(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 	int	 accum;
 
 	// adds OSPF header
-	e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(state, nbr->id, 0.0, lp);
 
 	// the retrans_dd membuf is freed by the other router
 	head = last = nbr->retrans_dd = tw_memory_alloc(lp, g_ospf_dd_fd);
@@ -93,8 +93,8 @@ dd_exchange(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 	for(i = 0; accum > OSPF_LSA_UPDATE_HEADER && 
 		   i < state->ar->nmachines; i++)
 	{
-		if((rn_route(state->m, i) == -1 && i != lp->id) || 
-		     i == lp->id)
+		if((rn_route(state->m, i) == -1 && i != lp->gid) || 
+		     i == lp->gid)
 			continue;
 
 		accum -= OSPF_LSA_UPDATE_HEADER;
@@ -113,7 +113,7 @@ dd_exchange(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 
 #if VERIFY_LS || 1
 		printf("%lld: Sending LSA %d with ages: old %d, "
-			"new %d \n", lp->id, i, 
+			"new %d \n", lp->gid, i, 
 			ospf_lsa_age(state, &state->db[i], lp),
 			out_dbe->b.age);
 #endif
@@ -159,7 +159,7 @@ dd_exchange(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 				NULL, state->ar->id);
 	state->stats->s_sent_dds++;
 
-	printf("%lld: send Exch to %d at %lf \n", lp->id, nbr->id, e->recv_ts);
+	printf("%lld: send Exch to %d at %lf \n", lp->gid, nbr->id, e->recv_ts);
 }
 
 /*
@@ -262,9 +262,9 @@ ospf_dd_retransmit(ospf_state * state, ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 	dd = tw_memory_data(b);
 
 	printf("%lld OSPF: retransmit DD to %d, ts %lf \n",
-		lp->id, nbr->id, tw_now(lp) + OSPF_RETRANS_INTERVAL);
+		lp->gid, nbr->id, tw_now(lp) + OSPF_RETRANS_INTERVAL);
 
-	e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(state, nbr->id, 0.0, lp);
 	ospf_event_send(nbr->router, e, OSPF_DD_MSG, lp,
 			OSPF_DD_HEADER + (dd->nlsas * OSPF_LSA_UPDATE_HEADER), 
 			b, nbr->router->ar->id);
@@ -291,7 +291,7 @@ ospf_dd_event_handler(ospf_state * state, ospf_nbr * nbr, tw_bf *bf, tw_lp *lp)
 	in_dd = tw_memory_data(b);
 
 	printf("%lld OSPF: DD from %d, ts %lf, state %d, I %d, M %d, Master %d \n",
-		lp->id, nbr->id, tw_now(lp), nbr->state, in_dd->b.init, in_dd->b.more,
+		lp->gid, nbr->id, tw_now(lp), nbr->state, in_dd->b.init, in_dd->b.more,
 		in_dd->b.master);
 
 	switch(nbr->state)
@@ -304,7 +304,7 @@ ospf_dd_event_handler(ospf_state * state, ospf_nbr * nbr, tw_bf *bf, tw_lp *lp)
 			break;
 		case ospf_nbr_init_st:
 			printf("%lld OSPF: DD sending nbr %d 2-way recv event \n",
-						lp->id, nbr->id);
+						lp->gid, nbr->id);
 
 			ospf_nbr_event_handler(state, nbr, ospf_nbr_two_way_recv_ev, lp);
 
@@ -312,7 +312,7 @@ ospf_dd_event_handler(ospf_state * state, ospf_nbr * nbr, tw_bf *bf, tw_lp *lp)
 				break;
 		case ospf_nbr_exstart_st:
 			if(in_dd->b.init && in_dd->b.more && in_dd->b.master &&
-			   in_dd->nlsas == 0 && nbr->id > lp->id)
+			   in_dd->nlsas == 0 && nbr->id > lp->gid)
 			{
 				nbr->master = 1;
 				nbr->dd_seqnum = in_dd->seqnum;
@@ -364,7 +364,7 @@ ospf_dd_event_handler(ospf_state * state, ospf_nbr * nbr, tw_bf *bf, tw_lp *lp)
 				break;
 			}
 
-printf("%lld: got valid DD in exchange from %d, more = %d \n", lp->id, nbr->id, in_dd->b.more);
+printf("%lld: got valid DD in exchange from %d, more = %d \n", lp->gid, nbr->id, in_dd->b.more);
 
 			nbr->last_recv_dd = ospf_dd_copy(b, lp);
 			dd_process(state, nbr, b, lp);
@@ -390,7 +390,7 @@ printf("%lld: got valid DD in exchange from %d, more = %d \n", lp->id, nbr->id, 
 					out_dd->b.init = 0;
 					out_dd->b.more = 0;
 
-					e = ospf_event_new(state, tw_getlp(nbr->id),
+					e = ospf_event_new(state, nbr->id,
 							   0.0, lp);
 
 					ospf_event_send(state, e,
@@ -407,7 +407,7 @@ printf("%lld: got valid DD in exchange from %d, more = %d \n", lp->id, nbr->id, 
 					ospf_nbr_seqnum_mismatch_ev, lp);
 			break;
 		default:
-			printf("%lld: Received DD with unknown type\n", lp->id);
+			printf("%lld: Received DD with unknown type\n", lp->gid);
 	}
 
 	tw_memory_free(lp, b, g_ospf_dd_fd);

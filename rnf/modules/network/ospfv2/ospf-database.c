@@ -14,7 +14,7 @@ ospf_db_route(ospf_state * state, ospf_db_entry * curr, tw_lp * lp)
 	if(curr->b.free)
 	{
 #if VERIFY_DATABASE
-		printf("\t%ld: removing rn_route to %d! \n", lp->id, curr->b.entry);
+		printf("\t%ld: removing rn_route to %d! \n", lp->gid, curr->b.entry);
 #endif
 
 		rn_route_change(state->m, curr->b.entry, -1);
@@ -24,7 +24,7 @@ ospf_db_route(ospf_state * state, ospf_db_entry * curr, tw_lp * lp)
 
 	lsa = getlsa(state->m, curr->lsa, curr->b.entry);
 
-	if(lsa->adv_r == lp->id)
+	if(lsa->adv_r == lp->gid)
 	{
 		for(b = lsa->links.head; b; b = b->next)
 		{
@@ -37,7 +37,7 @@ ospf_db_route(ospf_state * state, ospf_db_entry * curr, tw_lp * lp)
 
 			rn_route_change(state->m, curr->b.entry, d);
 			state->m->nhop[curr->b.entry] = 
-					state->m->nhop[lp->id - state->ar->low];
+					state->m->nhop[lp->gid - state->ar->low];
 			break;
 		}
 
@@ -57,7 +57,7 @@ ospf_db_route(ospf_state * state, ospf_db_entry * curr, tw_lp * lp)
 
 #if VERIFY_DATABASE
 	printf("\t%ld: adding rn_route for DB entry %d: adv_r %d, nhi %d \n", 
-		lp->id, curr->b.entry, lsa->adv_r, d);
+		lp->gid, curr->b.entry, lsa->adv_r, d);
 #endif
 }
 
@@ -111,9 +111,9 @@ ospf_db_read(ospf_state * state, tw_lp * lp)
 	if(!state->db_last_ts)
 		state->db_last_ts = 1;
 
-	if(state->ar->low == lp->id)
+	if(state->ar->low == lp->gid)
 	{
-		//printf("%ld: Reading in LSAs for area: %d \n", lp->id, state->ar->id);
+		//printf("%ld: Reading in LSAs for area: %d \n", lp->gid, state->ar->id);
 		state->ar->g_ospf_lsa = (tw_memory **) calloc(sizeof(tw_memory *) *
 						state->ar->g_ospf_nlsa, 1);
 
@@ -317,7 +317,7 @@ ospf_db_update(ospf_state * state, ospf_nbr * nbr, ospf_db_entry * new_dbe, tw_l
 	    curr_age == OSPF_LSA_MAX_AGE) ||
 	   (new_dbe->lsa != last_lsa))
 	{
-		ospf_rt_build(state, lp->id);
+		ospf_rt_build(state, lp->gid);
 
 #if VERIFY_OSPF_CONVERGENCE
 		lsa = getlsa(state->m, new_dbe->lsa, new_dbe->b.entry);
@@ -327,23 +327,23 @@ ospf_db_update(ospf_state * state, ospf_nbr * nbr, ospf_db_entry * new_dbe, tw_l
 		{
 			if(lsa->adv_r == 0)
 			{
-				g_route[0] = lp->id;
+				g_route[0] = lp->gid;
 				g_route[1] = nbr->id;
 				gr1 = 1;
 			} else
 			{
-				g_route1[0] = lp->id;
+				g_route1[0] = lp->gid;
 				g_route1[1] = nbr->id;
 				gr2 = 1;
 			}
 
 			printf("%ld: Convergence time for lsa %d: %f - %f = %f seconds\n",
-				lp->id, lsa->adv_r, 
+				lp->gid, lsa->adv_r, 
 				tw_now(lp), lsa->start,
 				tw_now(lp) - lsa->start);
 /*
 			printf("%ld: link down at %f, time now %f \n",
-				lp->id, lsa->start, tw_now(lp));
+				lp->gid, lsa->start, tw_now(lp));
 */
 			state->c_time = tw_now(lp) - 
 					lsa->start + 
@@ -352,7 +352,7 @@ ospf_db_update(ospf_state * state, ospf_nbr * nbr, ospf_db_entry * new_dbe, tw_l
 /*
 		else
 			printf("%d: lsa %d remaining: %d \n",
-				lp->id, lsa->adv_r, lsa->count);
+				lp->gid, lsa->adv_r, lsa->count);
 */
 
 #endif
@@ -371,7 +371,7 @@ ospf_db_insert(ospf_state * state, int index, ospf_db_entry * curr, tw_lp * lp)
 	curr->b.age = 0;
 	curr->b.free = 0;
 
-	ospf_rt_build(state, lp->id);
+	ospf_rt_build(state, lp->gid);
 
 	return curr;
 }
@@ -409,7 +409,7 @@ ospf_db_init(ospf_state * state, tw_lp * lp)
 		tw_error(TW_LOC, "Out of memory for local LSA database!");
 
 #if VERIFY_DATABASE
-	printf("%ld: INIT DB: nentries %d \n", lp->id, state->ar->g_ospf_nlsa);
+	printf("%ld: INIT DB: nentries %d \n", lp->gid, state->ar->g_ospf_nlsa);
 #endif
 
 	/*
@@ -453,14 +453,14 @@ ospf_db_init(ospf_state * state, tw_lp * lp)
 
 #if VERIFY_DATABASE
 		printf("\t%ld: lsa %d: age %d, adv_r %d\n", 
-			lp->id, i, dbe->b.age, lsa->adv_r);
+			lp->gid, i, dbe->b.age, lsa->adv_r);
 #endif
 
-		if(lsa->adv_r == lp->id)
+		if(lsa->adv_r == lp->gid)
 		{
 
 			// If mine, variable so not all flood simulataneously.
-			//dbe->b.age = tw_rand_integer(lp->id, 0, OSPF_LSA_REFRESH_AGE - 1);
+			//dbe->b.age = tw_rand_integer(lp->gid, 0, OSPF_LSA_REFRESH_AGE - 1);
 
 			if(i >= state->ar->nmachines && 
 				i < state->ar->g_ospf_nlsa - g_rn_nas)
@@ -552,7 +552,7 @@ flood_summary(ospf_state * state, ospf_db_entry * dbe, int entry, tw_lp * lp)
 
 #if VERIFY_LS
 		printf("%ld: Starting flood LSA %d to %d: \n", 
-			lp->id, dbe->b.entry, nbr->id);
+			lp->gid, dbe->b.entry, nbr->id);
 		printf("\tsn: %d ", dbe->seqnum);
 		ospf_lsa_print(state->log, getlsa(state->m, dbe->lsa, dbe->b.entry));
 #endif

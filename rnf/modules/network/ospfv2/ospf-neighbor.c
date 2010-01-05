@@ -34,7 +34,7 @@ neighbor_init(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 
 /*
 	if(!l->cost)
-		tw_error(TW_LOC, "%ld: link to %d has not cost! \n", lp->id, l->addr);
+		tw_error(TW_LOC, "%ld: link to %d has not cost! \n", lp->gid, l->addr);
 */
 
 	nbr->hello_interval = g_ospf_state->hello_sendnext;

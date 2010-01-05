@@ -19,10 +19,10 @@ ospf_retrans_timed_out(ospf_state * state, tw_bf * bf, ospf_message *msg,
 
 	nbr = msg->nbr;
 
-	ts = tw_rand_exponential(lp->id, 32);
-	event = tw_event_new(tw_getlp(nbr->id), ts, lp);
+	ts = tw_rand_exponential(lp->rng, 32.0);
+	event = tw_event_new(nbr->id, ts, lp);
 	m = tw_event_data(event);
-	m->src = lp->id;
+	m->src = lp->gid;
 	m->area = state->area;
 
 	if (msg->type == ospf_retrans_dd)

@@ -33,18 +33,13 @@ ospf_ip_route(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * lp)
 		dest = rn_msg->final_dest;
 #endif
 
-		e = ospf_event_new(state, dest, lp->gid);
+		e = ospf_event_new(state, dest, 0.0, lp);
 
 		// I think this size is correct, probably not though
 		tw_printf(TW_LOC, "Check OSPF ip pkt size! \n");
 		ospf_event_send(state, e, OSPF_IP, lp, 
-				rn_message_getsize(tw_event_data(lp->cur_event)), 
-				NULL, state->area);
-
-/*
-		e = ospf_event_send(state, tw_getlp(dest), 
-				OSPF_IP, lp, LINK_TIME, NULL, state->area);
-*/
+				rn_message_getsize(tw_event_data(lp->pe->cur_event)), 
+				NULL, state->ar->id);
 
 #if 0
 		tcp_in = ospf_util_data(msg);
@@ -62,14 +57,14 @@ ospf_ip_route(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * lp)
 		if(rn_msg->final_dest == 1010)
 		{
 			printf("%d: tcp_in src = %d, tcp_in dst = %f\n",
-				lp->id,
+				lp->gid,
 				tcp_in->source,
 				tcp_in->dest);
 			printf("%d: tcp src = %d, tcp dst = %f\n",
-				lp->id,
+				lp->gid,
 				tcp->source,
 				tcp->dest);
-			printf("%d: %d \n", lp->id, rn_msg->final_dest);
+			printf("%d: %d \n", lp->gid, rn_msg->final_dest);
 		}
 #endif
 
@@ -80,15 +75,15 @@ ospf_ip_route(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * lp)
 	}
 
 	// transfer all membufs from inbound IP to outbound
-	e->memory = lp->cur_event->memory;
-	lp->cur_event->memory = NULL;
+	e->memory = lp->pe->cur_event->memory;
+	lp->pe->cur_event->memory = NULL;
 
-	e = ospf_event_new(state, tw_getlp(dest), lp);
+	e = ospf_event_new(state, dest, 0.0, lp);
 
 	tw_printf(TW_LOC, "Check my OSPF ip pkt size 2! \n");
 	e = ospf_event_send(state, e, OSPF_IP, lp, 
-				rn_message_getsize(tw_event_data(lp->cur_event)), 
-				NULL, state->area);
+				rn_message_getsize(tw_event_data(lp->pe->cur_event)), 
+				NULL, state->ar->id);
 
 #if 0
 	m = tw_event_data(e);
@@ -111,9 +106,9 @@ ospf_ip_route(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * lp)
 	if(rn_msg->final_dest == 1010)
 	{
 		printf("%d: tcp_in src = %d, tcp_in dst = %f\n",
-				lp->id, tcp_in->source, tcp_in->dest);
+				lp->gid, tcp_in->source, tcp_in->dest);
 		printf("%d: tcp src = %d, tcp dst = %f\n",
-				lp->id, tcp->source, tcp->dest);
+				lp->gid, tcp->source, tcp->dest);
 	}
 #endif
 

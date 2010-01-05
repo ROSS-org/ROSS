@@ -131,7 +131,7 @@ main_setup_areas(xmlXPathObjectPtr l_obj)
 	tw_memoryq	*q;
 	tw_memory	*b;
 	ospf_lsa_link	*l;
-	tw_lp		*lp;
+	//tw_lp		*lp;
 
 	rn_area		*ar;
 	rn_area		*d_ar;
@@ -225,7 +225,7 @@ main_setup_areas(xmlXPathObjectPtr l_obj)
 			src = atoi(xml_getprop(interface, "src"));
 			dst = atoi(xml_getprop(interface, "addr"));
 
-			lp = tw_getlp(src);
+			// lp = tw_getlp(src);
 			ar = rn_getarea(rn_getmachine(src));
 			d_ar = rn_getarea(rn_getmachine(dst));
 
@@ -253,7 +253,9 @@ main_setup_areas(xmlXPathObjectPtr l_obj)
 				continue;
 
 			lsa->length += OSPF_LSA_LINK_LENGTH;
-			b = tw_memory_alloc(lp, g_ospf_ll_fd);
+
+			// allocate from LP's 0 on this host pe pool
+			b = tw_memory_alloc( g_tw_lp[0], g_ospf_ll_fd);
 			l = tw_memory_data(b);
 			l->dst = dst;
 

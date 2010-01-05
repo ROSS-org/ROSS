@@ -29,11 +29,11 @@ ospf_flood_recv(ospf_state * state, ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 		return;
 	}
 
-	ts = tw_rand_exponential(lp->id, OSPF_LS_INTERVAL);
-	event = tw_event_new(tw_getlp(nbr->id), ts, lp);
+	ts = tw_rand_exponential(lp->rng, OSPF_LS_INTERVAL);
+	event = tw_event_new(nbr->id, ts, lp);
 	msg = tw_event_data(event);
 	msg->type = OSPF_LS_UPDATE;
-	msg->src = lp->id;
+	msg->src = lp->gid;
 	msg->area = state->area;
 
 	update = ospf_util_data(msg);

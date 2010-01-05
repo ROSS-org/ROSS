@@ -10,7 +10,7 @@ ospf_xml(ospf_state * state, const xmlNodePtr node, tw_lp * lp)
 	int			 addr;
 	int			 i;
 
-	state->m = rn_getmachine(lp->id);
+	state->m = rn_getmachine(lp->gid);
 	state->ar = rn_getarea(state->m);
 
 	/*
@@ -30,7 +30,7 @@ ospf_xml(ospf_state * state, const xmlNodePtr node, tw_lp * lp)
 
 	if(state->n_interfaces == 0)
 	{
-		printf("%lld: no neighbors! \n", lp->id);
+		printf("%lld: no neighbors! \n", lp->gid);
 		return;
 	}
 

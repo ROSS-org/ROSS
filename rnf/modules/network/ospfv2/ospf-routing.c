@@ -15,7 +15,7 @@ ospf_rt_build(ospf_state * state, int start_vertex)
 						state->rt_timer,
 						state->gstate->rt_interval,
 						OSPF_RT_TIMER,
-						tw_getlp(start_vertex));
+						start_vertex);
 
 #if VERIFY_ROUTING
 		if(state->rt_timer)
@@ -213,7 +213,7 @@ ospf_rt_timer(ospf_state * state, int start_vertex)
 		if(state->db[w].b.free == 0)
 		{
 			//printf("Attempting to update route to LSA %d \n", w);
-			ospf_db_route(state, &state->db[w], tw_getlp(state->m->id));
+			ospf_db_route(state, &state->db[w], state->m->id);
 		}
 	}
 
@@ -237,12 +237,12 @@ ospf_rt_print(ospf_state * state, tw_lp *lp, FILE * log)
 	ar = rn_getarea(m);
 
 	fprintf(log, "\nRouting table for %lld: \n\n"
-		"\t%-20s %-20s %-20s\n", lp->id, "Host id", 
+		"\t%-20s %-20s %-20s\n", lp->gid, "Host id", 
 		"next_hop_interface", "next_hop_node_id");
 
 	for(i = 0; i < g_tw_nlp; i++)
 	{
-		if(i == lp->id)
+		if(i == lp->gid)
 		{
 			fprintf(log, "\t%-20d %-20s\n", i, "self");
 			continue;
@@ -286,7 +286,7 @@ ospf_rt_print(ospf_state * state, tw_lp *lp, FILE * log)
 			} else
 				d = rn_route(state->m, lsa->adv_r);
 
-			if(lsa->adv_r == lp->id)
+			if(lsa->adv_r == lp->gid)
 			{
 				if(lsa->links.size != 0)
 				{
@@ -342,7 +342,7 @@ ospf_rt_print(ospf_state * state, tw_lp *lp, FILE * log)
 		lsa = getlsa(state->m, dbe->lsa, dbe->b.entry);
 		d = rn_route(state->m, lsa->adv_r);
 
-		if(lsa->adv_r == lp->id)
+		if(lsa->adv_r == lp->gid)
 		{
 			if(lsa->links.size)
 			{
@@ -382,7 +382,7 @@ ospf_rt_print(ospf_state * state, tw_lp *lp, FILE * log)
 		lsa = getlsa(state->m, dbe->lsa, dbe->b.entry);
 		d = rn_route(state->m, lsa->adv_r);
 
-		if(lsa->adv_r == lp->id)
+		if(lsa->adv_r == lp->gid)
 		{
 			if(lsa->links.size)
 			{
@@ -425,20 +425,20 @@ ospf_routing_init(ospf_state * state, tw_lp * lp)
 
 	if(0 == g_ospf_rt_write)
 	{
-		rn_machine	*m = rn_getmachine(lp->id);
+		rn_machine	*m = rn_getmachine(lp->gid);
 		int		 i;
 
 		for(i = 0; i < state->ar->g_ospf_nlsa; i++)
 			fscanf(g_ospf_routing_file, "%d", &m->ft[i]);
 
-		//read(g_ospf_routing_file, rn_getmachine(lp->id)->ft, 
+		//read(g_ospf_routing_file, rn_getmachine(lp->gid)->ft, 
 		//	state->ar->g_ospf_nlsa * sizeof(int));
 	} else
 	{
-		ospf_rt_timer(state, lp->id);
+		ospf_rt_timer(state, lp->gid);
 #if 0
 
-		write(g_ospf_routing_file, rn_getmachine(lp->id)->ft, 
+		write(g_ospf_routing_file, rn_getmachine(lp->gid)->ft, 
 			(state->ar->g_ospf_nlsa) * sizeof(int));
 #endif
 	}
@@ -452,7 +452,7 @@ ospf_routing_init(ospf_state * state, tw_lp * lp)
 	{
 		if(rn_route(state->m, nbr->id) == -1)
 		{
-			printf("%lld: taking down neighbor %d \n", lp->id, nbr->id);
+			printf("%lld: taking down neighbor %d \n", lp->gid, nbr->id);
 
 			ospf_nbr_event_handler(state, nbr, ospf_nbr_kill_nbr_ev, lp);
 #if 0

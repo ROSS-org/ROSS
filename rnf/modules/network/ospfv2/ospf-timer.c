@@ -57,7 +57,7 @@ ospf_timer_start(ospf_nbr * nbr, tw_event * tmr, tw_stime ts, int type, tw_lp * 
 /*
 	if(nbr)
 		printf("%ld OSPF: TIMER %d ev %d, type: %d, ts %lf \n", 
-					lp->id, (int) tmr, type, nbr->id, tmr->recv_ts);
+					lp->gid, (int) tmr, type, nbr->id, tmr->recv_ts);
 */
 
 	if(NULL != tmr->memory)

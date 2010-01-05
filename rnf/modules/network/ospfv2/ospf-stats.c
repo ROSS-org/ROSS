@@ -32,13 +32,13 @@ ospf_statistics_collection(ospf_state * state, tw_lp * lp)
 	g_ospf_stats->s_cause_bgp += state->stats->s_cause_bgp;
 	g_ospf_stats->s_cause_ospf += state->stats->s_cause_ospf;
 
-	if(lp->id < 1000 && 0)
-		printf("Finalizing OSPF lp %lld \n", lp->id);
+	if(lp->gid < 1000 && 0)
+		printf("Finalizing OSPF lp %lld \n", lp->gid);
 
 	c_time = max(c_time, state->c_time);
 
 #if VERIFY_OSPF_CONVERGENCE
-	if(lp->id == 0)
+	if(lp->gid == 0)
 	{
 		printf("OSPFv2 Model Statistics: \n\n");
 		printf("\tRoute 0: ");
@@ -69,13 +69,13 @@ ospf_statistics_collection(ospf_state * state, tw_lp * lp)
 	if(state->log && state->log != stdout)
 		fclose(state->log);
 
-	sprintf(name, "%s/ospf-router-%ld.log", g_rn_logs_dir, lp->id);
+	sprintf(name, "%s/ospf-router-%ld.log", g_rn_logs_dir, lp->gid);
 	state->log = fopen(name, "w");
 
 	if(!state->log)
 		return;
 
-	fprintf(state->log, "OSPFv2 Router %ld: Final Time: %f\n\n", lp->id, tw_now(lp));
+	fprintf(state->log, "OSPFv2 Router %ld: Final Time: %f\n\n", lp->gid, tw_now(lp));
 
 	ospf_db_print(state, state->log, lp);
 	ospf_rt_print(state, lp, state->log);
@@ -138,7 +138,7 @@ ospf_statistics_collection(ospf_state * state, tw_lp * lp)
 
 	// Print out the LSAs for the area
 
-	if(state->ar->low == lp->id)
+	if(state->ar->low == lp->gid)
 	{
 		for(i = 0; i < state->ar->g_ospf_nlsa; i++)
 		{

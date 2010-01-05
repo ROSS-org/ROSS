@@ -101,17 +101,17 @@ process_lsa_recv(ospf_state *state, ospf_nbr * nbr, ospf_db_entry *r_dbe, tw_lp 
 	if(r_dbe->b.entry == 0)
 	{
 		printf("%ld: recvd LSA %d, is_newer == %d \n", 
-			lp->id, r_dbe->b.entry, is_newer);
-		printf("%ld: old age %d, new age %d \n", lp->id, dbe->b.age,
+			lp->gid, r_dbe->b.entry, is_newer);
+		printf("%ld: old age %d, new age %d \n", lp->gid, dbe->b.age,
 					r_dbe->b.age);
-		printf("%ld: old seqnum %d, new seqnum %d \n", lp->id,
+		printf("%ld: old seqnum %d, new seqnum %d \n", lp->gid,
 					dbe->seqnum, r_dbe->seqnum);
 	}
 #endif
 
 	if(1 == is_newer)
 	{
-		if(r_lsa->adv_r == lp->id)
+		if(r_lsa->adv_r == lp->gid)
 		{
 			if(r_dbe->b.entry < state->ar->nmachines)
 				state->lsa_seqnum = r_dbe->seqnum + 1;
@@ -224,7 +224,7 @@ process_lsa_recv(ospf_state *state, ospf_nbr * nbr, ospf_db_entry *r_dbe, tw_lp 
 			out_dbe->b.entry = dbe->b.entry;
 			out_dbe->b.age = ospf_lsa_age(state, dbe, lp);
 
-			e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, lp);
+			e = ospf_event_new(state, nbr->id, 0.0, lp);
 
 			ospf_event_send(state, e, OSPF_LS_UPDATE, lp, 
 					r_lsa->length, 
@@ -253,7 +253,7 @@ ls_update_process(ospf_state *state, ospf_nbr * nbr, tw_lp *lp)
 		dbe = tw_memory_data(b);
 		lsa = getlsa(state->m, dbe->lsa, dbe->b.entry);
 
-		printf("\t%lld: process lsa %d \n", lp->id, lsa->adv_r);
+		printf("\t%lld: process lsa %d \n", lp->gid, lsa->adv_r);
 		if(ospf_list_contains(nbr->requests, lsa->id) &&
 			process_lsa_recv(state, nbr, dbe, lp))
 		{
@@ -286,7 +286,7 @@ ospf_ls_update_recv(ospf_state *state, tw_bf *bf, ospf_nbr * nbr, tw_lp *lp)
 	if (nbr->state != ospf_nbr_full_st)
 	{
 		printf("%lld: dropping LS update, nbr is %d (down=%d) \n",
-			lp->id, nbr->state, ospf_nbr_down_st);
+			lp->gid, nbr->state, ospf_nbr_down_st);
 
 		
 		while(NULL != (b = tw_event_memory_get(lp)))
@@ -347,7 +347,7 @@ ospf_ls_request(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 	if(0 == nbr->nrequests)
 		return;
 
-	e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(state, nbr->id, 0.0, lp);
 
 	accum = state->gstate->mtu - OSPF_HEADER;
 
@@ -356,7 +356,7 @@ ospf_ls_request(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 		if(!nbr->requests[i])
 			continue;
 
-		printf("%lld: Adding LSA %d to LS_REQUEST \n", lp->id, i);
+		printf("%lld: Adding LSA %d to LS_REQUEST \n", lp->gid, i);
 		accum -= OSPF_LSA_UPDATE_HEADER;
 
 		dbe = &nbr->router->db[i];
@@ -377,7 +377,7 @@ ospf_ls_request(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 			NULL, nbr->router->ar->id);
 
 	printf("%lld: sent LS_REQUEST to %d, ts %lf \n", 
-		lp->id, nbr->id, e->recv_ts);
+		lp->gid, nbr->id, e->recv_ts);
 
 	// cannot remember how I was going to eliminate this timer.
 	//nbr->next_retransmit = tw_now(lp) + OSPF_RETRANS_TIMEOUT;
@@ -388,7 +388,7 @@ ospf_ls_request(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 
 	if(nbr->retrans_timer)
 		printf("%lld: Setting retransmit timer for %d at %lf \n",
-			lp->id, nbr->id, nbr->retrans_timer->recv_ts);
+			lp->gid, nbr->id, nbr->retrans_timer->recv_ts);
 }
 
 /*
@@ -413,7 +413,7 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 	if(nbr->state < ospf_nbr_exchange_st)
 		return;
 
-	e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(state, nbr->id, 0.0, lp);
 
 	accum = state->gstate->mtu - OSPF_HEADER;
 
@@ -435,10 +435,6 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 		{
 			// can get here since update are > requests
 			tw_error(TW_LOC, "Should not be here!");
-/*
-			e = ospf_event_send(state, tw_getlp(nbr->id), OSPF_LS_UPDATE,
-					lp, LINK_TIME, NULL, nbr->router->area);
-*/
 			accum = state->gstate->mtu - OSPF_HEADER;
 		}
 
@@ -452,7 +448,7 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 		out_dbe->b.entry = in_dbe->b.entry;
 
 		printf("%lld: adding LSA %d ages: old %d, new %d \n", 
-			lp->id, lsa->adv_r, dbe->b.age, out_dbe->b.age);
+			lp->gid, lsa->adv_r, dbe->b.age, out_dbe->b.age);
 
 		tw_event_memory_setfifo(e, b, g_ospf_fd);
 		tw_memory_free(lp, recv, g_ospf_fd);
@@ -463,6 +459,6 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 			NULL, nbr->router->ar->id);
 
 	printf("%lld: Sending LSA UPDATE to %d, %lf ages: old %d, new %d \n", 
-				lp->id, nbr->id, e->recv_ts,
+				lp->gid, nbr->id, e->recv_ts,
 				dbe->b.age, out_dbe->b.age);
 }

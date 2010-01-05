@@ -100,12 +100,12 @@ ospf_interface_calc_dr(ospf_nbr * nbr, tw_lp *lp)
 	{
 		if(r->priority > dr_priority)
 		{
-			dr = lp->id;
+			dr = lp->gid;
 			dr_priority = r->priority;
 		}
-		else if(r->priority == dr_priority && lp->id > dr)
+		else if(r->priority == dr_priority && lp->gid > dr)
 		{
-			dr = lp->id;
+			dr = lp->gid;
 			dr_priority = r->priority;
 		}
 	}
@@ -114,12 +114,12 @@ ospf_interface_calc_dr(ospf_nbr * nbr, tw_lp *lp)
 	{
 		if(r->priority > bdr_priority)
 		{
-			bdr = lp->id;
+			bdr = lp->gid;
 			bdr_priority = r->priority;
 		}
-		else if(r->priority == bdr_priority && lp->id > bdr)
+		else if(r->priority == bdr_priority && lp->gid > bdr)
 		{
-			bdr = lp->id;
+			bdr = lp->gid;
 			bdr_priority = r->priority;
 		}
 	}
@@ -132,7 +132,7 @@ ospf_interface_calc_dr(ospf_nbr * nbr, tw_lp *lp)
 
 	if(-1 == dr)
 	{
-		printf("%lld: No dr or rdr elected! \n", lp->id);
+		printf("%lld: No dr or rdr elected! \n", lp->gid);
 		r->bdr = -1;
 		r->dr = -1;
 
@@ -143,21 +143,21 @@ ospf_interface_calc_dr(ospf_nbr * nbr, tw_lp *lp)
 	printf("bdr: %d \n", bdr);
 
 	// if I am currently elected new dr or bdr, recalc
-	if((dr == lp->id && r->dr != lp->id) ||
-	   (bdr == lp->id && r->bdr != lp->id))
+	if((dr == lp->gid && r->dr != lp->gid) ||
+	   (bdr == lp->gid && r->bdr != lp->gid))
 		goto recalculate;
 
 	// if I am de-elected as the dr or bdr, recalc
-	if((r->dr == lp->id && dr != lp->id) ||
-	   (r->bdr == lp->id && bdr != lp->id))
+	if((r->dr == lp->gid && dr != lp->gid) ||
+	   (r->bdr == lp->gid && bdr != lp->gid))
 		goto recalculate;
 
-	if(dr == lp->id)
+	if(dr == lp->gid)
 	{
 		r->istate = ospf_int_dr_other_st;
 	}
 
-	if(bdr == lp->id)
+	if(bdr == lp->gid)
 	{
 		r->istate = ospf_int_backup_st;
 	}
@@ -178,8 +178,8 @@ ospf_interface_calc_dr(ospf_nbr * nbr, tw_lp *lp)
 
 	tw_error(TW_LOC, "New DR: %d, new BDR: %d", r->dr, r->bdr);
 
-	if(r->dr == lp->id && r->bdr == lp->id)
-		tw_error(TW_LOC, "%d: Set myself to be dr and bdr!", lp->id);
+	if(r->dr == lp->gid && r->bdr == lp->gid)
+		tw_error(TW_LOC, "%d: Set myself to be dr and bdr!", lp->gid);
 }
 
 /*
@@ -222,7 +222,7 @@ ospf_interface_up(ospf_nbr * nbr, tw_lp * lp)
 	// check the link type for this interface from the datastructure.
 	nbr->istate = ospf_int_point_to_point_st;
 
-	printf("%lld: Interface up: %d \n", lp->id, nbr->id);
+	printf("%lld: Interface up: %d \n", lp->gid, nbr->id);
 }
 
 /*
@@ -341,7 +341,7 @@ ospf_interface_down(ospf_nbr * nbr, tw_lp * lp)
 	ospf_nbr_event_handler(lp->cur_state, nbr, ospf_nbr_kill_nbr_ev, lp); 
 	nbr->istate = ospf_int_down_st;
 
-	printf("%lld: Interface down: %d \n", lp->id, nbr->id);
+	printf("%lld: Interface down: %d \n", lp->gid, nbr->id);
 }
 
 void

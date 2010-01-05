@@ -8,7 +8,7 @@ void
 ospf_router_debug_rate(tw_lp * lp, int * next)
 {
 #if 0
-	if(lp->id == 0 && lp->kp->s_nevent_processed > *next)
+	if(lp->gid == 0 && lp->kp->s_nevent_processed > *next)
 	{
 		tw_wall_now(&g_tw_pe[0].end_time);
 		tw_wall_sub(&g_tw_pe[0].run_time, &g_tw_pe[0].end_time,
@@ -35,7 +35,7 @@ ospf_router_debug_routing(ospf_state * state, int d, tw_lp * lp)
 	FILE	*f;
 	char	 file[1024];
 
-	sprintf(file, "ospf/logs/r%ld-%d.log", lp->id, x++);
+	sprintf(file, "ospf/logs/r%ld-%d.log", lp->gid, x++);
 	f = fopen(file, "w");
 
 	fprintf(f, "src\t\tdst\n");
@@ -43,7 +43,7 @@ ospf_router_debug_routing(ospf_state * state, int d, tw_lp * lp)
 	{
 		if(state->ft[d] == 0xff)
 			fprintf(f, "%d\t\tno route\n", d);
-		else if(lp->id == d)
+		else if(lp->gid == d)
 			fprintf(f, "%d\t\t self d\n", d);
 		else
 			fprintf(f, "%d\t\t%d\n", d, state->ft[d]);

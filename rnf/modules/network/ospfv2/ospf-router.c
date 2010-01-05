@@ -58,15 +58,15 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 
 /*
-	//printf("%d: got message  %d at %g\n", lp->id, rn_msg->src, tw_now(lp));
+	//printf("%d: got message  %d at %g\n", lp->gid, rn_msg->src, tw_now(lp));
 
-	if(g_route[gr1] == lp->id)
+	if(g_route[gr1] == lp->gid)
 	{
 		gr1++;
 		g_route[gr1] = state->from;
 	} 
 
-	if(g_route1[gr2] == lp->id)
+	if(g_route1[gr2] == lp->gid)
 	{
 		gr2++;
 		g_route1[gr2] = state->from1;
@@ -74,15 +74,15 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 */
 
 	if(rn_msg->port != 23)
-		tw_error(TW_LOC, "%ld: recv non-ospf message from %d!", lp->id, nbr->id);
+		tw_error(TW_LOC, "%ld: recv non-ospf message from %d!", lp->gid, nbr->id);
 
 	switch (msg->type)
 	{
 	case OSPF_HELLO_MSG:
 #if VERIFY_HELLO || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("%lld OSPF: recv HELLO_MSG (%ld) from %lld, ts %f\n", 
-			lp->id, (long int) lp->pe->cur_event, rn_msg->src, tw_now(lp));
+			lp->gid, (long int) lp->pe->cur_event, rn_msg->src, tw_now(lp));
 #endif
 
 		ospf_hello_packet(state, nbr, msg->data, bf, lp);
@@ -91,9 +91,9 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_HELLO_SEND:
 #if VERIFY_HELLO || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("%lld OSPF: recv HELLO_SEND timer from %lld, ts %lf \n", 
-				lp->id, rn_msg->src, tw_now(lp));
+				lp->gid, rn_msg->src, tw_now(lp));
 #endif
 
 		ospf_hello_send(state, nbr, bf, lp);
@@ -101,8 +101,8 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_DD_MSG:
 #if VERIFY_DD || 1
-	if(1 == lp->id)
-		printf("\n%lld OSPF: got DD packet from %lld\n", lp->id, rn_msg->src);
+	if(1 == lp->gid)
+		printf("\n%lld OSPF: got DD packet from %lld\n", lp->gid, rn_msg->src);
 #endif
 
 		ospf_dd_event_handler(state, nbr, bf, lp);
@@ -111,9 +111,9 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_LS_REQUEST:
 #if VERIFY_LS || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("\n%lld: got LS_Request from %lld at %f\n", 
-			lp->id, rn_msg->src, tw_now(lp));
+			lp->gid, rn_msg->src, tw_now(lp));
 #endif
 
 		ospf_ls_request_recv(state, bf, nbr, lp);
@@ -122,9 +122,9 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_LS_UPDATE:
 #if VERIFY_LS || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("\n%lld: got LS Update from %lld at %f\n",
-			lp->id, rn_msg->src, tw_now(lp));
+			lp->gid, rn_msg->src, tw_now(lp));
 #endif
 		ospf_ls_update_recv(state, bf, nbr, lp);
 		state->stats->s_e_ls_updates++;
@@ -138,9 +138,9 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_LS_ACK:
 #if VERIFY_LS || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("\n%lld: got LS_ACK from %lld %f\n",
-				lp->id, rn_msg->src, tw_now(lp));
+				lp->gid, rn_msg->src, tw_now(lp));
 #endif
 
 		ospf_ack_process(nbr, bf, lp);
@@ -150,8 +150,8 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_AGING_TIMER:
 #if VERIFY_AGING || 1
-	if(1 == lp->id)
-		printf("%lld: got AGING_TIMER at %f\n", lp->id, tw_now(lp));
+	if(1 == lp->gid)
+		printf("%lld: got AGING_TIMER at %f\n", lp->gid, tw_now(lp));
 #endif
 		ospf_aging_timer(state, bf, lp);
 		state->stats->s_e_aging_timeouts++;
@@ -159,16 +159,16 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_RT_TIMER:
 #if 1
-		printf("\n%lld: rt timer fired! \n", lp->id);
+		printf("\n%lld: rt timer fired! \n", lp->gid);
 #endif
 		tw_event_memory_get(lp);
-		ospf_rt_timer(state, lp->id);
+		ospf_rt_timer(state, lp->gid);
 
 		break;
 	case OSPF_RETRANS_TIMEOUT:
 #if VERIFY_DD || 1
-	if(1 == lp->id)
-		printf("%lld: got RETRANS_TIMEOUT\n", lp->id);
+	if(1 == lp->gid)
+		printf("%lld: got RETRANS_TIMEOUT\n", lp->gid);
 #endif
 
 		tw_error(TW_LOC, "should not be here!");
@@ -178,8 +178,8 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_ACK_TIMEOUT:
 #if VERIFY_LS || 1
-	if(1 == lp->id)
-		printf("%lld: got Ack Timer \n", lp->id);
+	if(1 == lp->gid)
+		printf("%lld: got Ack Timer \n", lp->gid);
 #endif
 		ospf_ack_timed_out(nbr, bf, lp);
 		state->stats->s_e_ack_timeouts++;
@@ -187,9 +187,9 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 
 	case OSPF_HELLO_TIMEOUT:
 #if VERIFY_HELLO || 1
-	if(1 == lp->id)
+	if(1 == lp->gid)
 		printf("%lld: recv HELLO_TIMEOUT for nbr %d, ts %lf \n", 
-						lp->id, nbr->id, tw_now(lp));
+						lp->gid, nbr->id, tw_now(lp));
 #endif
 
 		state->stats->s_e_hello_timeouts++;
@@ -200,13 +200,13 @@ ospf_event_handler(ospf_state * state, tw_bf * bf, rn_message * rn_msg, tw_lp * 
 	case OSPF_WEIGHT_CHANGE:
 #if VERIFY_OSPF_EXPERIMENT
 		printf("%lld: recv WEIGHT CHANGE for link %ld, ts %lf \n", 
-			lp->id, (long int) msg->data, tw_now(lp));
+			lp->gid, (long int) msg->data, tw_now(lp));
 #endif
 		ospf_experiment_weights(state, (long int) msg->data, lp);
 		break;
 	default:
 		tw_error(TW_LOC, "%lld: Invalid packet type: %d at %f",
-				 lp->id, msg->type, tw_now(lp));
+				 lp->gid, msg->type, tw_now(lp));
 	}
 
 	// Free the OSPF message header membuf
@@ -242,7 +242,7 @@ ospf_startup(ospf_state * state, tw_lp * lp)
 #if OSPF_LOG
 	char		 name[255];
 
-	sprintf(name, "%s/ospf-router-%ld.log", g_rn_logs_dir, lp->id);
+	sprintf(name, "%s/ospf-router-%ld.log", g_rn_logs_dir, lp->gid);
 	//state->log = fopen(name, "w");
 	state->log = stdout;
 #endif
@@ -251,11 +251,11 @@ ospf_startup(ospf_state * state, tw_lp * lp)
 	state->from1 = -1;
 
 	state->gstate = g_ospf_state;
-	state->m = rn_getmachine(lp->id);
+	state->m = rn_getmachine(lp->gid);
 	state->ar = rn_getarea(state->m);
 	state->stats = tw_calloc(TW_LOC, "", sizeof(ospf_statistics), 1);
 
-	if(lp->id == 0)
+	if(lp->gid == 0)
 	{
 		for(rv = 0; rv < 400; rv++)
 			g_route[rv] = g_route1[rv] = -1;
@@ -265,7 +265,7 @@ ospf_startup(ospf_state * state, tw_lp * lp)
 		state->sn = .003;
 	}
 
-	//printf("Init OSPF router: %ld \n", lp->id);
+	//printf("Init OSPF router: %ld \n", lp->gid);
 
 	// Create the neighbor data structures
 	ospf_neighbor_init(state, lp);
@@ -297,7 +297,7 @@ ospf_startup(ospf_state * state, tw_lp * lp)
 		ospf_routing_init(state, lp);
 	}
 
-	state->lsa = tw_memory_data(state->ar->g_ospf_lsa[lp->id - state->ar->low]);
+	state->lsa = tw_memory_data(state->ar->g_ospf_lsa[lp->gid - state->ar->low]);
 
 	if(!g_rn_converge_ospf && !g_rn_converge_bgp)
 		ospf_random_weights(state, lp);
@@ -317,6 +317,6 @@ ospf_startup(ospf_state * state, tw_lp * lp)
 
 #if VERIFY_AGING
 	printf("%ld: setting aging timer finally: %lf \n", 
-		lp->id, next_timer);
+		lp->gid, next_timer);
 #endif
 }

@@ -26,7 +26,7 @@ ospf_nbr_reset(ospf_nbr * nbr, tw_lp * lp)
 	nbr->flood = NULL;
 	nbr->dd_seqnum = tw_rand_integer(lp->rng, 0, INT_MAX);
 
-	ar = rn_getarea(rn_getmachine(lp->id));
+	ar = rn_getarea(rn_getmachine(lp->gid));
 	if(ar == rn_getarea(nbr->m))
 		id = nbr->id - ar->low;
 	else if(ar->as == rn_getas(nbr->m))
@@ -49,7 +49,7 @@ ospf_nbr_reset(ospf_nbr * nbr, tw_lp * lp)
 		}
 	}
 
-	ospf_rt_build(nbr->router, lp->id);
+	ospf_rt_build(nbr->router, lp->gid);
 }
 
 void
@@ -121,7 +121,7 @@ ospf_nbr_exchange_done(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 		{
 			//state->stats->s_cause_ospf++;
 			ospf_lsa_create(state, nbr, 
-					lp->id - state->m->subnet->area->low, lp);
+					lp->gid - state->m->subnet->area->low, lp);
 		} else
 		{
 			//state->stats->s_cause_ospf++;
@@ -130,7 +130,7 @@ ospf_nbr_exchange_done(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 				nbr->router->m->subnet->area->nmachines, lp);
 		}
 
-		printf("%lld: Exchange done: nbr %d full \n", lp->id, nbr->id);
+		printf("%lld: Exchange done: nbr %d full \n", lp->gid, nbr->id);
 
 		// Cancel the retrans timer now that I have recv'd the 
 		// response to my LS_REQUEST
@@ -141,7 +141,7 @@ ospf_nbr_exchange_done(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 
 		ospf_ls_request(state, nbr, lp);
 
-		printf("%lld: Exchange done: nbr %d loading \n", lp->id, nbr->id);
+		printf("%lld: Exchange done: nbr %d loading \n", lp->gid, nbr->id);
 	}
 }
 
@@ -153,7 +153,7 @@ ospf_nbr_start(ospf_nbr * nbr, tw_lp * lp)
 {
 	if (nbr->state == ospf_nbr_down_st)
 	{
-		printf("%lld: setting nbr %d to attempt!\n", lp->id, nbr->id);
+		printf("%lld: setting nbr %d to attempt!\n", lp->gid, nbr->id);
 		nbr->state = ospf_nbr_attempt_st;
 	}
 
@@ -179,7 +179,7 @@ ospf_nbr_inactivity_timer(ospf_nbr * nbr, tw_lp * lp)
 {
 #if VERIFY_LS
 	printf("%ld OSPF: removing nbr %d from full st, HELLO timeout!\n",
-			lp->id, nbr->id);
+			lp->gid, nbr->id);
 #endif
 
 
@@ -191,7 +191,7 @@ ospf_nbr_inactivity_timer(ospf_nbr * nbr, tw_lp * lp)
 		if(nbr->ar == nbr->router->ar)
 		{
 			ospf_lsa_create(nbr->router, nbr, 
-				lp->id - nbr->router->m->subnet->area->low, lp);
+				lp->gid - nbr->router->m->subnet->area->low, lp);
 		} else
 		{
 			ospf_lsa_create(nbr->router, nbr, 
@@ -212,7 +212,7 @@ ospf_nbr_inactivity_timer_rc(ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 
 	if(bf->c1 == 1)
 	{
-		//ospf_lsa_create_rc(nbr->router, nbr, lp->id - nbr->router->m->subnet->area->low, lp);
+		//ospf_lsa_create_rc(nbr->router, nbr, lp->gid - nbr->router->m->subnet->area->low, lp);
 	}
 }
 
@@ -231,7 +231,7 @@ State(s):  Any state
 void
 ospf_nbr_kill_nbr(ospf_nbr * nbr, tw_lp * lp)
 {
-	//printf("%ld: KILLING NBR %d !!! \n", lp->id, nbr->id);
+	//printf("%ld: KILLING NBR %d !!! \n", lp->gid, nbr->id);
 	ospf_nbr_reset(nbr, lp);
 }
 
@@ -357,12 +357,12 @@ ospf_nbr_two_way_recv(ospf_nbr * nbr, tw_lp * lp)
 
 		nbr->retrans_dd = ospf_dd_copy(b, lp);
 
-		e = ospf_event_new(nbr->router, tw_getlp(nbr->id), 0.0, lp);
+		e = ospf_event_new(nbr->router, nbr->id, 0.0, lp);
 		ospf_event_send(nbr->router, e, OSPF_DD_MSG,
 				lp, OSPF_DD_HEADER, b, nbr->router->ar->id);
 
 		printf("%lld OSPF: send ExStart to %d, %lf: I %d, M %d, Master %d \n",
-			lp->id, nbr->id, e->recv_ts, dd->b.init, dd->b.more, dd->b.master);
+			lp->gid, nbr->id, e->recv_ts, dd->b.init, dd->b.more, dd->b.master);
 
 		nbr->retrans_timer =
 			ospf_timer_start(nbr, nbr->retrans_timer,
@@ -437,12 +437,12 @@ ospf_nbr_neg_done(ospf_state * state, ospf_nbr * nbr, tw_lp * lp)
 	dd->seqnum = nbr->dd_seqnum;
 	dd->nlsas = 0;
 
-	e = ospf_event_new(nbr->router, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(nbr->router, nbr->id, 0.0, lp);
 	ospf_event_send(nbr->router, e, OSPF_DD_MSG, lp, 
 			OSPF_DD_HEADER, b, nbr->router->ar->id);
 
 	printf("%lld OSPF: send Exchange to %d %lf, seqnum %d, nbr %d master %d \n",
-		lp->id, nbr->id, e->recv_ts, dd->seqnum, nbr->id, nbr->master);
+		lp->gid, nbr->id, e->recv_ts, dd->seqnum, nbr->id, nbr->master);
 
 	nbr->retrans_dd = ospf_dd_copy(b, lp);
 
@@ -571,7 +571,7 @@ ospf_nbr_event_handler(ospf_state * state, ospf_nbr * nbr, ospf_nbr_event event,
 		if (nbr->state == ospf_nbr_loading_st)
 			nbr->state = ospf_nbr_full_st;
 
-		printf("%lld: new neighbor at full_st: %d \n", lp->id, nbr->id);
+		printf("%lld: new neighbor at full_st: %d \n", lp->gid, nbr->id);
 		break;
 	case ospf_nbr_adj_ok_ev:
 		ospf_nbr_adj_ok(nbr, lp);

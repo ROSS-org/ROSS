@@ -1,5 +1,8 @@
 #include <ospf.h>
 
+#define LINK_TIME 0.005
+
+#if 0 // OLD VERSION -- NEW/CORRECT IN ospf-ls.c
 void
 ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 {
@@ -28,7 +31,7 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 	while(recv)
 	{
 		in_dbe = tw_memory_data(recv);
-		lsa = getlsa(in_dbe->lsa, nbr->id);
+		lsa = getlsa(state->m, in_dbe->lsa, nbr->id);
 
 		dbe = &state->db[lsa->adv_r];
 		//dbe = &state->db[request->lsa[i].lsa->adv_r];
@@ -39,12 +42,12 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 		{
 			ts += LINK_TIME;
 			ospf_event_send(state,
-					tw_getlp(nbr->id),
+					nbr->id,
 					OSPF_LS_UPDATE,
 					lp,
 					ts,
 					send,
-					nbr->router->area);
+					nbr->router->ar->id);
 
 			accum = OSPF_HEADER;
 			send = NULL;
@@ -55,7 +58,7 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 		else
 			buf->next = tw_memory_alloc(lp, g_ospf_fd);
 
-		out_dbe = buf->data;
+		out_dbe = tw_memory_data(buf);
 		out_dbe->lsa = dbe->lsa;
 		out_dbe->b.age = ospf_lsa_age(state, dbe, lp);
 
@@ -67,3 +70,4 @@ ospf_ls_request_recv(ospf_state * state, tw_bf * bf, ospf_nbr * nbr, tw_lp * lp)
 		recv = tw_event_memory_get(lp);
 	}
 }
+#endif

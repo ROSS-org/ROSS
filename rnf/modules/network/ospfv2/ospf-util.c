@@ -1,19 +1,18 @@
 #include <ospf.h>
 
 tw_event	*
-ospf_event_new(ospf_state * state, tw_lp * dest, tw_stime ts, tw_lp * src)
+ospf_event_new(ospf_state * state, tw_lpid dest, tw_stime ts, tw_lp *srclp)
 {
 	tw_event       *event = NULL;
 
-	event = rn_event_new(dest->gid, ts, src, DOWNSTREAM, 0);
+	event = rn_event_new(dest, ts, srclp, DOWNSTREAM, 0);
 
-	if(src->pe->abort_event)
+	if(srclp->pe->abort_event)
 	{
 		state->stats->s_sent_lost++;
-
 #if VERIFY_HELLO
 		printf("%ld OSPF: Dropped event to dst %lld \n", 
-			   src->id, dest->gid);
+			   srclp->gid, dest);
 #endif
 	}
 
@@ -21,7 +20,7 @@ ospf_event_new(ospf_state * state, tw_lp * dest, tw_stime ts, tw_lp * src)
 }
 
 tw_event       *
-ospf_event_send(ospf_state * state, tw_event * event, int type, tw_lp * src,
+ospf_event_send(ospf_state * state, tw_event * event, int type, tw_lp *src,
 				int size, tw_memory * mem, int area)
 {
 	tw_memory	*b;
@@ -45,7 +44,7 @@ ospf_event_send(ospf_state * state, tw_event * event, int type, tw_lp * src,
 
 #if VERIFY_HELLO
 	printf("%ld OSPF: sent type %d, dst %ld, ts = %lf \n", 
-		   src->id, type, event->dest_lp->id, event->recv_ts);
+	       src->id, type, (unsigned int)event->dest_lp, event->recv_ts);
 #endif
 
 	switch (type)

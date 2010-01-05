@@ -146,7 +146,7 @@ ospf_lsa_find(ospf_state * state, ospf_nbr * n, int id, tw_lp * lp)
 	lsa = tw_memory_data(b);
 	for(index = 0; NULL != lsa; index++)
 	{
-		if(lsa->links.size == nlinks && lsa->adv_r == lp->id)
+		if(lsa->links.size == nlinks && lsa->adv_r == lp->gid)
 		{
 			if(nlinks == 0)
 			{
@@ -190,7 +190,7 @@ ospf_lsa_find(ospf_state * state, ospf_nbr * n, int id, tw_lp * lp)
 	lsa = tw_memory_data(lsa->next);
 
 	lsa->id = id;
-	lsa->adv_r = lp->id;
+	lsa->adv_r = lp->gid;
 
 	if(id < state->ar->nmachines)
 	{
@@ -221,7 +221,7 @@ ospf_lsa_find(ospf_state * state, ospf_nbr * n, int id, tw_lp * lp)
 
 /*
 	printf("%ld: Creating LSA: %d, advr %d, %lf \n",
-		lp->id, lsa->id, lsa->adv_r, lp->cur_event->recv_ts);
+		lp->gid, lsa->id, lsa->adv_r, lp->cur_event->recv_ts);
 */
 
 	return index;
@@ -345,11 +345,11 @@ lsa_create(ospf_state * state, int entry, tw_lp * lp)
 				b = b->next;
 			}
 
-			if(nlinks == i && lsa->adv_r == lp->id)
+			if(nlinks == i && lsa->adv_r == lp->gid)
 			{
 #if VERIFY_LS
 				printf("%ld OSPF: Found LSA for %d in graph! \n", 
-					lp->id, lsa->id);
+					lp->gid, lsa->id);
 #endif
 				return index;
 			}
@@ -369,7 +369,7 @@ lsa_create(ospf_state * state, int entry, tw_lp * lp)
 	lsa = tw_memory_data(lsa->next);
 
 	lsa->id = entry;
-	lsa->adv_r = lp->id;
+	lsa->adv_r = lp->gid;
 
 	if(x_id < state->ar->nmachines)
 		lsa->type = ospf_lsa_router;
@@ -390,7 +390,7 @@ ospf_lsa_allocate(tw_lp * lp)
 
 	ospf_lsa	*lsa;
 
-	//tw_printf(TW_LOC, "%d: Allocating a new LSA! \n", lp->id);
+	//tw_printf(TW_LOC, "%d: Allocating a new LSA! \n", lp->gid);
 
 	b = tw_memory_alloc(lp, g_ospf_lsa_fd);
 
@@ -505,17 +505,17 @@ ospf_lsa_refresh(ospf_state * state, ospf_db_entry * dbe, tw_lp * lp)
 			temp_dbe.b = dbe->b;
 			temp_dbe.lsa = dbe->lsa;
 
-			ospf_lsa_flood(state, &temp_dbe, lp->id, lp);
+			ospf_lsa_flood(state, &temp_dbe, lp->gid, lp);
 			state->lsa_wrapping = 1;
 		}
 
 		return;
 	}
 
-	//printf("%d: old LSA %d seqnum: %d \n", lp->id, lp->id, dbe->seqnum);
+	//printf("%d: old LSA %d seqnum: %d \n", lp->gid, lp->gid, dbe->seqnum);
 	dbe->seqnum++;
-	//printf("%d: new LSA %d seqnum: %d \n", lp->id, lp->id, dbe->seqnum);
-	ospf_lsa_flood(state, dbe, lp->id, lp);
+	//printf("%d: new LSA %d seqnum: %d \n", lp->gid, lp->gid, dbe->seqnum);
+	ospf_lsa_flood(state, dbe, lp->gid, lp);
 }
 
 /*
@@ -552,7 +552,7 @@ ospf_lsa_create(ospf_state * state, ospf_nbr * nbr, int entry, tw_lp * lp)
 
 #if VERIFY_LS
 		printf("%ld: flushing LSA %d: no links \n",
-			lp->id, lsa->id);
+			lp->gid, lsa->id);
 #endif
 
 		dbe->lsa = index;
@@ -597,7 +597,7 @@ ospf_lsa_create(ospf_state * state, ospf_nbr * nbr, int entry, tw_lp * lp)
 			tw_error(TW_LOC, "Insert LSA with no links into DB!");
 
 		dbe = ospf_db_insert(state, index, dbe, lp);
-		l = rn_getlink(rn_getmachine(lp->id), nbr->id);
+		l = rn_getlink(rn_getmachine(lp->gid), nbr->id);
 
 #if VERIFY_OSPF_CONVERGENCE
 		lsa->count = 0;
@@ -610,7 +610,7 @@ ospf_lsa_create(ospf_state * state, ospf_nbr * nbr, int entry, tw_lp * lp)
 
 			if(int_id != -1 &&
 				int_id != l->wire->id &&
-				i != lp->id)
+				i != lp->gid)
 			{
 				lsa->count++;
 			}
@@ -619,7 +619,7 @@ ospf_lsa_create(ospf_state * state, ospf_nbr * nbr, int entry, tw_lp * lp)
 		lsa->start = l->last_status;
 
 		printf("%ld: lsa start time: %f hop count %d \n", 
-			lp->id, lsa->start, lsa->count);
+			lp->gid, lsa->start, lsa->count);
 #endif
 	}
 
@@ -634,7 +634,7 @@ ospf_lsa_create(ospf_state * state, ospf_nbr * nbr, int entry, tw_lp * lp)
 		 */
 		ospf_aging_timer_set(state, &state->db[lsa->id], 
 							OSPF_LSA_MAX_AGE, lp);
-		ospf_lsa_flood(state, dbe, lp->id, lp);
+		ospf_lsa_flood(state, dbe, lp->gid, lp);
 		state->lsa_wrapping = 1;
 	} else
 	{
@@ -674,7 +674,7 @@ ospf_lsa_start_flood(ospf_nbr * nbr, ospf_db_entry * dbe, tw_lp * lp)
 		lsa = getlsa(nbr->router->m, out_dbe->lsa, out_dbe->b.entry);
 
 		e = ospf_event_new(nbr->router, 
-				tw_getlp(nbr->id), nbr->next_flood - tw_now(lp), lp);
+				nbr->id, nbr->next_flood - tw_now(lp), lp);
 		ospf_event_send(nbr->router, e, OSPF_LS_UPDATE, lp, 
 				lsa->length, send, nbr->router->ar->id);
 
@@ -698,7 +698,7 @@ ospf_lsa_start_flood(ospf_nbr * nbr, ospf_db_entry * dbe, tw_lp * lp)
 		if(!lsa)
 		{
 			printf("%lld: aborting flood of LSA: %d \n",
-				lp->id, dbe->b.entry);
+				lp->gid, dbe->b.entry);
 			return;
 		}
 
@@ -713,7 +713,7 @@ ospf_lsa_start_flood(ospf_nbr * nbr, ospf_db_entry * dbe, tw_lp * lp)
 		out_dbe->cause_bgp = dbe->cause_bgp;
 		out_dbe->cause_ospf = dbe->cause_ospf;
 	
-		e = ospf_event_new(nbr->router, tw_getlp(nbr->id), 
+		e = ospf_event_new(nbr->router, nbr->id, 
 					nbr->router->gstate->flood_timer, lp);
 	
 		nbr->flood = ospf_event_send(nbr->router, e, OSPF_LS_UPDATE, lp, 
@@ -741,7 +741,7 @@ ospf_lsa_flood(ospf_state * state, ospf_db_entry * dbe, int from, tw_lp * lp)
 			continue;
 
 		/* Don't send it to myself, or the neighbor who sent it to me */
-		if ((from != -1 || from != lp->id) && nbr->id == from)
+		if ((from != -1 || from != lp->gid) && nbr->id == from)
 			continue;
 
 		/* Don't send router LSAs to neighbors in other areas */
@@ -863,7 +863,7 @@ ospf_lsa_flush(ospf_state * state, ospf_nbr * nbr, ospf_db_entry * r_dbe, tw_lp 
 	r_lsa = getlsa(state->m, r_dbe->lsa, r_dbe->b.entry);
 
 	originator = 0;
-	if(r_lsa->adv_r == lp->id)
+	if(r_lsa->adv_r == lp->gid)
 	{
 		if(r_lsa->type == ospf_lsa_router)
 		{

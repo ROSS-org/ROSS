@@ -26,7 +26,7 @@ ospf_ack_timed_out(ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 {
 	tw_event	*e;
 
-	e = ospf_event_new(nbr->router, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(nbr->router, nbr->id, 0.0, lp);
 	ospf_event_send(nbr->router, e, OSPF_LS_ACK, lp,
 					nbr->delay_ack_size,
 					nbr->delay, nbr->router->ar->id);
@@ -53,7 +53,7 @@ ospf_ack_direct(ospf_nbr * nbr, tw_memory * buf, int size, tw_lp * lp)
 	ospf_db_entry  *dbe;
 
 	dbe = tw_memory_data(buf);
-	e = ospf_event_new(nbr->router, tw_getlp(nbr->id), 0.0, lp);
+	e = ospf_event_new(nbr->router, nbr->id, 0.0, lp);
 	ospf_event_send(nbr->router, e, OSPF_LS_ACK, lp, size + OSPF_ACK_HEADER, 
 						buf, nbr->router->ar->id);
 /*
@@ -64,7 +64,7 @@ ospf_ack_direct(ospf_nbr * nbr, tw_memory * buf, int size, tw_lp * lp)
 
 #if VERIFY_OSPF_ACK
 	printf("%ld: sending direct ACK for LSA %d to %d at %f, now %f\n",
-		   lp->id, dbe->b.entry, nbr->id, e->recv_ts, tw_now(lp));
+		   lp->gid, dbe->b.entry, nbr->id, e->recv_ts, tw_now(lp));
 #endif
 }
 
@@ -90,7 +90,7 @@ ospf_ack_process(ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 	if (nbr->state < ospf_nbr_exchange_st)
 	{
 		printf("%ld: nbr state is %d: LS ACK is ignored\n", 
-				lp->id, nbr->state);
+				lp->gid, nbr->state);
 		return;
 	}
 #endif

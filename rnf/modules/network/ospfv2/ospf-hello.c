@@ -7,7 +7,7 @@
  * just create the hello packet once and keep sending the same one..
  */
 void
-ospf_h_send(ospf_state * state, ospf_nbr * nbr, tw_lp * src, tw_lp * dst)
+ospf_h_send(ospf_state * state, ospf_nbr * nbr, tw_lp * src, tw_lpid dst)
 {
 	tw_event	*e;
 	tw_memory	*b;
@@ -76,7 +76,7 @@ ospf_h_send(ospf_state * state, ospf_nbr * nbr, tw_lp * src, tw_lp * dst)
 //#endif
 			m->data = nbr->hello;
 
-			e = ospf_event_new(state, tw_getlp(nbr->id), 0.0, src);
+			e = ospf_event_new(state, nbr->id, 0.0, src);
 			ospf_event_send(state, e, OSPF_HELLO_MSG,
 					src, accum - OSPF_HEADER, b, state->ar->id);
 
@@ -105,7 +105,7 @@ ospf_hello_send(ospf_state * state, ospf_nbr * nbr, tw_bf * bf, tw_lp * lp)
 					    OSPF_HELLO_SEND, lp);
 
 	if(nbr->istate >= ospf_int_loopback_st)
-		ospf_h_send(state, nbr, lp, tw_getlp(nbr->id));
+		ospf_h_send(state, nbr, lp, nbr->id);
 }
 
 /*
@@ -128,7 +128,7 @@ ospf_hello_packet(ospf_state * state, ospf_nbr * nbr, ospf_hello * r,
 		bf->c1 = 1;
 #if VERIFY_HELLO
 		printf("%ld: Dropping nbr HELLO since I have no state for it! "
-			"(%f)\n", lp->id, tw_now(lp));
+			"(%f)\n", lp->gid, tw_now(lp));
 #endif
 		return;
 	}
@@ -150,7 +150,7 @@ ospf_hello_packet(ospf_state * state, ospf_nbr * nbr, ospf_hello * r,
 
 #if VERIFY_HELLO
 		printf("%ld: dropped hello due to hello interval! %g != %g \n",
-				lp->id, r->hello_interval, 
+				lp->gid, r->hello_interval, 
 				state->gstate->hello_sendnext);
 #endif
 		return;
@@ -165,7 +165,7 @@ ospf_hello_packet(ospf_state * state, ospf_nbr * nbr, ospf_hello * r,
 
 #if VERIFY_HELLO
 		printf("%ld: dropped hello due to poll interval! %g != %g \n",
-				lp->id, r->poll_interval, state->gstate->poll_interval);
+				lp->gid, r->poll_interval, state->gstate->poll_interval);
 #endif
 		return;
 	}
@@ -182,10 +182,10 @@ ospf_hello_packet(ospf_state * state, ospf_nbr * nbr, ospf_hello * r,
 	 */
 	for (i = r->offset; i < r->end; i++)
 	{
-		if(r->neighbors[i] == lp->id)
+		if(r->neighbors[i] == lp->gid)
 		{
 #if VERIFY_HELLO && 0
-			printf("%d: found myself in HELLO message! \n", lp->id);
+			printf("%d: found myself in HELLO message! \n", lp->gid);
 #endif
 
 			priority = nbr->priority;
