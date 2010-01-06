@@ -23,7 +23,8 @@ rn_reverse_event_send(tw_lpid dst, tw_lp * src, rn_message_type dir, unsigned lo
 	msg.port = m->port;
 	msg.ttl = m->ttl;
 
-	if(dir == DIRECT)
+	if((dir == DIRECT) ||
+           (dir == UPSTREAM && s->cur_layer == 0))
 	{
 		// do nothing, no layer to reverse
 		return;
