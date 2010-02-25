@@ -156,7 +156,6 @@ void            RC_Cell_MoveCallOut(struct State *SV, tw_bf * CV, struct Msg_Dat
 void            CellStatistics_CollectStats(struct State *, tw_lp *lp);
 void            CellStatistics_Compute();
 void            CellStatistics_Print();
-int             Neighbors[NUM_CELLS_X * NUM_CELLS_Y][4];
 
 struct CellStatistics TWAppStats;
 tw_lpid nlp_per_pe = 0;
