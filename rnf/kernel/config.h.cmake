@@ -21,4 +21,6 @@
 
 #cmakedefine HAVE_RANDOM_WALK_H 1
 
+#cmakedefine HAVE_ROBOT_PHYSSYM_H 1
+
 #endif /* _TEST_CONFIG_H */

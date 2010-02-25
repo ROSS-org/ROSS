@@ -9,7 +9,6 @@ static unsigned int g_tw_gvt_no_change = 0;
 static unsigned int mattern_nochange = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-static unsigned int g_tw_gvt_interval = 16;
 
 static const tw_optdef gvt_opts [] =
 {

@@ -39,6 +39,7 @@ extern tw_lpid		g_tw_rng_default;
 extern size_t		g_tw_rng_max;
 extern tw_seed		*g_tw_rng_seed;
 extern unsigned int	g_tw_mblock;
+extern unsigned int g_tw_gvt_interval;
 extern tw_stime		g_tw_ts_end;
 extern unsigned int	g_tw_sim_started;
 extern unsigned int	g_tw_master;

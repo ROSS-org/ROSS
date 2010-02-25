@@ -37,6 +37,22 @@
 
 rn_lptype       layer_types[] = {
 
+#ifdef HAVE_ROBOT_PHYSSYM_H
+        {
+	 (init_f) rp_init,
+	 (event_f) rp_event_handler,
+	 (revent_f) rp_rc_event_handler,
+	 (final_f) rp_final,
+	 (map_f) NULL,
+	 sizeof(rp_state),
+	 "robot-physsym",
+	 (rn_xml_init_f) rp_xml,
+	 (md_opt_f) rp_md_opts,
+	 (md_init_f) rp_md_init,
+	 (md_final_f) rp_md_final}
+	,
+#endif
+
 #ifdef HAVE_RANDOM_WALK_H
 	{
 	 (init_f) rw_init,

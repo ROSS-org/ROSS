@@ -48,6 +48,7 @@
 
 #include <ross.h>
 
+#if 0
 void
 tw_mutex_create(tw_mutex *lck)
 {
@@ -63,3 +64,4 @@ void
 tw_barrier_create(tw_barrier * b)
 {
 }
+#endif

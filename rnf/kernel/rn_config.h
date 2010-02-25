@@ -1,6 +1,10 @@
 #ifndef INC_rn_config_h
 #define INC_rn_config_h
 
+#ifdef HAVE_ROBOT_PHYSSYM_H
+#include "../modules/mobility/robot-physsym/rp.h"
+#endif
+
 #ifdef HAVE_RANDOM_WALK_H
 #include "../modules/mobility/random-walk/rw.h"
 #endif

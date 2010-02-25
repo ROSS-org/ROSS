@@ -78,7 +78,12 @@ tw_seed        *g_tw_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
 
+#if ROSS_MEMORY
+unsigned int	g_tw_memory_nqueues = 64;
+#else 
 unsigned int	g_tw_memory_nqueues = 0;
+#endif
+
 size_t		g_tw_memory_sz = 0;
 size_t		g_tw_event_msg_sz = 0;
 
@@ -94,6 +99,7 @@ tw_stime g_tw_lookahead=0.005;
 	 * etc.
 	 */
 unsigned int g_tw_mblock = 16;
+unsigned int g_tw_gvt_interval = 16;
 tw_stime     g_tw_ts_end = 100000.0;
 
 	/*
