@@ -49,7 +49,7 @@
 #include <ross.h>
 
 void
-tw_kp_onpe(tw_lpid id, tw_pe * pe)
+tw_kp_onpe(tw_kpid id, tw_pe * pe)
 {
 	if(id >= g_tw_nkp)
 		tw_error(TW_LOC, "ID %d exceeded MAX KPs", id);

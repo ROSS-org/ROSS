@@ -53,8 +53,8 @@
 #define NUM_CELLS_X 1024   //256
 #define NUM_CELLS_Y 1024   //256
 
-#define NUM_VP_X 128					
-#define NUM_VP_Y 128
+#define NUM_VP_X 8					
+#define NUM_VP_Y 8
 
 #define MAX_NORMAL_CHANNELS 10
 #define MAX_RESERVE_CHANNELS 0

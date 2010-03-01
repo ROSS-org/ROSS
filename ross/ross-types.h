@@ -128,6 +128,7 @@ DEF(struct, tw_petype)
 typedef void (*init_f) (void *sv, tw_lp * me);
 typedef tw_peid (*map_f) (tw_lpid);
 typedef tw_lp * (*map_local_f) (tw_lpid);
+typedef void (*map_custom_f) (void);
 typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);

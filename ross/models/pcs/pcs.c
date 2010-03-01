@@ -24,7 +24,7 @@ GenInitPortables(tw_lp * lp)
   return ((int)BIG_N);
 }
 
-tw_lpid g_vp_per_proc = NUM_VP_X*NUM_VP_Y;
+tw_lpid g_vp_per_proc =0; // set in main
 tw_lpid g_cells_per_vp_x = NUM_CELLS_X/NUM_VP_X;
 tw_lpid g_cells_per_vp_y = NUM_CELLS_Y/NUM_VP_Y;
 tw_lpid g_cells_per_vp = (NUM_CELLS_X/NUM_VP_X)*(NUM_CELLS_Y/NUM_VP_Y);
@@ -81,7 +81,7 @@ CellMapping_lp_to_pe(tw_lpid lpid)
   return peid;
 }
 
-tw_lp *CellMapping_lp_to_index(tw_lpid lpid) 
+tw_lp *CellMapping_to_lp(tw_lpid lpid) 
 {
   tw_lpid lp_x = lpid % NUM_CELLS_X; //lpid -> (lp_x,lp_y)
   tw_lpid lp_y = lpid / NUM_CELLS_X;
@@ -98,6 +98,25 @@ tw_lp *CellMapping_lp_to_index(tw_lpid lpid)
     tw_error(TW_LOC, "index (%llu) beyond g_tw_nlp (%llu) range \n", index, g_tw_nlp);
   
   return g_tw_lp[index];
+}
+
+tw_lpid CellMapping_to_local_index(tw_lpid lpid) 
+{
+  tw_lpid lp_x = lpid % NUM_CELLS_X; //lpid -> (lp_x,lp_y)
+  tw_lpid lp_y = lpid / NUM_CELLS_X;
+  tw_lpid vp_index_x = lp_x % g_cells_per_vp_x;
+  tw_lpid vp_index_y = lp_y % g_cells_per_vp_y;
+  tw_lpid vp_index = vp_index_x + (vp_index_y * (g_cells_per_vp_x));
+  tw_lpid vp_num_x = lp_x/g_cells_per_vp_x;
+  tw_lpid vp_num_y = lp_y/g_cells_per_vp_y;
+  tw_lpid vp_num = vp_num_x + (vp_num_y*NUM_VP_X);  
+  vp_num = vp_num % g_vp_per_proc;
+  tw_lpid index = vp_index + vp_num*g_cells_per_vp;
+  
+  if( index >= g_tw_nlp )
+    tw_error(TW_LOC, "index (%llu) beyond g_tw_nlp (%llu) range \n", index, g_tw_nlp);
+  
+  return( index );
 }
 
 
@@ -855,13 +874,53 @@ tw_lptype       mylps[] =
     {0},
   };
 
+void pcs_grid_mapping()
+{
+  tw_lpid         x, y;
+  tw_lpid         lpid, kpid;
+  tw_lpid         num_cells_per_kp, vp_per_proc;
+
+  num_cells_per_kp = (NUM_CELLS_X * NUM_CELLS_Y) / (NUM_VP_X * NUM_VP_Y);
+  vp_per_proc = (NUM_VP_X * NUM_VP_Y) / ((tw_nnodes() * g_tw_npe)) ;
+  g_tw_nlp = nlp_per_pe;
+  g_tw_nkp = vp_per_proc;
+  
+
+  for (y = 0; y < NUM_CELLS_Y; y++)
+    {
+      for (x = 0; x < NUM_CELLS_X; x++)
+	{
+	  lpid = (x + (y * NUM_CELLS_X));
+	  if( g_tw_mynode == CellMapping_lp_to_pe(lpid) )
+	    {
+	      kpid = (lpid/num_cells_per_kp) % g_tw_nkp;
+/* 	      printf("Attempting to Map: Global LP id (%llu) to Local LP (%llu) to KP %llu to PE %u \n", */
+/* 		     (x + (y * NUM_CELLS_X)), lpid, kpid, g_tw_mynode ); */
+
+	      tw_lp_onpe(CellMapping_to_local_index(lpid), g_tw_pe[0], lpid);
+	      if( g_tw_kp[kpid] == NULL )
+		tw_kp_onpe(kpid, g_tw_pe[0]);
+	      tw_lp_onkp(g_tw_lp[CellMapping_to_local_index(lpid)], g_tw_kp[kpid]);
+	      tw_lp_settype( CellMapping_to_local_index(lpid), &mylps[0]);
+
+/* 	      printf("Mapped: Global LP id (%llu) to Local LP (%llu) to KP %llu (internal ID %llu) to PE %u \n", */
+/* 		     g_tw_lp[CellMapping_to_local_index(lpid)]->gid,  */
+/* 		     CellMapping_to_local_index(lpid),  */
+/* 		     kpid,  */
+/* 		     g_tw_kp[kpid]->id,  */
+/* 		     g_tw_mynode ); */
+
+
+	    }
+	}
+    }
+}
+
 int
 main(int argc, char **argv)
 {
-  unsigned int             i, x, y;
-  unsigned int             additional_memory_buffers;
-  tw_lpid         xvp, yvp, lpid, kpid;
   tw_lpid         num_cells_per_kp, vp_per_proc;
+  unsigned int    additional_memory_buffers;
   
   // printf("Enter TWnpe, TWnkp, additional_memory_buffers \n" );
   // scanf("%d %d %d", 
@@ -884,31 +943,15 @@ main(int argc, char **argv)
  
   num_cells_per_kp = (NUM_CELLS_X * NUM_CELLS_Y) / (NUM_VP_X * NUM_VP_Y);
   vp_per_proc = (NUM_VP_X * NUM_VP_Y) / ((tw_nnodes() * g_tw_npe)) ;
+  g_vp_per_proc = vp_per_proc;
   g_tw_nlp = nlp_per_pe;
   g_tw_nkp = vp_per_proc;
 
+  g_tw_mapping = CUSTOM;
+  g_tw_custom_initial_mapping = &pcs_grid_mapping;
+  g_tw_custom_lp_global_to_local_map = &CellMapping_to_lp;
+
   tw_define_lps(nlp_per_pe, sizeof(struct Msg_Data), 0);
-
-  for (x = 0; x < NUM_CELLS_X; x++)
-    {
-      for (y = 0; y < NUM_CELLS_Y; y++)
-	{
-	  xvp = (int)((double)x * ((double)NUM_VP_X / (double)NUM_CELLS_X));
-	  yvp = (int)((double)y * ((double)NUM_VP_Y / (double)NUM_CELLS_Y));
-
-	  if( g_tw_mynode == ((xvp + (yvp * NUM_VP_X)) / vp_per_proc))
-	    {
-	      lpid = (x + (y * NUM_CELLS_X) % nlp_per_pe);
-	      kpid = ((x + (y * NUM_CELLS_X))/num_cells_per_kp) % g_tw_nkp;
-
-	      tw_lp_settype( lpid, &mylps[0]);
-	      tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
-	      tw_lp_onpe( lpid, g_tw_pe[0], ((g_tw_nlp * g_tw_mynode) + lpid));
-	      tw_kp_onpe(kpid, g_tw_pe[0]);
-	    }
-	}
-    }
-
 
   /*
    * Initialize App Stats Structure 

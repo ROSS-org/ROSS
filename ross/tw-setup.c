@@ -219,7 +219,10 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	/*
 	 * Construct the KP array.
 	 */
-	g_tw_nkp = nkp_per_pe * g_tw_npe;
+	if( g_tw_nkp == 1 ) // if it is the default, then check with the overide param
+	  g_tw_nkp = nkp_per_pe * g_tw_npe;
+	// else assume the application overloaded and has BRAINS to set its own g_tw_nkp
+
 	g_tw_kp = tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
 	/*
@@ -238,7 +241,14 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	    break;
 	    
 	  case CUSTOM:
-	    map_none();
+	    if( g_tw_custom_initial_mapping )
+	      {
+		g_tw_custom_initial_mapping();
+	      }
+	    else
+	      {
+		tw_error(TW_LOC, "CUSTOM mapping flag set but not custom mapping function! \n");
+	      }
 	    break;
 	    
 	  default:

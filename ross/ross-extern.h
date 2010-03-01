@@ -28,6 +28,7 @@ extern unsigned int tw_pq_max_size(tw_pq *);
  */
 extern tw_synch g_tw_synchronization_protocol;
 extern map_local_f g_tw_custom_lp_global_to_local_map;
+extern map_custom_f g_tw_custom_initial_mapping;
 extern tw_lp_map g_tw_mapping;   
 extern tw_lpid  g_tw_nlp;
 extern tw_lpid	g_tw_lp_offset;
@@ -114,7 +115,7 @@ extern void		 tw_init_lps(tw_pe * me);
 /*
  * tw-kp.c
  */
-extern void	 tw_kp_onpe(tw_lpid id, tw_pe * pe);
+extern void	 tw_kp_onpe(tw_kpid id, tw_pe * pe);
 extern void	 kp_fossil_remote(tw_kp * kp);
 extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
 extern void	 tw_init_kps(tw_pe * me);

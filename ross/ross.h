@@ -123,7 +123,7 @@
 #endif
 
 /* tw_peid -- Processing Element "PE" id */
-typedef unsigned int tw_peid;
+typedef unsigned long long tw_peid;
 
 /* tw_stime -- Simulation time value for sim clock (NOT wall!) */
 typedef double tw_stime;

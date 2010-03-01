@@ -62,9 +62,10 @@
          * g_tw_nRNG_per_lp -- Number of RNG per LP
 	 */
 
-tw_synch   g_tw_synchronization_protocol=NO_SYNCH;
-map_local_f g_tw_custom_lp_global_to_local_map=NULL;
-tw_lp_map  g_tw_mapping=LINEAR;   
+tw_synch     g_tw_synchronization_protocol=NO_SYNCH;
+map_local_f  g_tw_custom_lp_global_to_local_map=NULL;
+map_custom_f g_tw_custom_initial_mapping=NULL;
+tw_lp_map    g_tw_mapping=LINEAR;   
 
 tw_lpid         g_tw_nlp = 0;
 tw_lpid		g_tw_lp_offset = 0;
