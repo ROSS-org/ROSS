@@ -3,7 +3,7 @@
 SET(QUEUE       splay) #Splay Tree
 
 #SET(MAPPING      none)
-SET(MAPPING       linear)
+#SET(MAPPING       linear)
 #SET(MAPPING      rrobin)
 
 SET(RAND           clcg4)
@@ -64,4 +64,4 @@ IF(ARCH STREQUAL x86_64)
 ENDIF(ARCH STREQUAL x86_64)
 
 ADD_SUBDIRECTORY(ross)
-ADD_SUBDIRECTORY(rnf)
+# ADD_SUBDIRECTORY(rnf)

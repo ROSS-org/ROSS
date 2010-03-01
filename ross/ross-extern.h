@@ -27,6 +27,8 @@ extern unsigned int tw_pq_max_size(tw_pq *);
  * ross-global.c
  */
 extern tw_synch g_tw_synchronization_protocol;
+extern map_local_f g_tw_custom_lp_global_to_local_map;
+extern tw_lp_map g_tw_mapping;   
 extern tw_lpid  g_tw_nlp;
 extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;

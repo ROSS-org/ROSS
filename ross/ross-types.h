@@ -68,6 +68,7 @@ FWD(struct, tw_memory);
 #endif
 
 FWD(enum, tw_event_owner);
+FWD(enum, tw_lp_map);
 
 /*
  * synchronization protocol used
@@ -81,6 +82,13 @@ enum tw_synch_e
   };
 
 typedef enum tw_synch_e tw_synch;
+
+DEF(enum, tw_lp_map)
+{
+  LINEAR,
+  ROUND_ROBIN,
+  CUSTOM
+};
 
 /* 
  * tw_kpid -- Kernel Process (KP) id
@@ -119,6 +127,7 @@ DEF(struct, tw_petype)
  */
 typedef void (*init_f) (void *sv, tw_lp * me);
 typedef tw_peid (*map_f) (tw_lpid);
+typedef tw_lp * (*map_local_f) (tw_lpid);
 typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);

@@ -103,6 +103,8 @@ main(int argc, char **argv, char **env)
 	tw_opt_add(app_opt);
 	tw_init(&argc, &argv);
 
+        g_tw_memory_nqueues = 16; // give at least 16 memory queue event
+
 	offset_lpid = g_tw_mynode * nlp_per_pe;
 	ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
 	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 

@@ -227,13 +227,23 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	 */
 	g_tw_lp = tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
 
-#if ROSS_MAPPING_linear
-	map_linear();
-#elif ROSS_MAPPING_linear
-	map_round_robin();
-#else
-	map_none();
-#endif
+	switch(g_tw_mapping)
+	  {
+	  case LINEAR:
+	    map_linear();
+	    break;
+	    
+	  case ROUND_ROBIN:
+	    map_round_robin();
+	    break;
+	    
+	  case CUSTOM:
+	    map_none();
+	    break;
+	    
+	  default:
+	    tw_error(TW_LOC, "Bad value for g_tw_mapping %d \n", g_tw_mapping);
+	  }
 
 	// init LP RNG stream(s)
 	for(i = 0; i < g_tw_nlp; i++)
@@ -359,16 +369,23 @@ setup_pes(void)
 
 		printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
 
-#ifdef ROSS_MAPPING_linear
-		printf("\t%-50s %11s\n", "LP-to-PE Mapping", "linear");
-		fprintf(g_tw_csv, "%s,", "linear");
-#elif ROSS_MAPPING_rrobin
-		printf("\t%-50s %11s\n", "LP-to-PE Mapping", "round robin");
-		fprintf(g_tw_csv, "%s,", "round robin");
-#else
-		printf("\t%-50s %11s\n", "LP-to-PE Mapping", "model defined");
-		fprintf(g_tw_csv, "%s,", "model defined");
-#endif
+		switch(g_tw_mapping)
+		  {
+		  case LINEAR:
+		    printf("\t%-50s %11s\n", "LP-to-PE Mapping", "linear");
+		    fprintf(g_tw_csv, "%s,", "linear");
+		    break;
+
+		  case ROUND_ROBIN:
+		    printf("\t%-50s %11s\n", "LP-to-PE Mapping", "round robin");
+		    fprintf(g_tw_csv, "%s,", "round robin");
+		    break;
+
+		  case CUSTOM:
+		    printf("\t%-50s %11s\n", "LP-to-PE Mapping", "model defined");
+		    fprintf(g_tw_csv, "%s,", "model defined");
+		    break;
+		  }
 		printf("\n");
 
 #ifndef ROSS_DO_NOT_PRINT

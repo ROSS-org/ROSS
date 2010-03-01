@@ -6,7 +6,6 @@ pcs_map(tw_lpid gid)
   return (tw_peid) gid / g_tw_nlp;
 }
 
-
 double 
 Pi_Distribution(double n, double N)
 {
@@ -24,6 +23,11 @@ GenInitPortables(tw_lp * lp)
 {
   return ((int)BIG_N);
 }
+
+tw_lpid g_vp_per_proc = NUM_VP_X*NUM_VP_Y;
+tw_lpid g_cells_per_vp_x = NUM_CELLS_X/NUM_VP_X;
+tw_lpid g_cells_per_vp_y = NUM_CELLS_Y/NUM_VP_Y;
+tw_lpid g_cells_per_vp = (NUM_CELLS_X/NUM_VP_X)*(NUM_CELLS_Y/NUM_VP_Y);
 
 tw_lpid Cell_ComputeMove( tw_lpid lpid, int direction )
 {
@@ -64,6 +68,39 @@ tw_lpid Cell_ComputeMove( tw_lpid lpid, int direction )
   // printf("ComputeMove: Src LP %llu (%d, %d), Dir %u, Dest LP %llu (%d, %d)\n", lpid, lpid_x, lpid_y, direction, dest_lpid, n_x, n_y);
   return( dest_lpid );
 }
+
+tw_peid
+CellMapping_lp_to_pe(tw_lpid lpid) 
+{
+  long lp_x = lpid % NUM_CELLS_X;
+  long lp_y = lpid / NUM_CELLS_X;
+  long vp_num_x = lp_x/g_cells_per_vp_x;
+  long vp_num_y = lp_y/g_cells_per_vp_y;
+  long vp_num = vp_num_x + (vp_num_y*NUM_VP_X);  
+  tw_peid peid = vp_num/g_vp_per_proc;  
+  return peid;
+}
+
+tw_lp *CellMapping_lp_to_index(tw_lpid lpid) 
+{
+  tw_lpid lp_x = lpid % NUM_CELLS_X; //lpid -> (lp_x,lp_y)
+  tw_lpid lp_y = lpid / NUM_CELLS_X;
+  tw_lpid vp_index_x = lp_x % g_cells_per_vp_x;
+  tw_lpid vp_index_y = lp_y % g_cells_per_vp_y;
+  tw_lpid vp_index = vp_index_x + (vp_index_y * (g_cells_per_vp_x));
+  tw_lpid vp_num_x = lp_x/g_cells_per_vp_x;
+  tw_lpid vp_num_y = lp_y/g_cells_per_vp_y;
+  tw_lpid vp_num = vp_num_x + (vp_num_y*NUM_VP_X);  
+  vp_num = vp_num % g_vp_per_proc;
+  tw_lpid index = vp_index + vp_num*g_cells_per_vp;
+  
+  if( index >= g_tw_nlp )
+    tw_error(TW_LOC, "index (%llu) beyond g_tw_nlp (%llu) range \n", index, g_tw_nlp);
+  
+  return g_tw_lp[index];
+}
+
+
 
 Min_t 
 Cell_MinTS(struct Msg_Data *M)
@@ -812,7 +849,7 @@ tw_lptype       mylps[] =
       (event_f) Cell_EventHandler,
       (revent_f) RC_Cell_EventHandler,
       (final_f) CellStatistics_CollectStats,
-      (map_f) pcs_map,
+      (map_f) CellMapping_lp_to_pe,
       sizeof(struct State)
     },
     {0},
@@ -821,9 +858,11 @@ tw_lptype       mylps[] =
 int
 main(int argc, char **argv)
 {
-  int             i;
-  int             additional_memory_buffers;
-
+  unsigned int             i, x, y;
+  unsigned int             additional_memory_buffers;
+  tw_lpid         xvp, yvp, lpid, kpid;
+  tw_lpid         num_cells_per_kp, vp_per_proc;
+  
   // printf("Enter TWnpe, TWnkp, additional_memory_buffers \n" );
   // scanf("%d %d %d", 
   //	&TWnpe, &TWnkp, &additional_memory_buffers );
@@ -836,13 +875,39 @@ main(int argc, char **argv)
   g_tw_events_per_pe = (nlp_per_pe * (unsigned int)BIG_N) + 
     additional_memory_buffers;
 
-  printf("Running simulation with following configuration: \n" );
-  printf("    Buffers Allocated Per PE = %d\n", g_tw_events_per_pe);
-  printf("\n\n");
+  if( tw_ismaster() )
+    {
+      printf("Running simulation with following configuration: \n" );
+      printf("    Buffers Allocated Per PE = %d\n", g_tw_events_per_pe);
+      printf("\n\n");
+    }
  
+  num_cells_per_kp = (NUM_CELLS_X * NUM_CELLS_Y) / (NUM_VP_X * NUM_VP_Y);
+  vp_per_proc = (NUM_VP_X * NUM_VP_Y) / ((tw_nnodes() * g_tw_npe)) ;
+  g_tw_nlp = nlp_per_pe;
+  g_tw_nkp = vp_per_proc;
+
   tw_define_lps(nlp_per_pe, sizeof(struct Msg_Data), 0);
-  for(i = 0; i < g_tw_nlp; i++)
-    tw_lp_settype(i, &mylps[0]);
+
+  for (x = 0; x < NUM_CELLS_X; x++)
+    {
+      for (y = 0; y < NUM_CELLS_Y; y++)
+	{
+	  xvp = (int)((double)x * ((double)NUM_VP_X / (double)NUM_CELLS_X));
+	  yvp = (int)((double)y * ((double)NUM_VP_Y / (double)NUM_CELLS_Y));
+
+	  if( g_tw_mynode == ((xvp + (yvp * NUM_VP_X)) / vp_per_proc))
+	    {
+	      lpid = (x + (y * NUM_CELLS_X) % nlp_per_pe);
+	      kpid = ((x + (y * NUM_CELLS_X))/num_cells_per_kp) % g_tw_nkp;
+
+	      tw_lp_settype( lpid, &mylps[0]);
+	      tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+	      tw_lp_onpe( lpid, g_tw_pe[0], ((g_tw_nlp * g_tw_mynode) + lpid));
+	      tw_kp_onpe(kpid, g_tw_pe[0]);
+	    }
+	}
+    }
 
 
   /*
@@ -860,12 +925,15 @@ main(int argc, char **argv)
   /*
    * Some some of the settings.
    */
-  printf("MOVE CALL MEAN   = %f\n", MOVE_CALL_MEAN);
-  printf("NEXT CALL MEAN   = %f\n", NEXT_CALL_MEAN);
-  printf("CALL TIME MEAN   = %f\n", CALL_TIME_MEAN);
-  printf("NUM CELLS X      = %d\n", NUM_CELLS_X);
-  printf("NUM CELLS Y      = %d\n", NUM_CELLS_Y);
-  fflush(stdout);
+  if( tw_ismaster() )
+    {
+      printf("MOVE CALL MEAN   = %f\n", MOVE_CALL_MEAN);
+      printf("NEXT CALL MEAN   = %f\n", NEXT_CALL_MEAN);
+      printf("CALL TIME MEAN   = %f\n", CALL_TIME_MEAN);
+      printf("NUM CELLS X      = %d\n", NUM_CELLS_X);
+      printf("NUM CELLS Y      = %d\n", NUM_CELLS_Y);
+      fflush(stdout);
+    }
 
   tw_run();
 
