@@ -16,11 +16,13 @@ INLINE(tw_lp *)
     return( g_tw_custom_lp_global_to_local_map( gid ) );
   
   id = gid - g_tw_lp_offset;
-  
+
+#ifdef ROSS_runtime_checks  
   if (id >= g_tw_nlp)
     tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
   if (gid != g_tw_lp[id]->gid)
     tw_error(TW_LOC, "Inconsistent LP Mapping");
+#endif /* ROSS_runtime_checks */
   
   return g_tw_lp[id];
 }
@@ -28,21 +30,26 @@ INLINE(tw_lp *)
 INLINE(tw_lp *)
      tw_getlp(tw_lpid id)
 {
+#ifdef ROSS_runtime_checks  
   if (id >= g_tw_nlp)
     tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
   if (id != g_tw_lp[id]->id)
     tw_error(TW_LOC, "Inconsistent LP Mapping");
-
+#endif /* ROSS_runtime_checks */ 
   return g_tw_lp[id];
 }
 
 INLINE(tw_kp *)
      tw_getkp(tw_kpid id)
 {
+#ifdef ROSS_runtime_checks  
   if (id >= g_tw_nkp)
-    tw_error(TW_LOC, "ID %d exceeded MAX KPs", id);
+    tw_error(TW_LOC, "ID %u exceeded MAX KPs", id);
+  if( g_tw_kp[id] == NULL )
+    tw_error(TW_LOC, "Local KP %u found NULL \n", id );
   if (id != g_tw_kp[id]->id)
     tw_error(TW_LOC, "Inconsistent KP Mapping");
+#endif /* ROSS_runtime_checks */
 
   return g_tw_kp[id];
 }
@@ -50,9 +57,11 @@ INLINE(tw_kp *)
 INLINE(tw_pe *)
      tw_getpe(tw_peid id)
 {
+#ifdef ROSS_runtime_checks  
   if (id >= g_tw_npe)
     tw_error(TW_LOC, "ID %d exceeded MAX PEs", id);
-
+#endif /* ROSS_runtime_checks */
+  
   return g_tw_pe[id];
 }
 

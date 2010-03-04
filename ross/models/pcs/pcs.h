@@ -50,11 +50,11 @@
 
 #define TW_MAX_NAME_LEN 31
 
-#define NUM_CELLS_X 1024   //256
-#define NUM_CELLS_Y 1024   //256
+#define NUM_CELLS_X 1024     //256
+#define NUM_CELLS_Y 1024     //256
 
-#define NUM_VP_X 8					
-#define NUM_VP_Y 8
+#define NUM_VP_X 64 					
+#define NUM_VP_Y 64 
 
 #define MAX_NORMAL_CHANNELS 10
 #define MAX_RESERVE_CHANNELS 0

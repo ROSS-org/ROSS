@@ -149,6 +149,11 @@ tw_net_start(void)
   if (MPI_Comm_size(MPI_COMM_WORLD, &world_size) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_WORLD)");
 
+  if( g_tw_mynode == 0)
+    {
+      printf("tw_net_start: Found world size to be %d \n", world_size );
+    }
+
   tw_pe_create(1);
   tw_pe_init(0, g_tw_mynode);
   g_tw_pe[0]->hash_t = tw_hash_create();

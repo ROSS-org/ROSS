@@ -1,11 +1,5 @@
 #include "pcs.h"
 
-tw_peid
-pcs_map(tw_lpid gid)
-{
-  return (tw_peid) gid / g_tw_nlp;
-}
-
 double 
 Pi_Distribution(double n, double N)
 {
@@ -93,9 +87,11 @@ tw_lp *CellMapping_to_lp(tw_lpid lpid)
   tw_lpid vp_num = vp_num_x + (vp_num_y*NUM_VP_X);  
   vp_num = vp_num % g_vp_per_proc;
   tw_lpid index = vp_index + vp_num*g_cells_per_vp;
-  
+
+#ifdef ROSS_runtime_check  
   if( index >= g_tw_nlp )
     tw_error(TW_LOC, "index (%llu) beyond g_tw_nlp (%llu) range \n", index, g_tw_nlp);
+#endif /* ROSS_runtime_check */
   
   return g_tw_lp[index];
 }
@@ -879,13 +875,15 @@ void pcs_grid_mapping()
   tw_lpid         x, y;
   tw_lpid         lpid, kpid;
   tw_lpid         num_cells_per_kp, vp_per_proc;
+  tw_lpid         local_lp_count;
+  tw_lpid         local_kp_count;
 
   num_cells_per_kp = (NUM_CELLS_X * NUM_CELLS_Y) / (NUM_VP_X * NUM_VP_Y);
   vp_per_proc = (NUM_VP_X * NUM_VP_Y) / ((tw_nnodes() * g_tw_npe)) ;
   g_tw_nlp = nlp_per_pe;
   g_tw_nkp = vp_per_proc;
-  
 
+  local_lp_count=0;
   for (y = 0; y < NUM_CELLS_Y; y++)
     {
       for (x = 0; x < NUM_CELLS_X; x++)
@@ -893,24 +891,19 @@ void pcs_grid_mapping()
 	  lpid = (x + (y * NUM_CELLS_X));
 	  if( g_tw_mynode == CellMapping_lp_to_pe(lpid) )
 	    {
-	      kpid = (lpid/num_cells_per_kp) % g_tw_nkp;
-/* 	      printf("Attempting to Map: Global LP id (%llu) to Local LP (%llu) to KP %llu to PE %u \n", */
-/* 		     (x + (y * NUM_CELLS_X)), lpid, kpid, g_tw_mynode ); */
+	   
+	      kpid = local_lp_count/num_cells_per_kp;
+	      local_lp_count++; // MUST COME AFTER!! DO NOT PRE-INCREMENT ELSE KPID is WRONG!!
+
+	      if( kpid >= g_tw_nkp )
+		tw_error(TW_LOC, "Attempting to mapping a KPid (%llu) for Global LPid %llu that is beyond g_tw_nkp (%llu)\n",
+			 kpid, lpid, g_tw_nkp );
 
 	      tw_lp_onpe(CellMapping_to_local_index(lpid), g_tw_pe[0], lpid);
 	      if( g_tw_kp[kpid] == NULL )
 		tw_kp_onpe(kpid, g_tw_pe[0]);
 	      tw_lp_onkp(g_tw_lp[CellMapping_to_local_index(lpid)], g_tw_kp[kpid]);
 	      tw_lp_settype( CellMapping_to_local_index(lpid), &mylps[0]);
-
-/* 	      printf("Mapped: Global LP id (%llu) to Local LP (%llu) to KP %llu (internal ID %llu) to PE %u \n", */
-/* 		     g_tw_lp[CellMapping_to_local_index(lpid)]->gid,  */
-/* 		     CellMapping_to_local_index(lpid),  */
-/* 		     kpid,  */
-/* 		     g_tw_kp[kpid]->id,  */
-/* 		     g_tw_mynode ); */
-
-
 	    }
 	}
     }
@@ -951,6 +944,26 @@ main(int argc, char **argv)
   g_tw_custom_initial_mapping = &pcs_grid_mapping;
   g_tw_custom_lp_global_to_local_map = &CellMapping_to_lp;
 
+  /*
+   * Some some of the settings.
+   */
+  if( tw_ismaster() )
+    {
+      printf("\n\n");
+      printf("/**********************************************/\n");
+      printf("MOVE CALL MEAN   = %f\n", MOVE_CALL_MEAN);
+      printf("NEXT CALL MEAN   = %f\n", NEXT_CALL_MEAN);
+      printf("CALL TIME MEAN   = %f\n", CALL_TIME_MEAN);
+      printf("NUM CELLS X      = %d\n", NUM_CELLS_X);
+      printf("NUM CELLS Y      = %d\n", NUM_CELLS_Y);
+      printf("NUM KPs per PE   = %llu \n", g_tw_nkp);
+      printf("NUM LPs per PE   = %llu \n", g_tw_nlp);
+      printf("g_vp_per_proc    = %llu \n", g_vp_per_proc);
+      printf("/**********************************************/\n");
+      printf("\n\n");
+      fflush(stdout);
+    }
+
   tw_define_lps(nlp_per_pe, sizeof(struct Msg_Data), 0);
 
   /*
@@ -964,19 +977,6 @@ main(int argc, char **argv)
   TWAppStats.Portables_In = 0;
   TWAppStats.Portables_Out = 0;
   TWAppStats.Blocking_Probability = 0.0;
-
-  /*
-   * Some some of the settings.
-   */
-  if( tw_ismaster() )
-    {
-      printf("MOVE CALL MEAN   = %f\n", MOVE_CALL_MEAN);
-      printf("NEXT CALL MEAN   = %f\n", NEXT_CALL_MEAN);
-      printf("CALL TIME MEAN   = %f\n", CALL_TIME_MEAN);
-      printf("NUM CELLS X      = %d\n", NUM_CELLS_X);
-      printf("NUM CELLS Y      = %d\n", NUM_CELLS_Y);
-      fflush(stdout);
-    }
 
   tw_run();
 

@@ -266,15 +266,20 @@ late_sanity_check(void)
 {
 	tw_kpid	 i;
 	tw_lptype null_type;
+        tw_kp *kp;
 
 	memset(&null_type, 0, sizeof(null_type));
 
 	/* KPs must be mapped . */
 	// should we worry if model doesn't use all defined KPs?  probably not.
 	for (i = 0; i < g_tw_nkp; i++)
-	{
-		if (!tw_getkp(i)->pe)
-			tw_error(TW_LOC, "KP %u has no PE assigned.", i);
+	  {
+	    kp = tw_getkp(i);
+	    if( kp == NULL )
+	      tw_error(TW_LOC, "Local KP %u is NULL \n", i);
+
+	    if (kp->pe == NULL)
+	      tw_error(TW_LOC, "Local KP %u has no PE assigned.", i);
 	}
 
 	/* LPs KP and PE must agree. */
@@ -364,18 +369,18 @@ setup_pes(void)
 
 	if(tw_node_eq(&g_tw_mynode, &g_tw_masternode))
 	{
-		printf("\nROSS Configuration: \n");
-		printf("\t%-50s %11d\n", "Total Nodes", tw_nnodes());
-		fprintf(g_tw_csv, "%d,", tw_nnodes());
+		printf("\nROSS Core Configuration: \n");
+		printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
+		fprintf(g_tw_csv, "%u,", tw_nnodes());
 
-		printf("\t%-50s %11d\n", "Total Processors", tw_nnodes() * g_tw_npe);
-		fprintf(g_tw_csv, "%d,", tw_nnodes() * g_tw_npe);
+		printf("\t%-50s [Nodes (%u) x PE_per_Node (%u)] %u\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
+		fprintf(g_tw_csv, "%u,", (tw_nnodes() * g_tw_npe));
 
-		printf("\t%-50s %11d\n", "Total KPs", tw_nnodes() * g_tw_nkp);
-		fprintf(g_tw_csv, "%d,", tw_nnodes() * g_tw_nkp);
+		printf("\t%-50s [Nodes (%u) x KPs (%u)] %11u\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
+		fprintf(g_tw_csv, "%u,", (tw_nnodes() * g_tw_nkp));
 
-		printf("\t%-50s %11lld\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-		fprintf(g_tw_csv, "%lld,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+		printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+		fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
 
 		printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
 
