@@ -4,9 +4,8 @@ static FILE	*g_wifi_mac_output_f = NULL;
 
 static const tw_optdef wifi_mac_options [] =
 {
-	TWOPT_GROUP("Transmission Line Matrix Model"),
+	TWOPT_GROUP("802.11b Mac Layer Model"),
 	TWOPT_UINT("memory", g_wifi_mac_optmem, "Additional memory buffers"),
-	TWOPT_STIME("threshold", g_wifi_mac_wave_threshold, "Wave propagation threshold"),
 	TWOPT_END()
 };
 

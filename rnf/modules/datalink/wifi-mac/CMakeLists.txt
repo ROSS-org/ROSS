@@ -13,4 +13,4 @@ wifi-mac-pe.c
 INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
 
 ADD_LIBRARY(wifi_mac ${wifi_mac_srcs})
-ENDIF(WITH_TLM)
+ENDIF(WITH_WIFI_MAC)

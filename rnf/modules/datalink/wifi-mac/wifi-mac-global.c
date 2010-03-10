@@ -15,7 +15,3 @@ wifi_mac_statistics	*g_wifi_mac_stats = NULL;
 	 */
 tw_lpid		 nwifi_mac_lp_per_pe = 0;
 
-double		 g_wifi_mac_wave_threshold = 10000.0;
-double		 g_wifi_mac_wave_attenuation = 0.0003;
-double		 g_wifi_mac_wave_loss_coeff = -1.0;
-double		 g_wifi_mac_wave_velocity = 0.0;

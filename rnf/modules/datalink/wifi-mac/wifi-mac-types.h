@@ -41,8 +41,6 @@ enum State {
 };
 
 
-
-
 DEF(enum, wifi_mac_event_t)
 {
 	RM_PROXIMITY_LP = 100,
@@ -83,6 +81,17 @@ DEF(struct, wifi_mac_particle)
 
 DEF(struct, wifi_mac_state)
 {
+	bool rxing;
+	tw_stime endTx;
+	tw_stime endRx;
+	tw_stime endCcaBusy;
+	tw_stime endSwitching; 
+	tw_stime startTx;
+	tw_stime startRx;
+	tw_stime startCcaBusy;
+	tw_stime startSwitching; 
+	tw_stime previousStateChangeTime;
+	
 	/*
 	 * particles	-- queue of range particles
 	 * nbrs		-- neighboring CELL LPs
