@@ -69,5 +69,6 @@ extern long     tw_rand_geometric(tw_rng_stream * g, double P);
 extern double   tw_rand_normal01(tw_rng_stream * g);
 extern double   tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd);
 extern long     tw_rand_poisson(tw_rng_stream * g, double Lambda);
+extern double   tw_rand_weibull(tw_rng_stream * g, double mean, double shape);
 
 #endif

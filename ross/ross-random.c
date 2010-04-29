@@ -259,3 +259,10 @@ tw_rand_lognormal(tw_rng_stream * g, double mean, double sd)
 {
   return (exp( mean + sd * tw_rand_normal01(g)));
 }
+
+double
+tw_rand_weibull(tw_rng_stream * g, double mean, double shape)
+{
+  double scale = mean /  tgamma( ((double)1.0 + (double)1.0/shape));
+  return(scale * pow(-log( tw_rand_unif(g)), (double)1.0/shape));
+}
