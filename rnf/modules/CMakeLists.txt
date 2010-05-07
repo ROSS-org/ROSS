@@ -1,6 +1,6 @@
 ADD_SUBDIRECTORY(application)
 ADD_SUBDIRECTORY(mobility)
-ADD_SUBDIRECTORY(presentation)
+#ADD_SUBDIRECTORY(presentation)
 ADD_SUBDIRECTORY(datalink)
 ADD_SUBDIRECTORY(network)
 ADD_SUBDIRECTORY(session)

@@ -221,18 +221,16 @@ DEF(struct, AarfcdWifiRemoteStation)
   uint32_t m_timer;
   uint32_t m_success;
   uint32_t m_failed;
-  bool m_recovery;
-  bool m_justModifyRate;
+  bool 	   m_recovery;
+  bool     m_justModifyRate;
   uint32_t m_retry;
-  
   uint32_t m_successThreshold;
   uint32_t m_timerTimeout;
-
   uint32_t m_rate;
-  bool m_rtsOn;
+  bool     m_rtsOn;
   uint32_t m_rtsWnd;
   uint32_t m_rtsCounter;
-  bool m_haveASuccess;
+  bool     m_haveASuccess;
   
   AarfcdWifiManager *m_manager;
 };
@@ -246,11 +244,7 @@ DEF(struct, AarfWifiManager)
   double m_timerK;
 };
 
-DEF(struct, AarfWifiRemoteStation)
-{
-  AarfWifiManager *m_manager;
-};
-
+// AarfWifiRemoteStation -> AarfWifiManager *m_manager;
 
 // #include "ns3/mac48-address.h"
 // #include "ns3/callback.h"
@@ -393,11 +387,7 @@ DEF(struct, ConstantRateWifiManager)
   WifiMode *m_ctlMode;
 };
 
-DEF(struct, ConstantRateWifiRemoteStation) 
-{
-  ConstantRateWifiManager *m_manager;
-};
-
+// ConstantRateWifiRemoteStation -> ConstantRateWifiManager *m_manager;
 
 /**
  * \brief handle packet fragmentation and retransmissions.
@@ -446,11 +436,7 @@ DEF(struct, DcaTxop)
   uint8_t m_fragmentNumber;
 };
 
-DEF(struct, Dcf)
-{
-  // empty class contained -- kept 
-};
-
+//DEF(struct, Dcf)
 
 /**
  * \brief keep track of the state needed for a single DCF 
@@ -497,8 +483,7 @@ DEF(struct, DcfState)
 
 DEF(struct, DcfManager)
 {
-  // typedef std::vector<DcfState *> States;
-
+  DcfState **States;
   DcfState *m_states;
   tw_stime m_lastAckTimeoutEnd;
   tw_stime m_lastCtsTimeoutEnd;
@@ -1071,11 +1056,11 @@ DEF(struct, MinstrelWifiRemoteStation)
 /**
  * \brief Abstract class that concrete msdu aggregators have to implement
  */
-DEF(struct, MsduAggregator)
-{
+//DEF(struct, MsduAggregator)
+//{
   // typedef std::list<std::pair<Ptr<Packet>, AmsduSubframeHeader> > DeaggregatedMsdus;
   // dummy struct
-};
+//};
 
 DEF(struct, MsduStandardAggregator)
 {
@@ -1723,6 +1708,7 @@ DEF(enum, WifiMacType)
   WIFI_MAC_DATA_NULL_CFACK,
   WIFI_MAC_DATA_NULL_CFPOLL,
   WIFI_MAC_DATA_NULL_CFACK_CFPOLL,
+
   WIFI_MAC_QOSDATA,
   WIFI_MAC_QOSDATA_CFACK,
   WIFI_MAC_QOSDATA_CFPOLL,
@@ -1920,8 +1906,8 @@ DEF(enum, WifiPhyState) {
   };
 }
 
-DEF(struct, WifiPhy)
-{
+//DEF(struct, WifiPhy)
+//{
   /**
    * arg1: packet received successfully
    * arg2: snr of packet
@@ -1935,7 +1921,7 @@ DEF(struct, WifiPhy)
    */
   //typedef Callback<void,Ptr<const Packet>, double> RxErrorCallback;
 
-  tw_event* GetTypeId (void);
+  //tw_event* GetTypeId (void);
 
  // TracedCallback<Ptr<const Packet> > m_phyTxBeginTrace;
 
@@ -2002,7 +1988,7 @@ DEF(struct, WifiPhy)
    */
  // TracedCallback<Ptr<const Packet>, uint16_t, uint16_t, uint32_t, bool> m_phyPromiscSniffTxTrace;
 
-};
+//};
 
 DEF(enum, WifiPhyStandard) {
   WIFI_PHY_STANDARD_80211a,
