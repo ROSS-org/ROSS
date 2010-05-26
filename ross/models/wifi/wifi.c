@@ -1,32 +1,34 @@
 #include "wifi.h"
 
-#ifdef ENABLE_GSL
-	#include "gsl-prob-wifi.h"
+/*#ifdef ENABLE_GSL
+#include "gsl-prob-wifi.h"
 #elif defined(ENABLE_ESSL)
-	#include "essl-prop-wifi.h"
+#include "essl-prop-wifi.h"
 #else
-	#include "none-prob-wifi.h"
-#endif
+#include "none-prob-wifi.h"
+#endif*/
+
+#include "none-prob-wifi.h"
 
 tw_peid wifi_map(tw_lpid gid);
 
 void wifi_ap_init(wifi_ap_state * s, tw_lp * lp);
 void wifi_ap_event_handler(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
 void wifi_ap_event_handler_rc(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
-void wifi_ap_finish(wifi_sta_state_state * s, tw_lp * lp);
+void wifi_ap_finish(wifi_ap_state * s, tw_lp * lp);
 
 tw_lptype mylps[] = 
 {
     {	(init_f) wifi_ap_init,
         (event_f) wifi_ap_event_handler,
         (revent_f) wifi_ap_event_handler_rc,
-        (final_f) wifi_ap_ras_finish,
+        (final_f) wifi_ap_finish,
         (map_f) wifi_map,
     	sizeof(wifi_ap_state)},
     {0},
 };
 
-tw_peid wifi_map(tw_lpid gid) s{
+tw_peid wifi_map(tw_lpid gid){
 	return (tw_peid) gid / g_tw_nlp;
 }
 
@@ -38,7 +40,7 @@ void wifi_ap_init(wifi_ap_state * s, tw_lp * lp){
 void wifi_ap_event_handler(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) {
 	double snr;
 	snr = tw_rand_normal_sd(lp->rng,1,5);
-	success_rate = 80211b_DsssDqpskCck11_SuccessRate(snr,num_of_bits);
+	success_rate = WiFi_80211b_DsssDqpskCck11_SuccessRate(snr,num_of_bits);
 	random_test  = tw_rand_normal_sd(lp->rng,0.5,0.1);
 	if(random_test < success_rate) {
 		failed_packets++;

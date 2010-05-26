@@ -1,7 +1,8 @@
-double 80211b_DsssDqpskCck11_SuccessRate (double sinr,uint32_t nbits)
+#define WLAN_SIR_PERFECT 10 
+#define WLAN_SIR_IMPOSSIBLE 0.1
+
+double WiFi_80211b_DsssDqpskCck11_SuccessRate(double sinr,uint32_t nbits)
 {
-  printf("Running a 802.11b CCK Matlab model less accurate than GSL model\n"); 
-  // The matlab model
   double ber; 
   if (sinr > WLAN_SIR_PERFECT)
     {

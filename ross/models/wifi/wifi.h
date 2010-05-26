@@ -3,9 +3,6 @@
 
 #include <ross.h>
 
-#define WLAN_SIR_PERFECT 	10.0;
-#define WLAN_SIR_IMPOSSIBLE 0.1;
-
 FWD(struct,  wifi_ap_state);
 FWD(struct,   wifi_message);
 
