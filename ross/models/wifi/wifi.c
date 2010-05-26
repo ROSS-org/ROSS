@@ -1,14 +1,12 @@
 #include "wifi.h"
 
-/*#ifdef ENABLE_GSL
-#include "gsl-prob-wifi.h"
+#ifdef ENABLE_GSL
+	#include "gsl-prob-wifi.h"
 #elif defined(ENABLE_ESSL)
-#include "essl-prop-wifi.h"
+	#include "essl-prop-wifi.h"
 #else
-#include "none-prob-wifi.h"
-#endif*/
-
-#include "none-prob-wifi.h"
+	#include "none-prob-wifi.h"
+#endif
 
 tw_peid wifi_map(tw_lpid gid);
 
