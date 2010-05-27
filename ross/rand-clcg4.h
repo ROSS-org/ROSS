@@ -87,7 +87,7 @@ DEF(struct, tw_rng_stream)
 
 #ifdef RAND_NORMAL
 	double	 tw_normal_u1;
-	double	 tw_noral_u2;
+	double	 tw_normal_u2;
 	int	 tw_normal_flipflop;
 #endif
 };

@@ -40,6 +40,10 @@ IF(MEMORY)
 	SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
 ENDIF(MEMORY)
 
+IF(RAND_NORMAL)
+	SET(OPTIONS "${OPTIONS} -DRAND_NORMAL")
+ENDIF(RAND_NORMAL)
+
 IF(TIMING)
 	SET(OPTIONS "${OPTIONS} -DROSS_timing")
 ENDIF(TIMING)

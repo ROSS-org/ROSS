@@ -3,6 +3,14 @@
 
 #include <ross.h>
 
+#ifdef ENABLE_GSL
+	#include "gsl-prob-wifi.h"
+#elif defined(ENABLE_ESSL)
+	#include "essl-prop-wifi.h"
+#else
+	#include "none-prob-wifi.h"
+#endif
+
 FWD(struct,  wifi_ap_state);
 FWD(struct,   wifi_message);
 
@@ -16,8 +24,6 @@ DEF(struct, wifi_message){
 
 double success_rate;
 double random_test;
-int failed_packets = 0;
-
 tw_stime lookahead = 1.0;
 static unsigned int offset_lpid = 0;
 static tw_stime mult = 3.0;

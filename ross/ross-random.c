@@ -49,15 +49,6 @@
 #include <ross.h>
 
 /*
- * defines                                                             
- */
-#ifdef RAND_NORMAL
-tw_volatile double *g_tw_normal_u1;
-tw_volatile double *g_tw_normal_u2;
-tw_volatile int *g_tw_normal_flipflop;
-#endif
-
-/*
  * tw_rand_init
  */
 tw_rng	*
@@ -181,83 +172,66 @@ tw_rand_geometric(tw_rng_stream * g, double P)
 }
 
 double 
-tw_rand_normal01(tw_rng_stream * g)
+tw_rand_normal01(tw_rng_stream * g, unsigned int *rng_calls)
 {
-#if !RAND_NORMAL
+#ifndef RAND_NORMAL
 	tw_error(TW_LOC, "Please compile using -DRAND_NORMAL!");
 #endif
 
-#if RAND_NORMAL
-  g_tw_normal_flipflop[g->id] = !g_tw_normal_flipflop[g->id];
+#ifdef RAND_NORMAL
+	*rng_calls = 0;
+	g->tw_normal_flipflop = !g->tw_normal_flipflop;
 
-  if ((g_tw_normal_flipflop[g->id]) || 
-      (g_tw_normal_u1[g->id] < 0.0) || 
-      (g_tw_normal_u1[g->id] >= 1.0) || 
-      (g_tw_normal_u2[g->id] < 0.0) || 
-      (g_tw_normal_u2[g->id] > 1.0))
+  if ((g->tw_normal_flipflop)  || 
+      (g->tw_normal_u1< 0.0)   || 
+      (g->tw_normal_u1 >= 1.0) || 
+      (g->tw_normal_u2 < 0.0)  || 
+      (g->tw_normal_u2 > 1.0))
     {
-      g_tw_normal_u1[g->id] = tw_rand_unif(g);
-      g_tw_normal_u2[g->id] = tw_rand_unif(g);
-      return (sqrt(-2.0 * log(g_tw_normal_u1[g->id])) * sin(tw_opi * g_tw_normal_u2[g->id]));
+      g->tw_normal_u1 = tw_rand_unif(g);
+      g->tw_normal_u2 = tw_rand_unif(g);
+      *rng_calls = 2;
+
+      return (sqrt(-2.0 * log(g->tw_normal_u1)) * sin(tw_opi * g->tw_normal_u2));
     } 
   else
     {
-      return (sqrt(-2.0 * log(g_tw_normal_u1[g->id])) * cos(tw_opi * g_tw_normal_u2[g->id]));
+      return (sqrt(-2.0 * log(g->tw_normal_u1)) * cos(tw_opi * g->tw_normal_u2));
     }
 #endif
 }
 
-/*
-  double 
-  tw_rand_normal01(tw_rng_stream * g)
-  {
-  static int      FlipFlop = 0;
-  static double   u1, u2;
-  
-  FlipFlop = !FlipFlop;
-  if ((FlipFlop) || (u1 < 0.0) || (u1 >= 1.0) || (u2 < 0.0) || (u2 > 1.0))
-  {
-  u1 = tw_rand_unif(g);
-  u2 = tw_rand_unif(g);
-  return (sqrt(-2.0 * log(u1)) * sin(tw_opi * u2));
-  } else
-  {
-  return (sqrt(-2.0 * log(u1)) * cos(tw_opi * u2));
-  }
-  }
-*/
-
 double 
-tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd)
+tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd, unsigned int *rng_calls)
 {
-	return (tw_rand_normal01(g) * Sd + Mu);
+  return ( Mu + (tw_rand_normal01(g, rng_calls) * Sd));
 }
 
 long 
 tw_rand_poisson(tw_rng_stream * g, double Lambda)
 {
-	double          a, b;
-	long            count;
-
-	a = exp(-Lambda);
-	b = 1;
-	count = 0;
-
-	b = b * tw_rand_unif(g);
-
-	while (b >= a)
-	{
-		count++;
-		b = b * tw_rand_unif(g);
-	}
-
-	return (count);
+  double          a, b;
+  long            count;
+  
+  a = exp(-Lambda);
+  b = 1;
+  count = 0;
+  
+  b = b * tw_rand_unif(g);
+  
+  while (b >= a)
+    {
+      count++;
+      b = b * tw_rand_unif(g);
+    }
+  
+  return (count);
 }
 
 double
-tw_rand_lognormal(tw_rng_stream * g, double mean, double sd)
+tw_rand_lognormal(tw_rng_stream * g, double mean, double sd, unsigned int *rng_calls)
 {
-  return (exp( mean + sd * tw_rand_normal01(g)));
+  return (exp( mean + sd * tw_rand_normal01(g, rng_calls)));
 }
 
 double

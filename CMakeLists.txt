@@ -7,6 +7,7 @@ SET(QUEUE       splay) #Splay Tree
 #SET(MAPPING      rrobin)
 
 SET(RAND           clcg4)
+OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
 #MEMORY is either on or off depending on whether or not we desire
 #memory buffers.  If it's not set to YES, it defaults to NO

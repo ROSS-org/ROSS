@@ -66,8 +66,8 @@ extern double   tw_rand_exponential(tw_rng_stream * g, double Lambda);
 extern double   tw_rand_pareto(tw_rng_stream * g, double scale, double shape);
 extern double   tw_rand_gamma(tw_rng_stream * g, double shape, double scale);
 extern long     tw_rand_geometric(tw_rng_stream * g, double P);
-extern double   tw_rand_normal01(tw_rng_stream * g);
-extern double   tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd);
+extern double   tw_rand_normal01(tw_rng_stream * g, unsigned int *rng_calls);
+extern double   tw_rand_normal_sd(tw_rng_stream * g, double Mu, double Sd, unsigned int *rng_calls);
 extern long     tw_rand_poisson(tw_rng_stream * g, double Lambda);
 extern double   tw_rand_weibull(tw_rng_stream * g, double mean, double shape);
 
