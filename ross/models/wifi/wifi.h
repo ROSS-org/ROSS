@@ -11,19 +11,42 @@
 	#include "none-prob-wifi.h"
 #endif
 
-FWD(struct,  wifi_ap_state);
-FWD(struct,   wifi_message);
+#define WIFI_MAX_STATIONS_PER_ACCESS_POINT 8
 
-DEF(struct, wifi_ap_state){
-	unsigned int failed_packets;
+FWD(struct, wifi_access_point_state);
+FWD(struct, wifi_station_state);
+FWD(struct, wifi_message);
+
+enum wifi_message_type_e
+{
+    WIFI_PACKET_ARRIVAL_AT_ACCESS_POINT,
+    WIFI_PACKET_ARRIVAL_AT_STATION
 };
 
-DEF(struct, wifi_message){
-	
+typedef enum wifi_message_type_e wifi_message_type;
+
+DEF(struct, wifi_station_state)
+{
+  unsigned int failed_packets;
+  double station_snr;
+  double access_point_snr;
+  double station_success_rate;
+  double access_point_success_rate;
+};
+
+DEF(struct, wifi_access_point_state)
+{
+  unsigned int failed_packets;
+  wifi_station_state stations[WIFI_MAX_STATIONS_PER_ACCESS_POINT];
+};
+
+DEF(struct, wifi_message)
+{
+  wifi_message_type type;
+  unsigned int station;
 };
 
 double success_rate;
-double random_test;
 tw_stime lookahead = 1.0;
 static unsigned int offset_lpid = 0;
 static tw_stime mult = 3.0;

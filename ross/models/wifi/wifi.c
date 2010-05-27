@@ -2,19 +2,26 @@
 
 tw_peid wifi_map(tw_lpid gid);
 
-void wifi_ap_init(wifi_ap_state * s, tw_lp * lp);
-void wifi_ap_event_handler(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
-void wifi_ap_event_handler_rc(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
-void wifi_ap_finish(wifi_ap_state * s, tw_lp * lp);
+void wifi_access_point_init(wifi_access_point_state * s, tw_lp * lp);
+void wifi_access_point_event_handler(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+void wifi_access_point_event_handler_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+
+void wifi_access_point_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+void wifi_station_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+
+void wifi_access_point_arrival_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+void wifi_station_arrival_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp);
+
+void wifi_access_point_finish(wifi_access_point_state * s, tw_lp * lp);
 
 tw_lptype mylps[] = 
 {
-    {	(init_f) wifi_ap_init,
-        (event_f) wifi_ap_event_handler,
-        (revent_f) wifi_ap_event_handler_rc,
-        (final_f) wifi_ap_finish,
+    {	(init_f) wifi_access_point_init,
+        (event_f) wifi_access_point_event_handler,
+        (revent_f) wifi_access_point_event_handler_rc,
+        (final_f) wifi_access_point_finish,
         (map_f) wifi_map,
-    	sizeof(wifi_ap_state)},
+    	sizeof(wifi_access_point_state)},
     {0},
 };
 
@@ -22,44 +29,148 @@ tw_peid wifi_map(tw_lpid gid){
 	return (tw_peid) gid / g_tw_nlp;
 }
 
-void wifi_ap_init(wifi_ap_state * s, tw_lp * lp)
+void wifi_access_point_init(wifi_access_point_state * s, tw_lp * lp)
 {
+  int i;
   tw_bf init_bf;
+  wifi_message m;
   s->failed_packets = 0;
-  wifi_ap_event_handler(s, &init_bf, NULL, lp);
+
+  // schedule out initial packet from access point
+  for( i=0; i < WIFI_MAX_STATIONS_PER_ACCESS_POINT; i++)
+    {
+      m.type =  WIFI_PACKET_ARRIVAL_AT_ACCESS_POINT;
+      m.station = i;
+      wifi_access_point_event_handler(s, &init_bf, &m, lp);
+    }
 }
 
-void wifi_ap_event_handler(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
+
+void wifi_access_point_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
 {
-  double snr;
   unsigned int rng_calls=0;
-  snr = tw_rand_normal_sd(lp->rng,1.0,5.0, &rng_calls);
-  success_rate = WiFi_80211b_DsssDqpskCck11_SuccessRate(snr,num_of_bits);
-  random_test  = tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls);
-  if(random_test < success_rate) 
+  tw_event *e=NULL;
+  wifi_message *m_new=NULL;
+
+  // packets coming from station to access point have less power and so lower snr
+  s->stations[m->station].access_point_snr = tw_rand_normal_sd(lp->rng,1.0,5.0, &rng_calls);
+  s->stations[m->station].access_point_success_rate = 
+    WiFi_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].access_point_snr, num_of_bits);
+  if( tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls) < 
+      s->stations[m->station].access_point_success_rate) 
     {
       bf->c1 = 1;
+      s->failed_packets++; // count all failed arrivals coming to access point
+    }
+  
+  // schedule event back to AP w/ exponential service time
+  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10.0), lp);
+  m_new = (wifi_message *) tw_event_data(e);
+  m_new->type = WIFI_PACKET_ARRIVAL_AT_STATION;
+  m_new->station = m->station;
+  tw_event_send(e);
+
+}
+
+void wifi_access_point_arrival_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
+{
+  // packets coming from access point have much more power and so better snr
+  tw_rand_reverse_unif(lp->rng);
+  tw_rand_reverse_unif(lp->rng);
+
+  if( bf->c1 )
+    {
       s->failed_packets++;
     }
+  
 
-  // schedule event back to self
-  tw_event_send(tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10.0), lp));
 }
 
-void wifi_ap_event_handler_rc(wifi_ap_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp)
+void wifi_station_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
 {
-  // because normal was called twice, we are guarenteed that the rng was call twice
-  tw_rand_reverse_unif(lp->rng);
-  tw_rand_reverse_unif(lp->rng);
-  if( bf->c1 ) 
+  unsigned int rng_calls=0;
+  tw_event *e=NULL;
+  wifi_message *m_new=NULL;
+
+  // packets coming from access point have much more power and so better snr
+  s->stations[m->station].station_snr = tw_rand_normal_sd(lp->rng,4.0,8.0, &rng_calls);
+  s->stations[m->station].station_success_rate = 
+    WiFi_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].station_snr, num_of_bits);
+  if( tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls) < 
+      s->stations[m->station].station_success_rate) 
     {
-    s->failed_packets--;
-  }
+      bf->c1 = 1;
+      s->stations[m->station].failed_packets++;
+    }
+  
+  // schedule event back to AP w/ exponential service time
+  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10.0), lp);
+  m_new = (wifi_message *) tw_event_data(e);
+  m_new->type = WIFI_PACKET_ARRIVAL_AT_ACCESS_POINT;
+  m_new->station = m->station;
+  tw_event_send(e);
 }
 
-void wifi_ap_finish(wifi_ap_state * s, tw_lp * lp)
+void wifi_station_arrival_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
 {
-  printf("LP %llu had %d failed packets\n", lp->gid, s->failed_packets);
+  tw_rand_reverse_unif(lp->rng);
+  tw_rand_reverse_unif(lp->rng);
+
+  if( bf->c1 )
+    {
+      s->stations[m->station].failed_packets--;
+    }
+}
+
+
+void wifi_access_point_event_handler(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
+{
+  switch( m->type )
+    {
+    case WIFI_PACKET_ARRIVAL_AT_ACCESS_POINT:
+      wifi_access_point_arrival(s, bf, m, lp);
+      break;
+
+    case WIFI_PACKET_ARRIVAL_AT_STATION:
+      wifi_station_arrival(s, bf, m, lp);
+      break;
+
+    default:
+      tw_error(TW_LOC, "Undefined type, corrupted message \n");
+      break;
+    }
+}
+
+void wifi_access_point_event_handler_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp)
+{
+  switch( m->type )
+    {
+    case WIFI_PACKET_ARRIVAL_AT_ACCESS_POINT:
+      wifi_access_point_arrival_rc(s, bf, m, lp);
+      break;
+
+    case WIFI_PACKET_ARRIVAL_AT_STATION:
+      wifi_station_arrival_rc(s, bf, m, lp);
+      break;
+
+    default:
+      tw_error(TW_LOC, "Undefined type, corrupted message \n");
+      break;
+    }
+}
+
+void wifi_access_point_finish(wifi_access_point_state * s, tw_lp * lp)
+{
+  int i;
+  unsigned long long station_failed_packets=0;
+  printf("LP %llu had %d failed Station to Access Point packets\n", lp->gid, s->failed_packets);
+
+  for( i=0; i < WIFI_MAX_STATIONS_PER_ACCESS_POINT; i++)
+    {
+      station_failed_packets += s->stations[i].failed_packets;
+    }
+  printf("LP %llu had %llu failed Access Point to Station packets\n", lp->gid, 
+	 station_failed_packets);
 }
 
 
