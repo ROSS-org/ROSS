@@ -12,18 +12,26 @@ phold_init(phold_state * s, tw_lp * lp)
 {
 	int              i;
 
-#if 0
-	if(g_tw_rng_default == TW_FALSE)
-		tw_rand_init_streams(lp, 1);
-#endif
-
-	for (i = 0; i < g_phold_start_events; i++)
-	{
+	if( stagger )
+	  {
+	    for (i = 0; i < g_phold_start_events; i++)
+	      {
 		tw_event_send(
-			tw_event_new(lp->gid, 
-				     tw_rand_exponential(lp->rng, mean) + lookahead, 
-				     lp));
-	}
+			      tw_event_new(lp->gid, 
+					   tw_rand_exponential(lp->rng, mean) + lookahead + (tw_stime)(lp->gid % (unsigned int)g_tw_ts_end), 
+					   lp));
+	      }
+	  }
+	else
+	  {
+	    for (i = 0; i < g_phold_start_events; i++)
+	      {
+		tw_event_send(
+			      tw_event_new(lp->gid, 
+					   tw_rand_exponential(lp->rng, mean) + lookahead, 
+					   lp));
+	      }
+	  }
 }
 
 void
@@ -86,6 +94,7 @@ const tw_optdef app_opt[] =
 	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
 	TWOPT_STIME("lookahead", lookahead, "lookahead for events"),
 	TWOPT_UINT("start-events", g_phold_start_events, "number of initial messages per LP"),
+	TWOPT_UINT("stagger", stagger, "Set to 1 to stagger event uniformly across 0 to end time."),
 	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),
 	TWOPT_CHAR("run", run_id, "user supplied run name"),
 	TWOPT_END()
@@ -103,6 +112,12 @@ main(int argc, char **argv, char **env)
 	tw_opt_add(app_opt);
 	tw_init(&argc, &argv);
 
+	if( lookahead > 1.0 )
+	  tw_error(TW_LOC, "Lookahead > 1.0 .. needs to be less\n");
+
+	//reset mean based on lookahead
+        mean = mean - lookahead;
+
         g_tw_memory_nqueues = 16; // give at least 16 memory queue event
 
 	offset_lpid = g_tw_mynode * nlp_per_pe;
@@ -116,6 +131,20 @@ main(int argc, char **argv, char **env)
 
 	for(i = 0; i < g_tw_nlp; i++)
 		tw_lp_settype(i, &mylps[0]);
+
+        if( g_tw_mynode == 0 )
+	  {
+	    printf("========================================\n");
+	    printf("PHOLD Model Configuration..............\n");
+	    printf("   Lookahead..............%lf\n", lookahead);
+	    printf("   Start-events...........%u\n", g_phold_start_events);
+	    printf("   stagger................%u\n", stagger);
+	    printf("   Mean...................%lf\n", mean);
+	    printf("   Mult...................%lf\n", mult);
+	    printf("   Memory.................%u\n", optimistic_memory);
+	    printf("   Remote.................%lf\n", percent_remote);
+	    printf("========================================\n\n");
+	  }
 
 	tw_run();
 	tw_end();

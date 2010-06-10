@@ -383,6 +383,8 @@ setup_pes(void)
 		fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
 
 		printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
+		fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
+
 
 		switch(g_tw_mapping)
 		  {
