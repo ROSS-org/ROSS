@@ -1,6 +1,6 @@
 IF(WITH_WIFI_MAC)
 INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
-INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/ross)
 SET(wifi_mac_srcs wifi-mac-global.c 
 wifi-mac-model.c  
 wifi-mac-xml.c 

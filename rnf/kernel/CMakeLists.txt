@@ -1,5 +1,5 @@
 INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
-INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/ross)
 SET(rn_srcs
 rn-link.c		rn-timer.c
 rn-lp.c 		rn-machine.c

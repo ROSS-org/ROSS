@@ -1,3 +1,6 @@
+PROJECT(ROSS_TOP C)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
 #SET(QUEUE      calendar) #Calendar Queue
 #SET(QUEUE      heap) #Push/Down Heap
 SET(QUEUE       splay) #Splay Tree
@@ -65,7 +68,7 @@ IF(ARCH STREQUAL x86_64)
 ENDIF(ARCH STREQUAL x86_64)
 
 ADD_SUBDIRECTORY(ross)
-# ADD_SUBDIRECTORY(rnf)
+ADD_SUBDIRECTORY(rnf)
 
 OPTION(BUILD_DOXYGEN "Build Doxygen documentation" ON)
 IF(BUILD_DOXYGEN)
