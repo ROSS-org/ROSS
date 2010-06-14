@@ -7,7 +7,7 @@
 #  error only i386 platform supported
 #endif
 
-static tw_clock tw_clock_read(void)
+tw_clock tw_clock_read(void)
 {
 	tw_clock result;
 	do {

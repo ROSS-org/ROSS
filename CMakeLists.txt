@@ -38,6 +38,13 @@ IF(NOT ARCH)
 		"Please set ARCH to be one of (bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT ARCH)
 
+IF(ARCH STREQUAL i386)
+        #SET(CC	 mpicc)
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+        ADD_DEFINITIONS(-D_GNU_SOURCE)
+        SET(CLOCK       i386)
+ENDIF(ARCH STREQUAL i386)
+
 IF(ARCH STREQUAL bgl)
        #SET(CC   mpixlc)
        #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
