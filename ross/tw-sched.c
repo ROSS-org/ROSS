@@ -314,12 +314,8 @@ tw_scheduler_conservative(tw_pe * me)
 	}
       
       tw_gvt_step1(me);
-      
       tw_sched_event_q(me);
-      
-      start = tw_clock_read();
       tw_gvt_step2(me);
-      me->stats.s_gvt += tw_clock_read() - start;
       
       if (me->GVT > g_tw_ts_end)
 	break;
@@ -342,7 +338,7 @@ tw_scheduler_conservative(tw_pe * me)
 	    break;
 	  }
 	  
-	  if(tw_pq_minimum(me->pq) > me->GVT + g_tw_lookahead)
+	  if(tw_pq_minimum(me->pq) >= me->GVT + g_tw_lookahead)
 	    break;
 	  
 	  start = tw_clock_read();
@@ -409,13 +405,9 @@ tw_scheduler_optimistic(tw_pe * me)
 	}
       
       tw_gvt_step1(me);
-      
       tw_sched_event_q(me);
       tw_sched_cancel_q(me);
-      
-      start = tw_clock_read();
       tw_gvt_step2(me);
-      me->stats.s_gvt += tw_clock_read() - start;
       
       if (me->GVT > g_tw_ts_end)
 	break;

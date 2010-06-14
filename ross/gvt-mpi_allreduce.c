@@ -3,10 +3,9 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
-static tw_stat tot_mattern_nochange = 0;
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
-static unsigned int mattern_nochange = 0;
+static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
 
@@ -48,10 +47,9 @@ tw_gvt_stats(FILE * f)
 	fprintf(f, "\n");
 	fprintf(f, "\t%-50s %11d\n", "Forced GVT", gvt_force);
 	fprintf(f, "\t%-50s %11d\n", "Total GVT Computations", g_tw_gvt_done);
-	fprintf(f, "\t%-50s %11lld\n", "Total Reduction Attempts", 
-			tot_mattern_nochange);
-	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction Attempts / GVT", 
-			(double) ((double) tot_mattern_nochange / (double) g_tw_gvt_done));
+	fprintf(f, "\t%-50s %11lld\n", "Total All Reduce Calls", all_reduce_cnt);
+	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT", 
+			(double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
 }
 
 void
@@ -76,7 +74,7 @@ tw_gvt_step2(tw_pe *me)
 	tw_stime lvt;
 	tw_stime gvt;
 
-	tw_clock start;
+	tw_clock start = tw_clock_read();
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
@@ -87,7 +85,7 @@ tw_gvt_step2(tw_pe *me)
 	
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
-
+	    all_reduce_cnt++;
 	    if(MPI_Allreduce(
 			     &local_white,
 			     &total_white,
@@ -99,8 +97,6 @@ tw_gvt_step2(tw_pe *me)
 	    
 	    if(total_white == 0)
 	      break;
-	    else
-	      ++mattern_nochange;
 	  }
 
 	pq_min = tw_pq_minimum(me->pq);
@@ -112,6 +108,7 @@ tw_gvt_step2(tw_pe *me)
 	if(lvt > net_min)
 		lvt = net_min;
 
+	all_reduce_cnt++;
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
@@ -158,9 +155,10 @@ tw_gvt_step2(tw_pe *me)
 	me->GVT = gvt;
 	me->gvt_status = TW_GVT_NORMAL;
 
-	tot_mattern_nochange += mattern_nochange;
-	mattern_nochange = 0;
 	gvt_cnt = 0;
+
+	// update GVT timing stats
+	me->stats.s_gvt += tw_clock_read() - start;
 
 	// only FC if OPTIMISTIC
 	if( g_tw_synchronization_protocol == OPTIMISTIC )

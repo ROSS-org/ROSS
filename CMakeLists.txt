@@ -11,7 +11,7 @@ OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
 #MEMORY is either on or off depending on whether or not we desire
 #memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     ON)
+OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
 #SET(MEMORY        YES)
 
 OPTION(TIMING	   "Perform ROSS timings"	ON)
@@ -66,3 +66,25 @@ ENDIF(ARCH STREQUAL x86_64)
 
 ADD_SUBDIRECTORY(ross)
 # ADD_SUBDIRECTORY(rnf)
+
+OPTION(BUILD_DOXYGEN "Build Doxygen documentation" ON)
+IF(BUILD_DOXYGEN)
+	FIND_PACKAGE(Doxygen)
+	CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.user.in
+		       ${CMAKE_BINARY_DIR}/Doxyfile.user)
+
+	SET(DOXYGEN_OUTPUT ${CMAKE_BINARY_DIR}/docs/html/index.html)
+
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${DOXYGEN_OUTPUT}
+		COMMAND ${CMAKE_COMMAND} -E echo_append "Building API Documentation..."
+		COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile.user
+#		COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
+		COMMAND ${CMAKE_COMMAND} -E echo "Done."
+#		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#		DEPENDS ${DOXYGEN_INPUT}
+	)
+
+	ADD_CUSTOM_TARGET(apidoc ALL DEPENDS ${DOXYGEN_OUTPUT})
+
+ENDIF(BUILD_DOXYGEN)
