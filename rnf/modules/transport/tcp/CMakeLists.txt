@@ -1,6 +1,6 @@
 IF(WITH_TCP)
 INCLUDE_DIRECTORIES(${ROSSNET_SOURCE_DIR}/kernel)
-INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/trunk/ross)
+INCLUDE_DIRECTORIES(${ROSS_TOP_SOURCE_DIR}/ross)
 SET(tcp_srcs
 tcp-model.c		tcp-timer.c
 tcp-process.c		tcp-types.h
