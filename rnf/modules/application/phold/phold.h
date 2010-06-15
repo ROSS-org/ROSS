@@ -7,17 +7,15 @@
 	 * PHOLD Types
 	 */
 
-struct phold_state_t;
-typedef phold_state_t phold_state;
-struct phold_message_t;
-typedef phold_message_t phold_message;
+FWD(struct, phold_state);
+FWD(struct, phold_message);
 
-struct phold_state_t
+DEF(struct, phold_state)
 {
 	long int	 dummy_state;
 };
 
-struct phold_message_t
+DEF(struct, phold_message)
 {
 	long int	 dummy_data;
 };

@@ -9,15 +9,12 @@
 #define TCP_LAYER_HEADER_SIZE 20.0
 #define TCP_LAYER_TRANSFER_SIZE ((g_tcp_layer_mss + TCP_LAYER_HEADER_SIZE))
 
-struct tcp_layer_state_t;
-typedef tcp_layer_state_t tcp_layer_state;
+FWD(struct, tcp_layer_state);
 FWD(struct, RC);
-struct tcp_layer_message_t;
-typedef tcp_layer_message_t tcp_layer_message;
-struct tcp_layer_statistics_t;
-typedef tcp_layer_statistics_t tcp_layer_statistics;
+FWD(struct, tcp_layer_message);
+FWD(struct, tcp_layer_statistics);
 
-struct tcp_layer_state_t
+DEF(struct, tcp_layer_state)
 {
 	rn_machine	*host;
 
@@ -71,7 +68,7 @@ DEF(struct, RC)
 	int             seq_num;
 };
 
-struct tcp_layer_message_t
+DEF(struct, tcp_layer_message)
 {
 	int             MethodName;
 	int             ack;
@@ -82,7 +79,7 @@ struct tcp_layer_message_t
 	RC              RC;
 };
 
-struct tcp_layer_statistics_t
+DEF(struct, tcp_layer_statistics)
 {
 	int             sent_packets;
 	int             timedout_packets;

@@ -1,25 +1,19 @@
 #ifndef INC_epi_agent_h
 #define INC_epi_agent_h
 
-struct epi_agent_t;
-typedef epi_agent_t epi_agent;
-struct epi_agent_info_t;
-typedef epi_agent_info_t epi_agent_info;
+FWD(struct, epi_agent);
+FWD(struct, epi_agent_info);
 
-enum num_agent_t_t;
-typedef num_agent_t_t num_agent_t;
-enum epi_stage_t_t;
-typedef epi_stage_t_t epi_stage_t;
-enum epi_agent_t_t;
-typedef epi_agent_t_t epi_agent_t;
-enum epi_agent_profile_t_t;
-typedef epi_agent_profile_t_t epi_agent_profile_t;
+FWD(enum, num_agent_t);
+FWD(enum, epi_stage_t);
+FWD(enum, epi_agent_t);
+FWD(enum, epi_agent_profile_t);
 
 	/*
 	 * epi_stage_t:  enumeration of the stages of disease 
 	 * not used by code - stages are input
 	 */
-enum epi_stage_t_t
+DEF(enum, epi_stage_t)
 {
 	EPI_SUSCEPTIBLE = 0,
 	EPI_INCUBATING,
@@ -31,7 +25,7 @@ enum epi_stage_t_t
 	/*
 	 * num_agent_t: enumeration of the various type of agents we represent in the NUM
 	 */
-enum num_agent_t_t
+DEF(enum, num_agent_t)
 {
 	NUM_AGT_FIN_TRADER = 1,
 	NUM_AGT_FIN_OFFICE
@@ -39,7 +33,7 @@ enum num_agent_t_t
 	/*
 	 * epi_agent_t: enumeration of the various type of agents we represent
 	 */
-enum epi_agent_t_t
+DEF(enum, epi_agent_t)
 {
 	EPI_AGT_ADULT_1 = 1,
 	EPI_AGT_ADULT_2,
@@ -55,7 +49,7 @@ enum epi_agent_t_t
 	/*
 	 * epi_agent_profile_t: enumeration of network usage profile
 	 */
-enum epi_agent_profile_t_t
+DEF(enum, epi_agent_profile_t)
 {
 	EPI_PROF_FINANCIAL_1 = 1,
 	EPI_PROF_FINANCIAL_2,
@@ -79,7 +73,7 @@ enum epi_agent_profile_t_t
 	 * nloc		-- the size of the location vector
 	 * loc		-- the location vector
 	 */
-struct epi_agent_t
+DEF(struct, epi_agent)
 {
 	/* these 4 vars are need for PQ */
 	epi_agent	*volatile next;

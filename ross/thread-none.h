@@ -49,8 +49,8 @@
  *
  */
 
-struct tw_mutex_t
-struct tw_barrier_t
+DEF(struct, tw_mutex)   {};
+DEF(struct, tw_barrier) {};
 #define TW_MUTEX_INIT {}
 
 INLINE(void)

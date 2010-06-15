@@ -34,18 +34,16 @@ FWD(struct, Host_State);
 FWD(struct, RC);
 FWD(struct, Msg_Data);
 FWD(struct, tcpStatistics);
-struct rocket_fuel_link_t;
-typedef rocket_fuel_link_t rocket_fuel_link;
-struct rocket_fuel_node_t;
-typedef rocket_fuel_node_t rocket_fuel_node;
+FWD(struct, rocket_fuel_link);
+FWD(struct,rocket_fuel_node);
 
-struct rocket_fuel_link_t
+DEF(struct, rocket_fuel_link)
 {
   int node_id;
   int bandwidth;
 };
 
-struct rocket_fuel_node_t
+DEF(struct, rocket_fuel_node)
 {
   int used;
   int level; int is_bb; int num_in_level;

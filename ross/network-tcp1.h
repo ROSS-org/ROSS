@@ -5,10 +5,8 @@
 
 #define MAX_NODES 128
 
-struct tw_net_stats_t;
-typedef tw_net_stats_t tw_net_stats;
-struct tw_net_node_t;
-typedef tw_net_node_t tw_net_node;
+FWD(struct, tw_net_stats);
+FWD(struct, tw_net_node);
 
 // required to be defined by ROSS: index into tw_net_node array
 typedef unsigned int tw_eventid;
@@ -39,7 +37,7 @@ extern tw_net_stats	 overall;
 
 //extern unsigned int	g_tw_net_barrier_flag;
 
-struct tw_net_stats_t
+DEF(struct, tw_net_stats)
 {
 	long		 s_nsend;
 	long		 s_nrecv;
@@ -62,7 +60,7 @@ struct tw_net_stats_t
  *
  * stats	-- statistics object
  */
-struct tw_net_node_t
+DEF(struct, tw_net_node)
 {
 	tw_node		 id;
 	tw_port		 port;

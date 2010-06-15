@@ -1,16 +1,12 @@
 #ifndef INC_ip_types_h
 #define INC_ip_types_h
 
-struct ip_state_t;
-typedef ip_state_t ip_state;
-struct ip_message_t;
-typedef ip_message_t ip_message;
-struct ip_stats_t;
-typedef ip_stats_t ip_stats;
-struct ip_link_t;
-typedef ip_link_t ip_link;
+FWD(struct, ip_state);
+FWD(struct, ip_message);
+FWD(struct, ip_stats);
+FWD(struct, ip_link);
 
-struct ip_state_t
+DEF(struct, ip_state)
 {
 	ip_stats	*stats;
 
@@ -23,7 +19,7 @@ struct ip_state_t
 	tw_memoryq	*link_q;
 };
 
-struct ip_stats_t
+DEF(struct, ip_stats)
 {
 	/*
 	 * IP layer LP statistics
@@ -42,7 +38,7 @@ struct ip_stats_t
 	tw_stat s_max_ttl;
 };
 
-struct ip_message_t
+DEF(struct, ip_message)
 {
 	rn_link		*link;
 	tw_stime         last_sent;

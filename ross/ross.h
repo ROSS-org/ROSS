@@ -54,11 +54,10 @@
 #endif
 
 #ifndef FWD
-t n_t;
-typedef n_t n;
+#define	FWD(t,n) t n##_tag;typedef t n##_tag n
 #endif
 #ifndef DEF
-t n_t
+#define	DEF(t,n) t n##_tag
 #endif
 
 #ifndef ARRAY_SIZE

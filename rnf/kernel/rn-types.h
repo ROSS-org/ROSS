@@ -1,42 +1,28 @@
 #ifndef INC_rn_types_h
 #define INC_rn_types_h
 
-struct rn_hash_t;
-typedef rn_hash_t rn_hash;
-struct rn_link_t;
-typedef rn_link_t rn_link;
-enum rn_link_status_t;
-typedef rn_link_status_t rn_link_status;
-struct rn_machine_t;
-typedef rn_machine_t rn_machine;
-struct rn_subnet_t;
-typedef rn_subnet_t rn_subnet;
-struct rn_area_t;
-typedef rn_area_t rn_area;
-struct rn_as_t;
-typedef rn_as_t rn_as;
+FWD(struct, rn_hash);
+FWD(struct, rn_link);
+//FWD(enum, rn_link_status);
+FWD(struct, rn_machine);
+FWD(struct, rn_subnet);
+FWD(struct, rn_area);
+FWD(struct, rn_as);
 
-struct rn_layer_t;
-typedef rn_layer_t rn_layer;
-struct rn_stream_t;
-typedef rn_stream_t rn_stream;
-struct rn_lp_state_t;
-typedef rn_lp_state_t rn_lp_state;
-struct rn_statistics_t;
-typedef rn_statistics_t rn_statistics;
-struct rn_lp_t;
-typedef rn_lp_t rn_lp;
-struct rn_message_t;
-typedef rn_message_t rn_message;
-struct rn_lptype_t;
-typedef rn_lptype_t rn_lptype;
+FWD(struct, rn_layer);
+FWD(struct, rn_stream);
+FWD(struct, rn_lp_state);
+FWD(struct, rn_statistics);
+FWD(struct, rn_lp);
+FWD(struct, rn_message);
+FWD(struct, rn_lptype);
 
 typedef void	(*rn_xml_init_f) (void *sv, xmlNodePtr node, tw_lp *me);
 typedef void	(*md_opt_f) ();
 typedef void	(*md_init_f) (int argc, char ** argv, char **env);
 typedef void	(*md_final_f) ();
 
-struct rn_lptype_t
+DEF(struct, rn_lptype)
 {
 	init_f		init;
 	event_f		event;
@@ -98,7 +84,7 @@ typedef enum rn_message_type_tag rn_message_type;
 	 * 	   equivalent to passing the size of the buffer in a write call
 	 * data -- the message passed to a layer.. this is the actual message
 	 */
-struct rn_message_t
+DEF(struct, rn_message)
 {
 	rn_message_type		 type;
 
@@ -114,18 +100,18 @@ struct rn_message_t
 	rn_link			*link;
 };
 
-struct rn_statistics_t
+DEF(struct, rn_statistics)
 {
 	tw_stat		 s_nevents_processed;
 	tw_stat		 s_nevents_rollback;
 };
 
-struct rn_layer_t
+DEF(struct, rn_layer)
 {
 	tw_lp	lp;
 };
 
-struct rn_stream_t
+DEF(struct, rn_stream)
 {
 	unsigned char		 nlayers;
 	unsigned short int	 port;
@@ -134,7 +120,7 @@ struct rn_stream_t
 	rn_layer		*layers;
 };
 
-struct rn_lp_state_t
+DEF(struct, rn_lp_state)
 {
 	unsigned int	 nstreams;
 
@@ -155,7 +141,7 @@ struct rn_lp_state_t
 	tw_event	*cev;
 };
 
-struct rn_link_t
+DEF(struct, rn_link)
 {
 #if DYNAMIC_LINKS
 	rn_link_status	status;
@@ -175,7 +161,7 @@ struct rn_link_t
 	rn_machine	*wire;
 };
 
-struct rn_machine_t
+DEF(struct, rn_machine)
 {
 	tw_lpid			 id;
 	tw_lpid			 conn;
@@ -199,7 +185,7 @@ struct rn_machine_t
 	//rn_machine		*next;
 };
 
-struct rn_subnet_t
+DEF(struct, rn_subnet)
 {
 	int			 id;
 
@@ -213,7 +199,7 @@ struct rn_subnet_t
 	rn_subnet		*next;
 };
 
-struct rn_area_t
+DEF(struct, rn_area)
 {
 	unsigned int		 id;
 
@@ -237,7 +223,7 @@ struct rn_area_t
 	rn_area			*next;
 };
 
-struct rn_as_t
+DEF(struct, rn_as)
 {
 	unsigned int		 id;
 	//unsigned int		 frequency;

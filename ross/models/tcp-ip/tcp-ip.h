@@ -5,10 +5,9 @@
 
 #include "tcp-ip-extern.h"
 
-enum rn_message_type_t;
-typedef rn_message_type_t rn_message_type;
+FWD(enum, rn_message_type);
 
-enum rn_message_type_t
+DEF(enum, rn_message_type)
 {
 	TIMER
 };

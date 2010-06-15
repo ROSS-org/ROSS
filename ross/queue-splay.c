@@ -81,7 +81,7 @@
 #define RIGHT(t)	((t)->prev)
 #define KEY(t)          ((t)->recv_ts)
 
-struct tw_pq_t
+DEF(struct, tw_pq)
 {
 	tw_event       *root;
 	tw_event       *least;

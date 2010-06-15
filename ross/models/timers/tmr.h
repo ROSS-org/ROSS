@@ -7,17 +7,15 @@
 	 * PHOLD Types
 	 */
 
-struct tmr_state_t;
-typedef tmr_state_t tmr_state;
-struct tmr_message_t;
-typedef tmr_message_t tmr_message;
+FWD(struct, tmr_state);
+FWD(struct, tmr_message);
 
-struct tmr_state_t
+DEF(struct, tmr_state)
 {
 	tw_event	*timer;
 };
 
-struct tmr_message_t
+DEF(struct, tmr_message)
 {
 	tw_event	*old_timer;
 	tw_stime	 old_time;

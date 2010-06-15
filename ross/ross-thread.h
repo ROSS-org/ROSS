@@ -1,10 +1,8 @@
 #ifndef INC_ross_thread_h
 #define	INC_ross_thread_h
 
-struct tw_mutex_t;
-typedef tw_mutex_t tw_mutex;
-struct tw_barrier_t;
-typedef tw_barrier_t tw_barrier;
+FWD(struct, tw_mutex);
+FWD(struct, tw_barrier);
 
 void tw_mutex_create(tw_mutex * lck);
 void tw_thread_create(void (*fun) (void *), void *arg);

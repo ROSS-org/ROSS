@@ -6,26 +6,20 @@
 #define Q_SIZE		1000000
 #define PI		M_PI
 
-struct rw_state_t;
-typedef rw_state_t rw_state;
-struct rw_message_t;
-typedef rw_message_t rw_message;
-struct rw_statistics_t;
-typedef rw_statistics_t rw_statistics;
+FWD(struct, rw_state);
+FWD(struct, rw_message);
+FWD(struct, rw_statistics);
 
-struct rw_connection_t;
-typedef rw_connection_t rw_connection;
-enum rw_event_t_t;
-typedef rw_event_t_t rw_event_t;
-enum rw_conn_t_t;
-typedef rw_conn_t_t rw_conn_t;
+FWD(struct, rw_connection);
+FWD(enum, rw_event_t);
+FWD(enum, rw_conn_t);
 
-enum rw_conn_t_t
+DEF(enum, rw_conn_t)
 {
 	RW_DIRECT = 1
 };
 
-struct rw_connection_t
+DEF(struct, rw_connection)
 {
 	unsigned int	 id;
 	unsigned int	 nid;
@@ -41,14 +35,14 @@ struct rw_connection_t
 	rw_conn_t	 type;
 };
 
-enum rw_event_t_t
+DEF(enum, rw_event_t)
 {
 	RW_TIMESTEP = 1,
 	RW_MOVE,
 	RW_MULTIHOP_CALC
 };
 
-struct rw_statistics_t
+DEF(struct, rw_statistics)
 {
 	tw_stat s_move_ev;
 	tw_stat s_prox_ev;
@@ -59,7 +53,7 @@ struct rw_statistics_t
 	tw_stat s_ndisconnect;
 };
 
-struct rw_state_t
+DEF(struct, rw_state)
 {
 #if 0
 	tw_memory	**direct;
@@ -94,7 +88,7 @@ struct rw_state_t
 #endif
 };
 
-struct rw_message_t
+DEF(struct, rw_message)
 {
 	rw_event_t	 type;
 	tw_lpid		 from;
