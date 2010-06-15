@@ -60,7 +60,7 @@ typedef tw_event *ELEMENT_TYPE;
 typedef double KEY_TYPE;
 #define KEY(e) (e->recv_ts)
 
-DEF(struct, tw_pq)
+struct tw_pq_tag
 {
   unsigned long nelems;
   unsigned long curr_max;

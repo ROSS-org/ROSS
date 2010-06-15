@@ -8,13 +8,18 @@
 #define TCP_HEADER_SIZE 40.0
 #define TCP_MTU ((state->mss + TCP_HEADER_SIZE) * 8)
 
-FWD(struct, tcp_state);
-FWD(struct, RC);
-FWD(struct, tcp_message);
-FWD(enum, tcp_event_t);
-FWD(struct, tcp_statistics);
+struct tcp_state_tag;
+typedef struct tcp_state_tag tcp_state;
+struct RC_tag;
+typedef struct RC_tag RC;
+struct tcp_message_tag;
+typedef struct tcp_message_tag tcp_message;
+enum tcp_event_t_tag;
+typedef enum tcp_event_t_tag tcp_event_t;
+struct tcp_statistics_tag;
+typedef struct tcp_statistics_tag tcp_statistics;
 
-DEF(struct, tcp_state)
+struct tcp_state_tag
 {
 	int             unack;
 	int             seq_num;
@@ -48,7 +53,7 @@ DEF(struct, tcp_state)
 #endif
 };
 
-DEF(struct, RC)
+struct RC_tag
 {
 	double          dup_count;
 	double          cwnd;
@@ -64,13 +69,13 @@ DEF(struct, RC)
 	int             seq_num;
 };
 
-DEF(enum, tcp_event_t)
+enum tcp_event_t_tag
 {
 	FORWARD = 1,
 	RTO
 };
 
-DEF(struct, tcp_message)
+struct tcp_message_tag
 {
 	tw_bf            bf;
 
@@ -85,7 +90,7 @@ DEF(struct, tcp_message)
 	RC               RC;
 };
 
-DEF(struct, tcp_statistics)
+struct tcp_statistics_tag
 {
 	int		bad_msgs;
 	int             sent;

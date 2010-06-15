@@ -3,14 +3,21 @@
 
 #define NUM_LP_TYPE	 7
 
-FWD(struct, num_state);
-FWD(struct, num_message);
-FWD(struct, num_statistics);
-FWD(struct, num_profile);
+struct num_state_tag;
+typedef struct num_state_tag num_state;
+struct num_message_tag;
+typedef struct num_message_tag num_message;
+struct num_statistics_tag;
+typedef struct num_statistics_tag num_statistics;
+struct num_profile_tag;
+typedef struct num_profile_tag num_profile;
 
-// FWD(enum, num_event_t); // cannot overload message types.  Using rn_message
-FWD(enum, num_agent_t);
-FWD(enum, num_level_t);
+enum num_event_t_tag;
+typedef enum num_event_t_tag num_event_t;
+enum num_agent_t_tag;
+typedef enum num_agent_t_tag num_agent_t;
+enum num_level_t_tag;
+typedef enum num_level_t_tag num_level_t;
 
 // Defines for time in seconds
 // define quitting time for internet use at 10:00 AM
@@ -44,7 +51,7 @@ FWD(enum, num_level_t);
 
 #define NUM_LEVELS		4
 
-DEF(enum, num_agent_t)
+enum num_agent_t_tag
 {
 	NUM_HOME_USER = 0,
 	NUM_WORKER,
@@ -55,7 +62,7 @@ DEF(enum, num_agent_t)
 
 // num_level_t enumerates connection speed.
 // Should replace with more meaningful names.
-DEF(enum, num_level_t)
+enum num_level_t_tag
 {
 	NUM_LEVEL_0 = 0,
 	NUM_LEVEL_1,
@@ -67,7 +74,7 @@ DEF(enum, num_level_t)
 	/*
 	 * num_profile: Network user profiles
 	 */
-DEF(struct, num_profile)
+struct num_profile_tag
 {
 	unsigned int	bitrate;
 };
@@ -82,7 +89,7 @@ DEF(struct, num_profile)
 	 * s_total_kb	total kilobytes received
 	 * s_failures	number of times file not received
 	 */
-DEF(struct, num_statistics)
+struct num_statistics_tag
 {
 	unsigned int		s_nfiles;
 	unsigned int		s_nstart;
@@ -98,7 +105,7 @@ DEF(struct, num_statistics)
 	 *
 	 * stats	-- per LP statistics collection structure
 	 */
-DEF(struct, num_state)
+struct num_state_tag
 {
 	num_agent_t	 type;
 

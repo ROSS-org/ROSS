@@ -4,14 +4,16 @@
 /*
  * Global data structure crap, to be removed.
  */
-FWD(enum,ConnectionType);
-DEF(enum,ConnectionType)
+enum ConnectionType_tag;
+typedef enum ConnectionType_tag ConnectionType;
+enum ConnectionType_tag
 {
 	ospf_c_router = 1
 };
 
-FWD(struct, toConnections);
-DEF(struct, toConnections)
+struct toConnections_tag;
+typedef struct toConnections_tag toConnections;
+struct toConnections_tag
 {
 	ConnectionType connectionType; /* Whether it is stub network or a router, if router, 
                                          what type of router */
@@ -26,8 +28,9 @@ DEF(struct, toConnections)
 	unsigned char routerAreaID;
 };
 
-FWD(struct, ospf_graph);
-DEF(struct, ospf_graph)
+struct ospf_graph_tag;
+typedef struct ospf_graph_tag ospf_graph;
+struct ospf_graph_tag
 {
 	unsigned int routerID;
 	unsigned nconnects;

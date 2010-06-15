@@ -59,9 +59,10 @@
 typedef double KEY_TYPE;
 #define KEY(e) (e->ts_next)
 
-FWD(struct, CHeap);
+struct CHeap_tag;
+typedef struct CHeap_tag CHeap;
 
-DEF(struct, CHeap)
+struct CHeap_tag
 {
   long nelems;
   int curr_max;

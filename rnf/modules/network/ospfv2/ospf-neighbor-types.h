@@ -8,8 +8,9 @@
 #define OSPF_RETRANS_INTERVAL		5
 
 /* nbr interface state machine states */
-FWD(enum, ospf_int_state);
-DEF(enum, ospf_int_state)
+enum ospf_int_state_tag;
+typedef enum ospf_int_state_tag ospf_int_state;
+enum ospf_int_state_tag
 {
 	ospf_int_down_st = 1,
 	ospf_int_waiting_st,
@@ -21,8 +22,9 @@ DEF(enum, ospf_int_state)
 };
 
 /* nbr interface state machine events */
-FWD(enum, ospf_int_event);
-DEF(enum, ospf_int_event)
+enum ospf_int_event_tag;
+typedef enum ospf_int_event_tag ospf_int_event;
+enum ospf_int_event_tag
 {
 	ospf_int_up_ev,
 	ospf_int_waittimer_ev,
@@ -34,8 +36,9 @@ DEF(enum, ospf_int_event)
 };
 
 /* nbr state machine states */
-FWD(enum, ospf_nbr_state);
-DEF(enum, ospf_nbr_state)
+enum ospf_nbr_state_tag;
+typedef enum ospf_nbr_state_tag ospf_nbr_state;
+enum ospf_nbr_state_tag
 {
 	ospf_nbr_down_st, 
 	ospf_nbr_attempt_st,
@@ -48,8 +51,9 @@ DEF(enum, ospf_nbr_state)
 };
 
 /* nbr state machine events */
-FWD(enum, ospf_nbr_event);
-DEF(enum, ospf_nbr_event)
+enum ospf_nbr_event_tag;
+typedef enum ospf_nbr_event_tag ospf_nbr_event;
+enum ospf_nbr_event_tag
 {
 	ospf_nbr_hello_recv_ev,
 	ospf_nbr_start_ev,
@@ -73,7 +77,7 @@ DEF(enum, ospf_nbr_event)
  * 
  * the neighbor data structure described in the OSPF RFC
  */
-DEF(struct, ospf_nbr)
+struct ospf_nbr_tag
 {
 	rn_machine		*m;
 	rn_area			*ar;

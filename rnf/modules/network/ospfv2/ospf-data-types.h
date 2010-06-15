@@ -16,7 +16,7 @@
 #define OSPF_MIN_LSA_SEQNUM	INT_MIN
 #define OSPF_MAX_LSA_SEQNUM	INT_MAX
 
-DEF(struct, ospf_db_entry)
+struct ospf_db_entry_tag
 {
 	struct
 	{
@@ -37,7 +37,7 @@ DEF(struct, ospf_db_entry)
 	unsigned char	cause_ospf;
 };
 
-DEF(enum, ospf_link_type)
+enum ospf_link_type_tag
 {
 	ospf_link_point_to_point = 1,
 	ospf_link_transit_net,
@@ -45,7 +45,7 @@ DEF(enum, ospf_link_type)
 	ospf_link_virtual	
 };
 
-DEF(struct, ospf_lsa_link)
+struct ospf_lsa_link_tag
 {
 	//unsigned int			dst;
 	unsigned int			dst;
@@ -56,7 +56,7 @@ DEF(struct, ospf_lsa_link)
 	unsigned int		metric;
 };
 
-DEF(enum, ospf_lsa_type)
+enum ospf_lsa_type_tag
 {
 	ospf_lsa_router = 1,
 	ospf_lsa_network,
@@ -65,7 +65,7 @@ DEF(enum, ospf_lsa_type)
 	ospf_lsa_as_ext
 };
 
-DEF(struct, ospf_lsa)
+struct ospf_lsa_tag
 {
 	ospf_lsa_type	type;
 

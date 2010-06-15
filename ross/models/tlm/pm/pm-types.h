@@ -6,20 +6,26 @@
 #define Q_SIZE		1000000
 #define PI		M_PI
 
-FWD(struct, pm_state);
-FWD(struct, pm_message);
-FWD(struct, pm_statistics);
+struct pm_state_tag;
+typedef struct pm_state_tag pm_state;
+struct pm_message_tag;
+typedef struct pm_message_tag pm_message;
+struct pm_statistics_tag;
+typedef struct pm_statistics_tag pm_statistics;
 
-FWD(struct, pm_connection);
-FWD(enum, pm_event_t);
-FWD(enum, pm_conn_t);
+struct pm_connection_tag;
+typedef struct pm_connection_tag pm_connection;
+enum pm_event_t_tag;
+typedef enum pm_event_t_tag pm_event_t;
+enum pm_conn_t_tag;
+typedef enum pm_conn_t_tag pm_conn_t;
 
-DEF(enum, pm_conn_t)
+enum pm_conn_t_tag
 {
 	PM_DIRECT = 1
 };
 
-DEF(struct, pm_connection)
+struct pm_connection_tag
 {
 	unsigned int	 id;
 	unsigned int	 nid;
@@ -35,14 +41,14 @@ DEF(struct, pm_connection)
 	pm_conn_t	 type;
 };
 
-DEF(enum, pm_event_t)
+enum pm_event_t_tag
 {
 	PM_TIMESTEP = 1,
 	PM_MOVE,
 	PM_MULTIHOP_CALC
 };
 
-DEF(struct, pm_statistics)
+struct pm_statistics_tag
 {
 	tw_stat	s_move_ev;
 	tw_stat s_nwaves;
@@ -53,7 +59,7 @@ DEF(struct, pm_statistics)
 	tw_stat s_ndisconnect;
 };
 
-DEF(struct, pm_state)
+struct pm_state_tag
 {
 #if 0
 	tw_memory	**direct;
@@ -90,7 +96,7 @@ DEF(struct, pm_state)
 #endif
 };
 
-DEF(struct, pm_message)
+struct pm_message_tag
 {
 	pm_event_t	 type;
 	tw_lpid		 from;

@@ -49,8 +49,9 @@
 #ifndef INC_tw_opts_h
 #define INC_tw_opts_h
 
-FWD(enum, tw_opttype);
-DEF(enum, tw_opttype)
+enum tw_opttype_tag;
+typedef enum tw_opttype_tag tw_opttype;
+enum tw_opttype_tag
 {
 	TWOPTTYPE_GROUP = 1,
 	TWOPTTYPE_ULONG,   /* value must be an "unsigned long*" */
@@ -60,8 +61,9 @@ DEF(enum, tw_opttype)
 	TWOPTTYPE_SHOWHELP
 };
 
-FWD(struct, tw_optdef);
-DEF(struct, tw_optdef)
+struct tw_optdef_tag;
+typedef struct tw_optdef_tag tw_optdef;
+struct tw_optdef_tag
 {
 	tw_opttype type;
 	const char *name;

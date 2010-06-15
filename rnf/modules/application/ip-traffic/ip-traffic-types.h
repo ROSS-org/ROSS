@@ -4,25 +4,29 @@
 #define FTP_START_EVENTS 1	
 #define FTP_SEND_TIME (double) 1.0
 
-FWD(enum, ftp_event_states);
-FWD(struct, ftp_message);
-FWD(struct, ftp_lp_state);
-FWD(struct, ftp_statistics);
+enum ftp_event_states_tag;
+typedef enum ftp_event_states_tag ftp_event_states;
+struct ftp_message_tag;
+typedef struct ftp_message_tag ftp_message;
+struct ftp_lp_state_tag;
+typedef struct ftp_lp_state_tag ftp_lp_state;
+struct ftp_statistics_tag;
+typedef struct ftp_statistics_tag ftp_statistics;
 
-DEF(enum, ftp_event_states)
+enum ftp_event_states_tag
 {
 	FTP_READ,
 	FTP_SEND
 };
 
-DEF(struct, ftp_message)
+struct ftp_message_tag
 {
 	ftp_event_states	type;
 
 	unsigned int		size;
 };
 
-DEF(struct, ftp_lp_state)
+struct ftp_lp_state_tag
 {
 	unsigned long int	bytes_read;
 	unsigned long int	bytes_sent;
@@ -31,7 +35,7 @@ DEF(struct, ftp_lp_state)
 	unsigned long int	files_read;
 };
 
-DEF(struct, ftp_statistics)
+struct ftp_statistics_tag
 {
 	unsigned long int	s_bytes_read;
 	unsigned long int	s_bytes_sent;

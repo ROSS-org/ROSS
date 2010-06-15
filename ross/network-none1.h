@@ -54,8 +54,9 @@ typedef uint32_t tw_node;
 
 extern tw_node mynode;
 
-FWD(struct, tw_net_eventhdr);
-DEF(struct, tw_net_eventhdr)
+struct tw_net_eventhdr_tag;
+typedef struct tw_net_eventhdr_tag tw_net_eventhdr;
+struct tw_net_eventhdr_tag
 {
 };
 

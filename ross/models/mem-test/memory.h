@@ -7,12 +7,16 @@
 	 * Model Types
 	 */
 
-FWD(struct, mem_state);
-FWD(struct, mem_message);
-FWD(struct, mem_statistics);
-FWD(struct, mem_packet);
+struct mem_state_tag;
+typedef struct mem_state_tag mem_state;
+struct mem_message_tag;
+typedef struct mem_message_tag mem_message;
+struct mem_statistics_tag;
+typedef struct mem_statistics_tag mem_statistics;
+struct mem_packet_tag;
+typedef struct mem_packet_tag mem_packet;
 
-DEF(struct, mem_statistics)
+struct mem_statistics_tag
 {
 	tw_stat s_rb;
 	tw_stat s_sent;
@@ -28,18 +32,18 @@ DEF(struct, mem_statistics)
 	tw_stat s_mem_get_rc;
 };
 
-DEF(struct, mem_state)
+struct mem_state_tag
 {
 	mem_statistics	 stats;
 	long int	 dummy_state;
 };
 
-DEF(struct, mem_message)
+struct mem_message_tag
 {
 	long int	 dummy_data;
 };
 
-DEF(struct, mem_packet)
+struct mem_packet_tag
 {
 	char bytes[64];
 };

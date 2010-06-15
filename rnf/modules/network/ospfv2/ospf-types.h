@@ -2,7 +2,7 @@
 #define INC_ospf_types_h
 
 #define OSPF_LP_TYPE 3
-DEF(struct, ospf_statistics)
+struct ospf_statistics_tag
 {
 	unsigned long int    s_drop_dd;
 	unsigned long int    s_proc_dd;
@@ -35,7 +35,7 @@ DEF(struct, ospf_statistics)
 	unsigned long int	s_cause_ospf;
 };
 
-DEF(struct, ospf_global_state)
+struct ospf_global_state_tag
 {
 	unsigned int	mtu;
 
@@ -48,7 +48,7 @@ DEF(struct, ospf_global_state)
 	tw_stime	flood_timer;
 };
 
-DEF(struct, ospf_state)
+struct ospf_state_tag
 {
 	ospf_global_state	*gstate;
 

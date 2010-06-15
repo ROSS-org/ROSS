@@ -53,13 +53,6 @@
 #define	INLINE(x) static inline x
 #endif
 
-#ifndef FWD
-#define	FWD(t,n) t n##_tag;typedef t n##_tag n
-#endif
-#ifndef DEF
-#define	DEF(t,n) t n##_tag
-#endif
-
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
 #endif

@@ -8,7 +8,7 @@ static int      rn_is_prime(int ptst);
 
 #define RN_MAX_FRACTION 0.75
 
-DEF(struct, rn_hash)
+struct rn_hash_tag
 {
 	rn_link		**storage;
 	int		  nstored;

@@ -69,107 +69,207 @@
 /*****************************************************************/
 /* FWD struct DECs ***********************************************/
 /*****************************************************************/
-FWD(struct, AarfcdWifiManager);
-FWD(struct, AarfcdWifiRemoteStation);
-FWD(struct, AarfWifiManager);
-FWD(enum,   AccessClass);
-FWD(union,  ActionValue);
-FWD(struct, AdhocWifiMac);
-FWD(enum,   AddressType);
-FWD(struct, AmrrWifiManager);
-FWD(struct, AmrrWifiRemoteStation);
-FWD(struct, AmsduSubframeHeader);
-FWD(struct, ArfWifiManager);
-FWD(struct, ArfWifiRemoteStation);
-FWD(struct, CapabilityInformation);
-FWD(struct, CaraWifiManager);
-FWD(struct, CaraWifiRemoteStation);
-FWD(enum,   CategoryValue);
-FWD(struct, ComplexNumber);
-FWD(struct, ConstantSpeedPropagationDelayModel);
-FWD(struct, ConstantRateWifiManager);
-FWD(struct, ConstantRateWifiRemoteStation);
-FWD(struct, DcaTxop);
-FWD(struct, Dcf);
-FWD(struct, DcfManager);
-FWD(struct, DcfState);
-FWD(struct, DestinationList);
-FWD(struct, EdcaTxopN);
-FWD(struct, ErrorRateModel);
-FWD(struct, FixedRssLossModel);
-FWD(struct, FriisPropagationLossModel);
-FWD(struct, JakesPropagationLossModel);
-FWD(struct, JakesPropagationLossModel_PathCoefficients);
-FWD(struct, IdealWifiManager);
-FWD(struct, IdealWifiManagerThresholds);
-FWD(enum,   InterworkActionValue);
-FWD(enum,   LinkMetricActionValue);
-FWD(struct, LogDistancePropagationLossModel);
-FWD(struct, LowDcfListener);
+struct AarfcdWifiManager_tag;
+typedef struct AarfcdWifiManager_tag AarfcdWifiManager;
+struct AarfcdWifiRemoteStation_tag;
+typedef struct AarfcdWifiRemoteStation_tag AarfcdWifiRemoteStation;
+struct AarfWifiManager_tag;
+typedef struct AarfWifiManager_tag AarfWifiManager;
+enum AccessClass_tag;
+typedef enum AccessClass_tag AccessClass;
+union ActionValue_tag;
+typedef union ActionValue_tag ActionValue;
+struct AdhocWifiMac_tag;
+typedef struct AdhocWifiMac_tag AdhocWifiMac;
+enum AddressType_tag;
+typedef enum AddressType_tag AddressType;
+struct AmrrWifiManager_tag;
+typedef struct AmrrWifiManager_tag AmrrWifiManager;
+struct AmrrWifiRemoteStation_tag;
+typedef struct AmrrWifiRemoteStation_tag AmrrWifiRemoteStation;
+struct AmsduSubframeHeader_tag;
+typedef struct AmsduSubframeHeader_tag AmsduSubframeHeader;
+struct ArfWifiManager_tag;
+typedef struct ArfWifiManager_tag ArfWifiManager;
+struct ArfWifiRemoteStation_tag;
+typedef struct ArfWifiRemoteStation_tag ArfWifiRemoteStation;
+struct CapabilityInformation_tag;
+typedef struct CapabilityInformation_tag CapabilityInformation;
+struct CaraWifiManager_tag;
+typedef struct CaraWifiManager_tag CaraWifiManager;
+struct CaraWifiRemoteStation_tag;
+typedef struct CaraWifiRemoteStation_tag CaraWifiRemoteStation;
+enum CategoryValue_tag;
+typedef enum CategoryValue_tag CategoryValue;
+struct ComplexNumber_tag;
+typedef struct ComplexNumber_tag ComplexNumber;
+struct ConstantSpeedPropagationDelayModel_tag;
+typedef struct ConstantSpeedPropagationDelayModel_tag ConstantSpeedPropagationDelayModel;
+struct ConstantRateWifiManager_tag;
+typedef struct ConstantRateWifiManager_tag ConstantRateWifiManager;
+struct ConstantRateWifiRemoteStation_tag;
+typedef struct ConstantRateWifiRemoteStation_tag ConstantRateWifiRemoteStation;
+struct DcaTxop_tag;
+typedef struct DcaTxop_tag DcaTxop;
+struct Dcf_tag;
+typedef struct Dcf_tag Dcf;
+struct DcfManager_tag;
+typedef struct DcfManager_tag DcfManager;
+struct DcfState_tag;
+typedef struct DcfState_tag DcfState;
+struct DestinationList_tag;
+typedef struct DestinationList_tag DestinationList;
+struct EdcaTxopN_tag;
+typedef struct EdcaTxopN_tag EdcaTxopN;
+struct ErrorRateModel_tag;
+typedef struct ErrorRateModel_tag ErrorRateModel;
+struct FixedRssLossModel_tag;
+typedef struct FixedRssLossModel_tag FixedRssLossModel;
+struct FriisPropagationLossModel_tag;
+typedef struct FriisPropagationLossModel_tag FriisPropagationLossModel;
+struct JakesPropagationLossModel_tag;
+typedef struct JakesPropagationLossModel_tag JakesPropagationLossModel;
+struct JakesPropagationLossModel_PathCoefficients_tag;
+typedef struct JakesPropagationLossModel_PathCoefficients_tag JakesPropagationLossModel_PathCoefficients;
+struct IdealWifiManager_tag;
+typedef struct IdealWifiManager_tag IdealWifiManager;
+struct IdealWifiManagerThresholds_tag;
+typedef struct IdealWifiManagerThresholds_tag IdealWifiManagerThresholds;
+enum InterworkActionValue_tag;
+typedef enum InterworkActionValue_tag InterworkActionValue;
+enum LinkMetricActionValue_tag;
+typedef enum LinkMetricActionValue_tag LinkMetricActionValue;
+struct LogDistancePropagationLossModel_tag;
+typedef struct LogDistancePropagationLossModel_tag LogDistancePropagationLossModel;
+struct LowDcfListener_tag;
+typedef struct LowDcfListener_tag LowDcfListener;
 FWD(struct, Mac48Address);
-FWD(struct, MacLow);
-FWD(struct, MacLowTransmissionListener);
-FWD(struct, MacLowDcfListener);
-FWD(struct, MacLowTransmissionParameters);
-FWD(struct, MacRxMiddle);
-FWD(enum,   MacState);
-FWD(struct, MacTxMiddle);
-FWD(struct, MgtBeaconHeader);
-FWD(struct, MgtProbeRequestHeader);
-FWD(struct, MgtProbeResponseHeader);
-FWD(struct, MinstrelWifiManager);
-FWD(struct, MinstrelWifiRemoteStation);
-FWD(struct, MobilityModel);
-FWD(struct, MsduAggregator);
-FWD(struct, MsduStandardAggregator);
-FWD(struct, NakagamiPropagationLossModel);
-FWD(struct, NqapWifiMac);
-FWD(struct, OnoeWifiManager);
-FWD(struct, OriginatorRxStatus);
-FWD(struct, Originators);
-FWD(struct, Packet);
-FWD(enum,   PathSelectionActionValue);
-FWD(struct, PathsSet);
-FWD(enum,   PeerLinkMgtActionValue);
-FWD(struct, PhyListener);
-FWD(struct, PhyMacLowListener);
-FWD(struct, QadhocWifiMac);
-FWD(struct, QadhocWifiMacQueues);
-FWD(struct, QapWifiMacQueues);
-FWD(struct, QapWifiMac);
-FWD(enum,   QosAckPolicy);
-FWD(struct, QosOriginators);
-FWD(struct, QosTag);
-FWD(struct, QstaWifiMac);
-FWD(struct, QstaWifiMacQueues);
-FWD(struct, RandomPropagationDelayModel);
-FWD(struct, RandomPropagationLossModel);
-FWD(struct, RateInfo);
-FWD(enum,   ResourceCoordinationActionValue);
-FWD(struct, RraaWifiManager);
-FWD(struct, RraaWifiRemoteStation);
-FWD(struct, SnrPer);
-FWD(struct, Ssid);
-FWD(struct, StatusCode);
-FWD(struct, SupportedRates);
-FWD(enum,   TypeOfStation);
-FWD(struct, ThreeLogDistancePropagationLossModel);
-FWD(struct, Thresholds);
-FWD(struct, TransmissionListener);
-FWD(struct, TxFailed); 
-FWD(struct, TxOk);
-FWD(struct, TxTime);
-FWD(struct, WifiActionHeader);
-FWD(struct, WifiMac);
-FWD(struct, WifiMacHeader);
-FWD(struct, WifiMacParameters);
-FWD(struct, WifiMacQueue);
-FWD(struct, WifiMacQueueItem);
-FWD(enum,   WifiMacType);
-FWD(struct, WifiMode);
-FWD(struct, WifiPhy);
-FWD(enum,   WifiPreamble);
-FWD(struct, WifiRemoteStationManager);
+struct MacLow_tag;
+typedef struct MacLow_tag MacLow;
+struct MacLowTransmissionListener_tag;
+typedef struct MacLowTransmissionListener_tag MacLowTransmissionListener;
+struct MacLowDcfListener_tag;
+typedef struct MacLowDcfListener_tag MacLowDcfListener;
+struct MacLowTransmissionParameters_tag;
+typedef struct MacLowTransmissionParameters_tag MacLowTransmissionParameters;
+struct MacRxMiddle_tag;
+typedef struct MacRxMiddle_tag MacRxMiddle;
+enum MacState_tag;
+typedef enum MacState_tag MacState;
+struct MacTxMiddle_tag;
+typedef struct MacTxMiddle_tag MacTxMiddle;
+struct MgtBeaconHeader_tag;
+typedef struct MgtBeaconHeader_tag MgtBeaconHeader;
+struct MgtProbeRequestHeader_tag;
+typedef struct MgtProbeRequestHeader_tag MgtProbeRequestHeader;
+struct MgtProbeResponseHeader_tag;
+typedef struct MgtProbeResponseHeader_tag MgtProbeResponseHeader;
+struct MinstrelWifiManager_tag;
+typedef struct MinstrelWifiManager_tag MinstrelWifiManager;
+struct MinstrelWifiRemoteStation_tag;
+typedef struct MinstrelWifiRemoteStation_tag MinstrelWifiRemoteStation;
+struct MobilityModel_tag;
+typedef struct MobilityModel_tag MobilityModel;
+struct MsduAggregator_tag;
+typedef struct MsduAggregator_tag MsduAggregator;
+struct MsduStandardAggregator_tag;
+typedef struct MsduStandardAggregator_tag MsduStandardAggregator;
+struct NakagamiPropagationLossModel_tag;
+typedef struct NakagamiPropagationLossModel_tag NakagamiPropagationLossModel;
+struct NqapWifiMac_tag;
+typedef struct NqapWifiMac_tag NqapWifiMac;
+struct OnoeWifiManager_tag;
+typedef struct OnoeWifiManager_tag OnoeWifiManager;
+struct OriginatorRxStatus_tag;
+typedef struct OriginatorRxStatus_tag OriginatorRxStatus;
+struct Originators_tag;
+typedef struct Originators_tag Originators;
+struct Packet_tag;
+typedef struct Packet_tag Packet;
+enum PathSelectionActionValue_tag;
+typedef enum PathSelectionActionValue_tag PathSelectionActionValue;
+struct PathsSet_tag;
+typedef struct PathsSet_tag PathsSet;
+enum PeerLinkMgtActionValue_tag;
+typedef enum PeerLinkMgtActionValue_tag PeerLinkMgtActionValue;
+struct PhyListener_tag;
+typedef struct PhyListener_tag PhyListener;
+struct PhyMacLowListener_tag;
+typedef struct PhyMacLowListener_tag PhyMacLowListener;
+struct QadhocWifiMac_tag;
+typedef struct QadhocWifiMac_tag QadhocWifiMac;
+struct QadhocWifiMacQueues_tag;
+typedef struct QadhocWifiMacQueues_tag QadhocWifiMacQueues;
+struct QapWifiMacQueues_tag;
+typedef struct QapWifiMacQueues_tag QapWifiMacQueues;
+struct QapWifiMac_tag;
+typedef struct QapWifiMac_tag QapWifiMac;
+enum QosAckPolicy_tag;
+typedef enum QosAckPolicy_tag QosAckPolicy;
+struct QosOriginators_tag;
+typedef struct QosOriginators_tag QosOriginators;
+struct QosTag_tag;
+typedef struct QosTag_tag QosTag;
+struct QstaWifiMac_tag;
+typedef struct QstaWifiMac_tag QstaWifiMac;
+struct QstaWifiMacQueues_tag;
+typedef struct QstaWifiMacQueues_tag QstaWifiMacQueues;
+struct RandomPropagationDelayModel_tag;
+typedef struct RandomPropagationDelayModel_tag RandomPropagationDelayModel;
+struct RandomPropagationLossModel_tag;
+typedef struct RandomPropagationLossModel_tag RandomPropagationLossModel;
+struct RateInfo_tag;
+typedef struct RateInfo_tag RateInfo;
+enum ResourceCoordinationActionValue_tag;
+typedef enum ResourceCoordinationActionValue_tag ResourceCoordinationActionValue;
+struct RraaWifiManager_tag;
+typedef struct RraaWifiManager_tag RraaWifiManager;
+struct RraaWifiRemoteStation_tag;
+typedef struct RraaWifiRemoteStation_tag RraaWifiRemoteStation;
+struct SnrPer_tag;
+typedef struct SnrPer_tag SnrPer;
+struct Ssid_tag;
+typedef struct Ssid_tag Ssid;
+struct StatusCode_tag;
+typedef struct StatusCode_tag StatusCode;
+struct SupportedRates_tag;
+typedef struct SupportedRates_tag SupportedRates;
+enum TypeOfStation_tag;
+typedef enum TypeOfStation_tag TypeOfStation;
+struct ThreeLogDistancePropagationLossModel_tag;
+typedef struct ThreeLogDistancePropagationLossModel_tag ThreeLogDistancePropagationLossModel;
+struct Thresholds_tag;
+typedef struct Thresholds_tag Thresholds;
+struct TransmissionListener_tag;
+typedef struct TransmissionListener_tag TransmissionListener;
+struct TxFailed_tag;
+typedef struct TxFailed_tag TxFailed;
+struct TxOk_tag;
+typedef struct TxOk_tag TxOk;
+struct TxTime_tag;
+typedef struct TxTime_tag TxTime;
+struct WifiActionHeader_tag;
+typedef struct WifiActionHeader_tag WifiActionHeader;
+struct WifiMac_tag;
+typedef struct WifiMac_tag WifiMac;
+struct WifiMacHeader_tag;
+typedef struct WifiMacHeader_tag WifiMacHeader;
+struct WifiMacParameters_tag;
+typedef struct WifiMacParameters_tag WifiMacParameters;
+struct WifiMacQueue_tag;
+typedef struct WifiMacQueue_tag WifiMacQueue;
+struct WifiMacQueueItem_tag;
+typedef struct WifiMacQueueItem_tag WifiMacQueueItem;
+enum WifiMacType_tag;
+typedef enum WifiMacType_tag WifiMacType;
+struct WifiMode_tag;
+typedef struct WifiMode_tag WifiMode;
+struct WifiPhy_tag;
+typedef struct WifiPhy_tag WifiPhy;
+enum WifiPreamble_tag;
+typedef enum WifiPreamble_tag WifiPreamble;
+struct WifiRemoteStationManager_tag;
+typedef struct WifiRemoteStationManager_tag WifiRemoteStationManager;
 
 
 /*****************************************************************/
@@ -202,7 +302,7 @@ DEF(struct, Mac48Address)
  * to ns-3 later without his supervision.
  */
 
-DEF(struct, AarfcdWifiManager)
+struct AarfcdWifiManager_tag
 {
   uint32_t m_minTimerThreshold;
   uint32_t m_minSuccessThreshold;
@@ -216,7 +316,7 @@ DEF(struct, AarfcdWifiManager)
   bool m_turnOnRtsAfterRateIncrease;
 };
 
-DEF(struct, AarfcdWifiRemoteStation)
+struct AarfcdWifiRemoteStation_tag
 {
   uint32_t m_timer;
   uint32_t m_success;
@@ -235,7 +335,7 @@ DEF(struct, AarfcdWifiRemoteStation)
   AarfcdWifiManager *m_manager;
 };
 
-DEF(struct, AarfWifiManager)
+struct AarfWifiManager_tag
 {
   uint32_t m_minTimerThreshold;
   uint32_t m_minSuccessThreshold;
@@ -258,7 +358,7 @@ DEF(struct, AarfWifiManager)
  * the code for the distributed generation of beacons in an adhoc 
  * network.
  */
-DEF(struct, AdhocWifiMac)
+struct AdhocWifiMac_tag
 {
   DcaTxop *m_dca;
   // Callback<void,Ptr<Packet>, Mac48Address, Mac48Address> m_upCallback;
@@ -285,7 +385,7 @@ DEF(struct, AdhocWifiMac)
  * T. Turletti.
  */
 
-DEF(struct, AmrrWifiManager)
+struct AmrrWifiManager_tag
 {
   tw_stime m_updatePeriod;
   double m_failureRatio;
@@ -294,7 +394,7 @@ DEF(struct, AmrrWifiManager)
   uint32_t m_minSuccessThreshold;
 };
 
-DEF(struct, AmrrWifiRemoteStation)
+struct AmrrWifiRemoteStation_tag
 {
   AmrrWifiManager *m_stations;
   tw_stime m_nextModeUpdate;
@@ -311,7 +411,7 @@ DEF(struct, AmrrWifiRemoteStation)
 // #include "ns3/header.h"
 // #include "ns3/mac48-address.h"
 
-DEF(struct, AmsduSubframeHeader)
+struct AmsduSubframeHeader_tag
 {
   Mac48Address m_da;
   Mac48Address m_sa;
@@ -333,13 +433,13 @@ DEF(struct, AmsduSubframeHeader)
  * timer.)
  */
 
-DEF(struct, ArfWifiManager)
+struct ArfWifiManager_tag
 {
   uint32_t m_timerThreshold;
   uint32_t m_successThreshold;
 };
 
-DEF(struct, ArfWifiRemoteStation)
+struct ArfWifiRemoteStation_tag
 {
   uint32_t m_timer;
   uint32_t m_success;
@@ -357,12 +457,12 @@ DEF(struct, ArfWifiRemoteStation)
 
 // #include "ns3/buffer.h"
 
-DEF(struct, CapabilityInformation)
+struct CapabilityInformation_tag
 {
   uint16_t m_capability;
 };
 
-DEF(struct, CaraWifiManager)
+struct CaraWifiManager_tag
 {
   uint32_t m_timerTimeout;
   uint32_t m_successThreshold;
@@ -370,7 +470,7 @@ DEF(struct, CaraWifiManager)
   uint32_t m_probeThreshold;
 };
 
-DEF(struct, CaraWifiRemoteStation)
+struct CaraWifiRemoteStation_tag
 {
   uint32_t m_timer;
   uint32_t m_success;
@@ -381,7 +481,7 @@ DEF(struct, CaraWifiRemoteStation)
   CaraWifiManager *m_manager;
 };
 
-DEF(struct, ConstantRateWifiManager)
+struct ConstantRateWifiManager_tag
 {
   WifiMode *m_dataMode;
   WifiMode *m_ctlMode;
@@ -410,7 +510,7 @@ DEF(struct, ConstantRateWifiManager)
  * a packet is bigger than a threshold, the rts/cts protocol is used.
  */
 
-DEF(struct, DcaTxop)
+struct DcaTxop_tag
 {
   /**
    * \param packet packet to send
@@ -436,7 +536,7 @@ DEF(struct, DcaTxop)
   uint8_t m_fragmentNumber;
 };
 
-//DEF(struct, Dcf)
+struct Dcf_tag
 
 /**
  * \brief keep track of the state needed for a single DCF 
@@ -448,7 +548,7 @@ DEF(struct, DcaTxop)
  * control the relative QoS differentiation.
  */
 
-DEF(struct, DcfState)
+struct DcfState_tag
 {
 
   uint32_t m_aifsn;
@@ -481,7 +581,7 @@ DEF(struct, DcfState)
  * collision.
  */
 
-DEF(struct, DcfManager)
+struct DcfManager_tag
 {
   DcfState **States;
   DcfState *m_states;
@@ -520,14 +620,14 @@ DEF(struct, DcfManager)
  * For more details see section 9.1.3.1 in 802.11 standard.
  */
 
-DEF(enum, TypeOfStation)
+enum TypeOfStation_tag
 {
   STA,
   AP,
   ADHOC_STA
 };
 
-DEF(struct, EdcaTxopN)
+struct EdcaTxopN_tag
 {
   Dcf *m_dcf;
   DcfManager *m_manager;
@@ -550,20 +650,20 @@ DEF(struct, EdcaTxopN)
   TypeOfStation m_typeOfStation;
 };
 
-DEF(struct, ErrorRateModel)
+struct ErrorRateModel_tag
 {
   // dummy struct as placeholder for nearly empty class
   // man C++ creates such a WASTE!!
 };
 
-DEF(struct, IdealWifiManagerThresholds)
+struct IdealWifiManagerThresholds_tag
 {
   double value;
   WifiMode *mode;
   Thresholds *next;
 };
 
-DEF(struct, IdealWifiManager)
+struct IdealWifiManager_tag
 {
   // typedef std::vector<std::pair<double,WifiMode> > Thresholds;
 
@@ -573,25 +673,25 @@ DEF(struct, IdealWifiManager)
   double m_maxSnr;
 };
 
-DEF(struct, IdealWifiRemoteStation)
+struct IdealWifiRemoteStation_tag
 {
   IdealWifiManager *m_manager;
   double m_lastSnr;
 };
 
-DEF(struct, SnrPer)
+struct SnrPer_tag
 {
   double snr;
   double per;
 };
 
-DEF(struct, NiChange)
+struct NiChange_tag
 {
   tw_stime m_time;
   double m_delta;
 };
 
-DEF(struct, InterferenceHelper)
+struct InterferenceHelper_tag
 {
   uint32_t m_size;
   WifiMode *m_payloadMode;
@@ -656,13 +756,13 @@ DEF(struct, InterferenceHelper)
  * Trans. on Communications, Vol. 51, pp 920-928, June 2003
  */
 
-DEF(struct, ComplexNumber)
+struct ComplexNumber_tag
 {
   double real;
   double imag;
 };
 
-DEF(struct, JakesPropagationLossModel_PathCoefficients)
+struct JakesPropagationLossModel_PathCoefficients_tag
 {
   MobilityModel *m_receiver;
   uint8_t m_nOscillators;
@@ -675,14 +775,14 @@ DEF(struct, JakesPropagationLossModel_PathCoefficients)
   JakesPropagationLossModel_PathCoefficients *next;
 };
 
-DEF(struct, PathsSet)
+struct PathsSet_tag
 {
   MobilityModel *sender;
   JakesPropagationLossModel_PathCoefficients *receivers;
   PathsSet *next; // for vectors of these
 };
 
-DEF(struct, JakesPropagationLossModel)
+struct JakesPropagationLossModel_tag
 {
   double PI; // set this to the real value of PI
   ComplexNumber* m_amp;
@@ -694,7 +794,7 @@ DEF(struct, JakesPropagationLossModel)
 };
 
 
-DEF(struct, MacLowTransmissionListener)
+struct MacLowTransmissionListener_tag
 {
   //dummy struct for class container
 };
@@ -707,7 +807,7 @@ DEF(struct, MacLowTransmissionListener)
  * ns3::Dcf methods.
  */
 
-DEF(struct, MacLowDcfListener) 
+struct MacLowDcfListener_tag
 {
   //dummy struct for class container
 };
@@ -720,7 +820,7 @@ DEF(struct, MacLowDcfListener)
  * should be transmitted.
  */
 
-DEF(struct, MacLowTransmissionParameters)
+struct MacLowTransmissionParameters_tag
 {
   uint32_t m_nextSize;
   enum {
@@ -737,7 +837,7 @@ DEF(struct, MacLowTransmissionParameters)
  * \brief handle RTS/CTS/DATA/ACK transactions.
  */
 
-DEF(struct, MacLow)
+struct MacLow_tag
 {
 // typedef Callback<void, Ptr<Packet>, const WifiMacHeader*> MacLowRxCallback;
 
@@ -778,7 +878,7 @@ DEF(struct, MacLow)
   PhyMacLowListener *m_phyMacLowListener; 
 };
 
-DEF(struct, OriginatorRxStatus)
+struct OriginatorRxStatus_tag
 {
   // typedef std::list<Ptr<const Packet> > Fragments;
   // typedef std::list<Ptr<const Packet> >::const_iterator FragmentsCI;
@@ -788,20 +888,20 @@ DEF(struct, OriginatorRxStatus)
   Packet * m_fragments;
 };
 
-DEF(struct, Originators)
+struct Originators_tag
 {
   Mac48Address addr;
   OriginatorRxStatus *status;
 };
 
-DEF(struct, QosOriginators)
+struct QosOriginators_tag
 {
   Mac48Address addr;
   OriginatorRxStatus *status;
 };
 
 
-DEF(struct, MacRxMiddle)
+struct MacRxMiddle_tag
 {
   // typedef Callback<void, Ptr<Packet>, const WifiMacHeader*> ForwardUpCallback;
   // typedef std::map <Mac48Address, OriginatorRxStatus *, std::less<Mac48Address> > Originators;
@@ -813,13 +913,13 @@ DEF(struct, MacRxMiddle)
   // ForwardUpCallback m_callback; CONVERT TO FUNCTION POINTER
 };
 
-DEF(struct, MacTxMiddle)
+struct MacTxMiddle_tag
 {
   Mac48Address *m_qosSequences; // this was a C++ map
   uint16_t m_sequence;
 };
 
-DEF(struct, MgtAssocRequestHeader)
+struct MgtAssocRequestHeader_tag
 {
   Ssid *m_ssid;
   SupportedRates *m_rates;
@@ -827,7 +927,7 @@ DEF(struct, MgtAssocRequestHeader)
   uint16_t m_listenInterval;
 };
 
-DEF(struct, MgtAssocResponseHeader)
+struct MgtAssocResponseHeader_tag
 {
   SupportedRates *m_rates;
   CapabilityInformation *m_capability;
@@ -835,13 +935,13 @@ DEF(struct, MgtAssocResponseHeader)
   uint16_t m_aid;
 };
 
-DEF(struct, MgtProbeRequestHeader)
+struct MgtProbeRequestHeader_tag
 {
   Ssid *m_ssid;
   SupportedRates *m_rates;
 };
 
-DEF(struct, MgtProbeResponseHeader)
+struct MgtProbeResponseHeader_tag
 {
   uint64_t m_timestamp;
   Ssid *m_ssid;
@@ -850,7 +950,7 @@ DEF(struct, MgtProbeResponseHeader)
   CapabilityInformation *m_capability;
 };
 
-DEF(struct, MgtBeaconHeader)
+struct MgtBeaconHeader_tag
 {
   // empty struct in NS-3
 };
@@ -861,7 +961,7 @@ DEF(struct, MgtBeaconHeader)
  * Header format: | category: 1 | action value: 1 |
  */
   /* Compatible with open80211s implementation */
-DEF(enum, CategoryValue) //table 7-24 staring from 4
+enum CategoryValue_tag
 {
   MESH_PEERING_MGT = 30,
   MESH_LINK_METRIC = 31,
@@ -872,30 +972,30 @@ DEF(enum, CategoryValue) //table 7-24 staring from 4
 };
 
   /* Compatible with open80211s implementation */
-DEF(enum, PeerLinkMgtActionValue)
+enum PeerLinkMgtActionValue_tag
 {
   PEER_LINK_OPEN = 0,
   PEER_LINK_CONFIRM = 1,
   PEER_LINK_CLOSE = 2
 };
 
-DEF(enum, LinkMetricActionValue)
+enum LinkMetricActionValue_tag
   {
     LINK_METRIC_REQUEST = 0,
     LINK_METRIC_REPORT
   };
   /* Compatible with open80211s implementation */
-DEF(enum, PathSelectionActionValue)
+enum PathSelectionActionValue_tag
   {
     PATH_SELECTION = 0
   };
 
-DEF(enum, InterworkActionValue)
+enum InterworkActionValue_tag
   {
     PORTAL_ANNOUNCEMENT = 0
   };
 
-DEF(enum, ResourceCoordinationActionValue)
+enum ResourceCoordinationActionValue_tag
   {
     CONGESTION_CONTROL_NOTIFICATION = 0,
     MDA_SETUP_REQUEST,
@@ -909,7 +1009,7 @@ DEF(enum, ResourceCoordinationActionValue)
     MESH_CHANNEL_SWITCH_ANNOUNCEMENT
   };
 
-DEF(union, ActionValue)
+union ActionValue_tag
 {
   PeerLinkMgtActionValue peerLink;
   LinkMetricActionValue linkMetrtic;
@@ -918,7 +1018,7 @@ DEF(union, ActionValue)
   ResourceCoordinationActionValue resourceCoordination;
 }; 
 
-DEF(struct, WifiActionHeader)
+struct WifiActionHeader_tag
 {
   uint8_t m_category;
   uint8_t m_actionValue;
@@ -936,7 +1036,7 @@ DEF(struct, WifiActionHeader)
 /**
  * A struct to contain all information related to a data rate 
  */
-DEF(struct, RateInfo)
+struct RateInfo_tag
 {
   /**
    * Perfect transmission time calculation, or frame calculation
@@ -974,13 +1074,13 @@ DEF(struct, RateInfo)
  */
 // typedef std::vector<std::vector<uint32_t> > SampleRate;
 
-DEF(struct, TxTime)
+struct TxTime_tag
 {
   tw_stime time;
   WifiMode *mode;
 };
 
-DEF(struct, MinstrelWifiManager)
+struct MinstrelWifiManager_tag
 {
   // typedef std::vector<std::pair<Time,WifiMode> > TxTime;
 
@@ -994,7 +1094,7 @@ DEF(struct, MinstrelWifiManager)
   
 };
 
-DEF(struct, MinstrelWifiRemoteStation)
+struct MinstrelWifiRemoteStation_tag
 {
   /**
    *
@@ -1056,13 +1156,13 @@ DEF(struct, MinstrelWifiRemoteStation)
 /**
  * \brief Abstract class that concrete msdu aggregators have to implement
  */
-//DEF(struct, MsduAggregator)
+struct MsduAggregator_tag
 //{
   // typedef std::list<std::pair<Ptr<Packet>, AmsduSubframeHeader> > DeaggregatedMsdus;
   // dummy struct
 //};
 
-DEF(struct, MsduStandardAggregator)
+struct MsduStandardAggregator_tag
 {
   uint32_t m_maxAmsduLength;
 };
@@ -1080,7 +1180,7 @@ DEF(struct, MsduStandardAggregator)
  *     other frames, including user data frames.
  */
 
-DEF(struct, NqapWifiMac)
+struct NqapWifiMac_tag
 {
   DcaTxop *m_dca;
   DcaTxop *m_beaconDca;
@@ -1107,7 +1207,7 @@ DEF(struct, NqapWifiMac)
  * sequence.
  */
 
-DEF(enum, MacState)
+enum MacState_tag
   {
     ASSOCIATED,
     WAIT_PROBE_RESP,
@@ -1116,7 +1216,7 @@ DEF(enum, MacState)
     REFUSED
   };
 
-DEF(struct, NqstaWifiMac)
+struct NqstaWifiMac_tag
 {
   MacState m_state;
   tw_stime m_probeRequestTimeout;
@@ -1153,14 +1253,14 @@ DEF(struct, NqstaWifiMac)
  * source code.
  */
 
-DEF(struct, OnoeWifiManager)
+struct OnoeWifiManager_tag
 {
   tw_stime m_updatePeriod;
   uint32_t m_addCreditThreshold;
   uint32_t m_raiseThreshold;
 };
 
-DEF(struct, OnoeWifiRemoteStation)
+struct OnoeWifiRemoteStation_tag
 {
   OnoeWifiManager *m_stations;
   tw_stime m_nextModeUpdate;
@@ -1180,7 +1280,7 @@ DEF(struct, OnoeWifiRemoteStation)
 /**
  * \brief the propagation delay is random
  */
-DEF(struct, RandomPropagationDelayModel)
+struct RandomPropagationDelayModel_tag
 {
   // RandomVariable m_variable; -- replace with ROSS rng
 };
@@ -1188,7 +1288,7 @@ DEF(struct, RandomPropagationDelayModel)
 /**
  * \brief the propagation speed is constant
  */
-DEF(struct, ConstantSpeedPropagationDelayModel)
+struct ConstantSpeedPropagationDelayModel_tag
 {
   double m_speed;
 };
@@ -1199,14 +1299,14 @@ DEF(struct, ConstantSpeedPropagationDelayModel)
  * Calculate the receive power (dbm) from a transmit power (dbm)
  * and a mobility model for the source and destination positions.
  */
-// DEF(struct, PropagationLossModel)
+struct PropagationLossModel_tag
 // We don't need this struct other than to understand the PLM
 // is the base class for all these others below.
 
 /**
  * \brief The propagation loss follows a random distribution.
  */ 
-DEF(struct, RandomPropagationLossModel)
+struct RandomPropagationLossModel_tag
 {
   // RandomVariable m_variable; replace with ROSS rng
   RandomPropagationLossModel *m_next;
@@ -1246,7 +1346,7 @@ DEF(struct, RandomPropagationLossModel)
  * for any distance smaller than MinDistance.
  */
 
-DEF(struct, FriisPropagationLossModel)
+struct FriisPropagationLossModel_tag
 {
   double PI;
   double m_lambda;
@@ -1273,7 +1373,7 @@ DEF(struct, FriisPropagationLossModel)
  *
  */
 
-DEF(struct, LogDistancePropagationLossModel)
+struct LogDistancePropagationLossModel_tag
 {
   double m_exponent;
   double m_referenceDistance;
@@ -1320,7 +1420,7 @@ L_0 + 10 \cdot n_0 \log_{10}(\frac{d_1}{d_0}) + 10 \cdot n_1 \log_{10}(\frac{d_2
  * ns3::FriisPropagationLossModel with 5.15 GHz and is thus \f$ L_0 \f$ = 46.67 dB.
  */
 
-DEF(struct, ThreeLogDistancePropagationLossModel)
+struct ThreeLogDistancePropagationLossModel_tag
 {
   double m_distance0;
   double m_distance1;
@@ -1353,7 +1453,7 @@ DEF(struct, ThreeLogDistancePropagationLossModel)
  * this model also implements Rayleigh distribution based fast fading.
  */
 
-DEF(struct, NakagamiPropagationLossModel)
+struct NakagamiPropagationLossModel_tag
 {
   double m_distance1;
   double m_distance2;
@@ -1369,18 +1469,18 @@ DEF(struct, NakagamiPropagationLossModel)
 /**
  * \brief The propagation loss is fixed. The user can set received power level.
  */ 
-DEF(struct, FixedRssLossModel)
+struct FixedRssLossModel_tag
 {
   double m_rss;
 };
 
-DEF(struct, QadhocWifiMacQueues)
+struct QadhocWifiMacQueues_tag
 {
   AccessClass *ac;
   EdcaTxopN *edcatxopn;
 };
 
-DEF(struct, QadhocWifiMac)
+struct QadhocWifiMac_tag
 {
   /**
   * When an A-MSDU is received, is deaggregated by this method and all extracted packets are
@@ -1406,13 +1506,13 @@ DEF(struct, QadhocWifiMac)
   tw_stime m_eifsNoDifs;
 };
 
-DEF(struct, QapWifiMacQueues)
+struct QapWifiMacQueues_tag
 {
   AccessClass *ac;
   EdcaTxopN *edcatxopn;
 };
 
-DEF(struct, QapWifiMac)
+struct QapWifiMac_tag
 {
   // typedef std::map<AccessClass, Ptr<EdcaTxopN> > Queues;
   // typedef std::list<std::pair<Ptr<Packet>, AmsduSubframeHeader> > DeaggregatedMsdus;
@@ -1459,12 +1559,12 @@ enum UserPriority {
    * designed to be completely mac/wifi specific without any attempt
    * at being generic. 
    */
-DEF(struct, QosTag)
+struct QosTag_tag
 {
   uint8_t m_tid;
 };
 
-DEF(enum, AccessClass) 
+enum AccessClass_tag
 {
   AC_VO = 0,
   AC_VI = 1,
@@ -1474,13 +1574,13 @@ DEF(enum, AccessClass)
   AC_UNDEF
 };
 
-DEF(struct, QstaWifiMacQueues)
+struct QstaWifiMacQueues_tag
 {
   AccessClass *ac;
   EdcaTxopN *edcatxopn;
 };
 
-DEF(struct, QstaWifiMac)
+struct QstaWifiMac_tag
 {
   // typedef std::map<AccessClass, Ptr<EdcaTxopN> > Queues;
   // typedef std::list<std::pair<Ptr<Packet>, AmsduSubframeHeader> > DeaggregatedMsdus;
@@ -1511,7 +1611,7 @@ DEF(struct, QstaWifiMac)
   uint32_t m_maxMissedBeacons;
 };
 
-DEF(struct, Thresholds) 
+struct Thresholds_tag
 {
   uint32_t datarate;
   double pori;
@@ -1528,7 +1628,7 @@ DEF(struct, Thresholds)
  * "Vaduvur Bharghavan" published in Mobicom 06.
  */
 
-DEF(struct, RraaWifiManager)
+struct RraaWifiManager_tag
 {
   bool m_basic;
   tw_stime m_timeout;
@@ -1556,7 +1656,7 @@ DEF(struct, RraaWifiManager)
   double m_pmtlfor9;
 };
 
-DEF(struct, RraaWifiRemoteStation)
+struct RraaWifiRemoteStation_tag
 {
   uint32_t m_counter;
   uint32_t m_failed;
@@ -1574,18 +1674,18 @@ DEF(struct, RraaWifiRemoteStation)
  * \brief a IEEE 802.11 SSID
  *
  */
-DEF(struct, Ssid)
+struct Ssid_tag
 {
   uint8_t m_ssid[33];
   uint8_t m_length;
 };
 
-DEF(struct, StatusCode)
+struct StatusCode_tag
 {
   uint16_t m_code;
 };
 
-DEF(struct, SupportedRates)
+struct SupportedRates_tag
 {
   uint8_t m_nRates;
   uint8_t m_rates[8];
@@ -1603,7 +1703,7 @@ DEF(struct, SupportedRates)
  * also typically defines a Receive method which is invoked by MyWifiPhy.
  */
 
-// DEF(struct, WifiChannel)
+struct WifiChannel_tag
 // Don't need since just a method container class 
 
 
@@ -1617,7 +1717,7 @@ DEF(struct, SupportedRates)
  */
 
 
-DEF(struct, WifiMac)
+struct WifiMac_tag
 {
   tw_stime m_maxPropagationDelay;
   uint32_t m_maxMsduSize;
@@ -1678,7 +1778,7 @@ DEF(struct, WifiMac)
   callback_wifimac m_macRxDropTrace;
 };
 
-DEF(enum, WifiMacType)
+enum WifiMacType_tag
 {
   WIFI_MAC_CTL_RTS = 0,
   WIFI_MAC_CTL_CTS,
@@ -1718,7 +1818,7 @@ DEF(enum, WifiMacType)
   WIFI_MAC_QOSDATA_NULL_CFACK_CFPOLL
 };
 
-DEF(enum, QosAckPolicy)
+enum QosAckPolicy_tag
  {
     NORMAL_ACK = 0,
     NO_ACK = 1,
@@ -1726,7 +1826,7 @@ DEF(enum, QosAckPolicy)
     BLOCK_ACK = 3
   };
   
-DEF(enum, AddressType)
+enum AddressType_tag
  {
     ADDR1,	
     ADDR2,
@@ -1734,7 +1834,7 @@ DEF(enum, AddressType)
     ADDR4
   };
 
-DEF(struct, WifiMacHeader)
+struct WifiMacHeader_tag
 {
   uint8_t m_ctrlType;
   uint8_t m_ctrlSubtype;
@@ -1776,7 +1876,7 @@ DEF(struct, WifiMacHeader)
  * Otherwise, it is returned to the caller.
  */
 
-DEF(struct, WifiMacQueueItem)
+struct WifiMacQueueItem_tag
  {
     Packet *packet;
     WifiMacHeader *hdr;
@@ -1784,7 +1884,7 @@ DEF(struct, WifiMacQueueItem)
     WifiMacQueueItem *next;
  };
 
-DEF(struct, WifiMacQueue)
+struct WifiMacQueue_tag
 {
   // struct Item;
   // typedef std::list<struct Item> PacketQueue;
@@ -1807,7 +1907,7 @@ DEF(struct, WifiMacQueue)
  * associated transmission mode. It is thus extremely cheap to
  * keep a WifiMode variable around.
  */
-DEF(enum, WifiModeModulationType) {
+enum WifiModeModulationType_tag
   BPSK,
   QPSK,
   DBPSK,
@@ -1817,7 +1917,7 @@ DEF(enum, WifiModeModulationType) {
 };
 
 
-DEF(struct, WifiMode)
+struct WifiMode_tag
 {
   //WifiMode (uint32_t uid);
   uint32_t m_uid;
@@ -1837,7 +1937,7 @@ DEF(struct, WifiMode)
  * This factory ensures that each WifiMode created has a unique name
  * and assigns to each of them a unique integer.
  */
-DEF(struct, WifiModeFactory) {
+struct WifiModeFactory_tag
   bool Search (std::string name, WifiMode *mode);
   uint32_t AllocateUid (std::string uniqueName);
   WifiModeFactoryWifiModeItem item;
@@ -1846,7 +1946,7 @@ DEF(struct, WifiModeFactory) {
   WifiModeItemList m_itemList;	
 }
 
-DEF(struct , WifiModeFactoryWifiModeItem) {
+struct WifiModeFactoryWifiModeItem_tag
   std::string uniqueUid;
   uint32_t bandwidth;
   uint32_t dataRate;
@@ -1863,7 +1963,7 @@ DEF(struct , WifiModeFactoryWifiModeItem) {
  * This class holds together ns3::WifiChannel, ns3::WifiPhy,
  * ns3::WifiMac, and, ns3::WifiRemoteStationManager.
  */
-DEF(struct, WifiNetDevice) 
+struct WifiNetDevice_tag
 {
   Node* m_node;
   WifiPhy* m_phy;
@@ -1882,7 +1982,7 @@ DEF(struct, WifiNetDevice)
   bool m_configComplete;
 };
 
-DEF(enum, WifiPhyState) {
+enum WifiPhyState_tag
     /**
      * The PHY layer is IDLE.
      */
@@ -1906,7 +2006,7 @@ DEF(enum, WifiPhyState) {
   };
 }
 
-//DEF(struct, WifiPhy)
+struct WifiPhy_tag
 //{
   /**
    * arg1: packet received successfully
@@ -1990,7 +2090,7 @@ DEF(enum, WifiPhyState) {
 
 //};
 
-DEF(enum, WifiPhyStandard) {
+enum WifiPhyStandard_tag
   WIFI_PHY_STANDARD_80211a,
   WIFI_PHY_STANDARD_80211b,
   WIFI_PHY_STANDARD_80211_10Mhz,
@@ -2001,7 +2101,7 @@ DEF(enum, WifiPhyStandard) {
   WIFI_PHY_UNKNOWN
 };
 
-DEF(struct, WifiPhyStateHelper)
+struct WifiPhyStateHelper_tag
 {
   bool m_rxing;
   tw_stime m_endTx;
@@ -2022,7 +2122,7 @@ DEF(struct, WifiPhyStateHelper)
   //WifiPhy_RxErrorCallback m_rxErrorCallback;
 };
 
-DEF(enum, WifiPreamble) {
+enum WifiPreamble_tag
   WIFI_PREAMBLE_LONG,
   WIFI_PREAMBLE_SHORT
 };
@@ -2032,7 +2132,7 @@ DEF(enum, WifiPreamble) {
  *
  * \sa ns3::WifiRemoteStation.
  */
-DEF(struct, WifiRemoteStationManager)
+struct WifiRemoteStationManager_tag
 {
   WifiRemoteStation* Stations;
   Stations m_stations;
@@ -2086,14 +2186,14 @@ DEF(struct, WifiRemoteStationManager)
  * network and to perform the selection of tx parameters
  * on a per-packet basis.
  */
-DEF(enum, WifiRemoteStationState) {
+enum WifiRemoteStationState_tag
   BRAND_NEW,
   DISASSOC,
   WAIT_ASSOC_TX_OK,
   GOT_ASSOC_TX_OK
 }
 
-DEF(struct, WifiRemoteStation) {
+struct WifiRemoteStation_tag
   WifiMode* SupportedModes;
   WifiRemoteStationState m_state;
   SupportedModes m_modes;
@@ -2140,7 +2240,7 @@ double IntegralFunction (double x, void *params);
  *    - More detailed description and validation can be found in 
  *      http://www.nsnam.org/~pei/80211b.pdf
  */
-DEF(struct, YansErrorRateModel)
+struct YansErrorRateModel_tag
 {
   static const double WLAN_SIR_PERFECT;
   static const double WLAN_SIR_IMPOSSIBLE;
@@ -2157,7 +2257,7 @@ DEF(struct, YansErrorRateModel)
  * By default, no propagation models are set so, it is the caller's responsability
  * to set them before using the channel.
  */
-DEF(struct, YansWifiChannel)
+struct YansWifiChannel_tag
 {
   YansWifiPhy* PhyList;
   PhyList m_phyList;
@@ -2179,7 +2279,7 @@ DEF(struct, YansWifiChannel)
  * and ns3::PropagationDelayModel classes, both of which are
  * members of the ns3::YansWifiChannel class.
  */
-DEF(struct, YansWifiPhy) {
+struct YansWifiPhy_tag
   double   m_edThresholdW;
   double   m_ccaMode1ThresholdW;
   double   m_txGainDb;

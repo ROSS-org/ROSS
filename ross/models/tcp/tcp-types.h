@@ -25,25 +25,36 @@ typedef int MethodName_t;
 #define TCP_TRANSFER_SIZE (g_mss + TCP_HEADER_SIZE)
 
 
-FWD(struct, Routing_Table);
-FWD(struct, Router_Link);
-FWD(struct, Host_Link);
-FWD(struct, Host_Info);
-FWD(struct, Router_State);
-FWD(struct, Host_State);
-FWD(struct, RC);
-FWD(struct, Msg_Data);
-FWD(struct, tcpStatistics);
-FWD(struct, rocket_fuel_link);
-FWD(struct,rocket_fuel_node);
+struct Routing_Table_tag;
+typedef struct Routing_Table_tag Routing_Table;
+struct Router_Link_tag;
+typedef struct Router_Link_tag Router_Link;
+struct Host_Link_tag;
+typedef struct Host_Link_tag Host_Link;
+struct Host_Info_tag;
+typedef struct Host_Info_tag Host_Info;
+struct Router_State_tag;
+typedef struct Router_State_tag Router_State;
+struct Host_State_tag;
+typedef struct Host_State_tag Host_State;
+struct RC_tag;
+typedef struct RC_tag RC;
+struct Msg_Data_tag;
+typedef struct Msg_Data_tag Msg_Data;
+struct tcpStatistics_tag;
+typedef struct tcpStatistics_tag tcpStatistics;
+struct rocket_fuel_link_tag;
+typedef struct rocket_fuel_link_tag rocket_fuel_link;
+struct rocket_fuel_node_tag;
+typedef struct rocket_fuel_node_tag rocket_fuel_node;
 
-DEF(struct, rocket_fuel_link)
+struct rocket_fuel_link_tag
 {
   int node_id;
   int bandwidth;
 };
 
-DEF(struct, rocket_fuel_node)
+struct rocket_fuel_node_tag
 {
   int used;
   int level; int is_bb; int num_in_level;
@@ -54,13 +65,13 @@ DEF(struct, rocket_fuel_node)
 };
 
 
-DEF(struct, Routing_Table)
+struct Routing_Table_tag
 {
   int     connected;
   int     link;
 };
 
-DEF(struct, Router_Link)
+struct Router_Link_tag
 {
   int    buffer_sz;
   int    connected;
@@ -69,7 +80,7 @@ DEF(struct, Router_Link)
   double link_speed;
 };
 
-DEF(struct, Host_Link)
+struct Host_Link_tag
 {
   int connected;
   int delay;
@@ -78,7 +89,7 @@ DEF(struct, Host_Link)
 };
 
 
-DEF(struct, Host_Info)
+struct Host_Info_tag
 {
   int type;           
   int connected;
@@ -91,7 +102,7 @@ DEF(struct, Host_Info)
 #endif
 };
 
-DEF(struct, Host_State)
+struct Host_State_tag
 {
   int   unack;
   int   seq_num;
@@ -125,14 +136,14 @@ DEF(struct, Host_State)
 };
 
 
-DEF(struct, Router_State)
+struct Router_State_tag
 {
   int dropped_packets;
 
   double *lastsent;
 };
 
-DEF(struct, RC)
+struct RC_tag
 {
   double             dup_count;
   double             cwnd;
@@ -147,7 +158,7 @@ DEF(struct, RC)
   double             smoothed_rtt; 
 };
 
-DEF(struct, Msg_Data)
+struct Msg_Data_tag
 {
   MethodName_t    MethodName;
   int             ack;
@@ -157,7 +168,7 @@ DEF(struct, Msg_Data)
   RC              RC;
 };
 
-DEF(struct, tcpStatistics)
+struct tcpStatistics_tag
 {
   int sent_packets;
   int timedout_packets;

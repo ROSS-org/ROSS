@@ -13,9 +13,12 @@
 
 #define WIFI_MAX_STATIONS_PER_ACCESS_POINT 8
 
-FWD(struct, wifi_access_point_state);
-FWD(struct, wifi_station_state);
-FWD(struct, wifi_message);
+struct wifi_access_point_state_tag;
+typedef struct wifi_access_point_state_tag wifi_access_point_state;
+struct wifi_station_state_tag;
+typedef struct wifi_station_state_tag wifi_station_state;
+struct wifi_message_tag;
+typedef struct wifi_message_tag wifi_message;
 
 enum wifi_message_type_e
 {
@@ -25,7 +28,7 @@ enum wifi_message_type_e
 
 typedef enum wifi_message_type_e wifi_message_type;
 
-DEF(struct, wifi_station_state)
+struct wifi_station_state_tag
 {
   unsigned int failed_packets;
   double station_snr;
@@ -34,13 +37,13 @@ DEF(struct, wifi_station_state)
   double access_point_success_rate;
 };
 
-DEF(struct, wifi_access_point_state)
+struct wifi_access_point_state_tag
 {
   unsigned int failed_packets;
   wifi_station_state stations[WIFI_MAX_STATIONS_PER_ACCESS_POINT];
 };
 
-DEF(struct, wifi_message)
+struct wifi_message_tag
 {
   wifi_message_type type;
   unsigned int station;

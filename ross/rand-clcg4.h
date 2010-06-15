@@ -51,9 +51,10 @@
 
 typedef long * tw_seed;
 
-FWD(enum, SeedType);
+enum SeedType_tag;
+typedef enum SeedType_tag SeedType;
 
-DEF(struct, tw_rng)
+struct tw_rng_tag
 {
 	/*
 	 * equals a[i]^{m[i]-2} mod m[i]
@@ -72,12 +73,12 @@ DEF(struct, tw_rng)
 	long	seed[4];
 };
 
-DEF(enum, SeedType)
+enum SeedType_tag
 {
 	InitialSeed, LastSeed, NewSeed
 };
 
-DEF(struct, tw_rng_stream)
+struct tw_rng_stream_tag
 {
 	long	 Ig[4];
 	long	 Lg[4];

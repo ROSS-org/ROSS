@@ -3,12 +3,16 @@
 
 #define	IP_LP_TYPE 5
 
-FWD(struct, ip_state);
-FWD(struct, ip_message);
-FWD(struct, ip_stats);
-FWD(struct, ip_link);
+struct ip_state_tag;
+typedef struct ip_state_tag ip_state;
+struct ip_message_tag;
+typedef struct ip_message_tag ip_message;
+struct ip_stats_tag;
+typedef struct ip_stats_tag ip_stats;
+struct ip_link_tag;
+typedef struct ip_link_tag ip_link;
 
-DEF(struct, ip_state)
+struct ip_state_tag
 {
 	ip_stats	*stats;
 
@@ -20,7 +24,7 @@ DEF(struct, ip_state)
 	unsigned long int capacity;
 };
 
-DEF(struct, ip_stats)
+struct ip_stats_tag
 {
 	/*
 	 * IP layer LP statistics
@@ -39,7 +43,7 @@ DEF(struct, ip_stats)
 	unsigned long int s_max_ttl;
 };
 
-DEF(struct, ip_message)
+struct ip_message_tag
 {
 	ip_link		*rc_link;
 	tw_stime         rc_lastsent;
