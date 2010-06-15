@@ -49,26 +49,42 @@
  *
  */
 
-FWD(struct, tw_statistics);
-FWD(struct, tw_pq);
-FWD(struct, tw_lptype);
-FWD(struct, tw_petype);
-FWD(struct, tw_bf);
-FWD(struct, tw_lp_state);
-FWD(struct, tw_eventq);
-FWD(struct, tw_event);
-FWD(struct, tw_lp);
-FWD(struct, tw_kp);
-FWD(struct, tw_pe);
-FWD(struct, tw_log);
+struct tw_statistics_t;
+typedef tw_statistics_t tw_statistics;
+struct tw_pq_t;
+typedef tw_pq_t tw_pq;
+struct tw_lptype_t;
+typedef tw_lptype_t tw_lptype;
+struct tw_petype_t;
+typedef tw_petype_t tw_petype;
+struct tw_bf_t;
+typedef tw_bf_t tw_bf;
+struct tw_lp_state_t;
+typedef tw_lp_state_t tw_lp_state;
+struct tw_eventq_t;
+typedef tw_eventq_t tw_eventq;
+struct tw_event_t;
+typedef tw_event_t tw_event;
+struct tw_lp_t;
+typedef tw_lp_t tw_lp;
+struct tw_kp_t;
+typedef tw_kp_t tw_kp;
+struct tw_pe_t;
+typedef tw_pe_t tw_pe;
+struct tw_log_t;
+typedef tw_log_t tw_log;
 
 #ifdef ROSS_MEMORY
-FWD(struct, tw_memoryq);
-FWD(struct, tw_memory);
+struct tw_memoryq_t;
+typedef tw_memoryq_t tw_memoryq;
+struct tw_memory_t;
+typedef tw_memory_t tw_memory;
 #endif
 
-FWD(enum, tw_event_owner);
-FWD(enum, tw_lp_map);
+enum tw_event_owner_t;
+typedef tw_event_owner_t tw_event_owner;
+enum tw_lp_map_t;
+typedef tw_lp_map_t tw_lp_map;
 
 /*
  * synchronization protocol used
@@ -83,7 +99,7 @@ enum tw_synch_e
 
 typedef enum tw_synch_e tw_synch;
 
-DEF(enum, tw_lp_map)
+enum tw_lp_map_t
 {
   LINEAR,
   ROUND_ROBIN,
@@ -111,7 +127,7 @@ typedef void (*pe_final_f) (tw_pe * pe);
  * gvt		-- PE per GVT routine.
  * final	-- PE finilization routine.
  */
-DEF(struct, tw_petype)
+struct tw_petype_t
 {
   pe_init_f pre_lp_init;
   pe_init_f post_lp_init;
@@ -143,7 +159,7 @@ typedef void (*statecp_f) (void *sv_dest, void *sv_src);
  *  statecp     -- LP SV copy routine.
  *  state_sz    -- Number of bytes that SV is for the LP.
  */
-DEF(struct, tw_lptype)
+struct tw_lptype_t
 {
   init_f init;
   event_f event;
@@ -153,7 +169,7 @@ DEF(struct, tw_lptype)
   size_t state_sz;
 };
 
-DEF(struct, tw_statistics)
+struct tw_statistics_t
 {
   double s_max_run_time;
 
@@ -191,7 +207,7 @@ DEF(struct, tw_statistics)
 };
 
 #ifdef ROSS_MEMORY
-DEF(struct, tw_memoryq)
+struct tw_memoryq_t
 {
   tw_memory	*head;
   tw_memory	*tail;
@@ -210,7 +226,7 @@ DEF(struct, tw_memoryq)
  * see fit.  ROSS provides API methods for handling memory buffers in the event of
  * a rollback and manages the memory in an efficient way, ie, like events.
  */
-DEF(struct, tw_memory)
+struct tw_memory_t
 {
   /*
    * next		-- Next pointer for all queues except the LP RC queue
@@ -235,7 +251,7 @@ DEF(struct, tw_memory)
 };
 #endif
 
-DEF(struct, tw_eventq)
+struct tw_eventq_t
 {
   size_t size;
   tw_event *head;
@@ -246,7 +262,7 @@ DEF(struct, tw_eventq)
  * Some applications find it handy to have this bitfield when doing
  * reverse computation.  So we follow GTW tradition and provide it.
  */
-DEF(struct, tw_bf)
+struct tw_bf_t
 {
   unsigned int    c0:1;
   unsigned int    c1:1;
@@ -291,13 +307,13 @@ DEF(struct, tw_bf)
  * tw_lp_state it does NOT hold any application data, so we
  * can overwrite it with our own safely.
  */
-DEF(struct, tw_lp_state)
+struct tw_lp_state_t
 {
   tw_lp_state    *next;
 };
 
 
-DEF(enum, tw_event_owner)
+enum tw_event_owner_t
 {
   TW_pe_event_q = 1,	/* In a tw_pe.event_q list */
     TW_pe_pq = 2,		/* In a tw_pe.pq */
@@ -316,7 +332,7 @@ DEF(enum, tw_event_owner)
  * Holds entire event structure, one is created for each and every
  * event in use.
  */
-DEF(struct, tw_event)
+struct tw_event_t
 {
   tw_event *next;
   tw_event *prev;
@@ -389,7 +405,7 @@ DEF(struct, tw_event)
  * the LPs it services, this list is made through the pe_next field
  * of the tw_lp structure.
  */
-DEF(struct, tw_lp)
+struct tw_lp_t
 {
   // local LP id
   tw_lpid id;
@@ -421,7 +437,7 @@ DEF(struct, tw_lp)
  * Holds our state for the Kernel Process (KP), which consists only of
  * processed event list for a collection of LPs.  
  */
-DEF(struct, tw_kp)
+struct tw_kp_t
 {
   /* id -- ID number, otherwise its not available to the app.
    * pe -- PE that services this KP.
@@ -469,7 +485,7 @@ DEF(struct, tw_kp)
  *
  * Holds the entire PE state.  
  */
-DEF(struct, tw_pe)
+struct tw_pe_t
 {
   tw_peid id;
   tw_node	node;
@@ -570,7 +586,7 @@ DEF(struct, tw_pe)
   tw_rng  *rng;
 };
 
-DEF(struct, tw_log)
+struct tw_log_t
 {
   struct
   {

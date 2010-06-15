@@ -48,7 +48,8 @@
 
 #include <ross.h>
 
-FWD(struct, tw_event_head);
+struct tw_event_head_t;
+typedef tw_event_head_t tw_event_head;
 
 /*
  * function calls 
@@ -62,13 +63,13 @@ static void     ReSize(tw_pq * p_ptr, int);
 
 static int MAX_EVENTS_PER_PE;
 
-DEF(struct, tw_event_head)
+struct tw_event_head_t
 {
 	tw_event       *tw_volatile next;
 	tw_event       *tw_volatile prev;
 };
 
-DEF(struct, tw_pq)
+struct tw_pq_t
 {
 	tw_event_head  *OrigBucket;
 	tw_event_head  *Bucket;

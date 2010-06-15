@@ -52,8 +52,10 @@
 #define tw_rand_unif(G)			rng_gen_val(G)
 #define tw_rand_reverse_unif(G)	rng_gen_reverse_val(G)
 
-FWD(struct, tw_rng);
-FWD(struct, tw_rng_stream);
+struct tw_rng_t;
+typedef tw_rng_t tw_rng;
+struct tw_rng_stream_t;
+typedef tw_rng_stream_t tw_rng_stream;
 
 /*
  * Public Function Prototypes

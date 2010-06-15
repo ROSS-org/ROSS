@@ -26,8 +26,9 @@ DEF(struct, toConnections)
 	unsigned char routerAreaID;
 };
 
-FWD(struct, ospf_graph);
-DEF(struct, ospf_graph)
+struct ospf_graph_t;
+typedef ospf_graph_t ospf_graph;
+struct ospf_graph_t
 {
 	unsigned int routerID;
 	unsigned nconnects;

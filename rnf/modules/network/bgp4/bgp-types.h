@@ -15,17 +15,26 @@
 #define BGP_UPDATE	23
 #define BGP_NOTIFY	21
 
-FWD(struct, bgp_direct_ospf);
-FWD(struct, bgp_route);
-FWD(struct, bgp_message);
-FWD(struct, bgp_nbr);
-FWD(struct, bgp_state);
-FWD(struct, bgp_stats);
-FWD(enum, bgp_message_type);
-FWD(enum, bgp_update_type);
-FWD(struct, bgp_as);
+struct bgp_direct_ospf_t;
+typedef bgp_direct_ospf_t bgp_direct_ospf;
+struct bgp_route_t;
+typedef bgp_route_t bgp_route;
+struct bgp_message_t;
+typedef bgp_message_t bgp_message;
+struct bgp_nbr_t;
+typedef bgp_nbr_t bgp_nbr;
+struct bgp_state_t;
+typedef bgp_state_t bgp_state;
+struct bgp_stats_t;
+typedef bgp_stats_t bgp_stats;
+enum bgp_message_type_t;
+typedef bgp_message_type_t bgp_message_type;
+enum bgp_update_type_t;
+typedef bgp_update_type_t bgp_update_type;
+struct bgp_as_t;
+typedef bgp_as_t bgp_as;
 
-DEF(struct, bgp_as)
+struct bgp_as_t
 {
 	unsigned int med;
 	unsigned int local_pref;
@@ -34,13 +43,13 @@ DEF(struct, bgp_as)
 	int *degree;
 };
 
-DEF(enum, bgp_update_type)
+enum bgp_update_type_t
 {
 	REMOVE = 0,
 	ADD = 1
 };
 
-DEF(struct, bgp_route)
+struct bgp_route_t
 {
 	unsigned int		 	 src;
 	unsigned short int		 dst;
@@ -56,7 +65,7 @@ DEF(struct, bgp_route)
 	unsigned short int		 bit;
 };
 
-DEF(enum, bgp_message_type)
+enum bgp_message_type_t
 {
 	CONNECT = 1,
 	OPEN,
@@ -67,7 +76,7 @@ DEF(enum, bgp_message_type)
 	MRAITIMER = 7
 };
 
-DEF(struct, bgp_nbr)
+struct bgp_nbr_t
 {
 	unsigned short	 id;
 
@@ -77,7 +86,7 @@ DEF(struct, bgp_nbr)
 	unsigned short	 hop_count;
 };
 
-DEF(struct, bgp_state)
+struct bgp_state_t
 {
 	rn_machine     *m;
 	rn_as          *as;
@@ -121,7 +130,7 @@ DEF(struct, bgp_state)
 	} b;
 };
 
-DEF(struct, bgp_message)
+struct bgp_message_t
 {
 	// If iBGP message, then we will not have
 	// correct BGP source from rn_message
@@ -173,7 +182,7 @@ DEF(struct, bgp_message)
 	//int             rev_num_neighbors;
 };
 
-DEF(struct, bgp_stats)
+struct bgp_stats_t
 {
 	unsigned int s_nupdates_sent;
 	unsigned int s_nupdates_recv;

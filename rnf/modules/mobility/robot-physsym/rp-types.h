@@ -6,13 +6,19 @@
 #define Q_SIZE		1000000
 #define PI		M_PI
 
-FWD(struct, rp_state);
-FWD(struct, rp_message);
-FWD(struct, rp_statistics);
+struct rp_state_t;
+typedef rp_state_t rp_state;
+struct rp_message_t;
+typedef rp_message_t rp_message;
+struct rp_statistics_t;
+typedef rp_statistics_t rp_statistics;
 
-FWD(struct, rp_connection);
-FWD(enum, rp_event_t);
-FWD(enum, rp_conn_t);
+struct rp_connection_t;
+typedef rp_connection_t rp_connection;
+enum rp_event_t_t;
+typedef rp_event_t_t rp_event_t;
+enum rp_conn_t_t;
+typedef rp_conn_t_t rp_conn_t;
 
 #define physReal double
 
@@ -107,12 +113,12 @@ int physSimQuery(struct _physQueryInput* inp,
 		 struct _robot* r);
 
 
-DEF(enum, rp_conn_t)
+enum rp_conn_t_t
 {
 	RW_DIRECT = 1
 };
 
-DEF(struct, rp_connection)
+struct rp_connection_t
 {
 	unsigned int	 id;
 	unsigned int	 nid;
@@ -128,14 +134,14 @@ DEF(struct, rp_connection)
 	rp_conn_t	 type;
 };
 
-DEF(enum, rp_event_t)
+enum rp_event_t_t
 {
 	RP_TIMESTEP = 1,
 	RP_MOVE,
 	RP_MULTIHOP_CALC
 };
 
-DEF(struct, rp_statistics)
+struct rp_statistics_t
 {
 	tw_stat s_move_ev;
 	tw_stat s_prox_ev;
@@ -146,7 +152,7 @@ DEF(struct, rp_statistics)
 	tw_stat s_ndisconnect;
 };
 
-DEF(struct, rp_state)
+struct rp_state_t
 {
 	double		*position;
 	double		*velocity;
@@ -169,7 +175,7 @@ DEF(struct, rp_state)
 	struct _robot      robot;
 };
 
-DEF(struct, rp_message)
+struct rp_message_t
 {
 	rp_event_t	 type;
 	tw_lpid		 from;

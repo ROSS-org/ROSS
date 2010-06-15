@@ -5,9 +5,10 @@
 
 extern unsigned int	 g_tw_hash_size;
 
-FWD(struct, tw_hash);
+struct tw_hash_t;
+typedef tw_hash_t tw_hash;
 
-DEF(struct, tw_hash)
+struct tw_hash_t
 {
 	tw_event     ***incoming;
 	int            *num_stored;

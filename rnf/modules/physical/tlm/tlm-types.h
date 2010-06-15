@@ -1,14 +1,20 @@
 #ifndef INC_tlm_types_h
 #define INC_tlm_types_h
 
-FWD(struct, tlm_state);
-FWD(struct, tlm_particle);
-FWD(struct, tlm_message);
-FWD(struct, tlm_statistics);
-FWD(struct, tlm_pe);
+struct tlm_state_t;
+typedef tlm_state_t tlm_state;
+struct tlm_particle_t;
+typedef tlm_particle_t tlm_particle;
+struct tlm_message_t;
+typedef tlm_message_t tlm_message;
+struct tlm_statistics_t;
+typedef tlm_statistics_t tlm_statistics;
+struct tlm_pe_t;
+typedef tlm_pe_t tlm_pe;
 
-FWD(enum, tlm_event_t);
-DEF(enum, tlm_event_t)
+enum tlm_event_t_t;
+typedef tlm_event_t_t tlm_event_t;
+enum tlm_event_t_t
 {
 	RM_PROXIMITY_LP = 100,
 	RM_PROXIMITY_ENV = 101,
@@ -20,7 +26,7 @@ DEF(enum, tlm_event_t)
 	RM_WAVE_INIT = 105
 };
 
-DEF(struct, tlm_statistics)
+struct tlm_statistics_t
 {
 	tw_stat	s_nparticles;
 	tw_stat	s_ncell_scatter;
@@ -29,13 +35,13 @@ DEF(struct, tlm_statistics)
 
 };
 
-DEF(struct, tlm_pe)
+struct tlm_pe_t
 {
 	FILE	*wave_log;
 	FILE	*move_log;
 };
 
-DEF(struct, tlm_particle)
+struct tlm_particle_t
 {
 	double	 range;
 	double	 freq;
@@ -46,7 +52,7 @@ DEF(struct, tlm_particle)
 	tw_lp	*user_lp;
 };
 
-DEF(struct, tlm_state)
+struct tlm_state_t
 {
 	/*
 	 * particles	-- queue of range particles
@@ -69,7 +75,7 @@ DEF(struct, tlm_state)
 	tlm_statistics	*stats;
 };
 
-DEF(struct, tlm_message)
+struct tlm_message_t
 {
 	tlm_event_t	 type;
 	tw_lpid		 id;
