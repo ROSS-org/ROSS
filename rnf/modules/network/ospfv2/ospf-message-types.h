@@ -1,7 +1,7 @@
 #ifndef INC_ospf_message_types_h
 #define INC_ospf_message_types_h
 
-enum ospf_message_type_tag
+enum ospf_message_type
 {
 	OSPF_IP = 1,
 	OSPF_HELLO_MSG,
@@ -27,7 +27,7 @@ enum ospf_message_type_tag
  * ROSS.Net does not yet provide me with a bitfield for reverse computation, so I must
  * provide my own!
  */
-struct ospf_message_tag
+struct ospf_message
 {
 	ospf_message_type	type;
 
@@ -35,7 +35,7 @@ struct ospf_message_tag
 	void	*data;
 };
 
-struct ospf_hello_tag
+struct ospf_hello
 {
 	//unsigned short netmask;
 	tw_stime poll_interval;
@@ -57,7 +57,7 @@ struct ospf_hello_tag
  *
  * IF THE SIZE OF A DD PKT GOES BEYOND SIZEOF LSA_LINK THEN PROBLEM!
  */
-struct ospf_dd_pkt_tag
+struct ospf_dd_pkt
 {
 	struct
 	{

@@ -5,10 +5,9 @@
 
 extern unsigned int	 g_tw_hash_size;
 
-struct tw_hash_tag;
-typedef struct tw_hash_tag tw_hash;
+typedef struct tw_hash tw_hash;
 
-struct tw_hash_tag
+struct tw_hash
 {
 	tw_event     ***incoming;
 	int            *num_stored;

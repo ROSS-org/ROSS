@@ -3,21 +3,14 @@
 
 #define NUM_LP_TYPE	 7
 
-struct num_state_tag;
-typedef struct num_state_tag num_state;
-struct num_message_tag;
-typedef struct num_message_tag num_message;
-struct num_statistics_tag;
-typedef struct num_statistics_tag num_statistics;
-struct num_profile_tag;
-typedef struct num_profile_tag num_profile;
+typedef struct num_state num_state;
+typedef struct num_message num_message;
+typedef struct num_statistics num_statistics;
+typedef struct num_profile num_profile;
 
-enum num_event_t_tag;
-typedef enum num_event_t_tag num_event_t;
-enum num_agent_t_tag;
-typedef enum num_agent_t_tag num_agent_t;
-enum num_level_t_tag;
-typedef enum num_level_t_tag num_level_t;
+typedef enum num_event_t num_event_t;
+typedef enum num_agent_t num_agent_t;
+typedef enum num_level_t num_level_t;
 
 // Defines for time in seconds
 // define quitting time for internet use at 10:00 AM
@@ -50,7 +43,7 @@ typedef enum num_level_t_tag num_level_t;
 
 #define NUM_LEVELS		4
 
-enum num_agent_t_tag
+enum num_agent_t
 {
 	NUM_HOME_USER = 0,
 	NUM_WORKER,
@@ -61,7 +54,7 @@ enum num_agent_t_tag
 
 // num_level_t enumerates connection speed.
 // Should replace with more meaningful names.
-enum num_level_t_tag
+enum num_level_t
 {
 	NUM_LEVEL_0 = 0,
 	NUM_LEVEL_1,
@@ -72,7 +65,7 @@ enum num_level_t_tag
 	/*
 	 * num_profile: Network user profiles
 	 */
-struct num_profile_tag
+struct num_profile
 {
 	unsigned int	bitrate;
 };
@@ -87,7 +80,7 @@ struct num_profile_tag
 	 * s_total_kb	total kilobytes received
 	 * s_failures	number of times file not received
 	 */
-struct num_statistics_tag
+struct num_statistics
 {
 	unsigned int		s_nfiles;
 	unsigned int		s_nstart;
@@ -103,7 +96,7 @@ struct num_statistics_tag
 	 *
 	 * stats	-- per LP statistics collection structure
 	 */
-struct num_state_tag
+struct num_state
 {
 	num_agent_t	 type;
 

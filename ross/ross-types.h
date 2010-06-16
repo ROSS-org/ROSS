@@ -49,42 +49,26 @@
  *
  */
 
-struct tw_statistics_tag;
-typedef struct tw_statistics_tag tw_statistics;
-struct tw_pq_tag;
-typedef struct tw_pq_tag tw_pq;
-struct tw_lptype_tag;
-typedef struct tw_lptype_tag tw_lptype;
-struct tw_petype_tag;
-typedef struct tw_petype_tag tw_petype;
-struct tw_bf_tag;
-typedef struct tw_bf_tag tw_bf;
-struct tw_lp_state_tag;
-typedef struct tw_lp_state_tag tw_lp_state;
-struct tw_eventq_tag;
-typedef struct tw_eventq_tag tw_eventq;
-struct tw_event_tag;
-typedef struct tw_event_tag tw_event;
-struct tw_lp_tag;
-typedef struct tw_lp_tag tw_lp;
-struct tw_kp_tag;
-typedef struct tw_kp_tag tw_kp;
-struct tw_pe_tag;
-typedef struct tw_pe_tag tw_pe;
-struct tw_log_tag;
-typedef struct tw_log_tag tw_log;
+typedef struct tw_statistics tw_statistics;
+typedef struct tw_pq tw_pq;
+typedef struct tw_lptype tw_lptype;
+typedef struct tw_petype tw_petype;
+typedef struct tw_bf tw_bf;
+typedef struct tw_lp_state tw_lp_state;
+typedef struct tw_eventq tw_eventq;
+typedef struct tw_event tw_event;
+typedef struct tw_lp tw_lp;
+typedef struct tw_kp tw_kp;
+typedef struct tw_pe tw_pe;
+typedef struct tw_log tw_log;
 
 #ifdef ROSS_MEMORY
-struct tw_memoryq_tag;
-typedef struct tw_memoryq_tag tw_memoryq;
-struct tw_memory_tag;
-typedef struct tw_memory_tag tw_memory;
+typedef struct tw_memoryq tw_memoryq;
+typedef struct tw_memory tw_memory;
 #endif
 
-enum tw_event_owner_tag;
-typedef enum tw_event_owner_tag tw_event_owner;
-enum tw_lp_map_tag;
-typedef enum tw_lp_map_tag tw_lp_map;
+typedef enum tw_event_owner tw_event_owner;
+typedef enum tw_lp_map tw_lp_map;
 
 /*
  * synchronization protocol used
@@ -99,7 +83,7 @@ enum tw_synch_e
 
 typedef enum tw_synch_e tw_synch;
 
-enum tw_lp_map_tag
+enum tw_lp_map
 {
   LINEAR,
   ROUND_ROBIN,
@@ -127,7 +111,7 @@ typedef void (*pe_final_f) (tw_pe * pe);
  * gvt		-- PE per GVT routine.
  * final	-- PE finilization routine.
  */
-struct tw_petype_tag
+struct tw_petype
 {
   pe_init_f pre_lp_init;
   pe_init_f post_lp_init;
@@ -159,7 +143,7 @@ typedef void (*statecp_f) (void *sv_dest, void *sv_src);
  *  statecp     -- LP SV copy routine.
  *  state_sz    -- Number of bytes that SV is for the LP.
  */
-struct tw_lptype_tag
+struct tw_lptype
 {
   init_f init;
   event_f event;
@@ -169,7 +153,7 @@ struct tw_lptype_tag
   size_t state_sz;
 };
 
-struct tw_statistics_tag
+struct tw_statistics
 {
   double s_max_run_time;
 
@@ -207,7 +191,7 @@ struct tw_statistics_tag
 };
 
 #ifdef ROSS_MEMORY
-struct tw_memoryq_tag
+struct tw_memoryq
 {
   tw_memory	*head;
   tw_memory	*tail;
@@ -226,7 +210,7 @@ struct tw_memoryq_tag
  * see fit.  ROSS provides API methods for handling memory buffers in the event of
  * a rollback and manages the memory in an efficient way, ie, like events.
  */
-struct tw_memory_tag
+struct tw_memory
 {
   /*
    * next		-- Next pointer for all queues except the LP RC queue
@@ -251,7 +235,7 @@ struct tw_memory_tag
 };
 #endif
 
-struct tw_eventq_tag
+struct tw_eventq
 {
   size_t size;
   tw_event *head;
@@ -262,7 +246,7 @@ struct tw_eventq_tag
  * Some applications find it handy to have this bitfield when doing
  * reverse computation.  So we follow GTW tradition and provide it.
  */
-struct tw_bf_tag
+struct tw_bf
 {
   unsigned int    c0:1;
   unsigned int    c1:1;
@@ -307,13 +291,13 @@ struct tw_bf_tag
  * tw_lp_state it does NOT hold any application data, so we
  * can overwrite it with our own safely.
  */
-struct tw_lp_state_tag
+struct tw_lp_state
 {
   tw_lp_state    *next;
 };
 
 
-enum tw_event_owner_tag
+enum tw_event_owner
 {
   TW_pe_event_q = 1,	/* In a tw_pe.event_q list */
     TW_pe_pq = 2,		/* In a tw_pe.pq */
@@ -332,7 +316,7 @@ enum tw_event_owner_tag
  * Holds entire event structure, one is created for each and every
  * event in use.
  */
-struct tw_event_tag
+struct tw_event
 {
   tw_event *next;
   tw_event *prev;
@@ -405,7 +389,7 @@ struct tw_event_tag
  * the LPs it services, this list is made through the pe_next field
  * of the tw_lp structure.
  */
-struct tw_lp_tag
+struct tw_lp
 {
   // local LP id
   tw_lpid id;
@@ -437,7 +421,7 @@ struct tw_lp_tag
  * Holds our state for the Kernel Process (KP), which consists only of
  * processed event list for a collection of LPs.  
  */
-struct tw_kp_tag
+struct tw_kp
 {
   /* id -- ID number, otherwise its not available to the app.
    * pe -- PE that services this KP.
@@ -485,7 +469,7 @@ struct tw_kp_tag
  *
  * Holds the entire PE state.  
  */
-struct tw_pe_tag
+struct tw_pe
 {
   tw_peid id;
   tw_node	node;
@@ -586,7 +570,7 @@ struct tw_pe_tag
   tw_rng  *rng;
 };
 
-struct tw_log_tag
+struct tw_log
 {
   struct
   {

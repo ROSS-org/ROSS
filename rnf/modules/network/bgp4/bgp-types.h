@@ -15,26 +15,17 @@
 #define BGP_UPDATE	23
 #define BGP_NOTIFY	21
 
-struct bgp_direct_ospf_tag;
-typedef struct bgp_direct_ospf_tag bgp_direct_ospf;
-struct bgp_route_tag;
-typedef struct bgp_route_tag bgp_route;
-struct bgp_message_tag;
-typedef struct bgp_message_tag bgp_message;
-struct bgp_nbr_tag;
-typedef struct bgp_nbr_tag bgp_nbr;
-struct bgp_state_tag;
-typedef struct bgp_state_tag bgp_state;
-struct bgp_stats_tag;
-typedef struct bgp_stats_tag bgp_stats;
-enum bgp_message_type_tag;
-typedef enum bgp_message_type_tag bgp_message_type;
-enum bgp_update_type_tag;
-typedef enum bgp_update_type_tag bgp_update_type;
-struct bgp_as_tag;
-typedef struct bgp_as_tag bgp_as;
+typedef struct bgp_direct_ospf bgp_direct_ospf;
+typedef struct bgp_route bgp_route;
+typedef struct bgp_message bgp_message;
+typedef struct bgp_nbr bgp_nbr;
+typedef struct bgp_state bgp_state;
+typedef struct bgp_stats bgp_stats;
+typedef enum bgp_message_type bgp_message_type;
+typedef enum bgp_update_type bgp_update_type;
+typedef struct bgp_as bgp_as;
 
-struct bgp_as_tag
+struct bgp_as
 {
 	unsigned int med;
 	unsigned int local_pref;
@@ -43,13 +34,13 @@ struct bgp_as_tag
 	int *degree;
 };
 
-enum bgp_update_type_tag
+enum bgp_update_type
 {
 	REMOVE = 0,
 	ADD = 1
 };
 
-struct bgp_route_tag
+struct bgp_route
 {
 	unsigned int		 	 src;
 	unsigned short int		 dst;
@@ -65,7 +56,7 @@ struct bgp_route_tag
 	unsigned short int		 bit;
 };
 
-enum bgp_message_type_tag
+enum bgp_message_type
 {
 	CONNECT = 1,
 	OPEN,
@@ -76,7 +67,7 @@ enum bgp_message_type_tag
 	MRAITIMER = 7
 };
 
-struct bgp_nbr_tag
+struct bgp_nbr
 {
 	unsigned short	 id;
 
@@ -86,7 +77,7 @@ struct bgp_nbr_tag
 	unsigned short	 hop_count;
 };
 
-struct bgp_state_tag
+struct bgp_state
 {
 	rn_machine     *m;
 	rn_as          *as;
@@ -130,7 +121,7 @@ struct bgp_state_tag
 	} b;
 };
 
-struct bgp_message_tag
+struct bgp_message
 {
 	// If iBGP message, then we will not have
 	// correct BGP source from rn_message
@@ -182,7 +173,7 @@ struct bgp_message_tag
 	//int             rev_num_neighbors;
 };
 
-struct bgp_stats_tag
+struct bgp_stats
 {
 	unsigned int s_nupdates_sent;
 	unsigned int s_nupdates_recv;

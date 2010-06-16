@@ -6,26 +6,20 @@
 #define Q_SIZE		1000000
 #define PI		M_PI
 
-struct rw_state_tag;
-typedef struct rw_state_tag rw_state;
-struct rw_message_tag;
-typedef struct rw_message_tag rw_message;
-struct rw_statistics_tag;
-typedef struct rw_statistics_tag rw_statistics;
+typedef struct rw_state rw_state;
+typedef struct rw_message rw_message;
+typedef struct rw_statistics rw_statistics;
 
-struct rw_connection_tag;
-typedef struct rw_connection_tag rw_connection;
-enum rw_event_t_tag;
-typedef enum rw_event_t_tag rw_event_t;
-enum rw_conn_t_tag;
-typedef enum rw_conn_t_tag rw_conn_t;
+typedef struct rw_connection rw_connection;
+typedef enum rw_event_t rw_event_t;
+typedef enum rw_conn_t rw_conn_t;
 
-enum rw_conn_t_tag
+enum rw_conn_t
 {
 	RW_DIRECT = 1
 };
 
-struct rw_connection_tag
+struct rw_connection
 {
 	unsigned int	 id;
 	unsigned int	 nid;
@@ -41,14 +35,14 @@ struct rw_connection_tag
 	rw_conn_t	 type;
 };
 
-enum rw_event_t_tag
+enum rw_event_t
 {
 	RW_TIMESTEP = 1,
 	RW_MOVE,
 	RW_MULTIHOP_CALC
 };
 
-struct rw_statistics_tag
+struct rw_statistics
 {
 	tw_stat s_move_ev;
 	tw_stat s_prox_ev;
@@ -59,7 +53,7 @@ struct rw_statistics_tag
 	tw_stat s_ndisconnect;
 };
 
-struct rw_state_tag
+struct rw_state
 {
 #if 0
 	tw_memory	**direct;
@@ -94,7 +88,7 @@ struct rw_state_tag
 #endif
 };
 
-struct rw_message_tag
+struct rw_message
 {
 	rw_event_t	 type;
 	tw_lpid		 from;

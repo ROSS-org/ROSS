@@ -51,13 +51,13 @@
 
 #include <pthread.h>
 
-struct tw_mutex_tag
+struct tw_mutex
 {
 	pthread_mutex_t	lock;
 };
 #define TW_MUTEX_INIT { PTHREAD_MUTEX_INITIALIZER }
 
-struct tw_barrier_tag
+struct tw_barrier
 {
 	pthread_mutex_t lock;
 	tw_peid n_clients;

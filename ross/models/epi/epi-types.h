@@ -5,48 +5,34 @@
 #define NINE_OCLOCK		32400
 #define TWENTY_FOUR_HOURS	86400
 
-struct epi_state_tag;
-typedef struct epi_state_tag epi_state;
-struct epi_statistics_tag;
-typedef struct epi_statistics_tag epi_statistics;
-struct epi_message_tag;
-typedef struct epi_message_tag epi_message;
-struct epi_disease_tag;
-typedef struct epi_disease_tag epi_disease;
-struct epi_ic_stage_tag;
-typedef struct epi_ic_stage_tag epi_ic_stage;
-struct epi_pathogen_tag;
-typedef struct epi_pathogen_tag epi_pathogen;
-struct epi_agent_tag;
-typedef struct epi_agent_tag epi_agent;
-struct epi_agent_info_tag;
-typedef struct epi_agent_info_tag epi_agent_info;
+typedef struct epi_state epi_state;
+typedef struct epi_statistics epi_statistics;
+typedef struct epi_message epi_message;
+typedef struct epi_disease epi_disease;
+typedef struct epi_ic_stage epi_ic_stage;
+typedef struct epi_pathogen epi_pathogen;
+typedef struct epi_agent epi_agent;
+typedef struct epi_agent_info epi_agent_info;
 
-enum epi_event_t_tag;
-typedef enum epi_event_t_tag epi_event_t;
-enum epi_grid_t_tag;
-typedef enum epi_grid_t_tag epi_grid_t;
-enum epi_stage_t_tag;
-typedef enum epi_stage_t_tag epi_stage_t;
-enum epi_agent_t_tag;
-typedef enum epi_agent_t_tag epi_agent_t;
-enum epi_agent_profile_t_tag;
-typedef enum epi_agent_profile_t_tag epi_agent_profile_t;
-enum epi_agent_behavior_t_tag;
-typedef enum epi_agent_behavior_t_tag epi_agent_behavior_t;
+typedef enum epi_event_t epi_event_t;
+typedef enum epi_grid_t epi_grid_t;
+typedef enum epi_stage_t epi_stage_t;
+typedef enum epi_agent_t epi_agent_t;
+typedef enum epi_agent_profile_t epi_agent_profile_t;
+typedef enum epi_agent_behavior_t epi_agent_behavior_t;
 
 	/*
 	 * epi_event_t: enumeration of the various types of events we handle
 	 * (purposely set EPI_REMOVE to zero, since this is a timer event)
 	 */
-enum epi_event_t_tag
+enum epi_event_t
 {
 	EPI_REMOVE,
 	EPI_ADD,
 	EPI_STAGE
 };
 
-struct epi_message_tag
+struct epi_message
 {
 	//epi_event_t	 type;
 };
@@ -54,7 +40,7 @@ struct epi_message_tag
 	/*
 	 * epi_grid_t: enumeration of grid (location) types
 	 */
-enum epi_grid_t_tag
+enum epi_grid_t
 {
 	EPI_GRID_HOME = 1,
 	EPI_GRID_OFFICE_1,
@@ -72,7 +58,7 @@ enum epi_grid_t_tag
 	 *  epi_agent_behavior_t: Flags for behavior states
 	 *
 	 */
-enum epi_agent_behavior_t_tag
+enum epi_agent_behavior_t
 {
 	EPI_AGENT_NORMAL = 0,
 	EPI_AGENT_WORRIED_WELL,
@@ -88,7 +74,7 @@ enum epi_agent_behavior_t_tag
 	 * s_ndraws	-- total draws from random uniform distribution
 	 * s_ninfected	-- number of agents who have become infected
 	 */
-struct epi_statistics_tag
+struct epi_statistics
 {
 	tw_stat		s_move_ev;
 	tw_stat		s_nchecked;
@@ -111,7 +97,7 @@ struct epi_statistics_tag
 	 *
 	 * hospital	-- the hospital this agent visits if sick
 	 */
-struct epi_state_tag
+struct epi_state
 {
 	//epi_grid_t	 grid_type;
 
@@ -129,7 +115,7 @@ struct epi_state_tag
 	/*
 	 * epi_disease: describes a disease and it's stages
 	 */
-struct epi_disease_tag
+struct epi_disease
 {
 	char		 name[255];
 	unsigned int	 nstages;
@@ -145,7 +131,7 @@ struct epi_disease_tag
 	 * ln_multiplier is used for the random draw from geometric
 	 * distribution.
 	 */
-struct epi_ic_stage_tag
+struct epi_ic_stage
 {
 	unsigned int	 index;
 	char		 name[255];
@@ -166,7 +152,7 @@ struct epi_ic_stage_tag
 	 * epi_stage_t:  enumeration of the stages of disease 
 	 * not used by code - stages are input
 	 */
-enum epi_stage_t_tag
+enum epi_stage_t
 {
 	EPI_SUSCEPTIBLE = 0,
 	EPI_EXPOSED,
@@ -178,7 +164,7 @@ enum epi_stage_t_tag
 	/*
 	 * epi_agent_t: enumeration of the various type of agents we represent
 	 */
-enum epi_agent_t_tag
+enum epi_agent_t
 {
 /*
 	EPI_AGT_ADULT_1 = 1,
@@ -201,13 +187,13 @@ enum epi_agent_t_tag
 	/*
 	 * epi_agent_profile_t: enumeration of network usage profile
 	 */
-enum epi_agent_profile_t_tag
+enum epi_agent_profile_t
 {
 	EPI_PROF_FINANCIAL_1 = 1,
 	EPI_PROF_FINANCIAL_2
 };
 
-struct epi_pathogen_tag
+struct epi_pathogen
 {
 	unsigned int	 index;
 	unsigned int	 stage;
@@ -240,7 +226,7 @@ struct epi_pathogen_tag
 	 *
 	 * region	-- "home" region for reporting statistics
 	 */
-struct epi_agent_tag
+struct epi_agent
 {
 	// now that agents are stored in memory buffers, we no longer need these ptrs
 	/* these 4 vars are need for PQ */

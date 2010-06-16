@@ -1,20 +1,14 @@
 #ifndef INC_rm_types_h
 #define INC_rm_types_h
 
-struct rm_state_tag;
-typedef struct rm_state_tag rm_state;
-struct rm_particle_tag;
-typedef struct rm_particle_tag rm_particle;
-struct rm_message_tag;
-typedef struct rm_message_tag rm_message;
-struct rm_statistics_tag;
-typedef struct rm_statistics_tag rm_statistics;
-struct rm_pe_tag;
-typedef struct rm_pe_tag rm_pe;
+typedef struct rm_state rm_state;
+typedef struct rm_particle rm_particle;
+typedef struct rm_message rm_message;
+typedef struct rm_statistics rm_statistics;
+typedef struct rm_pe rm_pe;
 
-enum rm_event_t_tag;
-typedef enum rm_event_t_tag rm_event_t;
-enum rm_event_t_tag
+typedef enum rm_event_t rm_event_t;
+enum rm_event_t
 {
 	RM_PROXIMITY_LP = 100,
 	RM_PROXIMITY_ENV = 101,
@@ -26,7 +20,7 @@ enum rm_event_t_tag
 	RM_WAVE_INIT = 105
 };
 
-struct rm_statistics_tag
+struct rm_statistics
 {
 	tw_stat	s_nparticles;
 	tw_stat	s_ncell_scatter;
@@ -35,13 +29,13 @@ struct rm_statistics_tag
 
 };
 
-struct rm_pe_tag
+struct rm_pe
 {
 	FILE	*wave_log;
 	FILE	*move_log;
 };
 
-struct rm_particle_tag
+struct rm_particle
 {
 	double	 range;
 	double	 freq;
@@ -52,7 +46,7 @@ struct rm_particle_tag
 	tw_lp	*user_lp;
 };
 
-struct rm_state_tag
+struct rm_state
 {
 	/*
 	 * particles	-- queue of range particles
@@ -75,7 +69,7 @@ struct rm_state_tag
 	rm_statistics	*stats;
 };
 
-struct rm_message_tag
+struct rm_message
 {
 	rm_event_t	 type;
 	tw_lpid		 id;

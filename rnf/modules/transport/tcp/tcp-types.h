@@ -9,18 +9,13 @@
 //#define TCP_HEADER_SIZE 36.0
 #define TCP_MTU (state->mss + TCP_HEADER_SIZE)
 
-struct tcp_state_tag;
-typedef struct tcp_state_tag tcp_state;
-struct RC_tag;
-typedef struct RC_tag RC;
-struct tcp_message_tag;
-typedef struct tcp_message_tag tcp_message;
-enum tcp_event_t_tag;
-typedef enum tcp_event_t_tag tcp_event_t;
-struct tcp_statistics_tag;
-typedef struct tcp_statistics_tag tcp_statistics;
+typedef struct tcp_state tcp_state;
+typedef struct RC RC;
+typedef struct tcp_message tcp_message;
+typedef enum tcp_event_t tcp_event_t;
+typedef struct tcp_statistics tcp_statistics;
 
-struct tcp_state_tag
+struct tcp_state
 {
 	//rn_machine	*host;
 
@@ -56,7 +51,7 @@ struct tcp_state_tag
 #endif
 };
 
-struct RC_tag
+struct RC
 {
 	tw_stime	dup_count;
 	tw_stime	cwnd;
@@ -77,14 +72,14 @@ struct RC_tag
 	int		sent;
 };
 
-enum tcp_event_t_tag
+enum tcp_event_t
 {
 	TCP_CLIENT = 1,
 	TCP_SERVER,
 	TCP_CONNECT
 };
 
-struct tcp_message_tag
+struct tcp_message
 {
 	//tcp_event_t	type;
 	int             ack;
@@ -94,7 +89,7 @@ struct tcp_message_tag
 	RC              RC;
 };
 
-struct tcp_statistics_tag
+struct tcp_statistics
 {
 	tw_stat		bad_msgs;
 	tw_stat		sent;

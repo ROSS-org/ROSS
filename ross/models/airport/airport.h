@@ -6,21 +6,18 @@
 #define MEAN_DEPARTURE 30.0
 #define MEAN_LAND 10.0
 
-enum airport_event_t_tag;
-typedef enum airport_event_t_tag airport_event_t;
-struct airport_state_tag;
-typedef struct airport_state_tag airport_state;
-struct airport_message_tag;
-typedef struct airport_message_tag airport_message;
+typedef enum airport_event_t airport_event_t;
+typedef struct airport_state airport_state;
+typedef struct airport_message airport_message;
 
-enum airport_event_t_tag
+enum airport_event_t
 {
 	ARRIVAL = 1, 
 	DEPARTURE,
 	LAND
 };
 
-struct airport_state_tag
+struct airport_state
 {
 	int		landings;
 	int		planes_in_the_sky;
@@ -30,7 +27,7 @@ struct airport_state_tag
 	tw_stime	furthest_flight_landing;
 };
 
-struct airport_message_tag
+struct airport_message
 {
 	airport_event_t	 type;
 

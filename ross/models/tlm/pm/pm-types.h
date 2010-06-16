@@ -6,26 +6,20 @@
 #define Q_SIZE		1000000
 #define PI		M_PI
 
-struct pm_state_tag;
-typedef struct pm_state_tag pm_state;
-struct pm_message_tag;
-typedef struct pm_message_tag pm_message;
-struct pm_statistics_tag;
-typedef struct pm_statistics_tag pm_statistics;
+typedef struct pm_state pm_state;
+typedef struct pm_message pm_message;
+typedef struct pm_statistics pm_statistics;
 
-struct pm_connection_tag;
-typedef struct pm_connection_tag pm_connection;
-enum pm_event_t_tag;
-typedef enum pm_event_t_tag pm_event_t;
-enum pm_conn_t_tag;
-typedef enum pm_conn_t_tag pm_conn_t;
+typedef struct pm_connection pm_connection;
+typedef enum pm_event_t pm_event_t;
+typedef enum pm_conn_t pm_conn_t;
 
-enum pm_conn_t_tag
+enum pm_conn_t
 {
 	PM_DIRECT = 1
 };
 
-struct pm_connection_tag
+struct pm_connection
 {
 	unsigned int	 id;
 	unsigned int	 nid;
@@ -41,14 +35,14 @@ struct pm_connection_tag
 	pm_conn_t	 type;
 };
 
-enum pm_event_t_tag
+enum pm_event_t
 {
 	PM_TIMESTEP = 1,
 	PM_MOVE,
 	PM_MULTIHOP_CALC
 };
 
-struct pm_statistics_tag
+struct pm_statistics
 {
 	tw_stat	s_move_ev;
 	tw_stat s_nwaves;
@@ -59,7 +53,7 @@ struct pm_statistics_tag
 	tw_stat s_ndisconnect;
 };
 
-struct pm_state_tag
+struct pm_state
 {
 #if 0
 	tw_memory	**direct;
@@ -96,7 +90,7 @@ struct pm_state_tag
 #endif
 };
 
-struct pm_message_tag
+struct pm_message
 {
 	pm_event_t	 type;
 	tw_lpid		 from;

@@ -7,17 +7,15 @@
 	 * PHOLD Types
 	 */
 
-struct tmr_state_tag;
-typedef struct tmr_state_tag tmr_state;
-struct tmr_message_tag;
-typedef struct tmr_message_tag tmr_message;
+typedef struct tmr_state tmr_state;
+typedef struct tmr_message tmr_message;
 
-struct tmr_state_tag
+struct tmr_state
 {
 	tw_event	*timer;
 };
 
-struct tmr_message_tag
+struct tmr_message
 {
 	tw_event	*old_timer;
 	tw_stime	 old_time;

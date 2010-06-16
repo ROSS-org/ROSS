@@ -3,16 +3,12 @@
 
 #define	IP_LP_TYPE 5
 
-struct ip_state_tag;
-typedef struct ip_state_tag ip_state;
-struct ip_message_tag;
-typedef struct ip_message_tag ip_message;
-struct ip_stats_tag;
-typedef struct ip_stats_tag ip_stats;
-struct ip_link_tag;
-typedef struct ip_link_tag ip_link;
+typedef struct ip_state ip_state;
+typedef struct ip_message ip_message;
+typedef struct ip_stats ip_stats;
+typedef struct ip_link ip_link;
 
-struct ip_state_tag
+struct ip_state
 {
 	ip_link		*links;
 	unsigned int	 nlinks;
@@ -20,7 +16,7 @@ struct ip_state_tag
 	ip_stats	*stats;
 };
 
-struct ip_link_tag
+struct ip_link
 {
 	tw_lpid		 addr;
 	float		 delay;
@@ -29,7 +25,7 @@ struct ip_link_tag
 	tw_stime	 last_sent;
 };
 
-struct ip_stats_tag
+struct ip_stats
 {
 	/*
 	 * IP layer LP statistics
@@ -48,7 +44,7 @@ struct ip_stats_tag
 	unsigned int s_max_ttl;
 };
 
-struct ip_message_tag
+struct ip_message
 {
 	tw_lpid		 src;
 	tw_lpid		 dst;

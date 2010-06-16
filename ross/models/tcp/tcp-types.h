@@ -25,36 +25,25 @@ typedef int MethodName_t;
 #define TCP_TRANSFER_SIZE (g_mss + TCP_HEADER_SIZE)
 
 
-struct Routing_Table_tag;
-typedef struct Routing_Table_tag Routing_Table;
-struct Router_Link_tag;
-typedef struct Router_Link_tag Router_Link;
-struct Host_Link_tag;
-typedef struct Host_Link_tag Host_Link;
-struct Host_Info_tag;
-typedef struct Host_Info_tag Host_Info;
-struct Router_State_tag;
-typedef struct Router_State_tag Router_State;
-struct Host_State_tag;
-typedef struct Host_State_tag Host_State;
-struct RC_tag;
-typedef struct RC_tag RC;
-struct Msg_Data_tag;
-typedef struct Msg_Data_tag Msg_Data;
-struct tcpStatistics_tag;
-typedef struct tcpStatistics_tag tcpStatistics;
-struct rocket_fuel_link_tag;
-typedef struct rocket_fuel_link_tag rocket_fuel_link;
-struct rocket_fuel_node_tag;
-typedef struct rocket_fuel_node_tag rocket_fuel_node;
+typedef struct Routing_Table Routing_Table;
+typedef struct Router_Link Router_Link;
+typedef struct Host_Link Host_Link;
+typedef struct Host_Info Host_Info;
+typedef struct Router_State Router_State;
+typedef struct Host_State Host_State;
+typedef struct RC RC;
+typedef struct Msg_Data Msg_Data;
+typedef struct tcpStatistics tcpStatistics;
+typedef struct rocket_fuel_link rocket_fuel_link;
+typedef struct rocket_fuel_node rocket_fuel_node;
 
-struct rocket_fuel_link_tag
+struct rocket_fuel_link
 {
   int node_id;
   int bandwidth;
 };
 
-struct rocket_fuel_node_tag
+struct rocket_fuel_node
 {
   int used;
   int level; int is_bb; int num_in_level;
@@ -65,13 +54,13 @@ struct rocket_fuel_node_tag
 };
 
 
-struct Routing_Table_tag
+struct Routing_Table
 {
   int     connected;
   int     link;
 };
 
-struct Router_Link_tag
+struct Router_Link
 {
   int    buffer_sz;
   int    connected;
@@ -80,7 +69,7 @@ struct Router_Link_tag
   double link_speed;
 };
 
-struct Host_Link_tag
+struct Host_Link
 {
   int connected;
   int delay;
@@ -89,7 +78,7 @@ struct Host_Link_tag
 };
 
 
-struct Host_Info_tag
+struct Host_Info
 {
   int type;           
   int connected;
@@ -102,7 +91,7 @@ struct Host_Info_tag
 #endif
 };
 
-struct Host_State_tag
+struct Host_State
 {
   int   unack;
   int   seq_num;
@@ -136,14 +125,14 @@ struct Host_State_tag
 };
 
 
-struct Router_State_tag
+struct Router_State
 {
   int dropped_packets;
 
   double *lastsent;
 };
 
-struct RC_tag
+struct RC
 {
   double             dup_count;
   double             cwnd;
@@ -158,7 +147,7 @@ struct RC_tag
   double             smoothed_rtt; 
 };
 
-struct Msg_Data_tag
+struct Msg_Data
 {
   MethodName_t    MethodName;
   int             ack;
@@ -168,7 +157,7 @@ struct Msg_Data_tag
   RC              RC;
 };
 
-struct tcpStatistics_tag
+struct tcpStatistics
 {
   int sent_packets;
   int timedout_packets;

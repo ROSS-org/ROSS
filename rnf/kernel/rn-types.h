@@ -1,45 +1,29 @@
 #ifndef INC_rn_types_h
 #define INC_rn_types_h
 
-struct rn_hash_tag;
-typedef struct rn_hash_tag rn_hash;
-struct rn_link_tag;
-typedef struct rn_link_tag rn_link;
-enum rn_link_status_tag;
-typedef enum rn_link_status_tag rn_link_status;
-struct rn_machine_tag;
-typedef struct rn_machine_tag rn_machine;
-struct rn_subnet_tag;
-typedef struct rn_subnet_tag rn_subnet;
-struct rn_area_tag;
-typedef struct rn_area_tag rn_area;
-struct rn_as_tag;
-typedef struct rn_as_tag rn_as;
-enum rn_machine_type_tag;
-typedef enum rn_machine_type_tag rn_machine_type;
-enum rn_message_type_tag;
-typedef enum rn_message_type_tag rn_message_type;
-struct rn_layer_tag;
-typedef struct rn_layer_tag rn_layer;
-struct rn_stream_tag;
-typedef struct rn_stream_tag rn_stream;
-struct rn_lp_state_tag;
-typedef struct rn_lp_state_tag rn_lp_state;
-struct rn_statistics_tag;
-typedef struct rn_statistics_tag rn_statistics;
-struct rn_lp_tag;
-typedef struct rn_lp_tag rn_lp;
-struct rn_message_tag;
-typedef struct rn_message_tag rn_message;
-struct rn_lptype_tag;
-typedef struct rn_lptype_tag rn_lptype;
+typedef struct rn_hash rn_hash;
+typedef struct rn_link rn_link;
+typedef enum rn_link_status rn_link_status;
+typedef struct rn_machine rn_machine;
+typedef struct rn_subnet rn_subnet;
+typedef struct rn_area rn_area;
+typedef struct rn_as rn_as;
+typedef enum rn_machine_type rn_machine_type;
+typedef enum rn_message_type rn_message_type;
+typedef struct rn_layer rn_layer;
+typedef struct rn_stream rn_stream;
+typedef struct rn_lp_state rn_lp_state;
+typedef struct rn_statistics rn_statistics;
+typedef struct rn_lp rn_lp;
+typedef struct rn_message rn_message;
+typedef struct rn_lptype rn_lptype;
 
 typedef void	(*rn_xml_init_f) (void *sv, xmlNodePtr node, tw_lp *me);
 typedef void	(*md_opt_f) ();
 typedef void	(*md_init_f) (int argc, char ** argv, char **env);
 typedef void	(*md_final_f) ();
 
-struct rn_lptype_tag
+struct rn_lptype
 {
 	init_f		init;
 	event_f		event;
@@ -59,7 +43,7 @@ struct rn_lptype_tag
 	md_final_f	md_final;
 };
 
-enum rn_machine_type_tag
+enum rn_machine_type
 {
 	c_host = 1,
 	c_router,
@@ -69,7 +53,7 @@ enum rn_machine_type_tag
 	c_ha_router
 };
 
-enum rn_message_type_tag
+enum rn_message_type
 {
 	DOWNSTREAM = -1,
 	TIMER,
@@ -82,7 +66,7 @@ enum rn_message_type_tag
 	LINK_STATUS_WEIGHT
 };
 
-enum rn_link_status_tag
+enum rn_link_status
 {
 	rn_link_up = 1,
 	rn_link_down,
@@ -97,7 +81,7 @@ enum rn_link_status_tag
 	 * 	   equivalent to passing the size of the buffer in a write call
 	 * data -- the message passed to a layer.. this is the actual message
 	 */
-struct rn_message_tag
+struct rn_message
 {
 	rn_message_type		 type;
 
@@ -113,18 +97,18 @@ struct rn_message_tag
 	rn_link			*link;
 };
 
-struct rn_statistics_tag
+struct rn_statistics
 {
 	tw_stat		 s_nevents_processed;
 	tw_stat		 s_nevents_rollback;
 };
 
-struct rn_layer_tag
+struct rn_layer
 {
 	tw_lp	lp;
 };
 
-struct rn_stream_tag
+struct rn_stream
 {
 	unsigned char		 nlayers;
 	unsigned short int	 port;
@@ -133,7 +117,7 @@ struct rn_stream_tag
 	rn_layer		*layers;
 };
 
-struct rn_lp_state_tag
+struct rn_lp_state
 {
 	unsigned int	 nstreams;
 
@@ -154,7 +138,7 @@ struct rn_lp_state_tag
 	tw_event	*cev;
 };
 
-struct rn_link_tag
+struct rn_link
 {
 #if DYNAMIC_LINKS
 	rn_link_status	status;
@@ -174,7 +158,7 @@ struct rn_link_tag
 	rn_machine	*wire;
 };
 
-struct rn_machine_tag
+struct rn_machine
 {
 	tw_lpid			 id;
 	tw_lpid			 conn;
@@ -198,7 +182,7 @@ struct rn_machine_tag
 	//rn_machine		*next;
 };
 
-struct rn_subnet_tag
+struct rn_subnet
 {
 	int			 id;
 
@@ -212,7 +196,7 @@ struct rn_subnet_tag
 	rn_subnet		*next;
 };
 
-struct rn_area_tag
+struct rn_area
 {
 	unsigned int		 id;
 
@@ -236,7 +220,7 @@ struct rn_area_tag
 	rn_area			*next;
 };
 
-struct rn_as_tag
+struct rn_as
 {
 	unsigned int		 id;
 	//unsigned int		 frequency;

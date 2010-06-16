@@ -7,16 +7,12 @@
 	 * Model Types
 	 */
 
-struct mem_state_tag;
-typedef struct mem_state_tag mem_state;
-struct mem_message_tag;
-typedef struct mem_message_tag mem_message;
-struct mem_statistics_tag;
-typedef struct mem_statistics_tag mem_statistics;
-struct mem_packet_tag;
-typedef struct mem_packet_tag mem_packet;
+typedef struct mem_state mem_state;
+typedef struct mem_message mem_message;
+typedef struct mem_statistics mem_statistics;
+typedef struct mem_packet mem_packet;
 
-struct mem_statistics_tag
+struct mem_statistics
 {
 	tw_stat s_rb;
 	tw_stat s_sent;
@@ -32,18 +28,18 @@ struct mem_statistics_tag
 	tw_stat s_mem_get_rc;
 };
 
-struct mem_state_tag
+struct mem_state
 {
 	mem_statistics	 stats;
 	long int	 dummy_state;
 };
 
-struct mem_message_tag
+struct mem_message
 {
 	long int	 dummy_data;
 };
 
-struct mem_packet_tag
+struct mem_packet
 {
 	char bytes[64];
 };
