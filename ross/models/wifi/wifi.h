@@ -3,6 +3,8 @@
 
 #include <ross.h>
 
+#include "friis-prop-loss.h"
+
 #ifdef ENABLE_GSL
 	#include "gsl-prob-wifi.h"
 #elif defined(ENABLE_ESSL)
