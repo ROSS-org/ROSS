@@ -2,16 +2,18 @@
 #include <NetDMFDOM.h>
 
 /** 
- * @file rn-netdmf.c  This file contains all NetDMF support.  We'll try and
- * keep this file as similar as possible to the XML support.
+ * @file rn-netdmf-wrapper.cpp  This file provides wrappers for functions
+ * to enable C linkage.  It provides little else.
  */
 
 /**
- * @fn rn_netdmf_init  This function handles initialization of the NetDMF
- * description language.
+ * @fn rnNetDMFInit  This function handles initialization of the NetDMF
+ * description language.  The function currently doesn't do much except
+ * demonstrate proper linkage.
  */
+extern "C"
 void
-rn_netdmf_init()
+rnNetDMFInit()
 {
   
   XdmfDOM    *DOM = new XdmfDOM();
@@ -33,10 +35,11 @@ rn_netdmf_init()
 }
 
 /**
- * @fn rn_netdmf_topology  This function creates and setups the
- * g_rn_machines global data structure of nodes.
+ * @fn rnNetDMFTopology  This function creates and setups the
+ * g_rn_machines global data structure of nodes.  Non-functional atm.
  */
+extern "C"
 void
-rn_netdmf_topology()
+rnNetDMFTopology()
 {
 }
