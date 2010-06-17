@@ -1,5 +1,11 @@
 /**
- * \brief a Friis propagation loss model
+ * @file friis-prop-loss.h This contains the Friis Propagation loss model.
+ * 
+ */
+
+/**
+ * @fn CalcRxPower 
+ * \brief A Friis propagation loss model
  *
  * The Friis propagation loss model was first described in
  * "A Note on a Simple Transmission Formula", by 
@@ -17,6 +23,9 @@
  * Modern extensions to this original equation are:
  * \f$ P_r = \frac{P_t G_t G_r \lambda^2}{(4 \pi d)^2 L}\f$
  *
+ * Here, we ignore tx and rx gain and the input and output values are in dB or dBm:
+ * \f$ RX_{dB} = TX_{dB} + 10\mathrm{log_{10}} \frac{\lambda^2}{(4 \pi d)^2 L}\f$
+ *
  * With:
  *  - \f$ P_r \f$ : reception power (W)
  *  - \f$ P_t \f$ : transmission power (W)
@@ -32,47 +41,8 @@
  * for any distance smaller than MinDistance.
  */
 
-
-
-double DbmFromW (double w) 
-{
-  double dbm = log10 (w * 1000.0) * 10.0;
-  return dbm;
-}
-
 double CalcRxPower (double txPowerDbm, double distance, double minDistance, double lambda, double systemLoss)
 {
-  /*
-   * Friis free space equation:
-   * where Pt, Gr, Gr and P are in Watt units
-   * L is in meter units.
-   *
-   *    P     Gt * Gr * (lambda^2)
-   *   --- = ---------------------
-   *    Pt     (4 * pi * d)^2 * L
-   *
-   * Gt: tx gain (unit-less)
-   * Gr: rx gain (unit-less)
-   * Pt: tx power (W)
-   * d: distance (m)
-   * L: system loss
-   * lambda: wavelength (m)
-   *
-   * Here, we ignore tx and rx gain and the input and output values 
-   * are in dB or dBm:
-   *
-   *                           lambda^2
-   * rx = tx +  10 log10 (-------------------)
-   *                       (4 * pi * d)^2 * L
-   *
-   * rx: rx power (dB)
-   * tx: tx power (dB)
-   * d: distance (m)
-   * L: system loss (unit-less)
-   * lambda: wavelength (m)
-   */
-
- 
   double numerator, denominator, pr, pi;
   
   pi = 3.1415926535;
@@ -86,4 +56,11 @@ double CalcRxPower (double txPowerDbm, double distance, double minDistance, doub
   printf("distance= %f m, attenuation coefficient= %f dB", distance, pr);
 
   return txPowerDbm + pr;
+}
+
+
+double DbmFromW (double w) 
+{
+  double dbm = log10 (w * 1000.0) * 10.0;
+  return dbm;
 }
