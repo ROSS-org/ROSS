@@ -4,14 +4,7 @@
 #include <ross.h>
 
 #include "prop-loss.h"
-
-#ifdef ENABLE_GSL
-	#include "gsl-prob-wifi.h"
-#elif defined(ENABLE_ESSL)
-	#include "essl-prop-wifi.h"
-#else
-	#include "none-prob-wifi.h"
-#endif
+#include "coding-error.h"
 
 #define WIFI_MAX_STATIONS_PER_ACCESS_POINT 8
 
