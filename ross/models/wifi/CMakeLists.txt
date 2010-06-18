@@ -4,6 +4,8 @@ SET(wifi_srcs
 	essl-prob-wifi.h  
 	gsl-prob-wifi.h  
 	none-prob-wifi.h  
+	prop-loss.h
+	prop-loss.c
 	wifi.c  
 	wifi.h
 )
