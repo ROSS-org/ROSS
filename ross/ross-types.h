@@ -135,22 +135,22 @@ typedef void (*final_f) (void *sv, tw_lp * me);
 typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
 /*
- *  init        -- LP setup routine.
- *  map		-- LP mapping of LP gid -> remote PE routine.
- *  event       -- LP event handler routine.
- *  revent      -- LP RC event handler routine.
- *  final       -- LP final handler routine.
  *  statecp     -- LP SV copy routine.
- *  state_sz    -- Number of bytes that SV is for the LP.
  */
+
+/**
+ * tw_lptype
+ * @brief Function Pointers for ROSS Event Handlers 
+ *
+ **/
 struct tw_lptype
 {
-  init_f init;
-  event_f event;
-  revent_f revent;
-  final_f final;
-  map_f map;
-  size_t state_sz;
+  init_f init; /**< @brief LP setup routine */
+  event_f event; /**< @brief LP event handler routine */
+  revent_f revent;  /**< @brief LP Reverse event handler routine */
+  final_f final; /**< @brief Final handler routine */
+  map_f map; /**< @brief LP Mapping of LP gid -> remote PE routine */
+  size_t state_sz; /**< @brief Number of bytes that SV is for the LP */
 };
 
 struct tw_statistics
@@ -196,42 +196,32 @@ struct tw_memoryq
   tw_memory	*head;
   tw_memory	*tail;
 
-  size_t		 size;
-  size_t		 start_size;
-  size_t		 d_size;
+  size_t         size;
+  size_t	 start_size;
+  size_t	 d_size;
 
   tw_stime	 grow;
 };
 
-/*
+/**
  * tw_memory
- * 
+ * @brief Memory Buffer
+ *
  * This is a memory buffer which applications can use in any way they
  * see fit.  ROSS provides API methods for handling memory buffers in the event of
  * a rollback and manages the memory in an efficient way, ie, like events.
  */
 struct tw_memory
 {
-  /*
-   * next		-- Next pointer for all queues except the LP RC queue
-   * prev		-- Prev pointer for all queues except the LP RC queue
-   *
-   * up		-- Up pointer for storing membufs in splay tree
-   * heap_index	-- index for storing membufs in heap queue
-   *
-   * ts		-- time at which this event can be fossil collected
-   * fd		-- source memory queue index
-   * nrefs	-- number of references to this membuf (for forwarding)
-   */
-  tw_memory	*next;
-  tw_memory	*prev;
+  tw_memory	*next; /**< \brief Next pointer for all queues except the LP RC queue */
+  tw_memory	*prev; /**< \brief Prev pointer for all queues except the LP RC queue */
 
   //tw_memory	*volatile up;
   //int		 heap_index;
 
-  tw_stime         ts;
-  tw_fd		 fd;
-  unsigned int	 nrefs;
+  tw_stime       ts; /**< \brief Time at which this event can be fossil collected */
+  tw_fd		 fd; /**< \brief Source memory queue index */
+  unsigned int	 nrefs; /**< \brief Number of references to this membuf (for forwarding) */
 };
 #endif
 
@@ -242,7 +232,10 @@ struct tw_eventq
   tw_event *tail;
 };
 
-/*
+/**
+ * tw_bf
+ * @brief Reverse Computation Bitfield
+ *
  * Some applications find it handy to have this bitfield when doing
  * reverse computation.  So we follow GTW tradition and provide it.
  */
@@ -282,8 +275,9 @@ struct tw_bf
   unsigned int    c31:1;
 };
 
-/*
- * tw_lp_state:
+/**
+ * tw_lp_state
+ * @brief List of LP state vectors
  *
  * Used to make a list of LP state vectors.  The entire state
  * is usually going to always be larger than this object, but
@@ -299,19 +293,20 @@ struct tw_lp_state
 
 enum tw_event_owner
 {
-  TW_pe_event_q = 1,	/* In a tw_pe.event_q list */
-    TW_pe_pq = 2,		/* In a tw_pe.pq */
-    TW_kp_pevent_q = 3,     /* In a tw_kp.pevent_q */
-    TW_pe_anti_msg = 4,     /* Anti-message */
-    TW_net_outq = 5,        /* Pending network transmission */
-    TW_net_asend = 6,       /* Network transmission in progress */
-    TW_net_acancel = 7,     /* Network transmission in progress */
-    TW_pe_sevent_q = 8,     /* In tw_pe.sevent_q */
-    TW_pe_free_q = 9        /* In tw_pe.free_q */
+  TW_pe_event_q = 1,	    /**< @brief In a tw_pe.event_q list */
+    TW_pe_pq = 2,	    /**< @brief In a tw_pe.pq */
+    TW_kp_pevent_q = 3,     /**< @brief In a tw_kp.pevent_q */
+    TW_pe_anti_msg = 4,     /**< @brief Anti-message */
+    TW_net_outq = 5,        /**< @brief Pending network transmission */
+    TW_net_asend = 6,       /**< @brief Network transmission in progress */
+    TW_net_acancel = 7,     /**< @brief Network transmission in progress */
+    TW_pe_sevent_q = 8,     /**< @brief In tw_pe.sevent_q */
+    TW_pe_free_q = 9        /**< @brief In tw_pe.free_q */
     };
 
-/*
+/**
  * tw_event:
+ * @brief Event Stucture
  *
  * Holds entire event structure, one is created for each and every
  * event in use.
@@ -321,19 +316,15 @@ struct tw_event
   tw_event *next;
   tw_event *prev;
 #ifdef ROSS_QUEUE_splay
-  tw_event *up;
+  tw_event *up; /**< @brief Up pointer for storing membufs in splay tree */
 #endif
 #ifdef ROSS_QUEUE_heap
-  unsigned long heap_index;
+  unsigned long heap_index; /**< @brief Index for storing membufs in heap queue */
 #endif
 
-  /* cancel_next  -- Next event in the cancel queue for the dest_pe.
-   * caused_by_me -- Start of event list caused by this event.
-   * cause_next   -- Next in parent's caused_by_me chain.
-   */
-  tw_event *cancel_next;
-  tw_event *caused_by_me;
-  tw_event *cause_next;
+  tw_event *cancel_next; /**< @brief Next event in the cancel queue for the dest_pe */
+  tw_event *caused_by_me; /**< @brief Start of event list caused by this event */
+  tw_event *cause_next; /**< @brief Next in parent's caused_by_me chain */
 
   tw_eventid	 event_id;
 
@@ -355,20 +346,15 @@ struct tw_event
 	      )
   } state;
 
-  /* cv -- Used by app during reverse computation.
-   * lp_state -- dest_lp->state BEFORE this event.
-   */
-  tw_bf		 cv;
-  //void		*lp_state;
+  tw_bf		 cv; /**< @brief Used by app during reverse computation. */
+  //void		*lp_state lp_state -- dest_lp->state BEFORE this event;
 
-  /* dest_lp -- Destination LP object.
-   * src_lp -- Sending LP.
-   * recv_ts -- Actual time to be received.
-   * event_id -- Unique id assigned by src_lp->pe if remote.
+  /* 
+   * event_id -- Unique id assigned by src_lp->pe if remote. ??
    */
-  tw_lp		*dest_lp;
-  tw_lp		*src_lp;
-  tw_stime	 recv_ts;
+  tw_lp		*dest_lp; /**< @brief dest_lp -- Destination LP object */
+  tw_lp		*src_lp; /**< @brief Sending LP */
+  tw_stime	 recv_ts; /**< @brief Actual time to be received */
 
   tw_peid		 send_pe;
 
