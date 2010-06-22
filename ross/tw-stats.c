@@ -16,6 +16,13 @@ show_2f(const char *name, double v)
 }
 
 static void
+show_1f(const char *name, double v)
+{
+	printf("\t%-50s %11.1f\n", name, v);
+	fprintf(g_tw_csv, "%.2f,", v);
+}
+
+static void
 show_4f(const char *name, double v)
 {
 	printf("\t%-50s %11.4lf\n", name, v);
@@ -133,7 +140,7 @@ tw_stats(tw_pe * me)
 
 	printf("\n");
 	show_lld("Net Events Processed", s.s_net_events);
-	show_2f(
+	show_1f(
 		"Event Rate (events/sec)",
 		((double)s.s_net_events / s.s_max_run_time)
 	);
