@@ -90,22 +90,24 @@ enum tw_lp_map
   CUSTOM
 };
 
-/* 
- * tw_kpid -- Kernel Process (KP) id
- * tw_fd   -- used to distinguish between memory and event arrays
- */
+
+/** tw_kpid -- Kernel Process (KP) id*/
 typedef tw_peid tw_kpid;
+
+/** tw_fd   -- used to distinguish between memory and event arrays*/
 typedef unsigned long tw_fd;
+
 typedef unsigned long long tw_stat;
 
-/*
- * User model implements virtual functions for per PE operations.  Currently,
- * ROSS provides hooks for PE init, finalization and per GVT operations.
- */
 typedef void (*pe_init_f) (tw_pe * pe);
 typedef void (*pe_gvt_f) (tw_pe * pe);
 typedef void (*pe_final_f) (tw_pe * pe);
 
+/** tw_petype @brief Virtual Functions for per PE ops
+ *
+ * User model implements virtual functions for per PE operations.  Currently,
+ * ROSS provides hooks for PE init, finalization and per GVT operations.
+ */
 struct tw_petype
 {
   pe_init_f pre_lp_init; /**< @brief PE initialization routine, before LP init */
@@ -326,11 +328,10 @@ struct tw_event
   /** Status of the event's queue location(s). */
   struct
   {
-    unsigned char owner; /**< @breif Owner of the next/prev pointers; see tw_event_owner */
-    unsigned char cancel_q;  /**< @breif Actively on a dest_lp->pe's cancel_q */
+    unsigned char owner; /**< @brief Owner of the next/prev pointers; see tw_event_owner */
+    unsigned char cancel_q;  /**< @brief Actively on a dest_lp->pe's cancel_q */
     unsigned char cancel_asend;
     unsigned char remote; /**< @breif Indicates union addr is in 'remote' storage */
-    unsigned char __pad;  
   } state;
 
   tw_bf		 cv; /**< @brief Used by app during reverse computation. */
@@ -393,12 +394,6 @@ struct tw_kp
   tw_stime last_time; //**< @brief Time of the current event being processed */
   tw_stat s_nevent_processed; //**< @brief Number of events processed */
 
-#if 0
-  tw_stat s_e_rbs; //**< @brief Number of events rolled back by this LP */
-  tw_stat s_rb_total; //**< @brief Number of total rollbacks by this LP */
-  tw_stat s_rb_secondary; //**< @brief Number of secondary rollbacks by this LP */
-#endif
-
   long s_e_rbs; //**< @brief Number of events rolled back by this LP */
   long s_rb_total; //**< @brief Number of total rollbacks by this LP */
   long s_rb_secondary; //**< @brief Number of secondary rollbacks by this LP */
@@ -420,13 +415,6 @@ struct tw_pe
   tw_node    node;
   tw_petype  type; /**< @brief Model defined PE type routines */
 
-  /* 
-   * What the hell are these?
-   * event_q_lck -- processor specific lock for this PE's event_q.
-   * cancel_q_lck -- processor specific lock for this PE's cancel_q.
-   * rollback_q -- List of KPs actively rolling back.
-   */
-
   tw_eventq event_q; /**< @brief Linked list of events sent to this PE */
   tw_event *cancel_q; /**< @brief List of canceled events */
   tw_pq *pq; /**< @brief Priority queue used to sort events */
@@ -445,7 +433,6 @@ struct tw_pe
   tw_clock clock_offset; /**< @brief Initial clock value for this PE */
   tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
-  unsigned char __pad; /**< @brief */
   unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
   unsigned char master; /**< @brief Master across all compute nodes */
   unsigned char local_master; /**< @brief Master for this node */
