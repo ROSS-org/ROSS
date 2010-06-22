@@ -5,7 +5,7 @@
 
 #include <ross.h>
 
-INLINE(void)
+static inline void 
 tw_eventq_debug(tw_eventq * q)
 {
 #if ROSS_DEBUG
@@ -37,7 +37,7 @@ tw_eventq_debug(tw_eventq * q)
 #endif
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
   tw_event	*e;
@@ -85,7 +85,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
   tw_eventq_debug(q);
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 {
   tw_stime gvt = pe->GVT;
@@ -134,7 +134,7 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
   }
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
 {
   tw_event *event;
@@ -186,7 +186,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   q->tail = event;
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_push(tw_eventq *q, tw_event *e)
 {
   tw_event *t = q->tail;
@@ -206,13 +206,13 @@ tw_eventq_push(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_eventq_peek(tw_eventq *q)
 {
   return q->tail;
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_eventq_pop(tw_eventq * q)
 {
   tw_event *t = q->tail;
@@ -240,7 +240,7 @@ tw_eventq_pop(tw_eventq * q)
   return t;
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_unshift(tw_eventq *q, tw_event *e)
 {
   tw_event *h = q->head;
@@ -261,13 +261,13 @@ tw_eventq_unshift(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_eventq_peek_head(tw_eventq *q)
 {
   return q->head;
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_eventq_shift(tw_eventq *q)
 {
   tw_event *h = q->head;
@@ -295,7 +295,7 @@ tw_eventq_shift(tw_eventq *q)
   return h;
 }
 
-INLINE(void)
+static inline void 
 tw_eventq_delete_any(tw_eventq *q, tw_event *e)
 {
   tw_event *p = e->prev;
@@ -319,7 +319,7 @@ tw_eventq_delete_any(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_eventq_pop_list(tw_eventq * q)
 {
   tw_event	*h = q->head;
@@ -336,7 +336,7 @@ tw_eventq_pop_list(tw_eventq * q)
  * buffer, or from some inner buffer to tail.  I only care about the
  * last case.. 
  */
-INLINE(void)
+static inline void 
 tw_eventq_splice(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
   tw_eventq_debug(q);

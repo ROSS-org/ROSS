@@ -1,7 +1,7 @@
 #ifndef INC_tw_memoryq_h
 #define INC_tw_memoryq_h
 
-INLINE(tw_memoryq *)
+static inline tw_memoryq * 
 tw_memoryq_init()
 {
 	tw_memoryq	*q;
@@ -16,7 +16,7 @@ tw_memoryq_init()
 	return q;
 }
 
-INLINE(void)
+static inline void 
 tw_memoryq_debug(tw_memoryq * q)
 {
 #if ROSS_DEBUG
@@ -49,7 +49,7 @@ tw_memoryq_debug(tw_memoryq * q)
 #endif
 }
 
-INLINE(void)
+static inline void 
 tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 {
 	tw_memoryq_debug(q);
@@ -73,7 +73,7 @@ tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 	tw_memoryq_debug(q);
 }
 
-INLINE(void)
+static inline void 
 tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
 	tw_memoryq_debug(q);
@@ -98,7 +98,7 @@ tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 	tw_memoryq_debug(q);
 }
 
-INLINE(tw_memory *)
+static inline tw_memory * 
 tw_memoryq_pop(tw_memoryq * q)
 {
 	tw_memory	*buf;
@@ -126,7 +126,7 @@ tw_memoryq_pop(tw_memoryq * q)
 	return buf;
 }
 
-INLINE(tw_memory *)
+static inline tw_memory * 
 tw_memoryq_pop_list(tw_memoryq * q)
 {
 	tw_memory	*b;
@@ -149,7 +149,7 @@ tw_memoryq_pop_list(tw_memoryq * q)
  * buffer, or from some inner buffer to tail.  I only care about the
  * last case.. 
  */
-INLINE(void)
+static inline void 
 tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
 	tw_memoryq_debug(q);
@@ -176,7 +176,7 @@ tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 	tw_memoryq_debug(q);
 }
 
-INLINE(void)
+static inline void 
 tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 {
 	tw_memory	*next;

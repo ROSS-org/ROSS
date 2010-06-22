@@ -53,17 +53,17 @@ struct tw_mutex
 struct tw_barrier
 #define TW_MUTEX_INIT {}
 
-INLINE(void)
+static inline void 
 tw_mutex_lock(tw_mutex * lck)
 {
 }
 
-INLINE(void)
+static inline void 
 tw_mutex_unlock(tw_mutex * lck)
 {
 }
 
-INLINE(void)
+static inline void 
 tw_barrier_sync(tw_barrier * barrier)
 {
 }

@@ -7,7 +7,7 @@
 #define	max(a,b)	((a) > (b) ? (a) : (b))
 #define	min(a,b)	((a) < (b) ? (a) : (b))
 
-INLINE(tw_lp *)
+static inline tw_lp * 
      tw_getlocal_lp(tw_lpid gid)
 {
   int id;
@@ -27,7 +27,7 @@ INLINE(tw_lp *)
   return g_tw_lp[id];
 }
 
-INLINE(tw_lp *)
+static inline tw_lp * 
      tw_getlp(tw_lpid id)
 {
 #ifdef ROSS_runtime_checks  
@@ -39,7 +39,7 @@ INLINE(tw_lp *)
   return g_tw_lp[id];
 }
 
-INLINE(tw_kp *)
+static inline tw_kp * 
      tw_getkp(tw_kpid id)
 {
 #ifdef ROSS_runtime_checks  
@@ -54,7 +54,7 @@ INLINE(tw_kp *)
   return g_tw_kp[id];
 }
 
-INLINE(tw_pe *)
+static inline tw_pe * 
      tw_getpe(tw_peid id)
 {
 #ifdef ROSS_runtime_checks  
@@ -66,32 +66,32 @@ INLINE(tw_pe *)
 }
 
 #ifdef ROSS_MEMORY
-INLINE(tw_memoryq *)
+static inline tw_memoryq * 
      tw_kp_getqueue(tw_kp * kp, tw_fd fd)
 {
   return &kp->pmemory_q[fd];
 }
 
-INLINE(tw_memoryq *)
+static inline tw_memoryq * 
      tw_pe_getqueue(tw_pe * pe, tw_fd fd)
 {
   return &pe->memory_q[fd];
 }
 #endif
 
-INLINE(int)
+static inline int 
      tw_ismaster(void)
 {
   return tw_node_eq(&g_tw_mynode, &g_tw_masternode);
 }
 
-INLINE(void *)
+static inline void * 
      tw_getstate(tw_lp * lp)
 {
   return lp->cur_state;
 }
 
-INLINE(tw_stime)
+static inline tw_stime 
      tw_now(tw_lp * lp)
 {
   return (lp->kp->last_time);

@@ -49,7 +49,7 @@
 #ifndef INC_gvt_none_h
 #define INC_gvt_none_h
 
-INLINE(int)
+static inline int 
 tw_gvt_inprogress(tw_pe * pe)
 {
 	return 0;

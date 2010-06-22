@@ -1,7 +1,7 @@
 #ifndef INC_ross_inline_h
 #define	INC_ross_inline_h
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_event_grab(tw_pe *pe)
 {
   tw_event	*e = tw_eventq_pop(&pe->free_q);
@@ -37,7 +37,7 @@ tw_event_grab(tw_pe *pe)
   return e;
 }
 
-INLINE(tw_event *)
+static inline tw_event * 
 tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 {
   tw_pe		*send_pe;
@@ -62,7 +62,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   return e;
 }
 
-INLINE(void)
+static inline void 
 tw_event_free(tw_pe *pe, tw_event *e)
 {
   /*
@@ -101,7 +101,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
 }
 
 #ifdef ROSS_MEMORY
-INLINE(tw_memory *)
+static inline tw_memory * 
 tw_event_memory_get(tw_lp * lp)
 {
   tw_memory      *m = lp->pe->cur_event->memory;
@@ -114,14 +114,14 @@ tw_event_memory_get(tw_lp * lp)
   return m;
 }
 
-INLINE(void)
+static inline void 
 tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
   m->next = lp->pe->cur_event->memory;
   lp->pe->cur_event->memory = m;
 }
 
-INLINE(void)
+static inline void 
 tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 {
   tw_memory	*b;
@@ -149,7 +149,7 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
     }
 }
 
-INLINE(void)
+static inline void 
 tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 {
   if(e == e->src_lp->pe->abort_event)
@@ -162,7 +162,7 @@ tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
   e->memory = m;
 }
 
-INLINE(void)
+static inline void 
 tw_event_memory_forward(tw_event * e)
 {
   tw_memory	*m;
@@ -180,14 +180,14 @@ tw_event_memory_forward(tw_event * e)
     }
 }
 
-INLINE(void *)
+static inline void * 
 tw_memory_data(tw_memory * memory)
 {
   return memory + 1;
 }
 #endif
 
-INLINE(void *)
+static inline void * 
 tw_event_data(tw_event * event)
 {
   return event + 1;

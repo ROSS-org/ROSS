@@ -29,7 +29,7 @@ extern void tw_gvt_force_update(tw_pe *);
 extern int tw_gvt_set(tw_pe * pe, tw_stime LVT);
 
 /* Returns true if GVT in progress, false otherwise */
-INLINE(int) tw_gvt_inprogress(tw_pe * pe);
+static inline int  tw_gvt_inprogress(tw_pe * pe);
 
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);

@@ -3,7 +3,7 @@
 
 typedef uint64_t tw_clock;
 
-INLINE(tw_clock) tw_clock_read(void)
+static inline tw_clock  tw_clock_read(void)
 {
 	tw_clock result=0;
 #if ROSS_timing

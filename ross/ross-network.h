@@ -77,13 +77,13 @@ extern void tw_net_send(tw_event *);
 extern void tw_net_cancel(tw_event *);
 
 /* Determine the identification of the node a pe is running on. */
-INLINE(tw_node *) tw_net_onnode(tw_peid gid);
+static inline tw_node *  tw_net_onnode(tw_peid gid);
 
 /* Global PE id -> local PE id mapping function. */
-INLINE(tw_peid) tw_net_pemap(tw_peid gid);
+static inline tw_peid  tw_net_pemap(tw_peid gid);
 
 /* Determine if two nodes are the same (0 == no, 1 == yes). */
-INLINE(int) tw_node_eq(tw_node *a, tw_node *b);
+static inline int  tw_node_eq(tw_node *a, tw_node *b);
 
 /* Obtain the total number of nodes executing the simulation. */
 extern unsigned tw_nnodes(void);

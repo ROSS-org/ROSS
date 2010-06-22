@@ -65,19 +65,19 @@ struct tw_barrier
 	tw_volatile int phase;
 };
 
-INLINE(void)
+static inline void 
 tw_mutex_lock(tw_mutex *lck)
 {
 	while(pthread_mutex_trylock(&lck->lock) == EBUSY);
 }
 
-INLINE(void)
+static inline void 
 tw_mutex_unlock(tw_mutex *lck)
 {
 	pthread_mutex_unlock(&lck->lock);
 }
 
-INLINE(void)
+static inline void 
 tw_barrier_sync(tw_barrier * b)
 {
 	tw_volatile int my_phase;

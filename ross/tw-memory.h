@@ -4,7 +4,7 @@
 /*
  * Use this function to allocate a memory buffer in model event handlers.
  */
-INLINE(tw_memory *)
+static inline tw_memory * 
 tw_memory_alloc(tw_lp * lp, tw_fd fd)
 {
 	tw_pe			*pe;
@@ -49,7 +49,7 @@ tw_memory_alloc(tw_lp * lp, tw_fd fd)
  * The RC of an alloc is to place the buffer back into the 
  * free_q of memory buffers.
  */
-INLINE(void)
+static inline void 
 tw_memory_alloc_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
 	if(--m->nrefs)
@@ -58,7 +58,7 @@ tw_memory_alloc_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 	tw_memoryq_push(tw_pe_getqueue(lp->pe, fd), m);
 }
 
-INLINE(void)
+static inline void 
 tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
 	tw_memoryq	*q;
@@ -78,7 +78,7 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	tw_memoryq_push(q, m);
 }
 
-INLINE(tw_memory *)
+static inline tw_memory * 
 tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 {
 	tw_memory *m = tw_memoryq_pop(tw_kp_getqueue(lp->kp, fd));
@@ -93,7 +93,7 @@ tw_memory_free_rc(tw_lp * lp, tw_fd fd)
 	return m;
 }
 
-INLINE(void)
+static inline void 
 tw_memory_unshift(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
 	if(m->nrefs)
@@ -102,13 +102,13 @@ tw_memory_unshift(tw_lp * lp, tw_memory * m, tw_fd fd)
 	tw_memoryq_push(tw_pe_getqueue(lp->pe, fd),  m);
 }
 
-INLINE(size_t)
+static inline size_t 
 tw_memory_getsize(tw_pe * pe, int fd)
 {
 	return tw_pe_getqueue(pe, fd)->d_size + g_tw_memory_sz;
 }
 
-INLINE(tw_fd)
+static inline tw_fd 
 tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult)
 {
 #ifndef ROSS_MEMORY
