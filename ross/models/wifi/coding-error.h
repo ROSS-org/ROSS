@@ -9,4 +9,4 @@ double SymbolErrorProb16Cck (double e2);
 double IntegralFunction (double x, void *params);
 #endif
 
-double Wifi_80211b_DsssDqpskCck11_SuccessRate (double sinr,uint32_t nbits);
+double WiFi_80211b_DsssDqpskCck11_SuccessRate (double sinr,uint32_t nbits);

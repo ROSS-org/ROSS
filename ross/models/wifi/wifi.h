@@ -49,7 +49,6 @@ static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
 static int g_wifi_start_events = 1;
 static int optimistic_memory = 100;
-static int num_of_antennas = 100;
 static int num_of_bits = 1500;
 
 // rate for timestamp exponential distribution

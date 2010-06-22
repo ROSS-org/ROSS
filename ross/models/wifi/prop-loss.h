@@ -3,6 +3,11 @@
  * 
  */
 
+/* Includes */
+#include <ross.h>
+
+
+
 /**
  * \brief A Friis propagation loss model
  *
