@@ -73,7 +73,7 @@ double Wifi_80211b_DsssDqpskCck11_SuccessRate (double sinr,uint32_t nbits)
  *      Michael B. Pursley and Thomas C. Royster. IEEE TRANSACTIONS ON COMMUNICATIONS, 
  *      57(2):440-449, February 2009.
  *    - More detailed description and validation can be found in 
- *      http://www.nsnam.org/~pei/80211b.pdf
+ *      <a href="http://www.nsnam.org/~pei/80211b.pdf">http://www.nsnam.org/~pei/80211b.pdf</a>
  */
 double WiFi_80211b_DsssDqpskCck11_SuccessRate(double sinr,uint32_t nbits)
 {

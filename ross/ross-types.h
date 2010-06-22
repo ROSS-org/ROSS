@@ -70,8 +70,8 @@ typedef struct tw_memory tw_memory;
 typedef enum tw_event_owner tw_event_owner;
 typedef enum tw_lp_map tw_lp_map;
 
-/*
- * synchronization protocol used
+/**
+ * Synchronization protocol used
  */ 
 enum tw_synch_e
   {
@@ -106,17 +106,12 @@ typedef void (*pe_init_f) (tw_pe * pe);
 typedef void (*pe_gvt_f) (tw_pe * pe);
 typedef void (*pe_final_f) (tw_pe * pe);
 
-/* pre_lp_init -- PE initialization routine, before LP init.
- * post_lp_init --  PE initialization routine, after LP init.
- * gvt		-- PE per GVT routine.
- * final	-- PE finilization routine.
- */
 struct tw_petype
 {
-  pe_init_f pre_lp_init;
-  pe_init_f post_lp_init;
-  pe_gvt_f gvt;
-  pe_final_f final;
+  pe_init_f pre_lp_init; /**< @brief PE initialization routine, before LP init */
+  pe_init_f post_lp_init;  /**< @brief PE initialization routine, after LP init */
+  pe_gvt_f gvt;  /**< @brief PE per GVT routine */
+  pe_final_f final;  /**< @brief PE finilization routine */
 };
 
 /*
@@ -331,11 +326,11 @@ struct tw_event
   /** Status of the event's queue location(s). */
   struct
   {
-    unsigned char owner:4; /**< @breif Owner of the next/prev pointers; see tw_event_owner */
-    unsigned char cancel_q:1;  /**< @breif Actively on a dest_lp->pe's cancel_q */
-    unsigned char cancel_asend:1;
-    unsigned char remote:1; /**< @breif Indicates union addr is in 'remote' storage */
-    unsigned char __pad:1;  
+    unsigned char owner; /**< @breif Owner of the next/prev pointers; see tw_event_owner */
+    unsigned char cancel_q;  /**< @breif Actively on a dest_lp->pe's cancel_q */
+    unsigned char cancel_asend;
+    unsigned char remote; /**< @breif Indicates union addr is in 'remote' storage */
+    unsigned char __pad;  
   } state;
 
   tw_bf		 cv; /**< @brief Used by app during reverse computation. */
@@ -450,11 +445,11 @@ struct tw_pe
   tw_clock clock_offset; /**< @brief Initial clock value for this PE */
   tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
-  unsigned char __pad:1; /**< @brief */
-  unsigned char cev_abort:1; /**< @brief Current event being processed must be aborted */
-  unsigned char master:1; /**< @brief Master across all compute nodes */
-  unsigned char local_master:1; /**< @brief Master for this node */
-  unsigned char gvt_status:4; /**< @brief Bits available for gvt computation */
+  unsigned char __pad; /**< @brief */
+  unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
+  unsigned char master; /**< @brief Master across all compute nodes */
+  unsigned char local_master; /**< @brief Master for this node */
+  unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
   tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */
   tw_stime GVT; /**< @brief Global Virtual Time */
