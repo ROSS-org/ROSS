@@ -23,4 +23,6 @@
 
 #cmakedefine HAVE_ROBOT_PHYSSYM_H 1
 
+#cmakedefine WITH_NETDMF
+
 #endif /* _TEST_CONFIG_H */

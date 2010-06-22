@@ -1,13 +1,20 @@
 #include <NetDMF.h>
 #include <NetDMFDOM.h>
+#include <NetDMFNode.h>
 
 /** 
- * @file rn-netdmf-wrapper.cpp  This file provides wrappers for functions
- * to enable C linkage.  It provides little else.
+ * @file
+ * @brief NetDMF Wrappers
+ * 
+ * This file provides wrappers for functions
+ * to enable C linkage.  These functions will perform most of the actions
+ * and provide it to the C front-end.
  */
 
+static NetDMFDOM *dom = 0;
+
 /**
- * @fn rnNetDMFInit  This function handles initialization of the NetDMF
+ * This function handles initialization of the NetDMF
  * description language.  The function currently doesn't do much except
  * demonstrate proper linkage.
  */
@@ -15,27 +22,40 @@ extern "C"
 void
 rnNetDMFInit()
 {
-  
-  XdmfDOM    *DOM = new XdmfDOM();
+  int retval;
+  //XdmfDOM    *DOM = new XdmfDOM();
+  dom = new NetDMFDOM();
+  if (dom == 0) {
+    printf("We have a problem\n");
+    exit(-1);
+  }
   XdmfXmlNode  Parent, FirstChild, SecondChild;
+  NetDMFNode foo;
 
   // Parse the XML File
-  DOM->SetInputFileName("MyFile.xml");
-  DOM->Parse();
+  dom->SetInputFileName("MyFile.xml");
+  retval = dom->Parse();
+  if (retval != XDMF_SUCCESS) {
+    printf("We have a problem\n");
+    exit(-1);
+  }
+
   // Find the first element with TAG = Tag1
-  Parent = DOM->FindElement("Tag1");
+  Parent = dom->FindElement("Tag1");
   // Find the first (zero based) Tag2 below Parent
-  FirstChild = DOM->FindElement("Tag2", 0, Parent);
+  FirstChild = dom->FindElement("Tag2", 0, Parent);
   //cout << "The Name of the First Child is <" << DOM->Get(FirstChild, "Name") << ">" << endl;
   // Find the second (zero based) Tag2 below Parent
-  SecondChild = DOM->FindElement("Tag2", 1, Parent);
-  DOM->Set(SecondChild, "Age", "10");
-  DOM->DeleteNode(FirstChild);
+  SecondChild = dom->FindElement("Tag2", 1, Parent);
+  dom->Set(SecondChild, "Age", "10");
+  dom->DeleteNode(FirstChild);
   //cout << endl << "XML = " << endl << DOM->Serialize(Parent) << endl;
+  delete dom;
+  dom = 0;
 }
 
 /**
- * @fn rnNetDMFTopology  This function creates and setups the
+ * This function creates and setups the
  * g_rn_machines global data structure of nodes.  Non-functional atm.
  */
 extern "C"

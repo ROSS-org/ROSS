@@ -1,16 +1,20 @@
 #include <rossnet.h>
 
-/** 
- * @file rn-netdmf.c  The functions defined in this file will mostly
+/**
+ * @file
+ * @brief NetDMF Support
+ *
+ * The functions defined in this file will mostly
  * just call corresponding functions in the rn-netdmf-wrapper.cpp file.
  * This is necessary because the C++ compiler actually chokes on our
  * ROSS code.
  */
 
 /**
- * @fn rn_netdmf_init  This function handles initialization of the NetDMF
+ * This function handles initialization of the NetDMF
  * description language.  It simply calls the rnNetDMFInit function which
- * is declared extern "C" 
+ * is declared extern "C".  This function should use our global variable
+ * containing the filename of the configuration.
  */
 void
 rn_netdmf_init()
@@ -19,7 +23,7 @@ rn_netdmf_init()
 }
 
 /**
- * @fn rn_netdmf_topology  This function creates and setups the
+ * This function creates and setups the
  * g_rn_machines global data structure of nodes.
  */
 void

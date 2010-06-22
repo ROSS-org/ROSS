@@ -670,8 +670,14 @@ main(int argc, char **argv, char **env)
 
 	rn_setup();
 
+#ifndef WITH_NETDMF
+	/* If we're NOT using NetDMF, we must be using the XML approach */
 	/* init the XML package */
 	rn_xml_init();
+#else
+	/* We ARE using NetDMF */
+	rn_netdmf_init();
+#endif /* WITH_NETDMF */
 
 	/* init the environment, if one exists */
 	rn_init_environment();

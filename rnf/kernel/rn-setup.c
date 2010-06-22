@@ -276,6 +276,12 @@ rn_setup_links(rn_lp_state * state, tw_lp * lp)
 #endif
 }
 
+/**
+ * If the global variable g_rn_tools_dir is set, look for the xml
+ * topology, link topology, and routing table configuration in that
+ * directory.  Should not interfere with NetDMF configuration regardless
+ * of the value of g_rn_tools_dir
+ */
 void
 rn_setup()
 {
