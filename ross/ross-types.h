@@ -326,32 +326,21 @@ struct tw_event
   tw_event *caused_by_me; /**< @brief Start of event list caused by this event */
   tw_event *cause_next; /**< @brief Next in parent's caused_by_me chain */
 
-  tw_eventid	 event_id;
+  tw_eventid	 event_id; /**< @brief Unique id assigned by src_lp->pe if remote. */
 
-  /* Status of the event's queue location(s). */
+  /** Status of the event's queue location(s). */
   struct
   {
-    BIT_GROUP(
-
-	      /* Owner of the next/prev pointers; see tw_event_owner */
-	      BIT_GROUP_ITEM(owner, 4)
-
-	      /* Actively on a dest_lp->pe's cancel_q */
-	      BIT_GROUP_ITEM(cancel_q, 1)
-	      BIT_GROUP_ITEM(cancel_asend, 1)
-
-	      /* Indicates union addr is in 'remote' storage */
-	      BIT_GROUP_ITEM(remote, 1)
-	      BIT_GROUP_ITEM(__pad, 1)
-	      )
+    unsigned char owner:4; /**< @breif Owner of the next/prev pointers; see tw_event_owner */
+    unsigned char cancel_q:1;  /**< @breif Actively on a dest_lp->pe's cancel_q */
+    unsigned char cancel_asend:1;
+    unsigned char remote:1; /**< @breif Indicates union addr is in 'remote' storage */
+    unsigned char __pad:1;  
   } state;
 
   tw_bf		 cv; /**< @brief Used by app during reverse computation. */
   //void		*lp_state lp_state -- dest_lp->state BEFORE this event;
 
-  /* 
-   * event_id -- Unique id assigned by src_lp->pe if remote. ??
-   */
   tw_lp		*dest_lp; /**< @brief dest_lp -- Destination LP object */
   tw_lp		*src_lp; /**< @brief Sending LP */
   tw_stime	 recv_ts; /**< @brief Actual time to be received */
@@ -363,8 +352,8 @@ struct tw_event
 #endif
 };
 
-/*
- * tw_lp:
+/**
+ * tw_lp @brief LP State Structure
  *
  * Holds our state for the LP, including the lptype and a pointer
  * to the user's current state.  The lptype is copied into the tw_lp
@@ -377,191 +366,128 @@ struct tw_event
  */
 struct tw_lp
 {
-  // local LP id
-  tw_lpid id;
-
-  // global LP id
-  tw_lpid gid;
+  tw_lpid id; //**< @brief local LP id */
+  tw_lpid gid; //**< @brief global LP id */
 
   tw_pe *pe;
 
-  /* kp -- Kernel process that we belong to (must match pe).
-   * pe_next  -- Next LP in the PE's service list.
+  /* 
+   * pe_next  -- Next LP in the PE's service list.  ????
    */
-  tw_kp *kp;
+  tw_kp         *kp; //**< @brief kp -- Kernel process that we belong to (must match pe). */
 
-  /* cur_state	-- Current application LP data.
-   * state_qh	-- Head of [free] state queue (for state saving).
-   * rng		-- RNG stream array for this LP
-   * type		-- Type of this LP, including service callbacks.
-   */
-  void		*cur_state;
-  tw_lp_state	*state_qh;
-  tw_lptype	 type;
-  tw_rng_stream	*rng;
+  void		*cur_state; //**< @brief Current application LP data */
+  tw_lp_state	*state_qh; //**< @brief Head of [free] state queue (for state saving) */
+  tw_lptype	 type; //**< @brief Type of this LP, including service callbacks */
+  tw_rng_stream	*rng; //**< @brief  RNG stream array for this LP */
 };
 
-/*
- * tw_kp:
+/**
+ * tw_kp KP State Structure
  *
  * Holds our state for the Kernel Process (KP), which consists only of
  * processed event list for a collection of LPs.  
  */
 struct tw_kp
 {
-  /* id -- ID number, otherwise its not available to the app.
-   * pe -- PE that services this KP.
-   * next -- Next KP in the PE's service list.
-   */
-  tw_kpid id;
-  tw_pe *pe;
-  tw_kp *next;
+  tw_kpid id; //**< @brief ID number, otherwise its not available to the app */
+  tw_pe *pe; //**< @brief PE that services this KP */
+  tw_kp *next; //**< @brief Next KP in the PE's service list */
 
-  /* pevent_q -- Events processed by LPs bound to this KP
-   * last_time -- Time of the current event being processed.
-   */
-  tw_eventq pevent_q;
-  tw_stime last_time;
-
-  /* s_nevent_processed -- Number of events processed.
-   * s_e_rbs -- Number of events rolled back by this LP.
-   * s_rb_total -- Number of total rollbacks by this LP.
-   * s_rb_secondary -- Number of secondary rollbacks by this LP.
-   */
-  tw_stat s_nevent_processed;
+  tw_eventq pevent_q; //**< @brief Events processed by LPs bound to this KP */
+  tw_stime last_time; //**< @brief Time of the current event being processed */
+  tw_stat s_nevent_processed; //**< @brief Number of events processed */
 
 #if 0
-  tw_stat s_e_rbs;
-  tw_stat s_rb_total;
-  tw_stat s_rb_secondary;
+  tw_stat s_e_rbs; //**< @brief Number of events rolled back by this LP */
+  tw_stat s_rb_total; //**< @brief Number of total rollbacks by this LP */
+  tw_stat s_rb_secondary; //**< @brief Number of secondary rollbacks by this LP */
 #endif
 
-  long s_e_rbs;
-  long s_rb_total;
-  long s_rb_secondary;
+  long s_e_rbs; //**< @brief Number of events rolled back by this LP */
+  long s_rb_total; //**< @brief Number of total rollbacks by this LP */
+  long s_rb_secondary; //**< @brief Number of secondary rollbacks by this LP */
 
   long long test;
 
-  /*
-   * queues -- TW processed memory buffer queues
-   */
 #ifdef ROSS_MEMORY
-  tw_memoryq	*pmemory_q;
+  tw_memoryq	*pmemory_q; //**< @brief TW processed memory buffer queues */
 #endif
 };
 
-/*
- * tw_pe
+/**
+ * tw_pe @brief Holds the entire PE state
  *
- * Holds the entire PE state.  
  */
 struct tw_pe
 {
-  tw_peid id;
-  tw_node	node;
+  tw_peid    id;
+  tw_node    node;
+  tw_petype  type; /**< @brief Model defined PE type routines */
 
-  /* type -- Model defined PE type routines.
-   */
-  tw_petype type;
-
-  /* event_q -- Linked list of events sent to this PE.
-   * cancel_q -- List of canceled events.
+  /* 
+   * What the hell are these?
    * event_q_lck -- processor specific lock for this PE's event_q.
    * cancel_q_lck -- processor specific lock for this PE's cancel_q.
-   * pq -- Priority queue used to sort events.
-   * pe_next -- Single linked list of PE structs.
    * rollback_q -- List of KPs actively rolling back.
    */
-  tw_eventq event_q;
-  tw_event *cancel_q;
-  tw_pq *pq;
-  tw_kp *kp_list;
-  tw_pe **pe_next;
 
-  /* free_q -- Linked list of free tw_events.
-   * abort_event -- Placeholder event for when free_q is empty.
-   * cur_event -- Current event being processed.
-   * sevent_q -- events already sent over the network.
-   * memory_q -- array of free tw_memory buffers linked lists
-   */
-  tw_eventq free_q;
-  tw_event *abort_event;
-  tw_event *cur_event;
-  tw_eventq sevent_q;
+  tw_eventq event_q; /**< @brief Linked list of events sent to this PE */
+  tw_event *cancel_q; /**< @brief List of canceled events */
+  tw_pq *pq; /**< @brief Priority queue used to sort events */
+  tw_kp *kp_list; /**< @brief */
+  tw_pe **pe_next; /**< @brief Single linked list of PE structs */
+
+  tw_eventq free_q; /**< @brief Linked list of free tw_events */
+  tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
+  tw_event *cur_event; /**< @brief Current event being processed */
+  tw_eventq sevent_q; /**< @brief events already sent over the network */
+
 #ifdef ROSS_MEMORY
-  tw_memoryq *memory_q;
+  tw_memoryq *memory_q; /**< @brief array of free tw_memory buffers linked lists */
 #endif
 
-  /* clock_offset -- Initial clock value for this PE.
-   * clock_time -- Most recent clock value for this PE.
-   */
-  tw_clock clock_offset;
-  tw_clock clock_time;
+  tw_clock clock_offset; /**< @brief Initial clock value for this PE */
+  tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
-  /* cev_abort	-- Current event being processed must be aborted.
-   * master	-- Master across all compute nodes.
-   * local_master -- Master for this node.
-   * gvt_status	-- bits available for gvt computation.
-   */
-  BIT_GROUP(
-	    BIT_GROUP_ITEM(__pad, 1)
-	    BIT_GROUP_ITEM(cev_abort, 1)
-	    BIT_GROUP_ITEM(master, 1)
-	    BIT_GROUP_ITEM(local_master, 1)
-	    BIT_GROUP_ITEM(gvt_status, 4)
-	    )
+  unsigned char __pad:1; /**< @brief */
+  unsigned char cev_abort:1; /**< @brief Current event being processed must be aborted */
+  unsigned char master:1; /**< @brief Master across all compute nodes */
+  unsigned char local_master:1; /**< @brief Master for this node */
+  unsigned char gvt_status:4; /**< @brief Bits available for gvt computation */
 
-    /* trans_msg_ts -- Last transient messages' time stamp.
-     * GVT -- global virtual time
-     * LVT -- local (to PE) virtual time
-     */
-    tw_stime trans_msg_ts;
-  tw_stime GVT;
+  tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */
+  tw_stime GVT; /**< @brief Global Virtual Time */
   tw_stime GVT_prev;
-  tw_stime LVT;
+  tw_stime LVT; /**< @brief Local (to PE) Virtual Time */
 
 #ifdef ROSS_GVT_mpi_allreduce
   tw_stat s_nwhite_sent;
   tw_stat s_nwhite_recv;
 #endif
 
-  /* start_time -- When this PE first started execution.
-   * end_time -- When this PE finished its execution.
-   */
-  tw_wtime start_time;
-  tw_wtime end_time;
+  tw_wtime start_time; /**< @brief When this PE first started execution */
+  tw_wtime end_time; /**< @brief When this PE finished its execution */
 
-  /* stats	-- per PE counters
-   */
-  tw_statistics		stats;
+  tw_statistics stats; /**< @brief per PE counters */
 
 #ifndef ROSS_NETWORK_none
-  /*
-   * hash_t  -- array of incoming events from remote pes
-   *            Note: only necessary for distributed DSR
-   * seq_num  -- array of remote send counters for hashing on
-   *                 size == g_tw_npe
-   */
-  void           *hash_t;
+  void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/
 #ifdef ROSS_NETWORK_mpi
-  tw_eventid	 seq_num;
+  tw_eventid	 seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
 #else
-  tw_eventid	*seq_num;
+  tw_eventid	*seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
 #endif
 #endif
 
-  /*
-   * rng  -- pointer to the random number generator on this PE
-   */
-  tw_rng  *rng;
+  tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
 };
 
 struct tw_log
 {
-  struct
-  {
+  struct {
     unsigned int
-    rollback_primary:1,
+      rollback_primary:1,
       rollback_secondary:1,
       rollback_abort:1,
       send_event:1,
@@ -576,12 +502,11 @@ struct tw_log
       freeq_deq:1,
       processed_enq:1,
       processed_deq:1;
-  }
-  state;
+  } state;
 
-  tw_event        event;
-  tw_event       *e;
-  tw_log         *next;
+  tw_event           event;
+  tw_event          *e;
+  tw_log            *next;
   unsigned long long log_sz;
 };
 

@@ -57,7 +57,7 @@
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
 #endif
 
-#ifndef ROSS_THREAD_none
+/*#ifndef ROSS_THREAD_none
 #  define ROSS_byte_per_bit
 #endif
 #ifdef ROSS_byte_per_bit
@@ -66,7 +66,7 @@
 #else
 #  define BIT_GROUP(grp) unsigned grp __bitgroupend##__LINE__:1;
 #  define BIT_GROUP_ITEM(name, sz) name:sz,
-#endif
+#endif*/
 
 #ifdef __GNUC__
 #  define NORETURN __attribute__((__noreturn__))
