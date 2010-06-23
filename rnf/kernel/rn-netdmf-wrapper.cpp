@@ -1,8 +1,9 @@
 #include <NetDMF.h>
 #include <NetDMFDOM.h>
 #include <NetDMFNode.h>
+#include <NetDMFXmlNode.h>
 
-/** 
+/**
  * @file
  * @brief NetDMF Wrappers
  * 
@@ -23,21 +24,68 @@ void
 rnNetDMFInit()
 {
   int retval;
-  //XdmfDOM    *DOM = new XdmfDOM();
-  dom = new NetDMFDOM();
-  if (dom == 0) {
-    printf("We have a problem\n");
-    exit(-1);
-  }
   XdmfXmlNode  Parent, FirstChild, SecondChild;
-  NetDMFNode foo;
+  NetDMFNode node;
+
+  dom = new NetDMFDOM();
+  if (0 == dom) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
 
   // Parse the XML File
-  dom->SetInputFileName("MyFile.xml");
+  retval = dom->SetInputFileName("NodeTest1.xmn");
+  if (XDMF_SUCCESS != retval) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
+
   retval = dom->Parse();
-  if (retval != XDMF_SUCCESS) {
-    printf("We have a problem\n");
-    exit(-1);
+  if (XDMF_SUCCESS != retval) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
+
+  retval = node.SetDOM(dom);
+  if (XDMF_SUCCESS != retval) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
+
+  int elemIdx = 0;
+  NetDMFXmlNode xmlNode = dom->FindElement("Node", elemIdx);
+  if (0 == xmlNode) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
+
+  while (0 != xmlNode) {
+    retval = node.SetElement(xmlNode);
+    if (XDMF_SUCCESS != retval) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    
+    retval = node.UpdateInformation();
+    if (XDMF_SUCCESS != retval) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    
+    std::string str1("router1");
+    if (str1.compare(node.GetName()) != 0) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    
+    if(5 != node.GetNodeId()) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    printf("Node %s had ID %d\n", node.GetName(), node.GetNodeId());
+    
+    elemIdx++;
+    xmlNode = dom->FindElement("Node", elemIdx);
   }
 
   // Find the first element with TAG = Tag1
@@ -49,6 +97,7 @@ rnNetDMFInit()
   SecondChild = dom->FindElement("Tag2", 1, Parent);
   dom->Set(SecondChild, "Age", "10");
   dom->DeleteNode(FirstChild);
+  printf("XML = \n***\n%s\n***\n", dom->Serialize(SecondChild));
   //cout << endl << "XML = " << endl << DOM->Serialize(Parent) << endl;
   delete dom;
   dom = 0;

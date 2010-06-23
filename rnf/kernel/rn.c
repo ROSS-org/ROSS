@@ -668,10 +668,11 @@ main(int argc, char **argv, char **env)
 	/* Initialize ROSS */
 	tw_init(&argc, &argv);
 
-	rn_setup();
-
 #ifndef WITH_NETDMF
 	/* If we're NOT using NetDMF, we must be using the XML approach */
+	/* rn_setup is ONLY required when using XML */
+	rn_setup();
+
 	/* init the XML package */
 	rn_xml_init();
 #else
