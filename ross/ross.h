@@ -1,20 +1,20 @@
 #ifndef INC_ross_h
 #define INC_ross_h
 
-/** @mainpage Rensselaer’s Optimistic Simulation System (ROSS)
+/** @mainpage Rensselaer's Optimistic Simulation System (ROSS)
     @section intro_sec Introduction
     
-    ROSS is an acronym for Rensselaer’s Optimistic Simulation System. It is a parallel
+    ROSS is an acronym for Rensselaer's Optimistic Simulation System. It is a parallel
     discrete-event simulator that executes on shared-memory multiprocessor systems. ROSS 
     is geared for running large-scale simulation models (i.e., 100K to even 1 million object models).
-    The synchronization mechanism is based on Time Warp. Time Warp is an optimistic syn- chronization 
+    The synchronization mechanism is based on Time Warp. Time Warp is an optimistic synchronization 
     mechanism develop by Jefferson and Sowizral [10, 11] used in the parallelization of discrete-event 
     simulation. The distributed simulator consists of a collection of logical processes or LPs, each 
     modeling a distinct component of the system being modeled, e.g., a server in a queuing network. LPs 
     communicate by exchanging timestamped event messages, e.g., denoting the arrival of a new job at that server.
 
     The Time Warp mechanism uses a detection-and-recovery protocol to synchronize the computation. Any 
-    time an LP determines that it has processed events out of timestamp order, it “rolls back” those events,
+    time an LP determines that it has processed events out of timestamp order, it "rolls back" those events,
     and re-executes them. For a detailed discussion of Time Warp as well as other parallel simulation protocols 
     we refer the reader to [8]
 
