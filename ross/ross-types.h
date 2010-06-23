@@ -1,6 +1,10 @@
 #ifndef INC_ross_types_h
 #define INC_ross_types_h
 
+/** @file ross-types.h
+ *  @brief Definition of ROSS basic types
+ */
+
 /*
  * ROSS: Rensselaer's Optimistic Simulation System.
  * Copyright (c) 1999-2003 Rensselaer Polytechnic Instutitute.

@@ -1,68 +1,84 @@
 #ifndef INC_ross_h
 #define INC_ross_h
 
-/*
- * ROSS: Rensselaer's Optimistic Simulation System.
- * Copyright (c) 1999-2010 Rensselaer Polytechnic Instutitute.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *
- *      This product includes software developed by David Bauer,
- *      Dr. Christopher D.  Carothers, and Shawn Pearce of the
- *      Department of Computer Science at Rensselaer Polytechnic
- *      Institute.
- *
- * 4. Neither the name of the University nor of the developers may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * 5. The use or inclusion of this software or its documentation in
- *    any commercial product or distribution of this software to any
- *    other party without specific, written prior permission is
- *    prohibited.
- *
- * THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND CONTRIBUTORS ``AS
- * IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
- * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- */
+/** @mainpage Rensselaer’s Optimistic Simulation System (ROSS)
+    @section intro_sec Introduction
+    
+    ROSS is an acronym for Rensselaer’s Optimistic Simulation System. It is a parallel
+    discrete-event simulator that executes on shared-memory multiprocessor systems. ROSS 
+    is geared for running large-scale simulation models (i.e., 100K to even 1 million object models).
+    The synchronization mechanism is based on Time Warp. Time Warp is an optimistic syn- chronization 
+    mechanism develop by Jefferson and Sowizral [10, 11] used in the parallelization of discrete-event 
+    simulation. The distributed simulator consists of a collection of logical processes or LPs, each 
+    modeling a distinct component of the system being modeled, e.g., a server in a queuing network. LPs 
+    communicate by exchanging timestamped event messages, e.g., denoting the arrival of a new job at that server.
+
+    The Time Warp mechanism uses a detection-and-recovery protocol to synchronize the computation. Any 
+    time an LP determines that it has processed events out of timestamp order, it “rolls back” those events,
+    and re-executes them. For a detailed discussion of Time Warp as well as other parallel simulation protocols 
+    we refer the reader to [8]
+
+    ROSS was modeled after a Time Warp simulator called GTW or Georgia Tech Time Warp[7]. ROSS helped to demonstrate 
+    that Time Warp simulators can be run efficiently both in terms of speed and memory usage relative to a high-performance 
+    sequential simulator.
+
+    To achieve high parallel performance, ROSS uses a technique call Reverse Computation. Here, the roll back
+    mechanism in the optimistic simulator is realized not by classic state-saving, but by literally allowing to 
+    the greatest possible extent events to be reverse. Thus, as models are developed for parallel execution, both
+    the forward and reverse execution code must be written. Currently, both are done by hand. We are investigating
+    automatic methods that are able to generate the reverse execution code using only the forward execution code as
+    input. For more information on ROSS and Reverse Computation we refer the interested reader to [4, 5]. Both of these
+    text are provided as additional reading in the ROSS distribution.
+
+@section license_sec License
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+  
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+  
+    3. All advertising materials mentioning features or use of this software
+       must display the following acknowledgement:
+  
+        This product includes software developed by Mark Anderson, David Bauer,
+        Dr. Christopher D. Carothers, Justin LaPre, and Shawn Pearce of the
+        Department of Computer Science at Rensselaer Polytechnic
+        Institute.
+ 
+    4. Neither the name of the University nor of the developers may be used
+       to endorse or promote products derived from this software without
+       specific prior written permission.
+  
+    5. The use or inclusion of this software or its documentation in
+       any commercial product or distribution of this software to any
+       other party without specific, written prior permission is
+       prohibited.
+ 
+    THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY AND CONTRIBUTORS ``AS
+    IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+    FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+    REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+    OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+    Copyright (c) 1999-2010 Rensselaer Polytechnic Instutitute.
+    All rights reserved.
+*/
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
 #endif
-
-/*#ifndef ROSS_THREAD_none
-#  define ROSS_byte_per_bit
-#endif
-#ifdef ROSS_byte_per_bit
-#  define BIT_GROUP(grp) grp
-#  define BIT_GROUP_ITEM(name, sz) unsigned char name;
-#else
-#  define BIT_GROUP(grp) unsigned grp __bitgroupend##__LINE__:1;
-#  define BIT_GROUP_ITEM(name, sz) name:sz,
-#endif*/
 
 #ifdef __GNUC__
 #  define NORETURN __attribute__((__noreturn__))
