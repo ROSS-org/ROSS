@@ -33,7 +33,8 @@
  * With:
  *  - \f$ P_r \f$ : reception power (W)
  *  - \f$ P_t \f$ : transmission power (W)
- *  - \f$ G_t \f$ : transmission gain (unit-less) *  - \f$ G_r \f$ : reception gain (unit-less)
+ *  - \f$ G_t \f$ : transmission gain (unit-less) 
+ *  - \f$ G_r \f$ : reception gain (unit-less)
  *  - \f$ \lambda \f$ : wavelength (m)
  *  - \f$ d \f$ : distance (m)
  *  - \f$ L \f$ : system loss (unit-less)
