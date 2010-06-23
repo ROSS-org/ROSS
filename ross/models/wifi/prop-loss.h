@@ -33,8 +33,7 @@
  * With:
  *  - \f$ P_r \f$ : reception power (W)
  *  - \f$ P_t \f$ : transmission power (W)
- *  - \f$ G_t \f$ : transmission gain (unit-less)
- *  - \f$ G_r \f$ : reception gain (unit-less)
+ *  - \f$ G_t \f$ : transmission gain (unit-less) *  - \f$ G_r \f$ : reception gain (unit-less)
  *  - \f$ \lambda \f$ : wavelength (m)
  *  - \f$ d \f$ : distance (m)
  *  - \f$ L \f$ : system loss (unit-less)
@@ -45,5 +44,16 @@
  * for any distance smaller than MinDistance.
  */
 
-double CalcRxPower (double txPowerDbm, double distance, double minDistance, double lambda, double systemLoss);
-double DbmFromW (double w);
+/* thermal noise at 290K in J/s = W */
+#define BOLTZMANN 1.3803e-23
+#define PI 3.1415926535
+
+double calcRxPower (double txPowerDbm, double distance, double minDistance, double lambda, double systemLoss);
+double dbmFromW (double w);
+
+typedef struct {
+  double signal;
+  double bandwidth;
+  double noiseFigure;
+  double noiseInterference;
+} rf_signal;
