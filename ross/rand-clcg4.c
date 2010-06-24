@@ -1,15 +1,13 @@
 #include <ross.h>
 
-/*********************************************************************
- *
- * clcg4.c   Implementation module
+/**
+ * \file clcg4.c   RNG Implementation module
  *
  * Random number generator, provides all of the features GTW requires
  * by default.  Chris hacked this pretty well, he would know the
  * features better.
  *
- ********************************************************************/
-
+ */
 
 /*********************************************************************
  *
@@ -26,10 +24,12 @@ static tw_rng	*rng = NULL;
 // default RNG seed
 long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
 
-/*
- * FindB -- Find B which is a[i]^{m[i] - 2} mod m[i]                   
- *
- * Used in running the CLCG4 backwards                        
+/**
+ * FindB 
+ * @brief Find B to run CLCG4 backwards
+ * 
+ * B is \f$ a_[i]^{m_[i] - 2} \mathrm{mod m_[i]} \f$                   
+ * which is used in running the CLCG4 backwards                        
  * Added by Chris Carothers, 5/15/98                          
  */
 long long
@@ -63,8 +63,10 @@ FindB(long long a, long long k, long long m)
   return(b);
 }
 
-/*
- * MultiModM                                                           
+/**
+ * MultiModM 
+ * @brief Returns(s*t) MOD M                                                        
+ * 
  * See L'Ecuyer and Cote(1991).                                    
  *
  * Returns(s*t) MOD M.  Assumes that -M < s < M and -M < t < M.    
