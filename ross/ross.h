@@ -72,7 +72,7 @@
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
     OF THE POSSIBILITY OF SUCH DAMAGE.
  
-    Copyright (c) 1999-2010 Rensselaer Polytechnic Instutitute.
+    Copyright (c) 1999-2010 Rensselaer Polytechnic Institute.
     All rights reserved.
 */
 
