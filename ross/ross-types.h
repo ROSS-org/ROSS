@@ -318,20 +318,20 @@ struct tw_event
  */
 struct tw_lp
 {
-  tw_lpid id; //**< @brief local LP id */
-  tw_lpid gid; //**< @brief global LP id */
+  tw_lpid id; /**< @brief local LP id */
+  tw_lpid gid; /**< @brief global LP id */
 
   tw_pe *pe;
 
   /* 
    * pe_next  -- Next LP in the PE's service list.  ????
    */
-  tw_kp         *kp; //**< @brief kp -- Kernel process that we belong to (must match pe). */
+  tw_kp         *kp; /**< @brief kp -- Kernel process that we belong to (must match pe). */
 
-  void		*cur_state; //**< @brief Current application LP data */
-  tw_lp_state	*state_qh; //**< @brief Head of [free] state queue (for state saving) */
-  tw_lptype	 type; //**< @brief Type of this LP, including service callbacks */
-  tw_rng_stream	*rng; //**< @brief  RNG stream array for this LP */
+  void		*cur_state; /**< @brief Current application LP data */
+  tw_lp_state	*state_qh; /**< @brief Head of [free] state queue (for state saving) */
+  tw_lptype	 type; /**< @brief Type of this LP, including service callbacks */
+  tw_rng_stream	*rng; /**< @brief  RNG stream array for this LP */
 };
 
 /**
@@ -342,22 +342,22 @@ struct tw_lp
  */
 struct tw_kp
 {
-  tw_kpid id; //**< @brief ID number, otherwise its not available to the app */
-  tw_pe *pe; //**< @brief PE that services this KP */
-  tw_kp *next; //**< @brief Next KP in the PE's service list */
+  tw_kpid id; /**< @brief ID number, otherwise its not available to the app */
+  tw_pe *pe; /**< @brief PE that services this KP */
+  tw_kp *next; /**< @brief Next KP in the PE's service list */
 
-  tw_eventq pevent_q; //**< @brief Events processed by LPs bound to this KP */
-  tw_stime last_time; //**< @brief Time of the current event being processed */
-  tw_stat s_nevent_processed; //**< @brief Number of events processed */
+  tw_eventq pevent_q; /**< @brief Events processed by LPs bound to this KP */
+  tw_stime last_time; /**< @brief Time of the current event being processed */
+  tw_stat s_nevent_processed; /**< @brief Number of events processed */
 
-  long s_e_rbs; //**< @brief Number of events rolled back by this LP */
-  long s_rb_total; //**< @brief Number of total rollbacks by this LP */
-  long s_rb_secondary; //**< @brief Number of secondary rollbacks by this LP */
+  long s_e_rbs; /**< @brief Number of events rolled back by this LP */
+  long s_rb_total; /**< @brief Number of total rollbacks by this LP */
+  long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
 
   long long test;
 
 #ifdef ROSS_MEMORY
-  tw_memoryq	*pmemory_q; //**< @brief TW processed memory buffer queues */
+  tw_memoryq	*pmemory_q; /**< @brief TW processed memory buffer queues */
 #endif
 };
 
