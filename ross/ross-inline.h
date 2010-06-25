@@ -37,6 +37,12 @@ tw_event_grab(tw_pe *pe)
   return e;
 }
 
+/**
+ * @bug There's a bug in this function.  We put dest_gid, which is
+ * a 64-bit value, into dest_lp which may be a 32-bit pointer.  This
+ * crap makes it into just about everywhere because we use the
+ * duality of pointers to our advantage because we're dumb.
+ */
 static inline tw_event * 
 tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 {
