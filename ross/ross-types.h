@@ -335,7 +335,7 @@ struct tw_event
     unsigned char owner; /**< @brief Owner of the next/prev pointers; see tw_event_owner */
     unsigned char cancel_q;  /**< @brief Actively on a dest_lp->pe's cancel_q */
     unsigned char cancel_asend;
-    unsigned char remote; /**< @breif Indicates union addr is in 'remote' storage */
+    unsigned char remote; /**< @brief Indicates union addr is in 'remote' storage */
   } state;
 
   tw_bf		 cv; /**< @brief Used by app during reverse computation. */
