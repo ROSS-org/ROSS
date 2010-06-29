@@ -7,11 +7,23 @@
 #  error only i386 platform supported
 #endif
 
+static const tw_optdef clock_opts [] =
+{
+	TWOPT_GROUP("ROSS Timing"),
+	TWOPT_STIME("clock-rate", g_tw_clock_rate, "CPU Clock Rate"),
+	TWOPT_END()
+};
+
+const tw_optdef *tw_clock_setup(void)
+{
+	return clock_opts;
+}
+
 tw_clock tw_clock_read(void)
 {
 	tw_clock result;
 	do {
-		__asm__ __volatile__("mov %0=ar.itc" : "=r"(result) :: "memory");
+		__asm__ __volatile__("rdtsc" : "=A" (result)); 
 	} while (__builtin_expect ((int) result == -1, 0));
 	return result;
 }
