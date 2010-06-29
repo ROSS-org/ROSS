@@ -137,8 +137,8 @@ typedef double tw_stime;
 #if defined(ARCH_bgl) || defined(ARCH_bgp)
 typedef unsigned long long tw_lpid;
 #else
-typedef unsigned long long tw_lpid;
-//typedef uintptr_t tw_lpid;
+//typedef unsigned long long tw_lpid;
+typedef uintptr_t tw_lpid;
 #endif
 
 #include "ross-random.h"
