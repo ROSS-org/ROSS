@@ -1,6 +1,18 @@
 PROJECT(ROSS_TOP C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+INCLUDE(CheckTypeSize)
+CHECK_TYPE_SIZE("short"         SIZEOF_SHORT       )
+CHECK_TYPE_SIZE("int"           SIZEOF_INT         )
+CHECK_TYPE_SIZE("float"         SIZEOF_FLOAT       )
+CHECK_TYPE_SIZE("double"        SIZEOF_DOUBLE      )
+CHECK_TYPE_SIZE("long"          SIZEOF_LONG        )
+CHECK_TYPE_SIZE("long int"      SIZEOF_LONG_INT    )
+CHECK_TYPE_SIZE("long long"     SIZEOF_LONG_LONG   )
+CHECK_TYPE_SIZE("uint"          SIZEOF_UINT        )
+CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
+
+
 #SET(QUEUE      calendar) #Calendar Queue
 #SET(QUEUE      heap) #Push/Down Heap
 SET(QUEUE       splay) #Splay Tree
