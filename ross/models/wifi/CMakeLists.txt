@@ -12,3 +12,5 @@ SET(wifi_srcs
 ADD_EXECUTABLE(wifi ${wifi_srcs})
 
 TARGET_LINK_LIBRARIES(wifi ROSS m)
+
+ADD_TEST(wifitest mpirun -np 2 ./wifi --synch=1)
