@@ -8,6 +8,7 @@
 #include <NetDMFScenario.h>
 #include <NetDMFParameter.h>
 #include <NetDMFDevice.h>
+#include <NetDMFChannel.h>
 #include <libxml/tree.h>
 #include <vector>
 
@@ -17,7 +18,10 @@
  * 
  * This file provides wrappers for functions
  * to enable C linkage.  These functions will perform most of the actions
- * and provide it to the C front-end.
+ * and provide it to the C front-end.  Currently, there are *NO*
+ * tie-ins with ROSS, i.e. we read the NetDMF but don't actually do
+ * anything with it.  Almost all of this logic was stolen from
+ * Payton Oliveri's python script NetDMFtoOpNet.py.
  */
 
 /** The NetDMF Document Object Model, see NetDMF docs. */
@@ -127,15 +131,18 @@ rnNetDMFInit()
 }
 
 /**
- * This function creates and setups the
- * g_rn_machines global data structure of nodes.  Non-functional atm.
+ * Parse the NetDMFParameter type, described below.
+ *
+ * A NetDMFParameter contains a name and a value pair.
+ * It's is only meaningful to the end application; NetDMF
+ * does not interpret the data.
+ @verbatim
+ <Parameter Name="Wheels" Value="4"/>
+ <Parameter Name="TopSpeed" Value="45"/>
+ <Parameter Name="MaxConnections" Value="100000"/>
+ <Parameter Name="Manufacturer" Value="Acme"/>
+ @endverbatim
  */
-extern "C"
-void
-rnNetDMFTopology()
-{
-}
-
 void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *>params)
 {
   int totalParameters = node->GetNumberOfParameters();
@@ -146,6 +153,35 @@ void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *>params)
   }
 }
 
+/**
+ * Parse the NetDMFDevice type, described below.
+ *
+ * Currently, there are two types of devices: Communications and Mobility.
+ * Devices can contain other devices (a mobility device can have two communication
+ * devices). Communication devices contain one or more protocol stacks. Devices
+ * have parameters that are only of importance to that particular device.
+ @verbatim
+ <Device Name="HMMWV" DeviceType="Communication">
+    <Parameter ... >
+    <Parameter ... >
+ </Device>
+
+
+ <Device Name="RadioType1" DeviceType="Communication">
+   <Parameter Name="DataRate" Value="300000" />
+   <Parameter Name="Delay" Value="2.5" />
+ </Device>
+
+  <Device Name="HMMWV" DeviceType="Mobility">
+    <Parameter Name="Wheels" Value="4" />
+    <Parameter Name="TopSpeed" Value="20.0" />
+    <Device Reference="/NetDMF/Device[@Name='RadioType1']" >
+        <Stack Reference="/NetDMF/Stack[@Name='SimpleOlsr']" />
+        <Stack Reference="/NetDMF/Stack[@Name='MyExperimentalProtocol']" />
+    </Device>
+  </Device>
+  @endverbatim
+ */
 void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *>dev)
 {
   int totalDevices = node->GetNumberOfDevices();
@@ -156,6 +192,17 @@ void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *>dev)
   }
 }
 
+/**
+ * Parse the NetDMFNode type, described below.
+ *
+ * A NetDMFNode  contains a single network node.
+ @verbatim
+ <Node Name="Person1" NodeId="1">
+    <Device ... >
+    <Stack... >
+ </Node>
+ @endverbatim
+ */
 void parseNodes(NetDMFElement *elmt)
 {
   if (NetDMFPlatform *parent = dynamic_cast<NetDMFPlatform*>(elmt)) {
@@ -194,6 +241,74 @@ void parseNodes(NetDMFElement *elmt)
   }
 }
 
+/**
+ * Parse the NetDMFChannel type, described below.
+ *
+ * In a wired or wireless network, a channel specifies physical or logical
+ * connectivity to a particular network segment, such as a shared Ethernet
+ * or 802.11 network. The NetDMFChannel  element contains a list of network
+ * devices that are considered to be 'connected' (either physically or
+ * logically). The network devices are specified by an XML reference to the
+ * definition within a NetDMFNode.
+ @verbatim
+ <Device Name="Cat6" DeviceType="Communication">
+    <Parameter Name="MaxRate" Value="100E06" />
+ </Device>
+ <Channel Name="Cables" ChannelType="Duplex">
+    <Device Reference="/NetDMF/Device[@Name='Cat6']" />
+      /NetDMF/Scenario/Node[3]/Device
+      /NetDMF/Scenario/Node[4]/Device[2]
+      /NetDMF/Scenario/Node[@Name='Server']/Device[1]
+ </Channel>
+ @endverbatim
+ */
+void parseChannels(NetDMFElement *elmt, std::vector<NetDMFDevice *>&devices)
+{
+  if (NetDMFPlatform *parent = dynamic_cast<NetDMFPlatform*>(elmt)) {
+    int totalChannels = parent->GetNumberOfChannels();
+
+    for (int i = 0; i < totalChannels; i++) {
+      NetDMFChannel *channelItem = parent->GetChannel(i);
+      channelItem->Update();
+
+      int totalDevices = channelItem->GetNumberOfDeviceIds();
+
+      for (int j = 0; j < totalDevices; j++) {
+	std::string deviceId = channelItem->GetDeviceIds(j);
+	NetDMFXmlNode channelDevice = dom->FindElementByPath(deviceId.c_str());
+	NetDMFDevice *deviceItem = channelItem->GetAttachedDevice(j);
+	devices.push_back(deviceItem);
+	std::string channelDeviceName = dom->GetAttribute(channelDevice, "Name");
+
+	std::string xpath = dom->GetPath(channelDevice);
+	int k = xpath.find("Device") - 1;
+	xpath = xpath.substr(0, k);
+	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
+
+	// STOP HERE FOR THE DAY
+      }
+    }
+  }
+  else if (NetDMFScenario *parent = dynamic_cast<NetDMFScenario*>(elmt)) {
+  }
+  else {
+  }
+}
+
+/**
+ * Parse the NetDMFPlatform type, described below.
+ *
+ * A NetDMFPlatform  contains a "platform" definition which is a collection
+ * of nodes. It has many of the properties of a node.
+ @verbatim
+ <Platform Name="Rack1">
+    <Node/>
+    <Node/>
+    <Node/>
+    <Parameter/>
+ </Platform>
+ @endverbatim
+ */
 void parsePlatforms(NetDMFScenario *scenario)
 {
   int retval;
@@ -219,14 +334,26 @@ void parsePlatforms(NetDMFScenario *scenario)
       idstring = idstring.substr(index1, index2 - index1);
     }
 
-    // Parse Nodes
+    parseNodes(platform);
+
     // Parse Channels
   }
 }
 
 /**
- * Parse the scenarios in the NetDMF file.  Logic stolen from Payton's
- * python script NetDMFtoOpNet.py
+ * Parse the NetDMFScenario type, described below.
+ * 
+ * A NetDMFScenario contains a "scenario" suitable for setting up a Network Simulation.
+ @verbatim
+ <Scenario Name="Simuation 1 Scenario">
+    <Protocol/>
+    <Node/>
+    <Event/>
+    <Parameter/>
+    <Channel/>
+    <Platform/>
+ </Scenario>
+ @endverbatim
  */
 extern "C"
 void parseScenarios()
