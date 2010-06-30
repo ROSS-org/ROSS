@@ -3,10 +3,10 @@
  * 
  */
 
-/* Includes */
 #include <ross.h>
 
-
+#define BOLTZMANN 1.3803e-23 /**< thermal noise at 290K in J/s = W */
+#define PI 3.1415926535 /**< mmm, Pi. */
 
 /**
  * \brief A Friis propagation loss model
@@ -44,11 +44,6 @@
  * The current implementation returns the txpower as the rxpower
  * for any distance smaller than MinDistance.
  */
-
-/* thermal noise at 290K in J/s = W */
-#define BOLTZMANN 1.3803e-23
-#define PI 3.1415926535
-
 double calcRxPower (double txPowerDbm, double distance, double minDistance, double lambda, double systemLoss);
 double dbmFromW (double w);
 
