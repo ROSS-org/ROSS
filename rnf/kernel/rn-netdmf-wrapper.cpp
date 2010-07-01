@@ -9,8 +9,12 @@
 #include <NetDMFParameter.h>
 #include <NetDMFDevice.h>
 #include <NetDMFChannel.h>
+#include <NetDMFConversation.h>
+#include <NetDMFMovement.h>
+#include <NetDMFArray.h>
 #include <libxml/tree.h>
 #include <vector>
+#include <sstream>
 
 /**
  * @file
@@ -131,6 +135,237 @@ rnNetDMFInit()
 }
 
 /**
+ * Parse the NetDMFTraffic type, described below.
+ *
+ * The <Traffic> specifies the data that flows in a conversation. It
+ * uses an XdmfDataItem to specify how many bytes/frames were transferred,
+ * in each direction or lists the raw packets using <PacketItem>. If the
+ * TrafficType is bin, a TrafficInterval is specified.
+ @verbatim
+ <Traffic
+   TrafficType="Bin"
+   Units="Bytes"
+   Interval="0.1">
+    <DataItem NumberType="Float" Dimensions="10" Format="XML">
+      0.0 0.0 0.0 0.0 356.0 500.0 500.0 0.0 0.0 0.0
+    </DataItem>
+ </Traffic>
+ @endverbatim
+ */
+void parseTraffics(NetDMFConversation *parent)
+{
+  int totalTraffics = parent->GetNumberOfTraffics();
+}
+
+/**
+ * Parse the NetDMFConversation type, described below.
+ *
+ * A NetDMFConversation  defines conversations between nodes. It is the
+ * child of an event with EventType="Communication" and CommType="Conversation".
+ * A conversation can have 0 or 1 PacketItems. If present, the PacketItem lists
+ * the packets in the conversation. Additionally a Conversation can have 1 or 2
+ * Traffic elements. These define the traffic in each direction.
+ @verbatim
+ <Event EventType="Comm" CommType="Conversation" StartTime="12345">
+    <Conversation
+        StartTime="12345"
+        ConversationType="IPV4"
+        EndPointA="10.11.102.23"
+        EndPointB="10.11.104.23">
+        <PacketItem
+            NumberOfPackets="100"
+            PacketType="Filter"
+            Filter="src host 10.11.102.23 and dst host 10.11.104.23"
+            Format="PCAP">
+            test.pcap
+         </PacketItem>
+         <Traffic
+            TrafficType="bin"
+            Direction"AtoB"
+            Units="bytes"
+            Interval="0.1">
+            <DataItem NumberType="Float" Dimensions="10" Format="XML">
+                 0.0 0.0 0.0 0.0 356.0 500.0 500.0 0.0 0.0 0.0
+            </DataItem>
+         </Traffic>
+     </Conversation>
+ </Event>
+ @endverbatim
+ */
+void parseCommunications(NetDMFEvent *parent)
+{
+  int totalConversations = parent->GetNumberOfConversations();
+
+  for (int i = 0; i < totalConversations; i++) {
+    NetDMFConversation *conversationItem = parent->GetConversation(i);
+
+    parseTraffics(conversationItem);
+  }
+}
+
+/**
+ * Parse the NetDMFMovement type, described below.
+ *
+ * Movment for a node can be in the Scenario or Result section. MovementType can be :
+ - Model
+ - Path
+ * If MovementType is Model, the ModelName and ModelData strings define a mobility
+ * model and its parameters respectively to define the movement.
+
+ * If MovementType is Path, PathType can be :
+ - Grid : XYZ in grid coordinates
+ - GeoSpatial : Lat, Lon, Height
+ - GridVelocity : Grid + Velocity
+ - GeoSpatialVelocity : GeoSpatial + velocity
+ @verbatim
+ <Movement
+    MovementType="Model"
+    ModelName="RandomWalk"
+    ModelData="interval=1.0s maxspeed=0.5m/s"
+ </Movement>
+ <Movement 
+    MovementType="Path"
+    Interval="1.0"
+    PathPositionType="GeoSpatial" >
+    <DataItem  NumberType="Float" Dimensions="3 4" Format=XML>
+       35.0  75.0  1.0
+       35.15 75.0  1.0
+       35.25 75.0  1.0
+       35.35 75.0  1.0
+    </DataItem>
+ </Movement>
+ @endverbatim
+ */
+void parseMovements(NetDMFEvent *parent)
+{
+  int totalMovements = parent->GetNumberOfMovements();
+
+  XdmfFloat64 x, y;
+
+  for (int i = 0; i < totalMovements; i++) {
+    NetDMFMovement *movementItem = parent->GetMovement(i);
+    movementItem->Update();
+    std::string nodeidstring = movementItem->GetNodeId();
+
+    XdmfArray *ar = movementItem->GetPathData()->GetArray();
+    std::string dimensions = movementItem->GetPathData()->GetShapeAsString();
+    std::istringstream input(dimensions);
+    int dim1, dim2;
+    input >> dim1;
+    input >> dim2;
+
+    if (dim2 == 4 || dim2 == 7) {
+      x = ar->GetValueAsFloat64(2);
+      y = ar->GetValueAsFloat64(1);
+    }
+    else {
+      x = ar->GetValueAsFloat64(1);
+      y = ar->GetValueAsFloat64(0);
+    }
+  }
+}
+
+/**
+ * Parse the NetDMFEvent type, described below.
+ *
+ * An <Event> is the high level container for discrete events. In addition
+ * to StartTime and EndTime (from the Unix epoch) an <Event>  has an
+ * EventType attribute. EventType corresponds to the child element type of
+ * the <Event>. Valid EventTypes are :
+ * - Collection - Events that should be grouped
+ * - Movement - Node Movement
+ * - Communication - two or more nodes communicating
+
+ * Communication Event Types can be further defined in two different ways, as
+ * specified by CommunicationType. Valid CommunicationTypes are :
+ * - Conversation - Communication between two endpoints
+ * - EndPoint - Endpoints for communications
+ * - PacketCapture - Packets captured at a specific node:device
+ * - Application - A simulator-supported traffic generation application (e.g. ping)
+ @verbatim
+ <Result>
+ <Event EventType="Collection" CollectionType="Temporal" 
+ Name="Simple OLSR Simulation" StartTime="0.0" Endtime="50.0">
+ <Event EventType="Collection" CollectionType="Temporal"
+ StartTime="0.0" Endtime="1.0">
+ <Event  EventType="Movement" 
+    NodeId="2"
+        <Movement 
+            MovementType="Path"
+            PathType="TimeLatLonHeight"
+            PathLength="2">
+        <DataItem  NumberType="Float" Dimensions="3 4" Format="XML">
+    0.0        35.0   75.0  1.0
+    1.0        35.15 75.0  1.0
+        </DataItem>
+        </Movement>
+ </Event>
+ <Event  EventType="Comm" CommType="EndPoints" EndPointType="IPV4">
+ <AddressItem
+    AddressType="IPV4" 
+    NumberOfAddresses"4" 
+    Format="XML" >
+        10.11.102.23
+        10.11.104.23
+        192.168.0.1
+        192.168.0.12
+ </AddressItem>
+ </Event>
+ <Event EventType="Comm" CommType="Conversation">
+ <Conversation
+ ConversationType="IPV4"
+ EndPointA="10.11.102.23"
+ EndPointB="10.11.104.23">
+ <PacketItem
+    NumberOfPackets="100" 
+    PacketType="Filter" 
+    Filter="src host 10.11.102.23 and dst host 10.11.104.23" 
+    Format="PCAP">
+    test.pcap
+ </PacketItem>
+ <Traffic
+    TrafficType="Bin"
+    Units="Bytes"
+    Interval="0.1">
+ <DataItem NumberType="Float" Dimensions="10" Format="XML">
+ 0.0 0.0 0.0 0.0 356.0 500.0 500.0 0.0 0.0 0.0
+ </DataItem>
+ </Traffic>
+ </Conversation>
+ </Event>
+ <Event EventType="Comm" CommType="PacketCapture">
+   <Parameter Name="NodeId" Value="1"/>
+   <Parameter Name="DeviceId" Value="0"/>
+   <PacketItem Format="PCAP">
+     test1_n1d0.pcap
+   </PacketItem>
+ </Event>
+ </Event>
+ <Event EventType="Collection" StartTime="1.0" Endtime="2.0">
+    Events for time 1.0 2.0
+ </Event>
+ Etc.......
+ </Event>
+ </Result>
+ @endverbatim
+ */
+void parseEvents(NetDMFScenario *parent)
+{
+  int totalEvents = parent->GetNumberOfEvents();
+
+  for (int i = 0; i < totalEvents; i++) {
+    NetDMFEvent *eventItem = parent->GetEvent(i);
+    if (eventItem->GetEventType() == 1) {
+    }
+    else if (eventItem->GetEventType() == 2) {
+    }
+    else {
+      printf("Unknown event type: %d\n", i);
+    }
+  }
+}
+
+/**
  * Parse the NetDMFParameter type, described below.
  *
  * A NetDMFParameter contains a name and a value pair.
@@ -143,7 +378,7 @@ rnNetDMFInit()
  <Parameter Name="Manufacturer" Value="Acme"/>
  @endverbatim
  */
-void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *>params)
+void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *> &params)
 {
   int totalParameters = node->GetNumberOfParameters();
 
@@ -172,17 +407,17 @@ void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *>params)
    <Parameter Name="Delay" Value="2.5" />
  </Device>
 
-  <Device Name="HMMWV" DeviceType="Mobility">
+ <Device Name="HMMWV" DeviceType="Mobility">
     <Parameter Name="Wheels" Value="4" />
     <Parameter Name="TopSpeed" Value="20.0" />
     <Device Reference="/NetDMF/Device[@Name='RadioType1']" >
-        <Stack Reference="/NetDMF/Stack[@Name='SimpleOlsr']" />
-        <Stack Reference="/NetDMF/Stack[@Name='MyExperimentalProtocol']" />
+       <Stack Reference="/NetDMF/Stack[@Name='SimpleOlsr']" />
+       <Stack Reference="/NetDMF/Stack[@Name='MyExperimentalProtocol']" />
     </Device>
-  </Device>
-  @endverbatim
+ </Device>
+ @endverbatim
  */
-void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *>dev)
+void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *> &dev)
 {
   int totalDevices = node->GetNumberOfDevices();
 
@@ -236,8 +471,38 @@ void parseNodes(NetDMFElement *elmt)
     }
   }
   else if (NetDMFScenario *parent = dynamic_cast<NetDMFScenario*>(elmt)) {
+    // Make sure to fill this in later
+    int totalNodes = parent->GetNumberOfNodes();
+
+    for (int i = 0; i < totalNodes; i++) {
+       NetDMFNode *nodeItem = parent->GetNode(i);
+
+      std::vector<NetDMFDevice *> devices;
+      std::vector<NetDMFParameter *> params;
+      parseDevices(nodeItem, devices);
+      parseParameters(nodeItem, params);
+
+      if (devices.size() == 0) {
+	printf("Ignoring Node with no devices: %s, %d", nodeItem->GetName(),
+	       nodeItem->GetNodeId());
+	continue;
+      }
+
+      if (devices.size() > 1) {
+	for (int j = 1; j < devices.size(); j++) {
+	  printf("Ignoring Device named: %s", (devices[j])->GetName());
+	}
+      }
+
+      for (int j = 0; j < params.size(); j++) {
+	if (params[j]->GetName() == "IPv4MulticastMembership") {
+	  // Possibly do something in ROSS
+	}
+      }
+    }
   }
   else {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
   }
 }
 
@@ -262,10 +527,16 @@ void parseNodes(NetDMFElement *elmt)
  </Channel>
  @endverbatim
  */
-void parseChannels(NetDMFElement *elmt, std::vector<NetDMFDevice *>&devices)
+void parseChannels(NetDMFElement *elmt)
 {
+  std::vector<NetDMFDevice *> devices;
+  std::vector<NetDMFNode *> nodes;
+
   if (NetDMFPlatform *parent = dynamic_cast<NetDMFPlatform*>(elmt)) {
     int totalChannels = parent->GetNumberOfChannels();
+
+    std::string srcstring;
+    std::string deststring;
 
     for (int i = 0; i < totalChannels; i++) {
       NetDMFChannel *channelItem = parent->GetChannel(i);
@@ -281,17 +552,92 @@ void parseChannels(NetDMFElement *elmt, std::vector<NetDMFDevice *>&devices)
 	std::string channelDeviceName = dom->GetAttribute(channelDevice, "Name");
 
 	std::string xpath = dom->GetPath(channelDevice);
-	int k = xpath.find("Device") - 1;
-	xpath = xpath.substr(0, k);
+	int dnum = xpath.find("Device") - 1;
+	xpath = xpath.substr(0, dnum);
 	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
 
 	// STOP HERE FOR THE DAY
+	int totalNodes = parent->GetNumberOfNodes();
+	for (int k = 0; k < totalNodes; k++) {
+	  NetDMFNode *nodeItem = parent->GetNode(k);
+	  std::string nodexpath = dom->GetPath(nodeItem->GetElement());
+	  if (nodexpath == xpath) {
+	    nodes.push_back(nodeItem);
+	    if (j == 0) {
+	      srcstring = nodeItem->GetName() + nodeItem->GetNodeId();
+	    }
+	    else {
+	      deststring = nodeItem->GetName() + nodeItem->GetNodeId();
+	    }
+	  }
+	}
       }
     }
   }
   else if (NetDMFScenario *parent = dynamic_cast<NetDMFScenario*>(elmt)) {
+    // Make sure this gets filled in
+    int totalChannels = parent->GetNumberOfChannels();
+
+    std::string srcstring;
+    std::string deststring;
+
+    for (int i = 0; i < totalChannels; i++) {
+      NetDMFChannel *channelItem = parent->GetChannel(i);
+      channelItem->Update();
+
+      int totalDevices = channelItem->GetNumberOfDeviceIds();
+
+      for (int j = 0; j < totalDevices; j++) {
+	std::string deviceId = channelItem->GetDeviceIds(j);
+	NetDMFXmlNode channelDevice = dom->FindElementByPath(deviceId.c_str());
+	NetDMFDevice *deviceItem = channelItem->GetAttachedDevice(j);
+	devices.push_back(deviceItem);
+	std::string channelDeviceName = dom->GetAttribute(channelDevice, "Name");
+
+	std::string xpath = dom->GetPath(channelDevice);
+	int dnum = xpath.find("Device") - 1;
+	xpath = xpath.substr(0, dnum);
+	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
+
+	// STOP HERE FOR THE DAY
+	int totalNodes = parent->GetNumberOfNodes();
+	for (int k = 0; k < totalNodes; k++) {
+	  NetDMFNode *nodeItem = parent->GetNode(k);
+	  std::string nodexpath = dom->GetPath(nodeItem->GetElement());
+	  if (nodexpath == xpath) {
+	    nodes.push_back(nodeItem);
+	    if (j == 0) {
+	      srcstring = nodeItem->GetName() + nodeItem->GetNodeId();
+	    }
+	    else {
+	      deststring = nodeItem->GetName() + nodeItem->GetNodeId();
+	    }
+	  }
+	}
+
+	int totalPlatforms = parent->GetNumberOfPlatforms();
+	for (int k = 0; k < totalPlatforms; k++) {
+	  NetDMFPlatform *platformItem = parent->GetPlatform(k);
+	  totalNodes = platformItem->GetNumberOfNodes();
+	  for (int l = 0; l < totalNodes; l++) {
+	    NetDMFNode *nodeItem = platformItem->GetNode(l);
+	    std::string nodexpath = dom->GetPath(nodeItem->GetElement());
+	    if (nodexpath == xpath) {
+	      nodes.push_back(nodeItem);
+	      if (j == 0) {
+		srcstring = nodeItem->GetName() + nodeItem->GetNodeId();
+	      }
+	      else {
+		deststring = nodeItem->GetName() + nodeItem->GetNodeId();
+	      }
+	    }
+	  }
+	}
+      }
+    }
   }
   else {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
   }
 }
 
@@ -336,7 +682,7 @@ void parsePlatforms(NetDMFScenario *scenario)
 
     parseNodes(platform);
 
-    // Parse Channels
+    parseChannels(platform);
   }
 }
 
@@ -388,7 +734,8 @@ void parseScenarios()
     
     parseNodes(scenario);
 
-    /* Parse Channels */
+    parseChannels(scenario);
+
     /* Parse Events */
   }
 }
