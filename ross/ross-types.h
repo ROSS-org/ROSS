@@ -247,7 +247,7 @@ struct tw_lp_state
 enum tw_event_owner
 {
   TW_pe_event_q = 1,	    /**< @brief In a tw_pe.event_q list */
-    TW_pe_pq = 2,	    /**< @brief In a tw_pe.pq */
+    TW_pe_pq = 2,	    	/**< @brief In a tw_pe.pq */
     TW_kp_pevent_q = 3,     /**< @brief In a tw_kp.pevent_q */
     TW_pe_anti_msg = 4,     /**< @brief Anti-message */
     TW_net_outq = 5,        /**< @brief Pending network transmission */
@@ -266,41 +266,46 @@ enum tw_event_owner
  */
 struct tw_event
 {
-  tw_event *next;
-  tw_event *prev;
+	tw_event *next;
+	tw_event *prev;
 #ifdef ROSS_QUEUE_splay
-  tw_event *up; /**< @brief Up pointer for storing membufs in splay tree */
+  	tw_event *up; 					/**< @brief Up pointer for storing membufs in splay tree */
 #endif
 #ifdef ROSS_QUEUE_heap
-  unsigned long heap_index; /**< @brief Index for storing membufs in heap queue */
+  	unsigned long heap_index; 		/**< @brief Index for storing membufs in heap queue */
 #endif
 
-  tw_event *cancel_next; /**< @brief Next event in the cancel queue for the dest_pe */
-  tw_event *caused_by_me; /**< @brief Start of event list caused by this event */
-  tw_event *cause_next; /**< @brief Next in parent's caused_by_me chain */
+  	tw_event *cancel_next; 			/**< @brief Next event in the cancel queue for the dest_pe */
+  	tw_event *caused_by_me; 		/**< @brief Start of event list caused by this event */
+  	tw_event *cause_next; 			/**< @brief Next in parent's caused_by_me chain */
 
-  tw_eventid	 event_id; /**< @brief Unique id assigned by src_lp->pe if remote. */
+  	tw_eventid	 event_id; 			/**< @brief Unique id assigned by src_lp->pe if remote. */
 
-  /** Status of the event's queue location(s). */
-  struct
-  {
-    unsigned char owner; /**< @brief Owner of the next/prev pointers; see tw_event_owner */
-    unsigned char cancel_q;  /**< @brief Actively on a dest_lp->pe's cancel_q */
-    unsigned char cancel_asend;
-    unsigned char remote; /**< @brief Indicates union addr is in 'remote' storage */
-  } state;
+  	/** Status of the event's queue location(s). */
+  	struct {
+    	unsigned char owner; 		/**< @brief Owner of the next/prev pointers; see tw_event_owner */
+    	unsigned char cancel_q;  	/**< @brief Actively on a dest_lp->pe's cancel_q */
+    	unsigned char cancel_asend;
+    	unsigned char remote; 		/**< @brief Indicates union addr is in 'remote' storage */
+  	} state;
 
-  tw_bf		 cv; /**< @brief Used by app during reverse computation. */
-  //void		*lp_state lp_state -- dest_lp->state BEFORE this event;
+  	tw_bf		 cv; 				/**< @brief Used by app during reverse computation. */
 
-  tw_lp		*dest_lp; /**< @brief dest_lp -- Destination LP object */
-  tw_lp		*src_lp; /**< @brief Sending LP */
-  tw_stime	 recv_ts; /**< @brief Actual time to be received */
+	tw_lp		*dest_lp_ptr; 		/**< @brief Destination LP Pointer */
+	tw_lp		*src_lp_ptr; 		/**< @brief Sending LP Pointer */
+	
+/*  tw_lpid		 dest_lp;			What we want eventually...
+ *	tw_lpid		 src_lp;
+*/	
+	
+	tw_lp		*dest_lp; 			/**< @brief Destination LP ID */
+  	tw_lp		*src_lp; 			/**< @brief Sending LP ID */
+  	tw_stime	 recv_ts; 			/**< @brief Actual time to be received */
 
-  tw_peid		 send_pe;
+  	tw_peid		 send_pe;
 
 #ifdef ROSS_MEMORY
-  tw_memory	*memory;
+  	tw_memory	*memory;
 #endif
 };
 
