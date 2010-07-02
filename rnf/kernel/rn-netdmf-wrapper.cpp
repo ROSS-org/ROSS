@@ -12,6 +12,8 @@
 #include <NetDMFConversation.h>
 #include <NetDMFMovement.h>
 #include <NetDMFArray.h>
+#include <NetDMFTraffic.h>
+#include <NetDMFAddressItem.h>
 #include <libxml/tree.h>
 #include <vector>
 #include <sstream>
@@ -134,6 +136,70 @@ rnNetDMFInit()
 #endif
 }
 
+NetDMFNode * getNodeWithAddress(std::string address)
+{
+  int totalScenarios = dom->FindNumberOfElements("Scenario");
+
+  for (int i = 0; i < totalScenarios; i++) {
+    NetDMFScenario scenarioItem;
+    scenarioItem.SetDOM(dom);
+    scenarioItem.SetElement(dom->FindElement("Scenario", i));
+    scenarioItem.Update();
+
+    int totalNodes = scenarioItem.GetNumberOfNodes();
+
+    for (int j = 0; j < totalNodes; j++) {
+      NetDMFNode *nodeItem = scenarioItem.GetNode(j);
+
+      int totalDevices = nodeItem->GetNumberOfDevices();
+
+      for (int k = 0; k < totalDevices; k++) {
+	NetDMFDevice *deviceItem = nodeItem->GetDevice(k);
+
+	int totalAddressItems = deviceItem->GetNumberOfAddressItems();
+
+	for (int l = 0; l < totalAddressItems; l++) {
+	  NetDMFAddressItem *addressItem = deviceItem->GetAddress(l);
+	  addressItem->Update();
+	  if (addressItem->GetAddresses(0,1) == address.c_str()) {
+	    return nodeItem;
+	  }
+	}
+      }
+    }
+    
+    int totalPlatforms = scenarioItem.GetNumberOfPlatforms();
+
+    for (int j = 0; j < totalPlatforms; j++) {
+      NetDMFPlatform *platformItem = scenarioItem.GetPlatform(j);
+
+      int totalNodes = platformItem->GetNumberOfNodes();
+
+      for (int k = 0; k < totalNodes; k++) {
+	NetDMFNode *nodeItem = platformItem->GetNode(k);
+
+	int totalDevices = nodeItem->GetNumberOfDevices();
+
+	for (int l = 0; l < totalDevices; l++) {
+	  NetDMFDevice *deviceItem = nodeItem->GetDevice(l);
+
+	  int totalAddressItems = deviceItem->GetNumberOfAddressItems();
+
+	  for (int m = 0; m < totalAddressItems; m++) {
+	    NetDMFAddressItem *addressItem = deviceItem->GetAddress(m);
+	    addressItem->Update();
+	    if (addressItem->GetAddresses(0,1) == address.c_str()) {
+	      return nodeItem;
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  return 0;
+}
+
 /**
  * Parse the NetDMFTraffic type, described below.
  *
@@ -152,9 +218,36 @@ rnNetDMFInit()
  </Traffic>
  @endverbatim
  */
-void parseTraffics(NetDMFConversation *parent)
+void parseTraffics(NetDMFConversation *parent, int &index)
 {
   int totalTraffics = parent->GetNumberOfTraffics();
+
+  std::string starttime;
+  if (dom->GetAttribute(parent->GetElement(), "StartTime")) {
+    starttime = dom->GetAttribute(parent->GetElement(), "StartTime");
+  }
+  else {
+    starttime = "0";
+  }
+
+  std::string srcaddress = parent->GetEndPointA();
+  NetDMFNode *src = getNodeWithAddress(srcaddress);
+  std::string destaddress = parent->GetEndPointB();
+  NetDMFNode *dest = getNodeWithAddress(destaddress);
+
+  for (int i = 0; i < totalTraffics; i++) {
+    NetDMFTraffic *trafficItem = parent->GetTraffic(i);
+    trafficItem->Update();
+    XdmfArray *values = trafficItem->GetValues();
+    XdmfInt64 valuesstring = values->GetNumberOfElements();
+
+    for (int j = 0; j < valuesstring; j++) {
+      if (0 != values->GetValueAsInt32(j)) {
+	// Do some stuff with this non-zero traffic
+	index++;
+      }
+    }
+  }  
 }
 
 /**
@@ -196,10 +289,12 @@ void parseCommunications(NetDMFEvent *parent)
 {
   int totalConversations = parent->GetNumberOfConversations();
 
+  int index = 0;
+
   for (int i = 0; i < totalConversations; i++) {
     NetDMFConversation *conversationItem = parent->GetConversation(i);
 
-    parseTraffics(conversationItem);
+    parseTraffics(conversationItem, index);
   }
 }
 
@@ -356,8 +451,10 @@ void parseEvents(NetDMFScenario *parent)
   for (int i = 0; i < totalEvents; i++) {
     NetDMFEvent *eventItem = parent->GetEvent(i);
     if (eventItem->GetEventType() == 1) {
+      parseMovements(eventItem);
     }
     else if (eventItem->GetEventType() == 2) {
+      parseCommunications(eventItem);
     }
     else {
       printf("Unknown event type: %d\n", i);
@@ -471,7 +568,6 @@ void parseNodes(NetDMFElement *elmt)
     }
   }
   else if (NetDMFScenario *parent = dynamic_cast<NetDMFScenario*>(elmt)) {
-    // Make sure to fill this in later
     int totalNodes = parent->GetNumberOfNodes();
 
     for (int i = 0; i < totalNodes; i++) {
@@ -556,7 +652,6 @@ void parseChannels(NetDMFElement *elmt)
 	xpath = xpath.substr(0, dnum);
 	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
 
-	// STOP HERE FOR THE DAY
 	int totalNodes = parent->GetNumberOfNodes();
 	for (int k = 0; k < totalNodes; k++) {
 	  NetDMFNode *nodeItem = parent->GetNode(k);
@@ -575,7 +670,6 @@ void parseChannels(NetDMFElement *elmt)
     }
   }
   else if (NetDMFScenario *parent = dynamic_cast<NetDMFScenario*>(elmt)) {
-    // Make sure this gets filled in
     int totalChannels = parent->GetNumberOfChannels();
 
     std::string srcstring;
@@ -599,7 +693,6 @@ void parseChannels(NetDMFElement *elmt)
 	xpath = xpath.substr(0, dnum);
 	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
 
-	// STOP HERE FOR THE DAY
 	int totalNodes = parent->GetNumberOfNodes();
 	for (int k = 0; k < totalNodes; k++) {
 	  NetDMFNode *nodeItem = parent->GetNode(k);
@@ -707,35 +800,33 @@ void parseScenarios()
   int retval;
   int totalScenarios = dom->FindNumberOfElements("Scenario");
 
-  NetDMFScenario *scenario;
-
   for (int i = 0; i < totalScenarios; i++) {
-    scenario = new NetDMFScenario();
+    NetDMFScenario scenario;
 
-    retval = scenario->SetDOM(dom);
+    retval = scenario.SetDOM(dom);
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
 
-    retval = scenario->SetElement(dom->FindElement("Scenario", i));
+    retval = scenario.SetElement(dom->FindElement("Scenario", i));
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
 
-    retval = scenario->Update();
+    retval = scenario.Update();
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
 
-    parsePlatforms(scenario);
+    parsePlatforms(&scenario);
     
-    parseNodes(scenario);
+    parseNodes(&scenario);
 
-    parseChannels(scenario);
+    parseChannels(&scenario);
 
-    /* Parse Events */
+    parseEvents(&scenario);
   }
 }
