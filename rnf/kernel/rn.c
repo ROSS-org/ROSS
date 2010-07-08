@@ -635,6 +635,9 @@ const tw_optdef rn_opts [] =
 	TWOPT_CHAR("link-topology", g_rn_xml_link_topology, "user specified link topology"),
 	TWOPT_CHAR("scenario", g_rn_tools_dir, "tools scenario"),
 	TWOPT_CHAR("run", g_rn_run, "user supplied run identifier"),
+#ifdef WITH_NETDMF
+	TWOPT_CHAR("netdmf-config", g_rn_netdmf_config, "NetDMF config file"),
+#endif /* WITH_NETDMF */
 	TWOPT_END()
 };
 

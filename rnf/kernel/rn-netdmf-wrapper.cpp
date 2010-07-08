@@ -38,6 +38,9 @@ static NetDMFDOM *dom = 0;
  */
 static NetDMFRoot *root = 0;
 
+extern "C" char      g_rn_netdmf_config[];
+
+extern "C" void parseScenarios();
 /**
  * This function handles initialization of the NetDMF
  * description language.  The function currently doesn't do much except
@@ -58,7 +61,11 @@ rnNetDMFInit()
   }
 
   // Parse the XML File
-  retval = dom->SetInputFileName("NodeTest1.xmn");
+  if (0 == strcmp("", g_rn_netdmf_config)) {
+    printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+    abort();
+  }
+  retval = dom->SetInputFileName(g_rn_netdmf_config);
   if (XDMF_SUCCESS != retval) {
     printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
     abort();
@@ -76,6 +83,8 @@ rnNetDMFInit()
     printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
     abort();
   }
+
+  parseScenarios();
 
 #if 0
   retval = node.SetDOM(dom);
@@ -800,33 +809,38 @@ void parseScenarios()
   int retval;
   int totalScenarios = dom->FindNumberOfElements("Scenario");
 
+  NetDMFScenario *scenario;
   for (int i = 0; i < totalScenarios; i++) {
-    NetDMFScenario scenario;
+    scenario = new NetDMFScenario();
 
-    retval = scenario.SetDOM(dom);
+    retval = scenario->SetDOM(dom);
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
 
-    retval = scenario.SetElement(dom->FindElement("Scenario", i));
+    retval = scenario->SetElement(dom->FindElement("Scenario", i));
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
 
-    retval = scenario.Update();
+    retval = scenario->Update();
+    /**
+     * @bug There's a bug in NetDMF that allows the Update function
+     * to run off the end w/o returning XMD_SUCCESS
+     
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
-
-    parsePlatforms(&scenario);
+    */
+    parsePlatforms(scenario);
     
-    parseNodes(&scenario);
+    parseNodes(scenario);
 
-    parseChannels(&scenario);
+    parseChannels(scenario);
 
-    parseEvents(&scenario);
+    parseEvents(scenario);
   }
 }

@@ -177,6 +177,9 @@ extern char	 g_rn_xml_link_topology[];
 extern char	 g_rn_xml_model[];
 extern char	 g_rn_logs_dir[];
 
+/* For NetDMF only */
+extern char      g_rn_netdmf_config[];
+
 extern rn_statistics	*g_rn_stats;
 extern rn_lptype	*g_rn_lptypes;
 

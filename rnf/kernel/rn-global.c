@@ -76,6 +76,9 @@ char	 g_rn_rt_table[1024];
 char	 g_rn_tools_dir[1024] = "tcp2";
 char	 g_rn_logs_dir[1024] = "logs";
 
+/* For NetDMF only */
+char     g_rn_netdmf_config[1024];
+
 xmlDocPtr document_network = NULL;
 xmlDocPtr document_links = NULL;
 xmlDocPtr document_model = NULL;
