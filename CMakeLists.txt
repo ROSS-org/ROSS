@@ -43,7 +43,9 @@ SET(GVT           mpi_allreduce)
 #SET(GVT          7oclock)
 #SET(GVT          none)
 
-SET(ARCH $ENV{ARCH})
+SET(VALID_ARCH NO)
+SET(ARCH $ENV{ARCH} CACHE STRING "Target architecture")
+MARK_AS_ADVANCED(ARCH)
 IF(NOT ARCH)
 	MESSAGE(FATAL_ERROR
 		"ARCH not defined!\n"
@@ -51,6 +53,7 @@ IF(NOT ARCH)
 ENDIF(NOT ARCH)
 
 IF(ARCH STREQUAL i386)
+        SET(VALID_ARCH YES)
         #SET(CC	 mpicc)
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
         ADD_DEFINITIONS(-D_GNU_SOURCE)
@@ -58,6 +61,7 @@ IF(ARCH STREQUAL i386)
 ENDIF(ARCH STREQUAL i386)
 
 IF(ARCH STREQUAL bgl)
+       SET(VALID_ARCH YES)
        #SET(CC   mpixlc)
        #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
@@ -66,6 +70,7 @@ IF(ARCH STREQUAL bgl)
 ENDIF(ARCH STREQUAL bgl)
 
 IF(ARCH STREQUAL bgp)
+       SET(VALID_ARCH YES)
        #SET(CC   mpixlc)
        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
        SET(OPTIONS "-qtune=450 -qarch=450d")
@@ -73,6 +78,7 @@ IF(ARCH STREQUAL bgp)
 ENDIF(ARCH STREQUAL bgp)
 
 IF(ARCH STREQUAL ppc64)
+       SET(VALID_ARCH YES)
        #SET(CC   mpicc)
        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
        ADD_DEFINITIONS(-D_GNU_SOURCE)
@@ -80,12 +86,19 @@ IF(ARCH STREQUAL ppc64)
 ENDIF(ARCH STREQUAL ppc64)
 
 IF(ARCH STREQUAL x86_64)
+        SET(VALID_ARCH YES)
         #SET(CC	 mpicc)
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
         SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
         ADD_DEFINITIONS(-D_GNU_SOURCE)
         SET(CLOCK       amd64)
 ENDIF(ARCH STREQUAL x86_64)
+
+IF(NOT VALID_ARCH)
+       MESSAGE(FATAL_ERROR
+		"ARCH not valid!\n"
+		"Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
+ENDIF(NOT VALID_ARCH)
 
 ADD_SUBDIRECTORY(ross)
 ADD_SUBDIRECTORY(rnf)

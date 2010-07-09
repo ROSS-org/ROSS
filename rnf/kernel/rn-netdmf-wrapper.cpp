@@ -826,15 +826,11 @@ void parseScenarios()
     }
 
     retval = scenario->Update();
-    /**
-     * @bug There's a bug in NetDMF that allows the Update function
-     * to run off the end w/o returning XMD_SUCCESS
-     
     if (XDMF_SUCCESS != retval) {
       printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
       abort();
     }
-    */
+
     parsePlatforms(scenario);
     
     parseNodes(scenario);
