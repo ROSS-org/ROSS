@@ -10,6 +10,8 @@
  * ROSS code.
  */
 
+void rnNetDMFInit();
+
 /**
  * This function handles initialization of the NetDMF
  * description language.  It simply calls the rnNetDMFInit function which

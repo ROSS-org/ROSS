@@ -641,6 +641,10 @@ const tw_optdef rn_opts [] =
 	TWOPT_END()
 };
 
+#ifdef WITH_NETDMF
+void rn_netdmf_init();
+#endif /* WITH_NETDMF */
+
 	/*
 	 * Map LPs->KPs->PEs, 
 	 * initialize the ROSS engine, 
