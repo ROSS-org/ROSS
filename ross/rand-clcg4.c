@@ -1,7 +1,8 @@
 #include <ross.h>
 
 /**
- * \file clcg4.c   RNG Implementation module
+ * @file clcg4.c
+ * @brief RNG Implementation module
  *
  * Random number generator, provides all of the features GTW requires
  * by default.  Chris hacked this pretty well, he would know the
