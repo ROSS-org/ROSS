@@ -36,7 +36,7 @@
  Mark Anderson -- RPI CS PhD Student       \\
  David Bauer -- MITRE                      \\	
  Akintayo Holder -- RPI CS PhD Student     \\
- Justin Lapre -- RPI CS PhD Student        \\
+ Justin LaPre -- RPI CS PhD Student        \\
  Shawn Pearce -- Google                    \\
  Garrett Yaun -- Google                    \\[12pt]
                                            \\
@@ -62,7 +62,7 @@ multiprocessor systems. ROSS is geared for running large-scale simulation
 models (i.e., 100K to even 1 million object models).
 
 The synchronization mechanism is based on Time Warp. Time Warp is an
-optimistic synchronization mechanism develop by Jefferson and
+optimistic synchronization mechanism developed by Jefferson and
 Sowizral~\cite{jefferson-tr-82,jefferson-toplas-85} used in the
 parallelization of discrete-event simulation. The distributed simulator
 consists of a collection of {\em logical processes} or LPs, each modeling a
@@ -81,10 +81,10 @@ Warp\cite{das-wsc-1994}. ROSS helped to demonstrate that Time Warp simulators
 can be run efficiently both in terms of speed and memory usage relative to a
 high-performance sequential simulator.
 
-To achieve high parallel performance, ROSS uses a technique call Reverse
+To achieve high parallel performance, ROSS uses a technique called Reverse
 Computation. Here, the roll back mechanism in the optimistic simulator is
 realized not by classic state-saving, but by literally allowing to the
-greatest possible extent events to be reverse. Thus, as models are developed
+greatest possible extent events to be reversed. Thus, as models are developed
 for parallel execution, both the forward and reverse execution code must be
 written. Currently, both are done by hand. We are investigating automatic
 methods that are able to generate the reverse execution code using only the
@@ -95,48 +95,29 @@ in the ROSS distribution.
 
 \subsection{Quick Build}
 
-Copy the following script, call it {\tt ross-get.sh} and run it in
-the directory to where you would like the {\tt rossnet} source code
-installed along with the {\tt rossnet-build} directory.
+You can build the software by following these simple steps:
 
 \begin{verbatim}
-#!/bin/sh
-
 svn co https://subversion.cs.rpi.edu/svn/rossnet
 
 mkdir rossnet-build
-cd ross-build
-
-# Edit ARCH to be one of x86_64 for Linux/x86 systems 
-#                        bgl for Blue Gene/L
-#                        bgp for Blue Gene/P
-#                        ppc64 for PowerPC systems
-export ARCH=x86_64
-
-# Edit CC to point to the right MPI pre-compiler script
-export CC=/usr/local/mpich2-1.2/bin/mpicc
-
-# Make sure you have Cmake install on system.
-# Ross/ROSS.Net requires Cmake 2.8
-cmake ../rossnet
-
-# Build Ross models and ROSS.Net
-make -j 8
-
-# Start MPI Daemon -- delete if not required for your
-# version of MPI
-mpd &
-
-# Run ROSS.Net
-
-cd ../rossnet/trunk/rnf/kernel
-ln -s ../../../../rossnet-build/trunk/rnf/kernel/rn ./rn
+cd rossnet-build
+../rossnet/build-script
+cd ../rossnet/trunk/rnf
+ln -s ../../../rossnet-build/rnf/kernel/rn .
 
 # Executes the TCP2 model using Optimistic synchronization
 # Make sure you edit the clock rate for your processor speed.
-mpirun -np 4 ./rn --scenario=tcp2 --synch=3 --clock-rate=2667000000 --nkp=512 --batch=2 --gvt-interval=64
+mpirun -np 4 ./rn --scenario=tcp2 --synch=3 --clock-rate=2667000000 \
+--nkp=512 --batch=2 --gvt-interval=64
 \end{verbatim}
- 
+
+You may need to start the mpd daemon with \texttt{mpd \&}.  Also, ensure that
+\texttt{mpicc} and \texttt{mpicxx} refer to the desired implementation by
+using the \texttt{which} command.  Additionally, this script requires CMake to
+run correctly; it can be downloaded from http://www.cmake.org or through your
+package management tool of choice. You may also need to adjust your clock-rate
+appropriately.
 
 \subsection{Data Structures}
 ROSS allows for an application programmer to design an application with the
@@ -147,7 +128,7 @@ being generated at a cell phone tower, and then moved around to other towers
 at some later time, and then the phone call ends.  At the end of a phone call,
 another call or two may be generated.  At the end of the simulation,
 statistics regarding how often calls were blocked (busy) due to limited tower
-capacity etc were collected. This details for this model can be found
+capacity etc were collected. The details for this model can be found
 in~\cite{carothers-pads-1995}. This paper is included with this ROSS
 distribution.
 
@@ -169,7 +150,7 @@ events, we need to know what data fields within the struct are available and
 important to us, the application designer.
 
 \begin{verbatim}
-	/*
+       /*
         * tw_event:
         *
         * Holds entire event structure, one is created for each and every
@@ -177,9 +158,9 @@ important to us, the application designer.
         * startup time so that there is no overhead of trying to locate the
         * tw_message storage area.  The tw_message MUST be the last item
         * in the tw_event.
-       */
+        */
 
-	DEF(struct, tw_event)
+	struct tw_event
 	{
 \end{verbatim}
 
@@ -244,7 +225,7 @@ The {\tt dest\_lp} pointer is the destination LP (logical process) for this
 event.  We also keep track of the source LP, some state-saving information and
 a bit-field per event.  The bit-field is available in the ROSS API for
 application use and ROSS does not try to impose any limits on the logical
-functionality of this data type.  The lp\_state pointer contains lp
+functionality of this data type.  The {\tt lp\_state} pointer contains LP
 information prior to the addition of an event.
 
 
@@ -275,7 +256,7 @@ allocation of this pointer.
 \end{verbatim}
 
 \subsubsection{Logical Process Data Structure}
-The LP (logical Process) struct is essential to the application
+The LP (Logical Process) struct is essential to the application
 programmer because it provides some logical environment for events to
 exist in.  In PCS, events are cell phones, and LPs are cell phone
 towers.  Cell phones initiate calls which require lines on a towers.
@@ -297,18 +278,18 @@ be TCP/IP packets, and LPs might be routers.
         * of the tw_lp structure.
         */
 
-       DEF(struct, tw_lp)
+       struct tw_lp
        {
 \end{verbatim}
  
 LPs can be many different types within ROSS.  The application must specify
 these types and that information is recorded in the {\em type} variable you
 see here.  LPs also have unique ids, and are assigned to PEs (processors).
-The application developer must create each lp and assign it to a PE.  ROSS
+The application developer must create each LP and assign it to a PE.  ROSS
 does no dynamic load balancing, so it is left to the programmer to determine
 where sinks and sources should be placed.  These simulations typically work
 best with abstracted LPs which are essentially all the same.  For example, a
-cell phone tower has channels available for placing calls.  The cell tower lp
+cell phone tower has channels available for placing calls.  The cell tower LP
 is responsible for allocating and freeing its own channels.  The ROSS API
 provides functions for assigning and viewing this information.
 
@@ -326,9 +307,9 @@ provides functions for assigning and viewing this information.
 \end{verbatim}
  
 The {\tt cur\_state} pointer is used to determine the current application
-data for this lp.  The cur\_event pointer is the event currently being
+data for this LP.  The cur\_event pointer is the event currently being
 processed by this lp.  These are used by the ROSS engine to determine
-which is the next event to process on an lp basis.
+which is the next event to process on an LP basis.
 
 \begin{verbatim}
        /*
@@ -353,8 +334,8 @@ accessing KP data fields.
        tw_kp          *kp;
 \end{verbatim}
 
-This time element is the time of the last processed event in this lp.
-The ROSS engine uses this information to determine it's current time
+This time element is the time of the last processed event in this LP.
+The ROSS engine uses this information to determine its current time
 in the simulation and is not part of the ROSS API.
 
 \begin{verbatim}
@@ -371,7 +352,7 @@ A Kernel Process (KP) holds our state for the Kernel Process (KP),
 which consists only of processed event list for a collection of LPs.
 
 \begin{verbatim}
-DEF(struct, tw_kp)
+struct tw_kp
 {
         /*
          * id       -- ID number, otherwise its not available to the app.
@@ -390,10 +371,10 @@ DEF(struct, tw_kp)
 \end{verbatim}
 
 This next series of variables is used to contain the processed event
-list. This is the list of events that is keep around for purposes of
+list. This is the list of events that is kept around for purposes of
 being able to rollback LPs. Please note, that because we are
 aggregating the processed event-list of many LPs, a single rollback at
-the KP level could result in many LPs being rolled back, so of which
+the KP level could result in many LPs being rolled back, some of which
 are not necessary.  This is a trade-off in design between the need for
 efficient fossil collection and ``false'' rollbacks. Currently,
 ``false'' rollbacks do not appear to be an issue in the models we have
@@ -426,7 +407,7 @@ And finally, we collect ROSS specific stats on a KP by KP basis.
 \subsubsection{Processing Element Data Structure}
 Most of what is contained within the PE (processor) struct is internal
 to the ROSS engine so it is not shown here.  There is one field of
-note and that is the id field.  Within a machine, each processor is
+note and that is the {\tt id} field.  Within a machine, each processor is
 assigned a unique PE id, starting from zero and going up.  This is
 important to the application designer when mapping LPs to PEs.
  
@@ -435,90 +416,37 @@ The ROSS API is pretty small and gives the application designer a fair
 amount of flexibility.  In this section we will discuss each of the
 functions available to the application programmer.  We will note which
 functions are required where necessary.  The first job of any
-application is to provide a main function for ROSS to be compiled
-against.  In this main function we will need to call a couple required
+application is to provide a {\tt main} function for ROSS to be compiled
+against.  In this {\tt main} function we will need to call several required
 functions in order to setup the system properly.  In this section we
 will use the PCS application to highlight how these functions are
-realized.  We will start by going through the main function, and then
-each of the handlers (yes, this is event driven programming).
+realized.  We will start by going through the {\tt main} function, and then
+each of the handlers (yes, this is event-driven programming).
 
 \subsubsection{Building ROSS}
 ROSS requires the MPI library to be available on the parallel
-computing platform. 
-
-In the {\tt ross} subdirectory, you will see a {\tt Makefile}
-with the following parameters at the top:
+computing platform. Further, it only builds on the following platforms:
+i386, x86\_64, Blue Gene L, Blue Gene P, and PPC64.  Configuring CMake
+differently than our build script is simple.  Instead of running the
+build script, one can set environment variables to determine the target
+platform and the desired tools for building:
 
 \begin{verbatim}
-# Uncomment for verbose output.
-V=1
-
-########################################################################
-# for ARCH select from:
-#   1. bgl      -- Blue Gene/L using MPI
-#   2. bgp      -- Blue Gene/P using MPI
-#   2. x86_64   -- Linux/AMD or Intel 64 bit using MPI
-#   3. ppc64    -- PowerPC 64 bit system using MPI
-#
-########################################################################
-ARCH=x86_64
-
-########################################################################
-# Standard setting  -- see below for definitions
-########################################################################
-NETWORK=mpi
-THREAD=none
-GVT=mpi_allreduce
-DATA_LAYOUT=byte_per_bit
-QUEUE=splay
-MAPPING=linear
-RAND=clcg4
-MEMORY=true
-TIMING=true
-########################################################################
+export ARCH=x86_64
+export CC=/usr/bin/mpicc
+export CXX/usr/bin/mpicxx
+cmake ../rossnet/trunk
+make
 \end{verbatim}
 
-You only need to set the right architecture and make sure the {\tt mpicc}
-pre-compiler for MPI is in the path. The other options are advanced settings
-and should only be changed if you are a ROSS Developer.
+ROSS has adopted the CMake philosophy of out-of-source builds.  This means
+binaries are built in a different location than where the source resides.  Our
+script does this; one simply has to make an alternate directory (preferably
+at the same level as the source directory) and run CMake from within the
+build directory.  See our {\tt build-script} for an example.
 
-If you wish to increase/change the level of optmization, change the {\tt
-  CFLAGS} variable in the Makefile accordingly and shown below.
-
-\begin{verbatim}
-ifeq ($(ARCH),bgl)
-        CC=mpixlc
-        CFLAGS = -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
-        OPTIONS = -qtune=440 -qarch=440d
-        CLOCK=blg
-endif
-
-ifeq ($(ARCH),bgp)
-        CC=mpixlc
-        CFLAGS = -qflag=i:i -qattr=full -O5 -DARCH_$(ARCH)
-        OPTIONS = -qtune=450 -qarch=450d
-        CLOCK=blg
-endif
-
-ifeq ($(ARCH),ppc64)
-        CC=mpicc
-        CFLAGS = -g -Wall -D_GNU_SOURCE
-        CLOCK=ppc
-endif
-
-ifeq ($(ARCH),x86_64)
-        CC = mpicc
-        CFLAGS = -g -Wall -D_GNU_SOURCE
-        CLOCK=amd64
-endif
-\end{verbatim} 
- 
-Just type {\tt make clean all} and ROSS will build a library.
-
-Next to build a sample model, such as {\tt pcs}, change directory
-to {\tt models/pcs}. Edit the CFLAGS to change the compiler optimization
-level and type {\tt make}. Then to execute the pcs model do:
-
+To test your build, try running our PCS model from
+\${BUILD\_DIRECTORY}/ross/models/pcs:
 \begin{verbatim}
 mpirun -np 8 ./pcs --clock-rate=2667000000.0 --batch=2 --gvt-interval=2048
 \end{verbatim}
@@ -529,13 +457,14 @@ and gvt-interval parameters determine how frequently GVT is set. See our
 paper~\cite{carothers-jpdc-2002} and others on the setting of these
 parameters.
 
-\subsubsection{Main -- Setting up the ROSS Model}
+\subsubsection{main -- Setting up the ROSS Model}
 The purpose of the {\tt main} function initialize the simulation model which
-includes the LP to PE mapping. By default it is a linear mapping.  This main
+includes the LP to PE mapping. By default it is a linear mapping.  This 
+{\tt main}
 function builds a square mapping of LPs to PEs.  It could be considered a
 matrix, but why make things more complicated.  Think of a map where cell phone
 towers are placed into a grid.  Each grid space is really a processor with an
-lp inside of it.  We may have many more cell phone towers than grid spaces, so
+LP inside of it.  We may have many more cell phone towers than grid spaces, so
 some grid spaces will have many towers.  We would like to achieve a mapping
 such that all grid spaces have an equal number of towers.
 
@@ -598,7 +527,7 @@ However, this can be set using the command line option:
        --end=100000000.0
 \end{verbatim}
 
-For a complete listing of options use {\tt --help}.
+For a complete listing of options pass {\tt --help} to any binary.
 
 This variable is the number of virtual processes per processor. The math here
 is not really important to us unless we are interested in doing these types of
@@ -653,7 +582,7 @@ you desire. When then declare for each LP, what LP type it is.
              }
 \end{verbatim}
 
-After {\tt tw\_init} has parsed the commandline args, we setup our model
+After {\tt tw\_init} has parsed the command line args, we setup our model
 specific mapping table. In this case, it is a simple NxN grid on which the LPs
 are placed. Internally within ROSS, the default mapping across processors is
 ``linear''. That is, we given $p$ processors, we map an $L/p$ slice of LPs to
@@ -769,7 +698,7 @@ typedef tw_peid (*map_f) (tw_lpid gid);
          *  final       -- LP final handler routine.
          *  statecp     -- LP SV copy routine.
          */
-DEF(struct, tw_lptype)
+struct tw_lptype
 {
 
         init_f          init;
@@ -2231,7 +2160,7 @@ TCP model receives a downstream message from a layer above it, it only
 requires the size of the data to determine the number of TCP packets to
 generate.  The pointer to the data is then sent with the final TCP packet.
 When upstream events are received from layers below TCP, the model treats
-these as data packets or acknowledgements.  Both event types are defined by
+these as data packets or acknowledgments.  Both event types are defined by
 the TCP layer, and handled appropriately.  When a data transmission operation
 is complete, the TCP model sends an upstream message to indicate completion.
 
@@ -2687,7 +2616,7 @@ The two primary types define the state for TCP LPs, and TCP memory buffers:
 
 \begin{small}
 \begin{verbatim}
-DEF(struct, tcp_state)
+struct tcp_state
 {
         int             unack;
         int             seq_num;
@@ -2703,7 +2632,7 @@ DEF(struct, tcp_state)
         tcp_statistics  *stats;
 };
 
-DEF(struct, tcp_message)
+struct tcp_message
 {
         int             ack;
         int             seq_num;
@@ -2850,7 +2779,7 @@ based on the size of the event passed in.  Events of type TIMER can be
 constructed by protocol models to implement operating system alarms.  Actual
 TCP implementations set an alarm called Receiver Timed Out (RTO).  The idea is
 that when TCP sends data to a client, and that client fails to respond with an
-acknowledgement (ACK) within a set amount of time, then the TCP server should
+acknowledgment (ACK) within a set amount of time, then the TCP server should
 attempt to resend the data packet.
 
 Finally, if none of the above cases are true, then we are either a TCP client
@@ -2976,7 +2905,7 @@ through the IP router network.  The TCP model need not be aware of model
 layers below TCP, ROSS.Net will ensure proper delivery of the event according
 to the XML definitions.
 
-Whether the TCP model is sending an acknowledgement, or data packet, the
+Whether the TCP model is sending an acknowledgment, or data packet, the
 offset timestamp is always 0.0.  This TCP implementation does not account for
 queuing delays on the packet, instead relying on the layering of protocol
 models to provide queuing semantics based on the size of the message sent.
