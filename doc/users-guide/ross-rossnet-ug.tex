@@ -112,7 +112,7 @@ mpirun -np 4 ./rn --scenario=tcp2 --synch=3 --clock-rate=2667000000 \
 --nkp=512 --batch=2 --gvt-interval=64
 \end{verbatim}
 
-You may need to start the mpd daemon with \texttt{mpd \&}.  Also, ensure that
+You may need to start the mpd daemon with \texttt{mpd \&}.  Also, make sure
 \texttt{mpicc} and \texttt{mpicxx} refer to the desired implementation by
 using the \texttt{which} command.  Additionally, this script requires CMake to
 run correctly; it can be downloaded from http://www.cmake.org or through your
@@ -308,7 +308,7 @@ provides functions for assigning and viewing this information.
  
 The {\tt cur\_state} pointer is used to determine the current application
 data for this LP.  The cur\_event pointer is the event currently being
-processed by this lp.  These are used by the ROSS engine to determine
+processed by this LP.  These are used by the ROSS engine to determine
 which is the next event to process on an LP basis.
 
 \begin{verbatim}
@@ -434,7 +434,7 @@ platform and the desired tools for building:
 \begin{verbatim}
 export ARCH=x86_64
 export CC=/usr/bin/mpicc
-export CXX/usr/bin/mpicxx
+export CXX=/usr/bin/mpicxx
 cmake ../rossnet/trunk
 make
 \end{verbatim}
@@ -479,7 +479,7 @@ mapping.  Because this is a grid, we will need an x and y coordinate.  Also,
 we will have virtual x and y coordinates, xvp and yvp (for x-virtual processor
 and y-virtual processor).  We have a simple counter, i, the number of LPs to
 map, TWnlp (Time Warp number of LPs), the number of processors in this machine
-to use, TWnpe (Time Warp number of PEs) and an lp pointer, lp (yet
+to use, TWnpe (Time Warp number of PEs) and an LP pointer, lp (yet
 unallocated).
  
 \begin{verbatim}
@@ -547,7 +547,7 @@ We love printf's.  We love them more when they are followed by a fflush(stdout);
 \end{verbatim}
  
 This is the first function we are required to call in ROSS.  The
-purpose of this function is to setup the ROSS internals for the
+purpose of this function is to set up the ROSS internals for the
 simulation you desire.  
 
 \begin{verbatim}
@@ -559,7 +559,7 @@ simulation you desire.
  
 We pass the {\tt argc} and {\tt argv} parameters from {\tt main} into {\tt
   tw\_init} for parsing which setups on the internals of the simulation model
-you desire. When then declare for each LP, what LP type it is.
+you desire. We then declare for each LP, what LP type it is.
 
 \begin{verbatim}
           for(x = 0; x < NUM_CELLS_X; x++)
@@ -585,14 +585,15 @@ you desire. When then declare for each LP, what LP type it is.
 After {\tt tw\_init} has parsed the command line args, we setup our model
 specific mapping table. In this case, it is a simple NxN grid on which the LPs
 are placed. Internally within ROSS, the default mapping across processors is
-``linear''. That is, we given $p$ processors, we map an $L/p$ slice of LPs to
+``linear''. That is, when given $p$ processors, we map an $L/p$ slice of LPs to
 each processor in linear order, where $L$ is the number of LPs for the whole
 model.
 
-Now that we have the appropriate pointers to LPs and KPs, we can set it's
+Now that we have the appropriate pointers to LPs and KPs, we can set its
 type.  Since all PCS LP types are cell phone towers, all LP types will be
-TW\_CELL, another \#define.. in this case, TW\_CELL is defined to be 1, or,
-the first element in the mylps array. PLEASE NOTE, YOUR LP TYPE NUMBERS CANNOT
+TW\_CELL, another {\tt\#define}. In this case, TW\_CELL is defined to be 1, or,
+the first element in the {\tt mylps} array. PLEASE NOTE, YOUR LP TYPE NUMBERS
+CANNOT
 START WITH ZERO. THE ZERO TYPE IS USED TO DENOTE THE END OF THE ARRAY.
 
 Other than calling {\tt tw\_run()}, as you see below, that's really about it
@@ -618,11 +619,11 @@ to zero out our application statistics variables.
       
 If we were lucky and our simulation completed without error, we can then
 compute and print our statistics.  ROSS knows nothing about our application,
-so these are application defined functions.  ROSS has it's own statistics that
+so these are application defined functions.  ROSS has its own statistics that
 it keeps.
 
 \begin{verbatim}
-       if( tw_ismaters() )
+       if( tw_ismaster() )
        {
           CellStatistics_Compute(&TWAppStats);
           CellStatistics_Print(&TWAppStats);
@@ -818,7 +819,7 @@ typedef int     MethodName_t;
 \end{verbatim}
 
 This is the state of a cell tower (lp).  We said earlier that our
-application would have to be responsible for maintaining it's own
+application would have to be responsible for maintaining its own
 logic and we do that with this struct.  This is not to be confused
 with state-saving.  We can see here the developer is tracking the
 number of portables that have come through a tower, the number of
@@ -854,7 +855,7 @@ struct RC
  
 Here is something we recognize from the initialization steps.  We
 allocated space in every event we allocate for this struct, but what
-does it do' Here, it keeps track of the method name to run, the time
+does it do? Here, it keeps track of the method name to run, the time
 stamp at which the call moved, ended, started a new call.  We also log
 the channel type, or phone line type and the RC struct value.
 
@@ -921,7 +922,7 @@ struct CellStatistics TWAppStats;
 \subsubsection{Initialization}
 Going back to the {\tt mylp} array, recall that the initialization function
 was called {\tt Cell\_StartUp}.  When we call {\tt tw\_run()}, ROSS will go through
-each LP invoking it's assigned initialization function.  We are passed
+each LP invoking its assigned initialization function.  We are passed
 through a state vector and a pointer to the corresponding LP.
 
 \begin{verbatim}
@@ -1071,8 +1072,8 @@ moving events around in the system and processing events in time stamp order.
 \end{verbatim} 
 
 And that's all there is to initializing the system!  At this point ROSS has 4
-PEs, each with a single lp.  Each lp has been primed with 16 events or more.
-Now it is a simple matter for ROSS to being emptying lp queues and processing
+PEs, each with a single LP.  Each LP has been primed with 16 events or more.
+Now it is a simple matter for ROSS to being emptying LP queues and processing
 events.  An important attribute not to be overlooked here is that if your
 events to not generate at least one other event before leaving the system, the
 simulation may be starved and run indefinitely, having not enough events to
@@ -1086,13 +1087,13 @@ realize a 1:1 or 1:2 mapping of events leaving to events generated.
  
 \subsubsection{Event Handlers}
 The next function which is important to look at is the event handler
-routine.  ROSS will dequeue an event from an lp struct and try to
+routine.  ROSS will dequeue an event from an LP struct and try to
 process it, or call your handler.  So these handlers must work
 properly.
 
 Here we see a more complex function.  Its parameters include the state vector,
 a bit field (which is provided to your application), the message data and of
-course the current lp this event is scheduled onto.  We simply look at the
+course the current LP this event is scheduled onto.  We simply look at the
 message data to determine which function we would like to call.  In
 Cell\_StartUp we set the MethodName field in all of our events, and here we
 exercise that information.  Relatively simple.  You will also note that there
@@ -1250,7 +1251,7 @@ may never have events scheduled to them at all.  ROSS guarantees the
 application designer that the system will run through all these
 inconsistencies, and without thrashing, but how does it take advantage
 of the rollback technology?  Put simply, when ROSS realizes an
-out-of-order event, it runs back every event for that lp until it
+out-of-order event, it runs back every event for that LP until it
 reaches the correct point in time when that event was to be executed.
 Because this out-of-order event is going to possibly change events in
 the future, those future events that we rolled back must be restored
@@ -1326,13 +1327,13 @@ identical.
  
 This is all there is to it.  We simply need to reverse compute the
 application variables we set in Cell\_CompletionCall.  Which means
-decrement that which was incremented.  We use the lp id to rewind the
+decrement that which was incremented.  We use the LP id to rewind the
 random number generator so that in the future, when this event is
 re-executed, it will come up with the same value as the first time it
 was executed.  Why do we care about this random number generator?  It
 doesn't seem to be doing much for us anyway.. but it is, because
 you'll remember that we used the value from the random number
-generator to compute the destination lp of the next event.
+generator to compute the destination LP of the next event.
  
 In this way we can guarantee that not only is the simulation
 processing events in order through reverse computation, but also that
@@ -1629,7 +1630,7 @@ simulation run.
 The simulation model fails to meet any of these characteristics, there
 is a strong chance the Calendar Queue will shift into running its
 ``worse case'' performance range, which is $O(n)$ for enqueue and
-dequeue operations. It's normal ``best case'' performance complexity
+dequeue operations. Its normal ``best case'' performance complexity
 is $O(1)$. The Splay-Tree has a rock solid $O(log(n))$ performance
 complexity for enqueue and dequeue operations and thus should be used
 in cases where the Calendar Queue exhibits worse-case performance.
