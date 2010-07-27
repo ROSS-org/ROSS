@@ -1,5 +1,10 @@
 #include <ross.h>
 
+/**
+ * @file tw-setup.c
+ * @brief tw_define_lps is defined here!
+ */
+
 #define VERIFY_MAPPING 0
 
 static tw_pe *setup_pes(void);
@@ -152,6 +157,11 @@ map_round_robin(void)
 	}
 }
 
+/**
+ * IMPORTANT: This function sets the value for g_tw_nlp which is a rather
+ * important global variable.  It is also set in (very few) other places,
+ * but mainly just here.
+ */
 void
 tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 {

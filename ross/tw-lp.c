@@ -1,5 +1,16 @@
 #include <ross.h>
 
+/**
+ * @file tw-lp.c
+ * @brief tw_lp_settype is defined here!
+ */
+
+/**
+ * IMPORTANT: This function should be called after tw_define_lps.  It
+ * copies the function pointers which define the LP to the appropriate
+ * location for *each* LP, i.e. you probably want to call this more than
+ * once.
+ */
 void
 tw_lp_settype(tw_lpid id, const tw_lptype * type)
 {
