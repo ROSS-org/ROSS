@@ -24,13 +24,27 @@ void srw_init(srw_state *s, tw_lp *lp)
   int i;
   int num_radios;
   tw_event *e;
+  /* global_id is required to make sure all nodes get unique IDs */
+  static long global_id = 0;
+  /* current_id is just the starting ID for this particular iteration */
+  long current_id = global_id;
 
   /* Initialize the state of this LP (or master) */
-  num_radios = tw_rand_integer(lp->rng, 1, SRW_MAX_GROUP_SIZE);
+  num_radios    = tw_rand_integer(lp->rng, 1, SRW_MAX_GROUP_SIZE);
   s->num_radios = num_radios;
-  s->movements = 0;
-  s->comm_fail = 0;
-  s->comm_try = 0;
+  s->movements  = 0;
+  s->comm_fail  = 0;
+  s->comm_try   = 0;
+
+  /* Initialize nodes */
+  for (i = 0; i < num_radios; i++) {
+    (s->nodes[i]).node_id   = global_id++;
+    (s->nodes[i]).lng       = 0.0;
+    (s->nodes[i]).lat       = 0.0;
+    (s->nodes[i]).movements =   0;
+    (s->nodes[i]).comm_fail =   0;
+    (s->nodes[i]).comm_try  =   0;
+  }
 
   /* Priming events */
   for (i = 0; i < num_radios; i++) {
@@ -43,6 +57,7 @@ void srw_init(srw_state *s, tw_lp *lp)
 
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
+    msg->node_id = current_id + i;
     msg->type = GPS;
     tw_event_send(e);
 
@@ -50,6 +65,7 @@ void srw_init(srw_state *s, tw_lp *lp)
     ts = tw_rand_exponential(lp->rng, SRW_MOVE_MEAN);
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
+    msg->node_id = current_id + i;
     msg->type = MOVEMENT;
     // We have to figure out a good way to set the initial lat/long
     tw_event_send(e);
@@ -58,6 +74,7 @@ void srw_init(srw_state *s, tw_lp *lp)
     ts = tw_rand_exponential(lp->rng, SRW_COMM_MEAN);
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
+    msg->node_id = current_id + i;
     msg->type = COMMUNICATION;
     // Something should probably go here as well...
     tw_event_send(e);
@@ -78,31 +95,37 @@ void srw_event(srw_state *s, tw_bf *bf, srw_msg_data *m, tw_lp *lp)
 
   switch(m->type) {
   case GPS:
+    
     // Schedule next event
     e = tw_event_new(lp->gid, SRW_GPS_RATE, lp);
     msg = tw_event_data(e);
+    msg->node_id = m->node_id;
     msg->type = GPS;
     tw_event_send(e);
     break;
 
   case MOVEMENT:
     s->movements++;
+    (s->nodes[m->node_id]).movements++;
 
     // Schedule next event
     ts = tw_rand_exponential(lp->rng, SRW_MOVE_MEAN);
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
+    msg->node_id = m->node_id;
     msg->type = MOVEMENT;
     tw_event_send(e);
     break;
 
   case COMMUNICATION:
     s->comm_try++;
+    (s->nodes[m->node_id]).comm_try++;
 
     // Schedule next event
     ts = tw_rand_exponential(lp->rng, SRW_COMM_MEAN);
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
+    msg->node_id = m->node_id;
     msg->type = COMMUNICATION;
     tw_event_send(e);
     break;
@@ -117,15 +140,29 @@ void srw_revent(srw_state *s, tw_bf *bf, srw_msg_data *m, tw_lp *lp)
   abort();
 }
 
+static int top_node = 0;
+static int top_move = 0;
+
 /**
  * Final function for SRW.  
  */
 void srw_final(srw_state *s, tw_lp *lp)
 {
-  total_radios += s->num_radios;
+  int i;
+  int moves = 0;
+
+  for (i = 0; i < s->num_radios; i++) {
+    moves = (s->nodes[i]).movements;
+    if (moves > top_move) {
+      top_move = moves;
+      top_node = (s->nodes[i]).node_id;
+    }
+  }
+
+  total_radios    += s->num_radios;
   total_movements += s->movements;
-  total_fail += s->comm_fail;
-  total_comm += s->comm_try;
+  total_fail      += s->comm_fail;
+  total_comm      += s->comm_try;
 }
 
 tw_peid srw_map(tw_lpid gid)
@@ -151,8 +188,7 @@ char netdmf_config[1024] = "";
 /** Various additional options for SRW */
 const tw_optdef srw_opts[] = {
   TWOPT_GROUP("SRW Model"),
-  TWOPT_CHAR("netdmf-config", netdmf_config,
-	     "NetDMF Configuration file"),
+  TWOPT_CHAR("netdmf-config", netdmf_config, "NetDMF Configuration file"),
   TWOPT_END()
 };
 
@@ -191,11 +227,12 @@ int srw_main(int argc, char *argv[])
   tw_run();
 
   if (tw_ismaster()) {
-    printf("Total radios in simulation: %d\n", total_radios);
-    printf("Total movements: %d\n", total_movements);
-    printf("Total communcation failures: %d\n", total_fail);
-    printf("Total communcation attempts: %d\n", total_comm);
+    printf("Total radios in simulation:    %d\n", total_radios);
+    printf("Total movements:               %d\n", total_movements);
+    printf("Total communcation failures:   %d\n", total_fail);
+    printf("Total communcation attempts:   %d\n", total_comm);
     printf("Total communication successes: %d\n", total_comm - total_fail);
+    printf("Node %d moved the most:        %d\n", top_node, top_move);
   }
 
   tw_end();
