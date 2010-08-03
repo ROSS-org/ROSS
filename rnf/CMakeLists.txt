@@ -14,7 +14,6 @@ OPTION(WITH_TLM		  "TLM Module"			OFF)
 OPTION(WITH_RANDOM_WALK   "Random walk module"		OFF)
 OPTION(WITH_ROBOT_PHYSSYM "Robot Physsym module"	OFF)
 OPTION(WITH_WIFI_MAC	  "Wifi Mac Layer module" 	OFF)
-OPTION(WITH_NETDMF	  "NetDMF support"		OFF)
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPTIONS}")
 

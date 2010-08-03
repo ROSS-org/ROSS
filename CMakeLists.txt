@@ -1,4 +1,4 @@
-PROJECT(ROSS_TOP C)
+PROJECT(ROSS_TOP)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 ENABLE_TESTING()
 
@@ -32,6 +32,8 @@ OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     ON)
 SET(MEMORY        YES)
 
 OPTION(TIMING	   "Perform ROSS timings"	ON)
+
+OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
