@@ -35,6 +35,7 @@ void wifi_access_point_init(wifi_access_point_state * s, tw_lp * lp)
   tw_bf init_bf;
   wifi_message m;
   s->failed_packets = 0;
+  s->total_packets = 0;
 
   // schedule out initial packet from access point
   for( i=0; i < WIFI_MAX_STATIONS_PER_ACCESS_POINT; i++)
@@ -53,7 +54,11 @@ void wifi_access_point_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_mes
   wifi_message *m_new=NULL;
 
   // packets coming from station to access point have less power and so lower snr
+  s->total_packets++;
+
   s->stations[m->station].access_point_snr = tw_rand_normal_sd(lp->rng,1.0,5.0, &rng_calls);
+  // New Function - to add prop loss, but not ready yet.
+  //s->stations[m->station].access_point_snr = calcRxPower(txPowerDbm, distance, minDistance, lambda, systemLoss);
   s->stations[m->station].access_point_success_rate = 
     WiFi_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].access_point_snr, num_of_bits);
   if( tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls) < 
@@ -74,13 +79,14 @@ void wifi_access_point_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_mes
 
 void wifi_access_point_arrival_rc(wifi_access_point_state * s, tw_bf * bf, wifi_message * m, tw_lp * lp) 
 {
+  s->total_packets--;	
   // packets coming from access point have much more power and so better snr
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
 
   if( bf->c1 )
     {
-      s->failed_packets++;
+		s->failed_packets--;
     }
   
 
@@ -93,7 +99,10 @@ void wifi_station_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message 
   wifi_message *m_new=NULL;
 
   // packets coming from access point have much more power and so better snr
+
   s->stations[m->station].station_snr = tw_rand_normal_sd(lp->rng,4.0,8.0, &rng_calls);
+  // New Function - to add prop loss, but not ready yet.
+  //s->stations[m->station].station_snr = calcRxPower (txPowerDbm, distance, minDistance, lambda, systemLoss);
   s->stations[m->station].station_success_rate = 
     WiFi_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].station_snr, num_of_bits);
   if( tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls) < 

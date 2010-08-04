@@ -23,6 +23,7 @@ typedef enum wifi_message_type_e wifi_message_type;
 struct wifi_station_state
 {
   unsigned int failed_packets;
+  unsigned int total_packets;
   double station_snr;
   double access_point_snr;
   double station_success_rate;

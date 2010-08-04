@@ -8,6 +8,7 @@
 #define BOLTZMANN 1.3803e-23 /**< thermal noise at 290K in J/s = W */
 #define PI 3.1415926535 /**< mmm, Pi. */
 
+
 /**
  * \brief A Friis propagation loss model
  *
