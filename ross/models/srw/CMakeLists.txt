@@ -18,6 +18,8 @@ IF(WITH_NETDMF)
 
 	SET(srw_srcs ${srw_srcs} rn-netdmf.c rn-netdmf-wrapper.cpp)
 
+        ADD_DEFINITIONS(-DWITH_NETDMF)
+
 	FIND_PACKAGE(HDF5)
 	FIND_PACKAGE(XDMF NO_MODULE REQUIRED)
 

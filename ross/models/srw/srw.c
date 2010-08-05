@@ -188,9 +188,17 @@ char netdmf_config[1024] = "";
 /** Various additional options for SRW */
 const tw_optdef srw_opts[] = {
   TWOPT_GROUP("SRW Model"),
+#ifdef WITH_NETDMF
   TWOPT_CHAR("netdmf-config", netdmf_config, "NetDMF Configuration file"),
+#endif /* WITH_NETDMF */
   TWOPT_END()
 };
+
+
+#ifdef WITH_NETDMF
+void rn_netdmf_init();
+#endif /* WITH_NETDMF */
+
 
 // Done mainly so doxygen will catch and differentiate this main
 // from other mains while allowing smooth compilation.
@@ -209,12 +217,15 @@ int srw_main(int argc, char *argv[])
   /* This configures g_tw_npe */
   tw_init(&argc, &argv);
 
+#ifdef WITH_NETDMF
   if (!strcmp("", netdmf_config)) {
     printf("No NetDMF configuration specified.\n");
   }
   else {
     /* Read in the netdmf_config file. */
+    rn_netdmf_init();
   }
+#endif /* WITH_NETDMF */
 
   /* Must call this to properly set g_tw_nlp */
   tw_define_lps(num_lps_per_pe, sizeof(srw_msg_data), 0);
