@@ -33,6 +33,7 @@ struct wifi_station_state
 struct wifi_access_point_state
 {
   unsigned int failed_packets;
+  unsigned int total_packets;
   wifi_station_state stations[WIFI_MAX_STATIONS_PER_ACCESS_POINT];
 };
 
