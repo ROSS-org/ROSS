@@ -14,6 +14,7 @@
 #include <NetDMFArray.h>
 #include <NetDMFTraffic.h>
 #include <NetDMFAddressItem.h>
+#include <NetDMFStack.h>
 #include <libxml/tree.h>
 #include <vector>
 #include <sstream>
@@ -418,7 +419,9 @@ void parseEvents(NetDMFScenario *parent)
  *
  * A NetDMFParameter contains a name and a value pair.
  * It's is only meaningful to the end application; NetDMF
- * does not interpret the data.
+ * does not interpret the data. WARNING: Terrible code below,
+ * but I don't know a better way to do it as each individual
+ * class implements its own (non-derived) Parameter support.
  @verbatim
  <Parameter Name="Wheels" Value="4"/>
  <Parameter Name="TopSpeed" Value="45"/>
@@ -426,13 +429,60 @@ void parseEvents(NetDMFScenario *parent)
  <Parameter Name="Manufacturer" Value="Acme"/>
  @endverbatim
  */
-void parseParameters(NetDMFNode *node, std::vector<NetDMFParameter *> &params)
+void parseParameters(NetDMFElement *el, std::vector<NetDMFParameter *> &params)
 {
-  int totalParameters = node->GetNumberOfParameters();
+  if (NetDMFDevice * dev = dynamic_cast<NetDMFDevice *>(el)) {
+    int totalParameters = dev->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = dev->GetParameter(i);
+      params.push_back(param);
+    }
+  }
 
-  for (int i = 0; i < totalParameters; i++) {
-    NetDMFParameter *param = node->GetParameter(i);
-    params.push_back(param);
+  if (NetDMFMovement * move = dynamic_cast<NetDMFMovement *>(el)) {
+    int totalParameters = move->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = move->GetParameter(i);
+      params.push_back(param);
+    }
+  }
+
+  if (NetDMFNode * node = dynamic_cast<NetDMFNode *>(el)) {
+    int totalParameters = node->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = node->GetParameter(i);
+      params.push_back(param);
+    }
+  }
+
+  if (NetDMFPlatform * plat = dynamic_cast<NetDMFPlatform *>(el)) {
+    int totalParameters = plat->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = plat->GetParameter(i);
+      params.push_back(param);
+    }
+  }
+
+  if (NetDMFScenario * scen = dynamic_cast<NetDMFScenario *>(el)) {
+    int totalParameters = scen->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = scen->GetParameter(i);
+      params.push_back(param);
+    }
+  }
+
+  if (NetDMFStack * stack = dynamic_cast<NetDMFStack *>(el)) {
+    int totalParameters = stack->GetNumberOfParameters();
+    
+    for (int i = 0; i < totalParameters; i++) {
+      NetDMFParameter *param = stack->GetParameter(i);
+      params.push_back(param);
+    }
   }
 }
 
@@ -727,6 +777,9 @@ void parsePlatforms(NetDMFScenario *scenario)
     parseNodes(platform);
 
     parseChannels(platform);
+
+    std::vector<NetDMFParameter *> params;
+    parseParameters(platform, params);
   }
 }
 
