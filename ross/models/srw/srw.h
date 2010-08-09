@@ -1,6 +1,10 @@
 #ifndef _SRW_H
 #define _SRW_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @file srw.h
  * @brief SRW header
@@ -59,5 +63,9 @@ typedef struct {
   double lng;          ///< Longitude for this node only
   double lat;          ///< Latitude for this node only
 } srw_msg_data;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SRW_H */

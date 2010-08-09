@@ -18,6 +18,7 @@
 #include <libxml/tree.h>
 #include <vector>
 #include <sstream>
+#include "srw.h"
 
 /**
  * @file
@@ -30,6 +31,9 @@
  * anything with it.  Almost all of this logic was stolen from
  * Payton Oliveri's python script NetDMFtoOpNet.py.
  */
+
+/** LP ID to pair the current tag with */
+static long LPID = -1;
 
 /** The NetDMF Document Object Model, see NetDMF docs. */
 static NetDMFDOM *dom = 0;
@@ -528,6 +532,11 @@ void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *> &dev)
 /**
  * Parse the NetDMFNode type, described below.
  *
+ * The thing to keep in mind while examining an individual
+ * NetDMFNode is that ROSS (most likely) will not create
+ * a corresponding LP but rather attach it to another
+ * previously-defined LP via the LPID NetDMFParameter.
+ *
  * A NetDMFNode  contains a single network node.
  @verbatim
  <Node Name="Person1" NodeId="1">
@@ -550,20 +559,30 @@ void parseNodes(NetDMFElement *elmt)
       parseParameters(nodeItem, params);
 
       if (devices.size() == 0) {
-	printf("Ignoring Node with no devices: %s, %d", nodeItem->GetName(),
+	printf("Ignoring Node with no devices: %s, %lld", nodeItem->GetName(),
 	       nodeItem->GetNodeId());
 	continue;
       }
 
       if (devices.size() > 1) {
-	for (int j = 1; j < devices.size(); j++) {
+	for (unsigned int j = 1; j < devices.size(); j++) {
 	  printf("Ignoring Device named: %s", (devices[j])->GetName());
 	}
       }
 
-      for (int j = 0; j < params.size(); j++) {
-	if (params[j]->GetName() == "IPv4MulticastMembership") {
+      for (unsigned int j = 0; j < params.size(); j++) {
+	if (0 == strcmp(params[j]->GetName(), "IPv4MulticastMembership")) {
 	  // Possibly do something in ROSS
+	}
+      }
+
+      for (unsigned int j = 0; j < params.size(); j++) {
+	//	printf("PARAM: %s: %s\n", params[j]->GetName(),
+	//	       params[j]->GetValue());
+	if (0 == strcmp(params[j]->GetName(), "LPID")) {
+	  std::istringstream iss(params[j]->GetValue());
+	  iss >> LPID;
+	  printf("LPID is now %ld\n", LPID);
 	}
       }
     }
@@ -580,20 +599,30 @@ void parseNodes(NetDMFElement *elmt)
       parseParameters(nodeItem, params);
 
       if (devices.size() == 0) {
-	printf("Ignoring Node with no devices: %s, %d", nodeItem->GetName(),
+	printf("Ignoring Node with no devices: %s, %lld", nodeItem->GetName(),
 	       nodeItem->GetNodeId());
 	continue;
       }
 
       if (devices.size() > 1) {
-	for (int j = 1; j < devices.size(); j++) {
+	for (unsigned int j = 1; j < devices.size(); j++) {
 	  printf("Ignoring Device named: %s", (devices[j])->GetName());
 	}
       }
 
-      for (int j = 0; j < params.size(); j++) {
-	if (params[j]->GetName() == "IPv4MulticastMembership") {
+      for (unsigned int j = 0; j < params.size(); j++) {
+	if (0 == strcmp(params[j]->GetName(), "IPv4MulticastMembership")) {
 	  // Possibly do something in ROSS
+	}
+      }
+
+      for (unsigned int j = 0; j < params.size(); j++) {
+	//	printf("PARAM: %s: %s\n", params[j]->GetName(),
+	//	       params[j]->GetValue());
+	if (0 == strcmp(params[j]->GetName(), "LPID")) {
+	  std::istringstream iss(params[j]->GetValue());
+	  iss >> LPID;
+	  printf("LPID is now %ld\n", LPID);
 	}
       }
     }
