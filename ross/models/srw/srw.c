@@ -194,11 +194,19 @@ const tw_optdef srw_opts[] = {
   TWOPT_END()
 };
 
-
 #ifdef WITH_NETDMF
 void rn_netdmf_init();
 #endif /* WITH_NETDMF */
 
+tw_petype srw_pes[] = {
+  {
+    (pe_init_f)  0,
+    (pe_init_f)  rn_netdmf_init,
+    (pe_gvt_f)   0,
+    (pe_final_f) 0
+  },
+  {0},
+};
 
 // Done mainly so doxygen will catch and differentiate this main
 // from other mains while allowing smooth compilation.
@@ -207,25 +215,12 @@ void rn_netdmf_init();
 int srw_main(int argc, char *argv[])
 {
   int i;
-  int TWnlp;
-  int TWnkp;
-  int TWnpe;
   int num_lps_per_pe = 1;
 
   tw_opt_add(srw_opts);
 
   /* This configures g_tw_npe */
   tw_init(&argc, &argv);
-
-#ifdef WITH_NETDMF
-  if (!strcmp("", netdmf_config)) {
-    printf("No NetDMF configuration specified.\n");
-  }
-  else {
-    /* Read in the netdmf_config file. */
-    rn_netdmf_init();
-  }
-#endif /* WITH_NETDMF */
 
   /* Must call this to properly set g_tw_nlp */
   tw_define_lps(num_lps_per_pe, sizeof(srw_msg_data), 0);
@@ -234,6 +229,21 @@ int srw_main(int argc, char *argv[])
   for (i = 0; i < g_tw_nlp; i++) {
     tw_lp_settype(i, &srw_lps[0]);
   }
+
+#ifdef WITH_NETDMF
+  if (!strcmp("", netdmf_config)) {
+    printf("No NetDMF configuration specified.\n");
+  }
+  else {
+    /* Read in the netdmf_config file.  This must be done after
+     * we set up the LPs (via tw_lp_settype) so we have data
+     * to configure. */
+    for (i = 0; i < g_tw_npe; i++) {
+      tw_pe_settype(g_tw_pe[i], &srw_pes[0]);
+    }
+    //rn_netdmf_init();
+  }
+#endif /* WITH_NETDMF */
 
   tw_run();
 

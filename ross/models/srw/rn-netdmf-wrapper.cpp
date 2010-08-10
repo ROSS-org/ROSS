@@ -32,11 +32,9 @@
  * Payton Oliveri's python script NetDMFtoOpNet.py.
  */
 
-/** LP ID to pair the current tag with */
-static long LPID = -1;
-
 /** The NetDMF Document Object Model, see NetDMF docs. */
 static NetDMFDOM *dom = 0;
+
 /** 
  * The root of the NetDMF file, i.e.
  * <NetDMF Version="2.0" xmlns:xi="http://www.w3.org/2003/XInclude">
@@ -46,6 +44,9 @@ static NetDMFRoot *root = 0;
 extern "C" char      netdmf_config[];
 
 extern "C" void parseScenarios();
+
+extern "C" void attach_node_to_lp(long lpnum, long nodeId);
+
 /**
  * This function handles initialization of the NetDMF
  * description language.
@@ -537,7 +538,7 @@ void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *> &dev)
  * a corresponding LP but rather attach it to another
  * previously-defined LP via the LPID NetDMFParameter.
  *
- * A NetDMFNode  contains a single network node.
+ * A NetDMFNode contains a single network node.
  @verbatim
  <Node Name="Person1" NodeId="1">
     <Device ... >
@@ -547,6 +548,9 @@ void parseDevices(NetDMFNode *node, std::vector<NetDMFDevice *> &dev)
  */
 void parseNodes(NetDMFElement *elmt)
 {
+  /* LP ID to pair the current tag with */
+  long LPID = -1;
+
   if (NetDMFPlatform *parent = dynamic_cast<NetDMFPlatform*>(elmt)) {
     int totalNodes = parent->GetNumberOfNodes();
 
@@ -583,6 +587,8 @@ void parseNodes(NetDMFElement *elmt)
 	  std::istringstream iss(params[j]->GetValue());
 	  iss >> LPID;
 	  printf("LPID is now %ld\n", LPID);
+	  // Call attachNodetoLP routine here
+	  attach_node_to_lp(LPID, nodeItem->GetNodeId());
 	}
       }
     }
@@ -623,6 +629,8 @@ void parseNodes(NetDMFElement *elmt)
 	  std::istringstream iss(params[j]->GetValue());
 	  iss >> LPID;
 	  printf("LPID is now %ld\n", LPID);
+	  // Call attachNodetoLP routine here
+	  attach_node_to_lp(LPID, nodeItem->GetNodeId());
 	}
       }
     }
@@ -680,7 +688,7 @@ void parseChannels(NetDMFElement *elmt)
 	std::string xpath = dom->GetPath(channelDevice);
 	int dnum = xpath.find("Device") - 1;
 	xpath = xpath.substr(0, dnum);
-	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
+	//NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
 
 	int totalNodes = parent->GetNumberOfNodes();
 	for (int k = 0; k < totalNodes; k++) {
@@ -721,7 +729,7 @@ void parseChannels(NetDMFElement *elmt)
 	std::string xpath = dom->GetPath(channelDevice);
 	int dnum = xpath.find("Device") - 1;
 	xpath = xpath.substr(0, dnum);
-	NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
+	//NetDMFXmlNode ele = dom->FindElementByPath(xpath.c_str());
 
 	int totalNodes = parent->GetNumberOfNodes();
 	for (int k = 0; k < totalNodes; k++) {
@@ -780,7 +788,6 @@ void parseChannels(NetDMFElement *elmt)
  */
 void parsePlatforms(NetDMFScenario *scenario)
 {
-  int retval;
   int totalPlatforms = scenario->GetNumberOfPlatforms();
 
   NetDMFPlatform *platform;
