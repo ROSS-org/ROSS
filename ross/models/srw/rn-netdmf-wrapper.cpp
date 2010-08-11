@@ -26,10 +26,8 @@
  * 
  * This file provides wrappers for functions
  * to enable C linkage.  These functions will perform most of the actions
- * and provide it to the C front-end.  Currently, there are *NO*
- * tie-ins with ROSS, i.e. we read the NetDMF but don't actually do
- * anything with it.  Almost all of this logic was stolen from
- * Payton Oliveri's python script NetDMFtoOpNet.py.
+ * and provide it to the C front-end.  Almost all of this logic was stolen
+ * from Payton Oliveri's python script NetDMFtoOpNet.py.
  */
 
 /** The NetDMF Document Object Model, see NetDMF docs. */

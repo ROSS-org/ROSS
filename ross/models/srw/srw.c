@@ -196,7 +196,6 @@ const tw_optdef srw_opts[] = {
 
 #ifdef WITH_NETDMF
 void rn_netdmf_init();
-#endif /* WITH_NETDMF */
 
 tw_petype srw_pes[] = {
   {
@@ -207,6 +206,8 @@ tw_petype srw_pes[] = {
   },
   {0},
 };
+#endif /* WITH_NETDMF */
+
 
 // Done mainly so doxygen will catch and differentiate this main
 // from other mains while allowing smooth compilation.
