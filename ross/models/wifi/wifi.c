@@ -172,14 +172,16 @@ void wifi_access_point_finish(wifi_access_point_state * s, tw_lp * lp)
 {
   int i;
   unsigned long long station_failed_packets=0;
-  printf("LP %llu had %d failed Station to Access Point packets\n", lp->gid, s->failed_packets);
+  unsigned long long station_total_packets=0;
+  printf("LP %llu had %d / %d failed Station to Access Point packets\n", lp->gid, s->failed_packets, s->total_packets);
 
   for( i=0; i < WIFI_MAX_STATIONS_PER_ACCESS_POINT; i++)
     {
       station_failed_packets += s->stations[i].failed_packets;
+	  station_failed_packets += s->stations[i].total_packets;
     }
-  printf("LP %llu had %llu failed Access Point to Station packets\n", lp->gid, 
-	 station_failed_packets);
+
+  printf("LP %llu had %llu / %llu failed Access Point to Station packets\n", lp->gid, station_failed_packets, station_total_packets);
 }
 
 
