@@ -99,7 +99,7 @@ void wifi_station_arrival(wifi_access_point_state * s, tw_bf * bf, wifi_message 
   wifi_message *m_new=NULL;
 
   // packets coming from access point have much more power and so better snr
-
+  s->stations[m->station].total_packets++;
   s->stations[m->station].station_snr = tw_rand_normal_sd(lp->rng,4.0,8.0, &rng_calls);
   // New Function - to add prop loss, but not ready yet.
   //s->stations[m->station].station_snr = calcRxPower (txPowerDbm, distance, minDistance, lambda, systemLoss);
@@ -173,15 +173,15 @@ void wifi_access_point_finish(wifi_access_point_state * s, tw_lp * lp)
   int i;
   unsigned long long station_failed_packets=0;
   unsigned long long station_total_packets=0;
-  printf("LP %llu had %d / %d failed Station to Access Point packets\n", lp->gid, s->failed_packets, s->total_packets);
+  printf("LP %d had %d / %d failed Station to Access Point packets\n", lp->gid, s->failed_packets, s->total_packets);
 
   for( i=0; i < WIFI_MAX_STATIONS_PER_ACCESS_POINT; i++)
     {
       station_failed_packets += s->stations[i].failed_packets;
-	  station_failed_packets += s->stations[i].total_packets;
+	  station_total_packets += s->stations[i].total_packets;
     }
 
-  printf("LP %llu had %llu / %llu failed Access Point to Station packets\n", lp->gid, station_failed_packets, station_total_packets);
+  printf("LP %d had %llu / %llu failed Access Point to Station packets\n", lp->gid, station_failed_packets, station_total_packets);
 }
 
 
