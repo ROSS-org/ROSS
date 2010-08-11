@@ -116,6 +116,8 @@ NetDMFNode * getNodeWithAddress(std::string address)
 	for (int l = 0; l < totalAddressItems; l++) {
 	  NetDMFAddressItem *addressItem = deviceItem->GetAddress(l);
 	  addressItem->Update();
+	  if (addressItem->GetNumberOfAddresses() <= 0) continue;
+
 	  if (addressItem->GetAddresses(0,1) == address.c_str()) {
 	    return nodeItem;
 	  }
@@ -143,6 +145,8 @@ NetDMFNode * getNodeWithAddress(std::string address)
 	  for (int m = 0; m < totalAddressItems; m++) {
 	    NetDMFAddressItem *addressItem = deviceItem->GetAddress(m);
 	    addressItem->Update();
+	    if (addressItem->GetNumberOfAddresses() <= 0) continue;
+
 	    if (addressItem->GetAddresses(0,1) == address.c_str()) {
 	      return nodeItem;
 	    }
