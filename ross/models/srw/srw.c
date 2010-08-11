@@ -87,66 +87,11 @@ void srw_init(srw_state *s, tw_lp *lp)
  */
 void netdmf_srw_init(srw_state *s, tw_lp *lp)
 {
-  //int i;
-  int num_radios;
-  //tw_event *e;
-  /* global_id is required to make sure all nodes get unique IDs */
-  //static long global_id = 0;
-  /* current_id is just the starting ID for this particular iteration */
-  //long current_id = global_id;
-
   /* Initialize the state of this LP (or master) */
-  num_radios    = 0;
-  s->num_radios = num_radios;
+  s->num_radios = 0;
   s->movements  = 0;
   s->comm_fail  = 0;
   s->comm_try   = 0;
-
-  /* Initialize nodes
-  for (i = 0; i < num_radios; i++) {
-    (s->nodes[i]).node_id   = global_id++;
-    (s->nodes[i]).lng       = 0.0;
-    (s->nodes[i]).lat       = 0.0;
-    (s->nodes[i]).movements =   0;
-    (s->nodes[i]).comm_fail =   0;
-    (s->nodes[i]).comm_try  =   0;
-  }
-  */
-
-  /* Priming events
-  for (i = 0; i < num_radios; i++) {
-    tw_stime ts;
-    srw_msg_data *msg;
-
-    // GPS event first, as it's the simplest
-    ts = tw_rand_unif(lp->rng);
-    ts = ts * SRW_GPS_RATE;
-
-    e = tw_event_new(lp->gid, ts, lp);
-    msg = tw_event_data(e);
-    msg->node_id = current_id + i;
-    msg->type = GPS;
-    tw_event_send(e);
-
-    // Now schedule some movements
-    ts = tw_rand_exponential(lp->rng, SRW_MOVE_MEAN);
-    e = tw_event_new(lp->gid, ts, lp);
-    msg = tw_event_data(e);
-    msg->node_id = current_id + i;
-    msg->type = MOVEMENT;
-    // We have to figure out a good way to set the initial lat/long
-    tw_event_send(e);
-
-    // Now some communications
-    ts = tw_rand_exponential(lp->rng, SRW_COMM_MEAN);
-    e = tw_event_new(lp->gid, ts, lp);
-    msg = tw_event_data(e);
-    msg->node_id = current_id + i;
-    msg->type = COMMUNICATION;
-    // Something should probably go here as well...
-    tw_event_send(e);
-  }
-  */
 }
 
 /**
@@ -208,48 +153,18 @@ void srw_event(srw_state *s, tw_bf *bf, srw_msg_data *m, tw_lp *lp)
  */
 void netdmf_srw_event(srw_state *s, tw_bf *bf, srw_msg_data *m, tw_lp *lp)
 {
-  //tw_stime ts;
-  //tw_event *e;
-  //srw_msg_data *msg;
-
   switch(m->type) {
   case GPS:
-    
-    /* Schedule next event
-    e = tw_event_new(lp->gid, SRW_GPS_RATE, lp);
-    msg = tw_event_data(e);
-    msg->node_id = m->node_id;
-    msg->type = GPS;
-    tw_event_send(e);
-    */
     break;
 
   case MOVEMENT:
     s->movements++;
     (s->nodes[m->node_id]).movements++;
-
-    /* Schedule next event
-    ts = tw_rand_exponential(lp->rng, SRW_MOVE_MEAN);
-    e = tw_event_new(lp->gid, ts, lp);
-    msg = tw_event_data(e);
-    msg->node_id = m->node_id;
-    msg->type = MOVEMENT;
-    tw_event_send(e);
-    */
     break;
 
   case COMMUNICATION:
     s->comm_try++;
     (s->nodes[m->node_id]).comm_try++;
-
-    /* Schedule next event
-    ts = tw_rand_exponential(lp->rng, SRW_COMM_MEAN);
-    e = tw_event_new(lp->gid, ts, lp);
-    msg = tw_event_data(e);
-    msg->node_id = m->node_id;
-    msg->type = COMMUNICATION;
-    tw_event_send(e);
-    */
     break;
   }
 }
