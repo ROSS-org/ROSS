@@ -45,6 +45,62 @@ extern "C" void parseScenarios();
 
 extern "C" void attach_node_to_lp(long lpnum, long nodeId);
 
+NetDMFElement *
+FindNetDMFElementWithString(XdmfConstString foo)
+{
+  int i, j;
+  int retval;
+  int totalPlatforms;
+  int totalScenarios;
+  NetDMFPlatform *platform;
+  NetDMFScenario *scenario;
+
+  totalScenarios = dom->FindNumberOfElements("Scenario");
+
+  for (i = 0; i < totalScenarios; i++) {
+    scenario = new NetDMFScenario();
+
+    retval = scenario->SetDOM(dom);
+    if (XDMF_SUCCESS != retval) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    
+    retval = scenario->SetElement(dom->FindElement("Scenario", i));
+    if (XDMF_SUCCESS != retval) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+    
+    retval = scenario->Update();
+    if (XDMF_SUCCESS != retval) {
+      printf("%s:%d:We have a problem\n", __FILE__, __LINE__);
+      abort();
+    }
+
+    //totalPlatforms = dom->FindNumberOfElements("Platform");
+    totalPlatforms = scenario->GetNumberOfPlatforms();
+
+    for (j = 0; j < totalPlatforms; j++) {
+      const char * temp_string;
+
+      platform = scenario->GetPlatform(j);
+
+      temp_string = dom->GetPath(platform->GetElement());
+
+      //printf("%s\n", temp_string);
+
+      if (!strcmp(temp_string, foo)) {
+	printf("FOUND IT: %s\n", temp_string);
+	return platform;
+      }
+    }
+  }
+  /* We didn't find it */
+  printf("WE DIDN'T FIND IT\n");
+  return NULL;
+}
+
 /**
  * This function handles initialization of the NetDMF
  * description language.
@@ -300,6 +356,7 @@ void parseMovements(NetDMFEvent *parent)
     NetDMFMovement *movementItem = parent->GetMovement(i);
     movementItem->Update();
     std::string nodeidstring = movementItem->GetNodeId();
+    FindNetDMFElementWithString(nodeidstring.c_str());
 
     XdmfArray *ar = movementItem->GetPathData()->GetArray();
     std::string dimensions = movementItem->GetPathData()->GetShapeAsString();
