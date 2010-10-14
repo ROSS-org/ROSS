@@ -34,7 +34,7 @@ tw_sched_event_q(tw_pe * me)
 	  switch (cev->state.owner) 
 	    {
 	    case TW_pe_event_q:
-	      dest_kp = cev->dest_lp_ptr->kp;
+	      dest_kp = cev->dest_lp->kp;
 	      
 	      if (dest_kp->last_time > cev->recv_ts) 
 		{
@@ -159,7 +159,7 @@ tw_sched_batch(tw_pe * me)
 			break;
 		me->stats.s_pq += tw_clock_read() - start;
 
-		clp = cev->dest_lp_ptr;
+		clp = cev->dest_lp;
 		ckp = clp->kp;
 		me->cur_event = cev;
 		ckp->last_time = cev->recv_ts;
@@ -270,7 +270,7 @@ void tw_scheduler_sequential(tw_pe * me) {
   	
 	while ((cev = tw_pq_dequeue(me->pq))) 
     {
-      tw_lp *clp = cev->dest_lp_ptr;
+      tw_lp *clp = cev->dest_lp;
       tw_kp *ckp = clp->kp;
       
       me->cur_event = cev;
@@ -349,7 +349,7 @@ tw_scheduler_conservative(tw_pe * me)
 	    break;
 	  me->stats.s_pq += tw_clock_read() - start;
 	  
-	  clp = cev->dest_lp_ptr;
+	  clp = cev->dest_lp;
 	  ckp = clp->kp;
 	  me->cur_event = cev;
 	  ckp->last_time = cev->recv_ts;
