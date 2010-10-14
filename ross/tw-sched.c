@@ -34,7 +34,7 @@ tw_sched_event_q(tw_pe * me)
 	  switch (cev->state.owner) 
 	    {
 	    case TW_pe_event_q:
-	      dest_kp = cev->dest_lp->kp;
+	      dest_kp = cev->dest_lp_ptr->kp;
 	      
 	      if (dest_kp->last_time > cev->recv_ts) 
 		{
@@ -159,14 +159,14 @@ tw_sched_batch(tw_pe * me)
 			break;
 		me->stats.s_pq += tw_clock_read() - start;
 
-		clp = cev->dest_lp;
+		clp = cev->dest_lp_ptr;
 		ckp = clp->kp;
 		me->cur_event = cev;
 		ckp->last_time = cev->recv_ts;
 
 		/* Save state if no reverse computation is available */
 		if (!clp->type.revent)
-			tw_state_save(clp, cev);
+			tw_error(TW_LOC, "Reverse Computation must be implemented!");
 
                 start = tw_clock_read();
 		(*clp->type.event)(
@@ -258,16 +258,19 @@ tw_sched_init(tw_pe * me)
 /* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
 /*************************************************************************/
 
-void
-tw_scheduler_sequential(tw_pe * me)
-{
-  tw_event *cev;
-  
-  tw_sched_init(me);
-  tw_wall_now(&me->start_time);
-  while ((cev = tw_pq_dequeue(me->pq))) 
+void tw_scheduler_sequential(tw_pe * me) {
+	
+	if(tw_nnodes() > 1) 
+		tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
+	
+	tw_event *cev;
+  	
+	tw_sched_init(me);
+  	tw_wall_now(&me->start_time);
+  	
+	while ((cev = tw_pq_dequeue(me->pq))) 
     {
-      tw_lp *clp = (tw_lp*)cev->dest_lp;
+      tw_lp *clp = cev->dest_lp_ptr;
       tw_kp *ckp = clp->kp;
       
       me->cur_event = cev;
@@ -280,7 +283,7 @@ tw_scheduler_sequential(tw_pe * me)
 			 clp);
       
       if (me->cev_abort)
-	tw_error(TW_LOC, "insufficient event memory");
+		tw_error(TW_LOC, "insufficient event memory");
       
       ckp->s_nevent_processed++;
       tw_event_free(me, cev);
@@ -346,7 +349,7 @@ tw_scheduler_conservative(tw_pe * me)
 	    break;
 	  me->stats.s_pq += tw_clock_read() - start;
 	  
-	  clp = cev->dest_lp;
+	  clp = cev->dest_lp_ptr;
 	  ckp = clp->kp;
 	  me->cur_event = cev;
 	  ckp->last_time = cev->recv_ts;
