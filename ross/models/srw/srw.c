@@ -7,6 +7,9 @@
  *
  * SRW module.  Contains functions relevant / necessary for the functional
  * requirements pertaining to the SRW waveform.
+ * NOTE: None of the netdmf_* event handlers below generate artificial
+ * data -- we assume that the NetDMF file was read in and that no other
+ * data should be generated that was not in that file.
  */
 
 int total_radios    = 0;
@@ -18,6 +21,7 @@ int total_comm      = 0;
 /**
  * Initializer function for SRW.  Here we set all the necessary
  * initial values we assume for the beginning of the simulation.
+ * We also bootstrap the event queue with some random data.
  */
 void srw_init(srw_state *s, tw_lp *lp)
 {

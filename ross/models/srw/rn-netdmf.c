@@ -49,3 +49,38 @@ void attach_node_to_lp(long lpnum, long nodeId)
   nodes[srws->num_radios].node_id = nodeId;
   srws->num_radios++;
 }
+
+/**
+ * Insert a newly created event into our priority queue for this LP
+ */
+void insert_into_pq(srw_event_type ty, tw_stime time_offset, tw_lp *lp, long nodeid)
+{
+    tw_event *e;
+    srw_msg_data *msg;
+    
+    switch (ty) {
+        case GPS:
+            e = tw_event_new(lp->gid, time_offset, lp);
+            msg = tw_event_data(e);
+            msg->node_id = nodeid;
+            msg->type = GPS;
+            tw_event_send(e);
+            break;
+            
+        case MOVEMENT:
+            e = tw_event_new(lp->gid, time_offset, lp);
+            msg = tw_event_data(e);
+            msg->node_id = nodeid;
+            msg->type = MOVEMENT;
+            tw_event_send(e);
+            break;
+            
+        case COMMUNICATION:
+            e = tw_event_new(lp->gid, time_offset, lp);
+            msg = tw_event_data(e);
+            msg->node_id = nodeid;
+            msg->type = COMMUNICATION;
+            tw_event_send(e);
+            break;
+    }
+}
