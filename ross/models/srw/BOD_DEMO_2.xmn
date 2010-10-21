@@ -1,0 +1,541 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<NetDMF xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.1">
+  <Scenario Name="BOD_DEMO_SEM">
+    <Platform Name="TM LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1847">
+	<Parameter Name="LPID" Value="1"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.2.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:37</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1866">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:4A</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1867">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.4.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:4B</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1868">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.4</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:4C</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="AUTOMATIC RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1869">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.6.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:4D</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1873">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.7</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:51</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="TM LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1852">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.3.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:3C</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1858">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.3</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:42</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW" NodeId="1859">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.5</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:43</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW SA" NodeId="1860">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.5.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:44</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="AUTOMATIC RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1861">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.7.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:45</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1862">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.6</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:46</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="GRENADIER">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1863">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.8.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:47</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1864">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.8</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:48</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="SQD LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1857">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.1.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:41</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1865">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.1</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:49</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="GRENADIER">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1876">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">204.0.9.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:54</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1877">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">194.0.1.9</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:55</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="TM LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1878">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.2.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:56</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1879">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:57</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1880">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.4.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:58</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1881">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.4</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:59</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="AUTOMATIC RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1882">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.6.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5A</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1883">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.7</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5B</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="GRENADIER">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1884">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.9.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5C</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1885">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.9</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5D</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="TM LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1886">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.3.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5E</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1887">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.3</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:5F</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW" NodeId="1888">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.5</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:60</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW SA" NodeId="1889">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.5.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:61</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="AUTOMATIC RIFLEMAN">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1890">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.7.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:62</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1891">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.6</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:63</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="GRENADIER">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="SRW SA" NodeId="1892">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Device Name="SRW SA" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.8.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:64</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW" NodeId="1893">
+        <Device Name="SRW" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.8</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:65</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Platform Name="SQD LDR">
+      <Parameter Name="PlatformType" Value="SOLDIER"/>
+      <Node Name="GSE" NodeId="1894">
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.100"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.103"/>
+        <Parameter Name="IPv4MulticastMembership" Value="238.0.11.106"/>
+        <Device Name="GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">205.0.1.2</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:66</AddressItem>
+        </Device>
+      </Node>
+      <Node Name="SRW w/GSE" NodeId="1895">
+        <Device Name="SRW w/GSE" DeviceType="Communication">
+          <AddressItem AddressType="IPV4" NumberOfAddresses="1" Format="XML">195.0.1.1</AddressItem>
+          <AddressItem AddressType="ETH" NumberOfAddresses="1" Format="XML">00:00:00:00:07:67</AddressItem>
+        </Device>
+      </Node>
+    </Platform>
+    <Channel Name="SRW" ChannelType="Duplex">
+       <Parameter Name="IslandName" Value="1 SQD"/>
+       <Parameter Name="NetworkId" Value="1"/>
+           /NetDMF/Scenario/Platform[1]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[2]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[3]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[4]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[5]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[6]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[7]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[8]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[9]/Node[1]/Device[1]
+    </Channel>
+    <Channel Name="SRW" ChannelType="Duplex">
+       <Parameter Name="IslandName" Value="2 SQD"/>
+       <Parameter Name="NetworkId" Value="2"/>
+           /NetDMF/Scenario/Platform[10]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[11]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[12]/Node[2]/Device[1]
+           /NetDMF/Scenario/Platform[13]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[14]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[15]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[16]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[17]/Node[1]/Device[1]
+           /NetDMF/Scenario/Platform[18]/Node[1]/Device[1]
+    </Channel> 
+    <Event EndTime="3855" EventType="Communication" CommunicationType="Conversation">
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.1.2" EndPointAPort="1581" EndPointBPort="41886">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[1]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="204.0.1.2" EndPointAPort="1581" EndPointBPort="8530">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[2]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="204.0.1.2" EndPointAPort="1581" EndPointBPort="9414">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[3]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.2.2" EndPointAPort="1581" EndPointBPort="24756">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[4]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="204.0.2.2" EndPointAPort="1581" EndPointBPort="46767">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[5]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="204.0.2.2" EndPointAPort="1581" EndPointBPort="34245">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[6]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.4.2" EndPointAPort="1581" EndPointBPort="58216">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[7]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.6.2" EndPointAPort="1581" EndPointBPort="31467">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[8]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.9.2" EndPointAPort="1581" EndPointBPort="58452">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[9]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.3.2" EndPointAPort="1581" EndPointBPort="27140">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[10]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="204.0.3.2" EndPointAPort="1581" EndPointBPort="56467">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[11]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="204.0.3.2" EndPointAPort="1581" EndPointBPort="18899">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[12]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.5.2" EndPointAPort="1581" EndPointBPort="18048">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[13]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.7.2" EndPointAPort="1581" EndPointBPort="56199">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[14]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="204.0.8.2" EndPointAPort="1581" EndPointBPort="33937">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[15]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.1.2" EndPointAPort="1581" EndPointBPort="18409">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[16]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="205.0.1.2" EndPointAPort="1581" EndPointBPort="39816">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[17]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="205.0.1.2" EndPointAPort="1581" EndPointBPort="47577">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[18]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.2.2" EndPointAPort="1581" EndPointBPort="8597">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[19]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="205.0.2.2" EndPointAPort="1581" EndPointBPort="2666">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[20]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="205.0.2.2" EndPointAPort="1581" EndPointBPort="35864">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[21]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.4.2" EndPointAPort="1581" EndPointBPort="18808">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[22]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.6.2" EndPointAPort="1581" EndPointBPort="3844">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[23]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.9.2" EndPointAPort="1581" EndPointBPort="5720">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[24]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.3.2" EndPointAPort="1581" EndPointBPort="38661">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[25]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.103" EndPointB="205.0.3.2" EndPointAPort="1581" EndPointBPort="7965">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[26]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.106" EndPointB="205.0.3.2" EndPointAPort="1581" EndPointBPort="18962">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[27]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.5.2" EndPointAPort="1581" EndPointBPort="54079">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[28]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.7.2" EndPointAPort="1581" EndPointBPort="30491">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[29]</DataItem>
+        </Traffic>
+      </Conversation>
+      <Conversation StartTime="15" EndTime="3855" ConversationType="IPV4" EndPointA="238.0.11.100" EndPointB="205.0.8.2" EndPointAPort="1581" EndPointBPort="33819">
+        <Traffic TrafficType="Bin" Units="Bytes" Interval="15" Direction="BtoA" Format="UNSET">
+          <DataItem Dimensions="256" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Traffic[30]</DataItem>
+        </Traffic>
+      </Conversation>
+    </Event>
+    <Event EndTime="4146" EventType="Movement">
+      <Movement NodeId="/NetDMF/Scenario/Platform[3]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[3]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[4]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[4]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[8]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="272 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[8]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[7]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="268 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[7]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[10]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="269 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[10]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[14]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="272 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[14]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[6]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[6]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[11]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="271 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[11]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[15]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="269 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[15]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[18]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="272 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[18]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[12]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="271 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[12]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[1]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="269 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[1]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[2]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[2]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[16]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="272 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[16]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[5]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[5]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[17]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="270 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[17]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[13]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="272 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[13]</DataItem>
+      </Movement>
+      <Movement NodeId="/NetDMF/Scenario/Platform[9]" MovementType="Path" Format="XML" PathPositionType="Geospatial">
+        <DataItem Dimensions="271 4" NumberType="Float" Precision="8" Format="HDF">BOD_DEMO_15S.h5:/Platform[9]</DataItem>
+      </Movement>
+    </Event>
+  </Scenario>
+</NetDMF>
