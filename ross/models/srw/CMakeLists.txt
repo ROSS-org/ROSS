@@ -38,4 +38,4 @@ ADD_EXECUTABLE(srw ${srw_srcs})
 
 TARGET_LINK_LIBRARIES(srw ROSS m ${SRW_LIBS})
 
-ADD_TEST(srwtest mpirun -np 2 ${CMAKE_CURRENT_BINARY_DIR}/srw --synch=1)
+ADD_TEST(srwtest mpirun -np 1 ${CMAKE_CURRENT_BINARY_DIR}/srw --synch=1)

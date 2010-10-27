@@ -13,4 +13,4 @@ ADD_EXECUTABLE(wifi ${wifi_srcs})
 
 TARGET_LINK_LIBRARIES(wifi ROSS m)
 
-ADD_TEST(wifitest mpirun -np 2 ${CMAKE_CURRENT_BINARY_DIR}/wifi --synch=1)
+ADD_TEST(wifitest mpirun -np 1 ${CMAKE_CURRENT_BINARY_DIR}/wifi --synch=1)
