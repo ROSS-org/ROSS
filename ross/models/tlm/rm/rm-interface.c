@@ -13,7 +13,8 @@ tw_petype	rm_pes[] = {
 		(pe_init_f) rm_pe_init,
 		(pe_init_f) rm_pe_post_init,
 		(pe_gvt_f) rm_pe_gvt,
-		(pe_final_f) rm_pe_final
+		(pe_final_f) rm_pe_final,
+                (pe_periodic_f) 0
 	},
 	{0},
 };

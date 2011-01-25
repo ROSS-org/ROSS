@@ -183,7 +183,8 @@ tw_petype my_pes[] =
                 (pe_init_f) pm_pe_init,
                 (pe_init_f) pm_pe_post_init,
                 (pe_gvt_f) pm_pe_gvt,
-                (pe_final_f) pm_pe_final
+                (pe_final_f) pm_pe_final,
+                (pe_periodic_f) 0
         },
         {0},
 };

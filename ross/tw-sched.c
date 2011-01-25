@@ -302,6 +302,7 @@ tw_scheduler_conservative(tw_pe * me)
 {
   tw_clock start;
   unsigned int msg_i;
+  unsigned int round = 0;
   
   tw_sched_init(me);
   tw_wall_now(&me->start_time);
@@ -369,6 +370,11 @@ tw_scheduler_conservative(tw_pe * me)
 	  
 	  tw_event_free(me, cev);
 	}
+
+        if(me->type.periodic && (++round % g_tw_periodicity))
+        {
+            (*me->type.periodic)(me);
+        }
     }
 
   

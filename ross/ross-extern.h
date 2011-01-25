@@ -52,6 +52,8 @@ extern size_t		g_tw_event_msg_sz;
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
 
+extern unsigned int     g_tw_periodicity;
+
 extern tw_stime         g_tw_lookahead;
 
 extern tw_peid  g_tw_npe;

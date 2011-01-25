@@ -290,7 +290,8 @@ tw_petype srw_pes[] = {
     (pe_init_f)  0,
     (pe_init_f)  rn_netdmf_init,
     (pe_gvt_f)   0,
-    (pe_final_f) 0
+    (pe_final_f) 0,
+    (pe_periodic_f) 0
   },
   {0},
 };
