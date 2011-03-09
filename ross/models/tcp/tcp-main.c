@@ -8,177 +8,128 @@
 tw_lptype       mylps[] =
 {
 	{TW_TCP_HOST, sizeof(Host_State),
-	 (init_f) tcp_host_StartUp,
-	 (event_f) tcp_host_EventHandler,
-	 (revent_f) tcp_host_rc_EventHandler,
+	 (init_f) tcp_host_startup,
+	 (event_f) tcp_host_eventhandler,
+	 (revent_f) tcp_host_rc_eventhandler,
 	 (final_f) tcp_host_Statistics_CollectStats,
 	 (statecp_f) NULL},
 	{TW_TCP_ROUTER, sizeof(Router_State),
-	 (init_f) tcp_router_StartUp,
-	 (event_f) tcp_router_EventHandler,
-	 (revent_f) tcp_router_rc_EventHandler,
-	 (final_f) tcp_router_Statistics_CollectStats,
+	 (init_f) tcp_router_startup,
+	 (event_f) tcp_router_eventhandler,
+	 (revent_f) tcp_router_rc_eventhandler,
+	 (final_f) tcp_router_statistics_collectStats,
 	 (statecp_f) NULL},
 	{0},
 };
 
+const tw_optdef app_opt[] =
+{
+	TWOPT_GROUP("TCP Model"),
+	TWOPT_STIME("remote-link", percent_remote, "desired remote TCP connectionsevent rate"),
+	TWOPT_UINT("network-bits", nlp_per_model, "number of 2^bits is number of LPs in whole system"),
+	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
+	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
+	TWOPT_STIME("lookahead", lookahead, "lookahead for links"),
+	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),
+	TWOPT_CHAR("run", run_id, "user supplied run name"),
+	TWOPT_END()
+};
 
 int
 main(int argc, char **argv)
 {
-  int             TWnlp;
-  int             TWnkp;
-  int             TWnpe;
-  int             i,j,k,l,m,n;
   tw_lp          *lp;
   tw_kp          *kp;
   tw_pe          *pe;
-  FILE           *config;
 
-#ifdef LOGGING 
-   char           file_name[30];
-#endif
+  tw_opt_add(app_opt);
+  tw_init(&argc, &argv);
 
-  if(argc < 4 ){ 
-    printf("tcp: error: incorrect number of parameters\n");
-    exit(0);
-  }
+  if( lookahead > 1.0 )
+    tw_error(TW_LOC, "Lookahead > 1.0 .. needs to be less\n");
   
-  g_type = 0;
-  if(strcmp(argv[1],"rocketfuel") == 0){
-    if(argc != 6 ){ 
-      printf("tcp: error: incorrect number of parameters\n");
-      exit(0);
-    }
-    if(strcmp(argv[3],"load") == 0)
-      tcp_init_rocketfuel_load(argv[4],argv[5]);
-    else if (strcmp(argv[3],"build") == 0)
-      tcp_init_rocketfuel_build(argv[4],argv[5]);
-    else{
-      printf("tcp: error: incorrect number of parameters\n");
-      exit(0);
-    }
-  }
-  else if(strcmp(argv[1],"dml") == 0){
-    tcp_init(argv[3]);
-  }
-  else if(strcmp(argv[1],"simple") == 0){
-    tcp_init_simple(argv[3]);
-  }
-  else if(strcmp(argv[1],"mapped") == 0){
-      tcp_init_simple(argv[3]);
-      tcp_init_mapped();
-  }
-  else {
-    printf("tcp: error: incorrect number of parameters\n");
-    exit(0);
-  }
+  //reset mean based on lookahead
+  mean = mean - lookahead;
+
+  g_tw_memory_nqueues = 16; // give at least 16 memory queue event
   
-  //if(g_type > 0){
-  // g_tw_events_per_pe = 4792 + 4092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 5376 + 4092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 45759 + 10092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  //  g_tw_events_per_pe = 85685 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 86016 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 522335 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  //  g_tw_events_per_pe = 1217929 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 1380021 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  //  g_tw_events_per_pe = 5273847 + 4092 ; //(pow(g_type,4) * 26 ) / g_npe;
-  // g_tw_events_per_pe = 6876362 + 4092 ; //(pow(g_type,4) * 26 ) / g_npe;  
-  //g_tw_events_per_pe = 13308192; //700316 + 7092 ; //(pow(g_type,4) * 26 ) / g_npe;  
-  g_tw_events_per_pe = 1024 * 1024 +  pow(g_type,4) * 26; 
-  /*
-    if(g_type == 32){
-    g_tw_events_per_pe = (pow(g_type,4) * 12 ) / g_npe + 890000;
-    g_recv_wnd = 16;
-    }
-    }
-    else if (g_type == -1 && g_num_links == 10)
-    g_tw_events_per_pe = 1024 *1024 * 2.5 / g_npe;
-    else if (g_type == -1 && g_num_links == 30)
-    g_tw_events_per_pe = 1024 *1024 * 12 / g_npe;
-    else
-    g_tw_events_per_pe = 1024 * 1024 *2;
-  */
-  TWnkp = 1; //g_nkp; 
-  TWnpe = g_npe;    
-  TWnlp = g_hosts + g_routers;
-  g_tw_ts_end = atof(argv[2]) * (double)g_frequency;
-  g_tw_gvt_interval = 32;
-  g_tw_mblock = 256;
-
-  printf("Running simulation with following configuration: \n" );
-  printf("    Processors Used = %d\n", TWnpe);
-  printf("    KPs Used = %d\n", TWnkp);
-  printf("    LPs Used = %d\n", TWnlp);
-  printf("    End Time = %f \n", g_tw_ts_end);
-  printf("    Buffers Allocated Per PE = %d\n", g_tw_events_per_pe);
-  printf("    Gvt Interval = %d\n", g_tw_gvt_interval);
-  printf("    Message Block Size (i.e., Batch) = %d\n", g_tw_mblock);
-  printf("\n\n");
- 
-
-#ifdef LOGGING
-  host_received_log = (FILE **) malloc(sizeof(FILE *));
-  serv_tcpdump = (FILE **) malloc(sizeof(FILE *));
-  serv_cwnd = (FILE **) malloc(sizeof(FILE *));
-  host_sent_log = (FILE **) malloc(sizeof(FILE *));
-  router_log = (FILE **) malloc(g_routers * sizeof(FILE *));
-  for(j = 0; j<g_hosts; j++){
-    sprintf(file_name,"logs/host_received.%d.log",j);
-    host_received_log[j] = fopen(file_name,"w");  
-    sprintf(file_name,"logs/serv_cwnd_%d.out",j);
-    serv_cwnd[j] = fopen(file_name,"w");  
-    sprintf(file_name,"logs/serv_tcpdump_%d.out",j);
-    serv_tcpdump[j] = fopen(file_name,"w");  
-    sprintf(file_name,"logs/host_sent.%d.log",j);
-    host_sent_log[j] =  fopen(file_name,"w");
-  }
-  for(j = 0; j<g_routers; j++){
-    sprintf(file_name,"logs/router.%d.log",j);
-    router_log[j] =  fopen(file_name,"w");
-  }
-#endif
-
-  tw_init(mylps, TWnpe, TWnkp, TWnlp, sizeof(Msg_Data));
-  tcp_init_lps(argv[1]);
+  offset_lpid = g_tw_mynode * nlp_per_pe;
+  ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
+  g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
+    optimistic_memory;
+  //g_tw_rng_default = TW_FALSE;
+  g_tw_lookahead = lookahead;
   
+  tw_define_lps(nlp_per_pe, sizeof(phold_message), 0);
+  
+  for(i = g_tw_mynode * ; i < g_tw_nlp; i++)
+    tw_lp_settype(i, &mylps[0]);
+  
+  if( g_tw_mynode == 0 )
+    {
+      printf("Running simulation with following configuration: \n" );
+      printf("    Processors Used = %d\n", g_tw_pe);
+      printf("    KPs Used = %d\n", g_tw_nkp);
+      printf("    LPs Used = %d\n", nlp_per_model);
+      printf("    End Time = %f \n", g_tw_ts_end);
+      printf("    Buffers Allocated Per PE = %d\n", g_tw_events_per_pe);
+      printf("    Gvt Interval = %d\n", g_tw_gvt_interval);
+      printf("    Message Block Size (i.e., Batch) = %d\n", g_tw_mblock);
+      printf("\n\n");
+    }
 
-  // exit(0);
-  /*
-   * Initialize App Stats Structure 
-   */
   TWAppStats.sent_packets = 0; 
   TWAppStats.received_packets = 0; 
-  
   TWAppStats.dropped_packets = 0;
   TWAppStats.timedout_packets = 0;
   TWAppStats.throughput = 0;
  
   tw_run();
-  
-  tcpStatistics_Print(&TWAppStats);
-
-  
-#ifdef LOGGING
-  for(j = 0; j<g_hosts; j++){
-    fclose(serv_cwnd[j]);
-    fclose(serv_tcpdump[j]);
-    fclose(host_received_log[j]);
-    fclose(host_sent_log[j]);
-  }
-  for(j = 0; j<g_routers; j++){
-    fclose(router_log[j]);
-  }
-#endif
-  
+  tw_end();
+  tcp_finalize( &TWAppStats );
   return 0;
 }
 
 
 void 
-tcpStatistics_Print(tcpStatistics *Stat)
+tcp_finalize();
 {
+  Tcp_Statistics  stats;
+  // START HERE -- fix!!
+  if(MPI_Reduce(&(g_tcp_stats->bad_msgs),
+		&stats,
+		8,
+		MPI_LONG_LONG,
+		MPI_SUM,
+		g_tw_masternode,
+		MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+
+  if(MPI_Reduce(&(g_tcp_stats->throughput),
+		&(stats.throughput),
+		3,
+		MPI_DOUBLE,
+		MPI_SUM,
+		g_tw_masternode,
+		MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "TCP Final: unable to reduce statistics");
+
+  if(!tw_ismaster())
+    return;
+
+  printf("\nTCP Model Statistics: \n\n");
+  printf("\t%-50s %11lld\n", "Sent Packets", stats.sent);
+  printf("\t%-50s %11lld\n", "Recv Packets", stats.recv);
+  printf("\t%-50s %11lld\n", "Sent ACKs", stats.ack_sent);
+  printf("\t%-50s %11lld\n", "Recv ACKs", stats.ack_recv);
+  printf("\t%-50s %11lld\n", "Invalid ACKs", stats.ack_invalid);
+  printf("\t%-50s %11lld\n", "TimeOut Packets", stats.tout);
+  printf("\t%-50s %11lld\n", "Drop Packets", stats.dropped_packets);
+  printf("\t%-50s %11.4lf Kbps\n", "Total Throughput", stats.throughput);
+}
+~                                                                                                                                                                       
+~                                                                                                                                                                       
+~               
   printf("Sent Packets.......................................%d\n",
 	 Stat->sent_packets);
   printf("Received Packets...................................%d\n",

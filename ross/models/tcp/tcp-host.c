@@ -10,9 +10,9 @@
 *********************************************************************/
 
 void 
-tcp_host_StartUp(Host_State *SV, tw_lp * lp)
+tcp_host_startup(Host_State *SV, tw_lp * lp)
 {
-  int    i,id = lp->id;
+  int    i;
   int    id_offset = lp->id - g_routers;
   double  ts; 
   
@@ -36,7 +36,7 @@ tcp_host_StartUp(Host_State *SV, tw_lp * lp)
   switch (g_hosts_info[id - g_routers].type) 
     {
     case 0:
-      ts = tw_rand_exponential(id, 10 * g_frequency);
+      ts = tw_rand_exponential(lp->rng, 10 * g_frequency);
     
       SV->start_time = ts;
       SV->len = 200000; // g_hosts_info[id_offset].size;
@@ -46,41 +46,17 @@ tcp_host_StartUp(Host_State *SV, tw_lp * lp)
       
       /*  Creates and event with: current lp, type, dest, 
 	  seq_num, ack, and timestamp */
-      tcp_util_event(lp, FORWARD, lp->id, tw_rand_integer(lp->id,0,(g_hosts-1)/2) * 2 + g_routers, 0, 0, ts);
+      tcp_util_event(lp, FORWARD, lp->id, tw_rand_integer(lp->rng,0,(g_hosts-1)/2) * 2 + g_routers, 0, 0, ts);
 
-#ifdef LOGGING      
-      fprintf(serv_cwnd[lp->id - g_routers],"%f %f %f %f 0\n",
-	  ts, SV->cwnd*g_mss, 
-	  SV->ssthresh, g_recv_wnd *g_mss);  
-
-      fprintf(host_sent_log[lp->id - g_routers],"sent by %d to %d next hop %d %f\n", 
-	      id, g_hosts_info[id_offset].connected, tcp_util_nexthop(lp,g_hosts_info[id_offset].connected)->id, 
-	      ts);
-      fprintf(serv_tcpdump[lp->id - g_routers],"%f %d 10 %d 10001 %d %d 0 0 1 0\n",
-		   ts, id, 0, SV->seq_num + g_iss, g_mss ); 
-#endif
       
       SV->seq_num = g_mss;
       SV->sent_packets++;
-      
-      //SV->event = tw_timer_init(lp, ts + SV->rto);
-      //if(SV->event) {
-      //	((Msg_Data *) SV->event->message->data)->seq_num = 0;
-      //	((Msg_Data *) SV->event->message->data)->MethodName = RTO;
-      //}
-      
       SV->rtt_seq = 0;
       SV->rtt_time = ts;
-
-#ifdef LOGGING      
-      fprintf(host_sent_log[lp->id - g_routers],"RTO by %d to %d next hop %d %f\n", 
-	      id, id, tcp_util_nexthop(lp,id)->id, ts + SV->rto);
-#endif       
-
       break;
 
     case 1:      
-      ts = tw_rand_exponential(id, 10);
+      ts = tw_rand_exponential(lp->rng, 10);
     
       SV->start_time = ts;
       SV->len =   g_hosts_info[id_offset].size;
@@ -92,43 +68,19 @@ tcp_host_StartUp(Host_State *SV, tw_lp * lp)
 	  seq_num, ack, and timestamp */
       tcp_util_event(lp, FORWARD, lp->id, g_hosts_info[id_offset].connected, 0, 0, ts);
 
-      //printf("lp %d sends to %d at %f next hop %d\n",lp->id, g_hosts_info[id_offset].connected,
-      //     ts,g_hosts_links[id_offset].connected);
-
-#ifdef LOGGING      
-      fprintf(serv_cwnd[lp->id - g_routers],"%f %f %f %f 0\n",
-	  ts, SV->cwnd*g_mss, 
-	  SV->ssthresh, g_recv_wnd *g_mss);  
-
-      fprintf(host_sent_log[lp->id - g_routers],"sent by %d to %d next hop %d %f\n", 
-	      id, g_hosts_info[id_offset].connected, tcp_util_nexthop(lp,g_hosts_info[id_offset].connected)->id, 
-	      ts);
-      fprintf(serv_tcpdump[lp->id - g_routers],"%f %d 10 %d 10001 %d %d 0 0 1 0\n",
-		   ts, id, 0, SV->seq_num + g_iss, g_mss ); 
-#endif
-      
       SV->seq_num = g_mss;
       SV->sent_packets++;
-      
-      
-      // tcp_util_event(lp, RTO,  g_hosts_info[id_offset].connected , lp->id, 0, 0, ts+ SV->rto);
-	SV->rto_timer = tw_timer_init(lp, ts + SV->rto);
-	
-	if(SV->rto_timer) {
-	  Msg_Data *M;
-	  M = tw_event_data(SV->rto_timer);
-	  M->source = g_hosts_info[id_offset].connected;
-	  M->seq_num= 0;
-	  M->MethodName = RTO;
-	}
+      SV->rto_timer = tw_timer_init(lp, ts + SV->rto);
+      if(SV->rto_timer) {
+	Msg_Data *M;
+	M = tw_event_data(SV->rto_timer);
+	M->source = g_hosts_info[id_offset].connected;
+	M->seq_num= 0;
+	M->MethodName = RTO;
+      }
       
       SV->rtt_seq = 0;
       SV->rtt_time = ts;
-
-#ifdef LOGGING      
-      fprintf(host_sent_log[lp->id - g_routers],"RTO by %d to %d next hop %d %f\n", 
-	      id, id, tcp_util_nexthop(lp,id)->id, ts + SV->rto);
-#endif       
       break;
 
     case 2:
@@ -136,13 +88,6 @@ tcp_host_StartUp(Host_State *SV, tw_lp * lp)
       for(i = 0 ; i < g_recv_wnd; i++)
 	SV->out_of_order[i] = 0;
       break;
-#ifdef CLIENT_DROP
-    case 3:
-      SV->count = 0;
-      for(i = 0 ; i < g_recv_wnd; i++)
-	SV->out_of_order[i] = 0;
-      break;
-#endif
     }
 }
 
@@ -175,11 +120,6 @@ tcp_host_process(Host_State *SV,  tw_bf * CV,Msg_Data *M, tw_lp * lp)
       else 
 	printf("here is the problem %d %d\n", SV->connection, M->source);
       break;
-#ifdef CLIENT_DROP
-    case 3:
-      tcp_host_process_data(SV,CV,M,lp);
-      break;
-#endif
     }    
 }
 
@@ -195,13 +135,6 @@ tcp_host_process_ack(Host_State *SV,  tw_bf * CV, Msg_Data *M, tw_lp * lp)
   int     id_offset = lp->id - g_routers;
   int     ack;
   double  ts = 0;
-
-#ifdef LOGGING
-  fprintf(host_sent_log[lp->id - g_routers],"%f unack %d message ack %d lp %d\n",
-	  tw_now(lp), SV->unack, M->ack, id);
-  fprintf(serv_tcpdump[lp->id - g_routers],"%f %d 10001 %d 10 0 0 0 0 1 %d\n",
-	  tw_now(lp), M->source,  id, M->ack + g_iss); 
-#endif
 
   if((CV->c2 = (SV->unack <= M->ack)))
     {
@@ -336,10 +269,8 @@ tcp_host_process_ack(Host_State *SV,  tw_bf * CV, Msg_Data *M, tw_lp * lp)
 void
 tcp_host_process_data(Host_State *SV,  tw_bf * CV,Msg_Data *M, tw_lp * lp)
 {   
-  int     id = lp->id;
-  int     id_offset = lp->id - g_routers;
-  int     i;
-  double  ts;
+    int     id_offset = lp->id - g_routers;
+    double  ts;
 
 #ifdef LOGGING
   fprintf(host_received_log[lp->id - g_routers],"%f %f seq num %d message seq %d lp %d \n",
@@ -405,9 +336,10 @@ tcp_host_process_data(Host_State *SV,  tw_bf * CV,Msg_Data *M, tw_lp * lp)
 	    + g_hosts_links[id_offset].delay;
 	  SV->lastsent += TCP_HEADER_SIZE / g_hosts_links[id_offset].link_speed;
 	}
-	if((CV->c3 = (M->seq_num > SV->seq_num))){
-	  if(CV->c4 = (M->seq_num > (SV->seq_num + (g_recv_wnd * g_mss)
-				     /*TCP_SND_WND */- g_mss))) {  
+	if((CV->c3 = (M->seq_num > SV->seq_num)))
+	  {
+	    if(CV->c4 = (M->seq_num > (SV->seq_num + (g_recv_wnd * g_mss)- g_mss))) 
+	      {  
 	    // look up need rc code  CHANGE
 	    printf("The revc_wnd buffer over flow %d %d\n",
 		  M->seq_num, SV->seq_num + TCP_SND_WND - g_mss);
@@ -579,7 +511,6 @@ tcp_host_update_rtt(Host_State *SV, tw_bf * CV,Msg_Data *M, tw_lp * lp)
 void 
 tcp_host_timeout(Host_State *SV, tw_bf * CV,Msg_Data *M, tw_lp * lp)
 {  
-  int    id = lp->id;
   int    id_offset = lp->id - g_routers;
 
   if((CV->c1 = (M->seq_num >= SV->unack && SV->unack < SV->len && M->ack == SV->rto_seq)))

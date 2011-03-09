@@ -9,9 +9,6 @@
 
 typedef int MethodName_t;
 
-//#define LOGGING 
-//#define CLIENT_DROP
-
 #define	TW_TCP_HOST   1
 #define TW_TCP_ROUTER 2
 
@@ -24,8 +21,6 @@ typedef int MethodName_t;
 #define TCP_HEADER_SIZE 40.0
 #define TCP_TRANSFER_SIZE (g_mss + TCP_HEADER_SIZE)
 
-
-typedef struct Routing_Table Routing_Table;
 typedef struct Router_Link Router_Link;
 typedef struct Host_Link Host_Link;
 typedef struct Host_Info Host_Info;
@@ -34,31 +29,6 @@ typedef struct Host_State Host_State;
 typedef struct RC RC;
 typedef struct Msg_Data Msg_Data;
 typedef struct tcpStatistics tcpStatistics;
-typedef struct rocket_fuel_link rocket_fuel_link;
-typedef struct rocket_fuel_node rocket_fuel_node;
-
-struct rocket_fuel_link
-{
-  int node_id;
-  int bandwidth;
-};
-
-struct rocket_fuel_node
-{
-  int used;
-  int level; int is_bb; int num_in_level;
-  int num_links;
-  int kp;
-  int pe;
-  rocket_fuel_link link_list[128];
-};
-
-
-struct Routing_Table
-{
-  int     connected;
-  int     link;
-};
 
 struct Router_Link
 {
@@ -101,15 +71,11 @@ struct Host_State
   int   rtt_seq;
   short   *out_of_order;
   tw_event *rto_timer;
-  int     rto_seq; // probably do not need 
-  double  smoothed_rtt;  //could be changed to shorts.
+  int     rto_seq;            // probably do not need 
+  double  smoothed_rtt;       //could be changed to shorts.
   double  dev;
   
   int   connection;
-
-#ifdef CLIENT_DROP
-  int count;
-#endif
 
   double lastsent;
   double cwnd;
@@ -157,7 +123,7 @@ struct Msg_Data
   RC              RC;
 };
 
-struct tcpStatistics
+struct Tcp_Statistics
 {
   int sent_packets;
   int timedout_packets;
