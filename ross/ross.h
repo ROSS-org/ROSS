@@ -104,23 +104,63 @@
  *
  ********************************************************************/
 
-#include <errno.h>
-#include <sys/types.h>
-#include <math.h>
-#include <limits.h> 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdint.h>
+#include "ross_config.h"
 
-#if !defined(DBL_MAX)
-#include <float.h>
+#ifdef HAVE_ERRNO_H
+#	include <errno.h>
 #endif
 
-#include <sys/time.h>
-#include <time.h>
+#ifdef HAVE_SYS_TYPES_H
+#	include <sys/types.h>
+#endif
+
+#ifdef HAVE_MATH_H
+#	include <math.h>
+#endif
+
+#ifdef HAVE_LIMITS_H
+#	include <limits.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#	include <stdlib.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#	include <unistd.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#	include <string.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#	include <stdio.h>
+#endif
+
+#ifdef HAVE_STDARG_H
+#	include <stdarg.h>
+#endif
+
+#ifdef HAVE_STDINT_H
+#	include <stdint.h>
+#endif
+
+#ifdef HAVE_FLOAT_H
+#	include <float.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#	include <sys/time.h>
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
+#	include <time.h>
+#endif
+
+#ifdef HAVE_BGLPERSONALITY_H
+#	include <bglpersonality.h> 
+#endif
 
 #ifdef ROSS_INTERNAL
 #undef malloc
@@ -136,54 +176,16 @@
 #  define free(b) must_not_use_free
 #endif
 
-/* tw_peid -- Processing Element "PE" id */
-typedef unsigned long long tw_peid;
 
-/* tw_stime -- Simulation time value for sim clock (NOT wall!) */
-typedef double tw_stime;
-
-/* tw_lpid -- Logical Process "LP" id */
-#if defined(ARCH_bgl) || defined(ARCH_bgp)
-typedef unsigned long long tw_lpid;
-#else
-//typedef unsigned long long tw_lpid;
-typedef uintptr_t tw_lpid;
-#endif
+typedef uint64_t tw_peid;   	/**< tw_peid -- Processing Element "PE" id */
+typedef   double tw_stime;  	/**< tw_stime -- Simulation time value for sim clock (NOT wall!) */
+typedef uint64_t tw_clock;
+typedef uint64_t tw_lpid;		/**< tw_lpid -- Numerical Value of Logical Processor */
+typedef uint32_t tw_eventid;
+typedef  int32_t tw_node;
 
 #include "ross-random.h"
-
-#ifdef ROSS_RAND_clcg4
-#  include "rand-clcg4.h"
-#endif
-
-#ifdef ROSS_CLOCK_i386
-#  include "clock-i386.h"
-#endif
-#ifdef ROSS_CLOCK_amd64
-#  include "clock-amd64.h"
-#endif
-#ifdef ROSS_CLOCK_ia64
-#  include "clock-ia64.h"
-#endif
-#ifdef ROSS_CLOCK_ppc
-#  include "clock-ppc.h"
-#endif
-#ifdef ROSS_CLOCK_bgl
-#  include "clock-bgl.h"
-#endif
-#ifdef ROSS_CLOCK_none
-#  include "clock-none.h"
-#endif
-
-#ifdef ROSS_NETWORK_none
-#  include "network-none1.h"
-#endif
-#ifdef ROSS_NETWORK_mpi
-#  include "network-mpi1.h"
-#endif
-#ifdef ROSS_NETWORK_tcp
-#  include "network-tcp1.h"
-#endif
+#include "rand-clcg4.h"
 
 #include "tw-timing.h"
 #include "ross-types.h"
@@ -195,26 +197,13 @@ typedef uintptr_t tw_lpid;
 #include "ross-kernel-inline.h"
 #include "hash-quadratic.h"
 
-#ifdef ROSS_NETWORK_none
-#  include "network-none2.h"
-#endif
-#ifdef ROSS_NETWORK_mpi
-#  include "network-mpi2.h"
-#endif
-#ifdef ROSS_NETWORK_tcp
-#  include "network-tcp2.h"
-#  include "socket-tcp.h"
-#  include "hash-quadratic.h"
-#endif
+#include "network-mpi.h"
 
-#ifdef ROSS_GVT_none
-#  include "gvt-none.h"
-#endif
 #ifdef ROSS_GVT_7oclock
 #  include "gvt-7oclock.h"
 #endif
 #ifdef ROSS_GVT_mpi_allreduce
-#  include "mpi.h"
+#  include <mpi.h>
 #  include "gvt-mpi_allreduce.h"
 #endif
 

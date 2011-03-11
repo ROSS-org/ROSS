@@ -327,8 +327,8 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   me->stats.s_nread_network++;
   me->s_nwhite_recv++;
 
-  e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
-  dest_pe = e->dest_lp->pe;
+  e->dest_lp_ptr = tw_getlocal_lp((tw_lpid) e->dest_lp);
+  dest_pe = e->dest_lp_ptr->pe;
 
   if(e->send_pe > tw_nnodes()-1)
     tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
@@ -376,7 +376,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   last = NULL;
   while(mem_size)
     {
-      memory = tw_memory_alloc(e->dest_lp, mem_fd);
+      memory = tw_memory_alloc(e->dest_lp_ptr, mem_fd);
 
       if(last)
 	last->next = memory;
@@ -396,7 +396,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     }
 #endif
 
-  if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
+  if(me == dest_pe && e->dest_lp_ptr->kp->last_time <= e->recv_ts) {
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */
@@ -454,26 +454,25 @@ send_begin(tw_pe *me)
 #endif
 
       if (!e)
-	break;
+		break;
 
       if(e == me->abort_event)
-	tw_error(TW_LOC, "Sending abort event!");
+		tw_error(TW_LOC, "Sending abort event!");
 
-      dest_node = tw_net_onnode((*e->src_lp->type.map)
-				((tw_lpid) e->dest_lp));
+      dest_node = tw_net_onnode((*e->src_lp_ptr->type.map) (e->dest_lp));
 
       if(!e->state.cancel_q)
-	e->event_id = (tw_eventid) ++me->seq_num;
+		e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
 
 #if ROSS_MEMORY
       // pack pointers
       tmp_prev = e->prev;
-      tmp_lp = e->src_lp;
+      tmp_lp = e->src_lp_ptr;
 
       // delete when working
-      e->src_lp = NULL;
+      e->src_lp_ptr = NULL;
 
       memory = NULL;
       if(e->memory)
@@ -490,7 +489,7 @@ send_begin(tw_pe *me)
 
       // restore pointers
       e->prev = tmp_prev;
-      e->src_lp = tmp_lp;
+      e->src_lp_ptr = tmp_lp;
 
       m = NULL;
       while(memory)
@@ -511,7 +510,7 @@ send_begin(tw_pe *me)
 	  position += mem_size;
 
 	  memory->nrefs--;
-	  tw_memory_unshift(e->src_lp, memory, memory->fd);
+	  tw_memory_unshift(e->src_lp_ptr, memory, memory->fd);
 
 	  if(NULL != (memory = m))
 	    mem_size = tw_memory_getsize(me, memory->fd);
@@ -631,7 +630,7 @@ tw_net_read(tw_pe *me)
 void
 tw_net_send(tw_event *e)
 {
-  tw_pe * me = e->src_lp->pe;
+  tw_pe * me = e->src_lp_ptr->pe;
   int changed = 0;
 
   e->state.remote = 0;
@@ -641,14 +640,14 @@ tw_net_send(tw_event *e)
   do
     {
       changed = test_q(&posted_sends, me, send_finish);
-      changed |= send_begin(me);
+      changed = send_begin(me);
     } while (changed);
 }
 
 void
 tw_net_cancel(tw_event *e)
 {
-  tw_pe *src_pe = e->src_lp->pe;
+  tw_pe *src_pe = e->src_lp_ptr->pe;
 
   switch (e->state.owner) {
   case TW_net_outq:

@@ -1,15 +1,6 @@
 #include <ross.h>
 
 /*
- * tw_rand_init
- */
-tw_rng	*
-tw_rand_init(uint64_t v, uint64_t w)
-{
-	return rng_init(v, w);
-}
-
-/*
  * tw_rand_integer
  *
  * For LP # gen, return a uniform rn from low to high 

@@ -19,7 +19,7 @@ static void
 show_1f(const char *name, double v)
 {
 	printf("\t%-50s %11.1f\n", name, v);
-	fprintf(g_tw_csv, "%.2f,", v);
+	fprintf(g_tw_csv, "%.1f,", v);
 }
 
 static void

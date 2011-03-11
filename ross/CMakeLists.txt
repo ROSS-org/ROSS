@@ -2,11 +2,9 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
-clock-${CLOCK}.c
-clock-${CLOCK}.h
-network-${NETWORK}.c
-network-${NETWORK}1.h
-network-${NETWORK}2.h
+clock.c
+network-mpi.c
+network-mpi.h
 hash-quadratic.c
 hash-quadratic.h
 queue-${QUEUE}.c
@@ -35,6 +33,8 @@ tw-timing.c
 tw-timing.h
 tw-util.c)
 
+CONFIGURE_FILE(config.h.cmake ${CMAKE_CURRENT_SOURCE_DIR}/ross_config.h)
+
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
 	SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
@@ -56,12 +56,9 @@ SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK
 
 ADD_DEFINITIONS(${OPTIONS})
 
-#SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPTIONS}")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
-#SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${CMAKE_C_FLAGS}\"'")
-
-#INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
 
 ADD_LIBRARY(ROSS ${ross_srcs})
 
 ADD_SUBDIRECTORY(models)
+ADD_SUBDIRECTORY(tests)

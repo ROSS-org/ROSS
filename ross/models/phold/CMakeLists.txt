@@ -5,4 +5,8 @@ phold.c		phold.h)
 
 ADD_EXECUTABLE(phold ${phold_srcs})
 
-TARGET_LINK_LIBRARIES(phold ROSS m)
+IF(HAVE_LIBMASS)
+	TARGET_LINK_LIBRARIES(phold ROSS mass)
+ELSEIF(HAVE_LIBM)
+	TARGET_LINK_LIBRARIES(phold ROSS m)
+ENDIF()

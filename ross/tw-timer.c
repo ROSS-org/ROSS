@@ -26,8 +26,8 @@ tw_timer_event_new(tw_lp * dest, tw_stime recv_ts, tw_lp * src)
 	e->cancel_next = NULL;
 	e->caused_by_me = NULL;
 	e->recv_ts = recv_ts;
-	e->dest_lp = dest;
-	e->src_lp = src;
+	e->dest_lp_ptr = dest;
+	e->src_lp_ptr = src;
 
 	return e;
 }
@@ -37,12 +37,12 @@ tw_timer_event_send(tw_timer event)
 {
 	tw_pe          *dest_pe;
 	tw_pe          *send_pe;
-	tw_lp          *src_lp;
+	tw_lp          *src_lp_ptr;
 	tw_stime        last_sent_ts;
 
-	src_lp = event->src_lp;
-	send_pe = event->src_lp->pe;
-	dest_pe = event->dest_lp->pe;
+	src_lp_ptr = event->src_lp_ptr;
+	send_pe = event->src_lp_ptr->pe;
+	dest_pe = event->dest_lp_ptr->pe;
 	last_sent_ts = event->recv_ts;
 
 	if(event == send_pe->abort_event)
@@ -52,7 +52,7 @@ tw_timer_event_send(tw_timer event)
 	 * do not thread timer events into cause list
 	 */
 
-	if (send_pe == dest_pe && event->dest_lp->kp->last_time <= last_sent_ts)
+	if (send_pe == dest_pe && event->dest_lp_ptr->kp->last_time <= last_sent_ts)
 	{
 		tw_pq_enqueue(dest_pe->pq, event);
 	} else
@@ -94,7 +94,7 @@ tw_timer_cancel(tw_lp * lp, tw_timer * e)
 			return;
 	
 		if(event->state.owner == TW_pe_pq)
-			tw_pq_delete_any(event->dest_lp->pe->pq, event);
+			tw_pq_delete_any(event->dest_lp_ptr->pe->pq, event);
 
 		tw_event_free(lp->pe, event);
 		*e = NULL;
@@ -111,7 +111,7 @@ tw_timer_reset(tw_lp * lp, tw_timer * e, tw_stime ts)
 		if(event)
 		{
 			if(event->state.owner == TW_pe_pq)
-				tw_pq_delete_any(event->dest_lp->pe->pq, event);
+				tw_pq_delete_any(event->dest_lp_ptr->pe->pq, event);
 
 			event->recv_ts = ts;
 			tw_timer_event_send(event);
