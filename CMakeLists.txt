@@ -35,7 +35,7 @@ OPTION(TIMING	   "Perform ROSS timings"	ON)
 
 OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
-OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
+OPTION(WITH_ROSSNET "Build ROSS.Net?"		ON)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
@@ -94,7 +94,7 @@ ENDIF(ARCH STREQUAL ppc64)
 IF(ARCH STREQUAL x86_64)
         SET(VALID_ARCH YES)
         #SET(CC	 mpicc)
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O6 -Wall")
         SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
         ADD_DEFINITIONS(-D_GNU_SOURCE)
         SET(CLOCK       amd64)
