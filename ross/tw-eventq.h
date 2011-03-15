@@ -23,7 +23,7 @@ tw_eventq_debug(tw_eventq * q)
       cnt++;
 
       if(next->prev != last)
-	  tw_error(TW_LOC, "Prev pointer not correct!");
+	tw_error(TW_LOC, "Prev pointer not correct!");
 
       last = next;
       next = next->next;
@@ -71,7 +71,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 	      cev->cause_next = NULL;
 
 	      if(cev->state.owner == TW_pe_sevent_q)
-		tw_event_free(cev->src_lp_ptr->pe, cev);
+		tw_event_free(cev->src_lp->pe, cev);
 
 	      cev = next;
 	    }

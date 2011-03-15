@@ -296,9 +296,12 @@ struct tw_event
 	tw_lp		*dest_lp_ptr; 		/**< @brief Destination LP Pointer */
 	tw_lp		*src_lp_ptr; 		/**< @brief Sending LP Pointer */
 	
-  	tw_lpid		 dest_lp;			/**< @brief Destination LP ID */
-	tw_lpid		 src_lp;			/**< @brief Sending LP ID */
-			
+/*  tw_lpid		 dest_lp;			What we want eventually...
+ *	tw_lpid		 src_lp;
+*/	
+	
+	tw_lp		*dest_lp; 			/**< @brief Destination LP ID */
+  	tw_lp		*src_lp; 			/**< @brief Sending LP ID */
   	tw_stime	 recv_ts; 			/**< @brief Actual time to be received */
 
   	tw_peid		 send_pe;
@@ -413,11 +416,13 @@ struct tw_pe
 
   tw_statistics stats; /**< @brief per PE counters */
 
+#ifndef ROSS_NETWORK_none
   void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/
 #ifdef ROSS_NETWORK_mpi
   tw_eventid	 seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
 #else
   tw_eventid	*seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
+#endif
 #endif
 
   tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */

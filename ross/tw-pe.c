@@ -39,17 +39,15 @@ tw_pe_create(tw_peid id)
 	g_tw_pe = tw_calloc(TW_LOC, "PE Array", sizeof(*g_tw_pe), id);
 }
 
-/**
- * @brief Initialize individual PE structs
- * @param id  Local compute node g_tw_pe array index
- * @param gid Global (across all compute nodes) PE id
+/*
+ * tw_pe_init: initialize individual PE structs
  *
- * Allocates Memory for the PE, sets default struct values
- * and initalizes the RNG using 31 and 41 for some reason
- *
+ * id	-- local compute node g_tw_pe array index
+ * gid	-- global (across all compute nodes) PE id
  */
-void tw_pe_init(tw_peid id, tw_peid gid) {
-	
+void
+tw_pe_init(tw_peid id, tw_peid gid)
+{
 	tw_pe *pe = tw_calloc(TW_LOC, "Local PE", sizeof(*pe), 1);
 	tw_petype no_type;
 	
@@ -75,7 +73,7 @@ void tw_pe_init(tw_peid id, tw_peid gid) {
 	if(g_tw_rng_default == TW_TRUE)
 		g_tw_rng_max = g_tw_nRNG_per_lp;
 
-	g_tw_pe[id]->rng = rng_init(31, 41);
+	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 }
 
 void
@@ -96,6 +94,10 @@ tw_pe_fossil_collect(tw_pe * me)
 		tw_kp_fossil_memory(kp);
 #endif
 	}
+
+#ifdef ROSS_NETWORK_tcp
+	tw_eventq_fossil_collect(&me->sevent_q, me);
+#endif
 }
 
 #ifdef ROSS_MEMORY

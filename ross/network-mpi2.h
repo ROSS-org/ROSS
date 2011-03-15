@@ -1,5 +1,5 @@
-#ifndef INC_network_mpi_h
-#define INC_network_mpi_h
+#ifndef INC_network_mpi2_h
+#define INC_network_mpi2_h
 
 static int id_tmp;
 

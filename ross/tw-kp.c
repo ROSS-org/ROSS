@@ -61,7 +61,7 @@ tw_kp_rollback_event(tw_event * event)
         tw_kp          *kp;
         tw_pe          *pe;
 
-        kp = event->dest_lp_ptr->kp;
+        kp = event->dest_lp->kp;
         pe = kp->pe;
 
         kp->s_rb_total++;
