@@ -72,7 +72,7 @@ OPTION(TIMING	   "Perform ROSS timings"	ON)
 
 OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
-OPTION(WITH_ROSSNET "Build ROSS.Net?"		ON)
+OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
