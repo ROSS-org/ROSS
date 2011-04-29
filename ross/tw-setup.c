@@ -24,13 +24,17 @@ void
 tw_init(int *argc, char ***argv)
 {
         int i;
-        // Print out the command-line so we know what we passed in
-	for (i = 0; i < *argc; i++) {
-	        printf("%s ", (*argv)[i]);
-	}
-	printf("\n\n");
 
 	tw_opt_add(tw_net_init(argc, argv));
+
+        // Print out the command-line so we know what we passed in
+	if (tw_ismaster()) {
+	        for (i = 0; i < *argc; i++) {
+	                printf("%s ", (*argv)[i]);
+	        }
+	        printf("\n\n");
+	}
+
 	tw_opt_add(kernel_options);
 	tw_opt_add(tw_gvt_setup());
 	tw_opt_add(tw_clock_setup());
