@@ -23,6 +23,13 @@ static const tw_optdef kernel_options[] = {
 void
 tw_init(int *argc, char ***argv)
 {
+        int i;
+        // Print out the command-line so we know what we passed in
+	for (i = 0; i < *argc; i++) {
+	        printf("%s ", (*argv)[i]);
+	}
+	printf("\n\n");
+
 	tw_opt_add(tw_net_init(argc, argv));
 	tw_opt_add(kernel_options);
 	tw_opt_add(tw_gvt_setup());
