@@ -23,16 +23,6 @@ static inline double rad2deg(double rad) {
 	return rad*(180/PI);
 }
 
-/** calculateGeoDistance
- * @brief Calculate Distance on the Earth
- *
- * 
- */
-double calculateGeoDistance(tw_geo_pt pt1, tw_geo_pt pt2) {
-	
-	
-}
-
 /** calculateGridDistance
  * @brief Calculate Distance on a plain grid
  *

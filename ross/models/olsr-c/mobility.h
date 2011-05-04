@@ -15,6 +15,12 @@ typedef struct {
 	double z;
 } tw_grid_pt;
 
+typedef struct {
+	int x;
+	int y;
+	int z;
+} tw_integer_grid_pt;
+
 double calculateGridDistance(tw_grid_pt pt1, tw_grid_pt pt2);
 
 

@@ -14,16 +14,16 @@
 #define NUM_VP_X 8
 #define NUM_VP_Y 8
 
-#define OLSR_MAX_STATIONS_PER_REGION 8
+#define OLSR_MAX_STATIONS_PER_REGION 32
+#define OLSR_MAX_MPRS_PER_REGION 4
+
 #define MAX_X_DIST 1
 #define MAX_Y_DIST 1
 #define MAX_Z_DIST 1
 #define STD_DEV 0.1
-#define OLSR_STATIONS_PER_MPR 8
+
 
 #define WIFIB_BW 20
-
-#define OLSR_MPRS_PER_REGIONLP 4
 
 #define LAMBDA 0.125 //Insert reasoning behind this here, it is in my notebook.
 
@@ -31,18 +31,31 @@
 /* 1 unit of time is 1 usecond      */ 
 /* max total size of packet with header is 2346 */
 
-#define DATA_PACKET_TIME (((2346 * 8) /  (11.0 * 1024.0 * 1024.0)) * 1000000.0)
+#define DATA_PACKET_SIZE 2346
+#define HELLO_PACKET_SIZE 34
+
+#define DATA_PACKET_TIME (((DATA_PACKET_SIZE * 8) /  (11.0 * 1024.0 * 1024.0)) * 1000000.0)
+#define HELLO_PACKET_TIME (((HELLO_PACKET_SIZE * 8) /  (11.0 * 1024.0 * 1024.0)) * 1000000.0)
+#define MEAN_TIME_BETWEEN_DATA_PACKETS 100000.0 // 100K useconds for each station
+
+#define REGION_SIZE 100 // 100 meters by default -- each region is 100x100
+
+#define OLSR_MPR_POWER 10     // 10 dbm
+#define OLSR_STATION_POWER 10 // 10 dbm
+#define OLSR_MPR_PACKET_SERVICE_TIME 100 // 100 useconds
+#define OLSR_MAX_HOPS 16
 
 typedef struct olsr_region_state olsr_region_state;
-typedef struct olsr_station_state olsr_station_state;
+typedef struct olsr_mpr_station_state olsr_mpr_station_state;
 typedef struct olsr_message olsr_message;
 typedef struct olsr_mpr olsr_mpr;
 
 typedef enum {
         OLSR_STATION_TO_MPR,
-	OLSR_MPR_TO_MPR,
+        OLSR_ARRIVAL_TO_MPR,
+	OLSR_DEPARTURE_FROM_MPR,
 	OLSR_CHANGE_MPR,
-	OLSR_CHANGE_CELL
+	OLSR_CHANGE_REGION
 } olsr_message_type;
 
 typedef enum {
@@ -50,33 +63,46 @@ typedef enum {
 	OLSR_DATA_PACKET
 } olsr_packet_type;
 
-struct olsr_mpr_state {
-  olsr_mpr mpr[OLSR_MPRS_PER_REGIONLP];
-  tw_grid_pt location;
-}
+typedef enum {
+  OLSR_NORTH, 
+  OLSR_SOUTH, 
+  OLSR_EAST, 
+  OLSR_WEST} olsr_direction_type;
 
-struct olsr_station_state {
+struct olsr_mpr_station_state 
+{
   unsigned int failed_packets;
-  double region_snr;
-  double station_success_rate;
-  double region_success_rate;
+  unsigned int sent_packets;
+  unsigned int waiting_packets;
+  unsigned int packets_delivered;
+  double snr;
+  double success_rate;
+  //  double region_success_rate; What is this for ??
   double tx_power;
-  double data_packet_time;
+  // double data_packet_time; What is this for ?
   tw_grid_pt location;
+  unsigned int my_mpr;
 };
 
-struct olsr_mpr {
-  unsigned int failed_packets;  
-  tw_grid_pt location;
-  olsr_station_state stations[OLSR_STATIONS_PER_MPR];
+struct olsr_region_state 
+{
+  olsr_mpr_station_state mpr[OLSR_MAX_MPRS_PER_REGION];
+  olsr_mpr_station_state station[OLSR_MAX_STATIONS_PER_REGION];
+  unsigned int num_mprs;
+  unsigned int num_stations;
+  tw_integer_grid_pt region_location;
 };
 
-struct olsr_message {
+
+struct olsr_message 
+{
   olsr_message_type type;
-  unsigned int from_station;
-  unsigned int to_station;
+  //  unsigned int from_station;
+  //  unsigned int to_station;
   unsigned int station;
   unsigned int mpr;      
+  unsigned int max_hop_count;
+  unsigned int hop_count;
 };
 
 double success_rate;
@@ -85,19 +111,13 @@ static unsigned int offset_lpid = 0;
 static tw_stime mult = 3.0;
 static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
-static int g_olsr_start_events = 1;
 static int optimistic_memory = 100;
-static int num_of_bits = 1500;
-
 
 static unsigned int g_regions_per_vp_x=NUM_REGIONS_X/NUM_VP_X;
 static unsigned int g_regions_per_vp_y= NUM_REGIONS_Y/NUM_VP_Y;
 static unsigned int g_regions_per_vp=(NUM_REGIONS_X/NUM_VP_X)*(NUM_REGIONS_Y/NUM_VP_Y);
 static unsigned int g_vp_per_proc=0;
 
-// rate for timestamp exponential distribution
-static tw_stime mean = 1.0;
-
-static char run_id[1024] = "undefined";
+static char run_id[1024] = "OLSR Model";
 
 #endif

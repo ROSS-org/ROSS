@@ -16,8 +16,6 @@ double calcRxPower (double txPowerDbm, double distance, double lambda) {
   
   if (distance <= min_distance)
       return txPowerDbm;
-  
-  printf("distance= %f m, attenuation coefficient= %f dBm\n", distance, pr);
 
   return txPowerDbm + pr;
 }
