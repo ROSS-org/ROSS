@@ -19,8 +19,11 @@
 #define MAX_Y_DIST 1
 #define MAX_Z_DIST 1
 #define STD_DEV 0.1
+#define OLSR_STATIONS_PER_MPR 8
 
 #define WIFIB_BW 20
+
+#define OLSR_MPRS_PER_REGIONLP 4
 
 #define LAMBDA 0.125 //Insert reasoning behind this here, it is in my notebook.
 
@@ -33,11 +36,13 @@
 typedef struct olsr_region_state olsr_region_state;
 typedef struct olsr_station_state olsr_station_state;
 typedef struct olsr_message olsr_message;
+typedef struct olsr_mpr olsr_mpr;
 
 typedef enum {
-	OLSR_PACKET_ARRIVAL_AT_REGION,
-	OLSR_PACKET_ARRIVAL_AT_STATION,
-	OLSR_STATION_MOVE
+        OLSR_STATION_TO_MPR,
+	OLSR_MPR_TO_MPR,
+	OLSR_CHANGE_MPR,
+	OLSR_CHANGE_CELL
 } olsr_message_type;
 
 typedef enum {
@@ -45,15 +50,13 @@ typedef enum {
 	OLSR_DATA_PACKET
 } olsr_packet_type;
 
-struct olsr_station_state 
-{
+struct olsr_mpr_state {
+  olsr_mpr mpr[OLSR_MPRS_PER_REGIONLP];
+  tw_grid_pt location;
+}
+
+struct olsr_station_state {
   unsigned int failed_packets;
-  /* double signal;
-     double bandwidth;
-     double noiseFigure;
-     double noiseInterference;
-     double station_snr;*/
-  
   double region_snr;
   double station_success_rate;
   double region_success_rate;
@@ -62,16 +65,18 @@ struct olsr_station_state
   tw_grid_pt location;
 };
 
-struct olsr_region_state {
-  unsigned int failed_packets;
-  olsr_station_state stations[OLSR_MAX_STATIONS_PER_REGION];
+struct olsr_mpr {
+  unsigned int failed_packets;  
+  tw_grid_pt location;
+  olsr_station_state stations[OLSR_STATIONS_PER_MPR];
 };
 
 struct olsr_message {
-  	olsr_message_type type;
-	unsigned int from_station;
-	unsigned int to_station;
-	unsigned int station;
+  olsr_message_type type;
+  unsigned int from_station;
+  unsigned int to_station;
+  unsigned int station;
+  unsigned int mpr;      
 };
 
 double success_rate;

@@ -11,11 +11,14 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp);
 void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_region_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_station_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_mpr_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_region_arrival_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_station_arrival_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_station_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_mpr_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+
+void olsr_change_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_change_region(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
 void olsr_region_finish(olsr_region_state * s, tw_lp * lp);
 
@@ -124,27 +127,29 @@ void olsr_grid_mapping()
 
 void olsr_region_init(olsr_region_state * s, tw_lp * lp) 
 {
-  int i;
+  int i, j;
   unsigned int rng_calls;
   tw_bf init_bf;
   olsr_message m;
   s->failed_packets = 0;
   
   // schedule out initial packet from access point
-  for( i=0; i < OLSR_MAX_STATIONS_PER_REGION; i++) 
-    {
-    m.type = OLSR_DATA_PACKET;
-    m.station = i;
-    s->stations[i].location.x = tw_rand_normal_sd(lp->rng, MAX_X_DIST, STD_DEV, &rng_calls);
-    s->stations[i].location.y = tw_rand_normal_sd(lp->rng, MAX_Y_DIST, STD_DEV, &rng_calls);
-    s->stations[i].location.z = 0;
-    s->stations[i].tx_power = 10.0;
-    s->stations[i].data_packet_time = DATA_PACKET_TIME + tw_rand_unif( lp->rng );
-    olsr_region_event_handler(s, &init_bf, &m, lp);
+  for( j=0; j < OLSR_MPRS_PER_REGIONLP; j++) {
+    for( i=0; i < OLSR_STATIONS_PER_MPR; i++) {
+      m.type = OLSR_DATA_PACKET;
+      m.station = i;
+      m.mpr = j;
+      s->mpr[j].stations[i].location.x = tw_rand_normal_sd(lp->rng, MAX_X_DIST, STD_DEV, &rng_calls);
+      s->mpr[j].stations[i].location.y = tw_rand_normal_sd(lp->rng, MAX_Y_DIST, STD_DEV, &rng_calls);
+      s->mpr[j].stations[i].location.z = 0;
+      s->mpr[j].stations[i].tx_power = 10.0;
+      s->mpr[j].stations[i].data_packet_time = DATA_PACKET_TIME + tw_rand_unif( lp->rng );
+      olsr_region_event_handler(s, &init_bf, &m, lp);
     }
+  }
 }
 
-void olsr_region_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   unsigned int rng_calls=0;
   tw_event *e=NULL;
@@ -157,7 +162,7 @@ void olsr_region_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   printf("Region %d: Signal %lf, Power %lf, Distance %lf, Lambda %lf \n",
 	 lp->gid, 
 	 rf.signal, 
-	 s->stations[m->from_station].tx_power, 
+	 s->stations[m->station].tx_power, 
 	 dist, 
 	 LAMBDA);
   rf.bandwidth = WIFIB_BW;
@@ -166,14 +171,14 @@ void olsr_region_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   
   
   // packets coming from station to access point have less power and so lower snr
-  s->stations[m->station].region_snr = calculateSnr(rf);
-  s->stations[m->station].region_success_rate = 
+  s->mpr[m->mpr].stations[m->station].region_snr = calculateSnr(rf);
+  s->mpr[m->mpr].stations[m->station].region_success_rate = 
     OLSR_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].region_snr, num_of_bits);
 
   printf("Region %d: Success Rate %lf, SNR %lf, Bits %d \n",
 	 lp->gid, 
-	 s->stations[m->station].region_success_rate, 
-	 s->stations[m->station].region_snr, 
+	 s->mpr[m->mpr].stations[m->station].region_success_rate, 
+	 s->mpr[m->mpr].stations[m->station].region_snr, 
 	 num_of_bits);
 
   if( tw_rand_unif( lp->rng ) < s->stations[m->station].region_success_rate ) 
@@ -185,15 +190,18 @@ void olsr_region_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   // Need to send packet out at tw_now + data packet time to self for the MPR and then that goes out 
   // between two MPRs.
   
+  //TODO: Randomly decided which kind of event to send here 
+
   // schedule event back to AP w/ exponential service time
-  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10.0), lp);
+  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10000.0), lp);
   m_new = (olsr_message *) tw_event_data(e);
-  m_new->type = OLSR_PACKET_ARRIVAL_AT_STATION;
-  m_new->station = m->station;
+  m_new->type = OLSR_MPR_TO_MPR;
+  m_new->from = m->mpr;
+  m_new->mpr = tw_rand_unif( lp->rng ) % 4; //send to N, S, E, or W MPR
   tw_event_send(e);
 }
 
-void olsr_region_arrival_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_station_to_mpr_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   // packets coming from access point have much more power and so better snr
   tw_rand_reverse_unif(lp->rng);
@@ -204,106 +212,141 @@ void olsr_region_arrival_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m,
   }
 }
 
-void olsr_station_arrival(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   unsigned int rng_calls=0;
   tw_event *e=NULL;
   olsr_message *m_new=NULL;
   rf_signal rf;
 	
-  double dist = calculateGridDistance(s->stations[m->from_station].location, s->stations[m->to_station].location);
-	
+  unsigned int to_x = tw_rand_unif( lp->rng ) % NUM_REGION_X;
+  unsigned int to_y = tw_rand_unif( lp->rng ) % NUM_REGION_Y;
+
+  //TODO: HOW to I calculate MPR from X,Y for upcoming current part
+
+  rf_signal rf;
+  double dist = calculateGridDistance(s->mpr[m->mpr].location,
+				      s->mpr[].location);
+  
   rf.signal = calcRxPower(s->stations[m->from_station].tx_power, dist, LAMBDA);
+  printf("Region %d: Signal %lf, Power %lf, Distance %lf, Lambda %lf \n",
+	 lp->gid, 
+	 rf.signal, 
+	 s->mpr[m->mpr].stations[m->station].tx_power, 
+	 dist, 
+	 LAMBDA);
   rf.bandwidth = WIFIB_BW;
   rf.noiseFigure = 1;
   rf.noiseInterference = 1;
-
+  
+  
   // packets coming from station to access point have less power and so lower snr
-  s->stations[m->station].region_snr = calculateSnr(rf);
-  s->stations[m->station].region_success_rate = 
+  s->mpr[m->mpr].stations[m->station].region_snr = calculateSnr(rf);
+  s->mpr[m->mpr].stations[m->station].region_success_rate = 
     OLSR_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].region_snr, num_of_bits);
-  if( tw_rand_normal_sd(lp->rng,0.5,0.1, &rng_calls) < 
-      s->stations[m->station].region_success_rate) 
+
+  printf("Region %d: Success Rate %lf, SNR %lf, Bits %d \n",
+	 lp->gid, 
+	 s->mpr[m->mpr].stations[m->station].region_success_rate, 
+	 s->mpr[m->mpr].stations[m->station].region_snr, 
+	 num_of_bits);
+
+  if( tw_rand_unif( lp->rng ) < s->stations[m->station].region_success_rate ) 
     {
       bf->c1 = 1;
       s->failed_packets++; // count all failed arrivals coming to access point
     }
-  // schedule event back to AP w/ exponential service time
-  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10.0), lp);
+
+  // Need to send packet out at tw_now + data packet time to self for the MPR and then that goes out 
+  // between two MPRs.
+  
+  //TODO: Randomly decided which kind of event to send here 
+
+  //TODO: RANDOMLY SELECT EVENT TO SEND
+  //Do event RNGs have to be unrolled?
+  e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10000.0), lp);
   m_new = (olsr_message *) tw_event_data(e);
-  m_new->type = OLSR_PACKET_ARRIVAL_AT_REGION;
-  m_new->station = m->station;
+  m_new->type = OLSR_STATION_TO_MPR;
+  m_new->from_station = m->station;
+  m_new->to_station = tw_rand_unif( lp->rng ) % OLSR_STATIONS_PER_MPR; 
   tw_event_send(e);
 }
 
-void olsr_station_arrival_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_mpr_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
-
-  if( bf->c1 )
-    {
-      s->stations[m->station].failed_packets--;
-    }
 }
 
-void olsr_move(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+//Should we keep these? I think we should, to add small purturbations to distance.
+void olsr_move(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
 	unsigned int rng_calls;
 	double x_move = tw_rand_normal_sd(lp->rng, 0, -0.02, &rng_calls);
 	double y_move = tw_rand_normal_sd(lp->rng, 0, -0.02, &rng_calls);
-	s->stations[m->station].location.x += x_move; 
-	s->stations[m->station].location.y += y_move;
+	s->mpr[m->mpr].stations[m->station].location.x += x_move; 
+	s->mpr[m->mpr].stations[m->station].location.y += y_move;
 }
 
 void olsr_move_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
-	
 }
 
-void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
-{
-  switch( m->type ) 
-    {	
-    case OLSR_STATION_MOVE:
-      olsr_move(s, bf, m, lp);
-      break;
-      
-    case OLSR_PACKET_ARRIVAL_AT_REGION:
-      olsr_region_arrival(s, bf, m, lp);
-      break;
-      
-    case OLSR_PACKET_ARRIVAL_AT_STATION:
-      olsr_station_arrival(s, bf, m, lp);
-      break;
-      
-    default:
-      tw_error(TW_LOC, "Undefined type, corrupted message \n");
-      break;
-    }
+void olsr_change_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
+  s->mpr[m->mpr].stations[m->station].mpr = tw_rand_unif( lp->rng ) % 4;
+
+
+}
+
+
+void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
+  switch( m->type ) {
+     case OLSR_STATION_TO_MPR:
+       olsr_station_to_mpr(s, bf, m, lp); 
+     break;
+     
+     case OLSR_MPR_TO_MPR:
+       olsr_mpr_to_mpr(s, bf, m, lp);
+     break;
+     
+     case OLSR_CHANGE_MPR:
+       olsr_change_mpr(s, bf, m, lp);
+     break;
+     
+     case OLSR_CHANGE_REGION:
+       olsr_change_region(s, bf, m, lp);
+     break; 
+
+     default:
+       tw_error(TW_LOC, "Undefined type, corrupted message \n");
+     break;
+  }
 }
 
 void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
-  switch( m->type ) 
-    {
-    case OLSR_STATION_MOVE:
-      olsr_move_rc(s, bf, m, lp);
-      break;
-      
-    case OLSR_PACKET_ARRIVAL_AT_REGION:
-      olsr_region_arrival_rc(s, bf, m, lp);
-      break;
-      
-    case OLSR_PACKET_ARRIVAL_AT_STATION:
-      olsr_station_arrival_rc(s, bf, m, lp);
-      break;
-      
-    default:
-      tw_error(TW_LOC, "Undefined type, corrupted message \n");
-      break;
-    }
+switch( m->type ) {
+     case OLSR_STATION_TO_MPR:
+       olsr_station_to_mpr_rc(s, bf, m, lp); 
+     break;
+     
+     case OLSR_MPR_TO_MPR:
+       olsr_mpr_to_mpr_rc(s, bf, m, lp);
+     break;
+     
+     case OLSR_CHANGE_MPR:
+       olsr_change_mpr_rc(s, bf, m, lp);
+     break;
+     
+     case OLSR_CHANGE_CELL:
+       olsr_change_cell_rc(s, bf, m, lp);
+     break; 
+
+     default:
+       tw_error(TW_LOC, "Undefined type, corrupted message \n");
+     break;
+  }
 }
 
 void olsr_region_finish(olsr_region_state * s, tw_lp * lp)
