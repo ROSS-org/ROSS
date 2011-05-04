@@ -14,6 +14,9 @@ void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_messag
 void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 void olsr_station_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
+void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_arrival_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+
 void olsr_departure_from_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 void olsr_departure_from_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
@@ -194,7 +197,7 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp)
 	  distance = calculateGridDistance(s->mpr[j].location, s->station[i].location);
 	  if( distance < min_distance )
 	    {
-	      distance = min_distance;
+	      min_distance = distance;
 	      my_mpr = j;
 	    }
 	}
@@ -303,6 +306,7 @@ void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
     {
       bf->c1 = 1;
       s->mpr[m->mpr].packets_delivered++;
+      printf("LP %d: Packet delivered at TS(%lf) for MPR %d\n", lp->gid, tw_now(lp), m->mpr);
       return;
     }
 
@@ -315,6 +319,17 @@ void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   new_m->station = m->station;
   new_m->max_hop_count = m->max_hop_count;
   new_m->hop_count = m->hop_count;
+}
+
+void olsr_arrival_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+{
+  s->mpr[m->mpr].waiting_packets--;
+  if( m->hop_count == m->max_hop_count)
+    {
+      s->mpr[m->mpr].packets_delivered--;
+      return;
+    }
+  tw_rand_reverse_unif(lp->rng);
 }
 
 void olsr_departure_from_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
@@ -331,6 +346,7 @@ void olsr_departure_from_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m
   double distance;
   tw_stime packet_time;
 
+  // first RNG call
   direction = tw_rand_integer( lp->rng, 0, OLSR_WEST );
 
   switch(m->mpr)
@@ -467,6 +483,14 @@ void olsr_departure_from_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message 
 {
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
+
+  if( bf->c1 )
+    {
+      s->mpr[m->mpr].failed_packets--;
+      return;
+    }
+
+  tw_rand_reverse_unif(lp->rng);
 }
 
 //HELP: Should we keep these? I think we should, to add small purturbations to distance.
@@ -542,6 +566,10 @@ void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_messag
     case OLSR_STATION_TO_MPR:
       olsr_station_to_mpr_rc(s, bf, m, lp); 
       break;
+
+    case OLSR_ARRIVAL_TO_MPR:
+      olsr_arrival_to_mpr_rc(s, bf, m, lp); 
+      break;
       
     case OLSR_DEPARTURE_FROM_MPR:
       olsr_departure_from_mpr_rc(s, bf, m, lp);
@@ -581,7 +609,6 @@ const tw_optdef app_opt[] =
     TWOPT_CHAR("run", run_id, "user supplied run name"),
     TWOPT_END()
   };
-
 
 
 int

@@ -40,8 +40,8 @@
 
 #define REGION_SIZE 100 // 100 meters by default -- each region is 100x100
 
-#define OLSR_MPR_POWER 10     // 10 dbm
-#define OLSR_STATION_POWER 10 // 10 dbm
+#define OLSR_MPR_POWER 48     // 30 dbm
+#define OLSR_STATION_POWER 48 // 10 dbm
 #define OLSR_MPR_PACKET_SERVICE_TIME 100 // 100 useconds
 #define OLSR_MAX_HOPS 16
 
