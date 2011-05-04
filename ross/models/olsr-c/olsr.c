@@ -7,20 +7,20 @@
 
 tw_peid olsr_map(tw_lpid gid);
 
-void olsr_region_init(olsr_region_state * s, tw_lp * lp);
-void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_region_init(olsr_mpr_state * s, tw_lp * lp);
+void olsr_region_event_handler(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_region_event_handler_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_mpr_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_station_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_mpr_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_station_to_mpr_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_mpr_to_mpr_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_change_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
-void olsr_change_region(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_change_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
+void olsr_change_region(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
 
-void olsr_region_finish(olsr_region_state * s, tw_lp * lp);
+void olsr_region_finish(olsr_mpr_state * s, tw_lp * lp);
 
 tw_lptype mylps[] = 
 {
@@ -29,7 +29,7 @@ tw_lptype mylps[] =
         (revent_f) olsr_region_event_handler_rc,
         (final_f) olsr_region_finish,
         (map_f) olsr_map,
-    	sizeof(olsr_region_state)},
+    	sizeof(olsr_mpr_state)},
     {0},
 };
 
@@ -125,7 +125,7 @@ void olsr_grid_mapping()
     }
 }
 
-void olsr_region_init(olsr_region_state * s, tw_lp * lp) 
+void olsr_region_init(olsr_mpr_state * s, tw_lp * lp) 
 {
   int i, j;
   unsigned int rng_calls;
@@ -133,8 +133,7 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp)
   olsr_message m;
   s->failed_packets = 0;
   
-  // schedule out initial packet from access point
-  for( j=0; j < OLSR_MPRS_PER_REGIONLP; j++) {
+for( j=0; j < OLSR_MPRS_PER_REGIONLP; j++) {
     for( i=0; i < OLSR_STATIONS_PER_MPR; i++) {
       m.type = OLSR_DATA_PACKET;
       m.station = i;
@@ -149,14 +148,56 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp)
   }
 }
 
+
+
+//TODO: Factor out all this sucess/fail code.  It's the same in every function.
+
+double olsr_hello_time(olsr_mpr_state * s, tw_lp * lp) {
+  double time = 0.0;
+  double dist = calculateGridDistance(s->mpr[m->mpr].stations[m->from_station].location, 
+				        s->mpr[m->mpr].location);
+
+ rf.signal = calcRxPower(s->stations[m->from_station].tx_power, dist, LAMBDA);
+  printf("Region %d: Signal %lf, Power %lf, Distance %lf, Lambda %lf \n",
+	 lp->gid, 
+	 rf.signal, 
+	 s->stations[m->station].tx_power, 
+	 dist, 
+	 LAMBDA);
+  rf.bandwidth = WIFIB_BW;
+  rf.noiseFigure = 1;
+  rf.noiseInterference = 1;
+  
+  s->mpr[m->mpr].stations[m->station].region_snr = calculateSnr(rf);
+  s->mpr[m->mpr].stations[m->station].region_success_rate = 
+    OLSR_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].region_snr, num_of_bits);
+
+  printf("Region %d: Success Rate %lf, SNR %lf, Bits %d \n",
+	 lp->gid, 
+	 s->mpr[m->mpr].stations[m->station].region_success_rate, 
+	 s->mpr[m->mpr].stations[m->station].region_snr, 
+	 num_of_bits);
+
+  unsigned int failing = 1;
+
+  while(failing) {
+     if( tw_rand_unif( lp->rng ) < s->mpr[m->mpr].stations[m->station].region_success_rate )
+       failing = 0;
+     else
+       time += DATA_PACKET_TIME + tw_rand_unif( lp->rng );
+  }
+  return time;
+} 
+
+
 void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   unsigned int rng_calls=0;
   tw_event *e=NULL;
   olsr_message *m_new=NULL;
   rf_signal rf;
-  double dist = calculateGridDistance(s->stations[m->from_station].location, 
-				      s->stations[m->to_station].location);
+  double dist = calculateGridDistance(s->mpr[m->mpr].stations[m->from_station].location, 
+				      s->mpr[m->mpr].stations[m->to_station].location);
   
   rf.signal = calcRxPower(s->stations[m->from_station].tx_power, dist, LAMBDA);
   printf("Region %d: Signal %lf, Power %lf, Distance %lf, Lambda %lf \n",
@@ -168,9 +209,7 @@ void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp
   rf.bandwidth = WIFIB_BW;
   rf.noiseFigure = 1;
   rf.noiseInterference = 1;
-  
-  
-  // packets coming from station to access point have less power and so lower snr
+ 
   s->mpr[m->mpr].stations[m->station].region_snr = calculateSnr(rf);
   s->mpr[m->mpr].stations[m->station].region_success_rate = 
     OLSR_80211b_DsssDqpskCck11_SuccessRate(s->stations[m->station].region_snr, num_of_bits);
@@ -181,10 +220,10 @@ void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp
 	 s->mpr[m->mpr].stations[m->station].region_snr, 
 	 num_of_bits);
 
-  if( tw_rand_unif( lp->rng ) < s->stations[m->station].region_success_rate ) 
+  if( tw_rand_unif( lp->rng ) < s->mpr[m->mpr].stations[m->station].region_success_rate ) 
     {
       bf->c1 = 1;
-      s->failed_packets++; // count all failed arrivals coming to access point
+      s->failed_packets++;
     }
 
   // Need to send packet out at tw_now + data packet time to self for the MPR and then that goes out 
@@ -193,6 +232,7 @@ void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp
   //TODO: Randomly decided which kind of event to send here 
 
   // schedule event back to AP w/ exponential service time
+  //HELP:  Should the inter-message time be some multiple of data packet time, or is something like 10k ok?
   e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10000.0), lp);
   m_new = (olsr_message *) tw_event_data(e);
   m_new->type = OLSR_MPR_TO_MPR;
@@ -203,7 +243,6 @@ void olsr_station_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp
 
 void olsr_station_to_mpr_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
-  // packets coming from access point have much more power and so better snr
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
 
@@ -222,7 +261,7 @@ void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * l
   unsigned int to_x = tw_rand_unif( lp->rng ) % NUM_REGION_X;
   unsigned int to_y = tw_rand_unif( lp->rng ) % NUM_REGION_Y;
 
-  //TODO: HOW to I calculate MPR from X,Y for upcoming current part
+  //HELP: HOW to I calculate Next MPR or even the target MPR from X,Y for upcoming current part?
 
   rf_signal rf;
   double dist = calculateGridDistance(s->mpr[m->mpr].location,
@@ -254,7 +293,7 @@ void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * l
   if( tw_rand_unif( lp->rng ) < s->stations[m->station].region_success_rate ) 
     {
       bf->c1 = 1;
-      s->failed_packets++; // count all failed arrivals coming to access point
+      s->failed_packets++;
     }
 
   // Need to send packet out at tw_now + data packet time to self for the MPR and then that goes out 
@@ -263,7 +302,7 @@ void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * l
   //TODO: Randomly decided which kind of event to send here 
 
   //TODO: RANDOMLY SELECT EVENT TO SEND
-  //Do event RNGs have to be unrolled?
+  //HELP: Do event RNGs have to be unrolled?
   e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, 10000.0), lp);
   m_new = (olsr_message *) tw_event_data(e);
   m_new->type = OLSR_STATION_TO_MPR;
@@ -272,13 +311,13 @@ void olsr_mpr_to_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * l
   tw_event_send(e);
 }
 
-void olsr_mpr_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_mpr_to_mpr_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
 }
 
-//Should we keep these? I think we should, to add small purturbations to distance.
+//HELP: Should we keep these? I think we should, to add small purturbations to distance.
 void olsr_move(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
 	unsigned int rng_calls;
@@ -288,20 +327,23 @@ void olsr_move(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp)
 	s->mpr[m->mpr].stations[m->station].location.y += y_move;
 }
 
-void olsr_move_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
+void olsr_move_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
 }
 
-void olsr_change_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
+void olsr_change_mpr(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
   s->mpr[m->mpr].stations[m->station].mpr = tw_rand_unif( lp->rng ) % 4;
 
 
 }
 
+void olsr_change_mpr_region(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
 
-void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
+}
+
+void olsr_region_event_handler(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
   switch( m->type ) {
      case OLSR_STATION_TO_MPR:
        olsr_station_to_mpr(s, bf, m, lp); 
@@ -325,7 +367,7 @@ void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message *
   }
 }
 
-void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
+void olsr_region_event_handler_rc(olsr_mpr_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) {
 switch( m->type ) {
      case OLSR_STATION_TO_MPR:
        olsr_station_to_mpr_rc(s, bf, m, lp); 
@@ -349,7 +391,7 @@ switch( m->type ) {
   }
 }
 
-void olsr_region_finish(olsr_region_state * s, tw_lp * lp)
+void olsr_region_finish(olsr_mpr_state * s, tw_lp * lp)
 {
   int i;
   unsigned long long station_failed_packets=0;
@@ -365,7 +407,7 @@ void olsr_region_finish(olsr_region_state * s, tw_lp * lp)
 
 const tw_optdef app_opt[] =
   {
-    TWOPT_GROUP("802.11b Model"),
+    TWOPT_GROUP("802.11b OLSR Model"),
     TWOPT_UINT("nlp", nlp_per_pe, "number of LPs per processor"),
     TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
     TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
@@ -409,7 +451,17 @@ main(int argc, char **argv, char **env)
   tw_define_lps(nlp_per_pe, sizeof(olsr_message), 0);
   
   tw_run();
+
+
+  //TODO:  Add MPI_Reduces Here to collect
+  // Total sent packets
+  // Total failed packets
+  // Effective Bandwidth
+  // Average failed packets
+  // Time spent in Hello
+  // 
+
   tw_end();
 
-	return 0;
+  return 0;
 }
