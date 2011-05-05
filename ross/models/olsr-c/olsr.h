@@ -45,6 +45,10 @@
 #define OLSR_MPR_PACKET_SERVICE_TIME 100 // 100 useconds
 #define OLSR_MAX_HOPS 16
 
+#define WIFI_CW_MIN 16
+#define WIFI_CW_MAX 1024
+#define WIFI_SLOT_TIME 20 // 20 useconds
+
 typedef struct olsr_region_state olsr_region_state;
 typedef struct olsr_mpr_station_state olsr_mpr_station_state;
 typedef struct olsr_message olsr_message;
@@ -90,9 +94,10 @@ struct olsr_region_state
   olsr_mpr_station_state station[OLSR_MAX_STATIONS_PER_REGION];
   unsigned int num_mprs;
   unsigned int num_stations;
+  unsigned int slot_busy;
   tw_integer_grid_pt region_location;
+  
 };
-
 
 struct olsr_message 
 {
@@ -103,6 +108,7 @@ struct olsr_message
   unsigned int mpr;      
   unsigned int max_hop_count;
   unsigned int hop_count;
+  unsigned int contention_window;
 };
 
 double success_rate;

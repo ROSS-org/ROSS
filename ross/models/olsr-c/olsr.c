@@ -6,6 +6,7 @@
  */
 
 tw_peid olsr_map(tw_lpid gid);
+double olsr_hello_time(olsr_region_state * s);
 
 void olsr_region_init(olsr_region_state * s, tw_lp * lp);
 void olsr_region_event_handler(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp);
@@ -220,6 +221,7 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp)
       m->type = OLSR_STATION_TO_MPR;
       m->mpr = my_mpr;
       m->station = i;
+      m->contention_window = 0;
       tw_event_send(e);
     }
 
@@ -229,15 +231,21 @@ void olsr_region_init(olsr_region_state * s, tw_lp * lp)
   s->region_location.y = lp->gid % NUM_REGIONS_X;
 }
 
-double olsr_hello_time(olsr_region_state * s, tw_lp * lp) 
+double olsr_hello_time(olsr_region_state * s) 
 {
 
-  /* based on HICSS Paper 2002, hello costs are (log N)^2 since it cost log N to
-     compute the first set of MPRs and to find a good near optimal set it will 
-     cost log N times.
+  /* The optimal number of MPRs is NP-complete and related
+     to the Dominating Set Program - see HICSS 2002
+
+     Our approach, fix the MPRs and let MPRs in round-robin
+     send hello packets. Each station picks the MPR with the
+     best SNR are sends back a hello with that MPR's id.
+
+     Also, we assume here that a station will send to it's
+     MPR and from there the packet is route along MPRs because
+     they remain fixed.
   */ 
-  double time = log((s->num_mprs+s->num_stations))/log(2);
-  time = time * time * HELLO_PACKET_TIME;
+  double time = (s->num_mprs + s->num_stations) * HELLO_PACKET_TIME;
   return time;
 } 
 
@@ -246,7 +254,40 @@ void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   tw_event *e=NULL;
   olsr_message *m_new=NULL;
   tw_stime packet_time = 0.0;
+  tw_stime backoff_time = 0.0;
+  unsigned int cw;
+
+  if( s->slot_busy )
+    {
+      // schedule backoff
+      if( m->contention_window == 0 )
+	{
+	  cw = WIFI_CW_MIN;
+	}
+      else
+	{
+	  cw = min(2* m->contention_window, WIFI_CW_MIN);
+	}
+
+      backoff_time = cw * WIFI_SLOT_TIME + tw_rand_unif(lp->rng);
+
+      // printf("LP %d: Scheduling message backoff at TS %lf for %lf useconds \n", 
+      //    lp->gid, tw_now(lp), backoff_time );
+
+      e = tw_event_new(lp->gid, backoff_time, lp);
+      m_new = (olsr_message *) tw_event_data(e);
+      m_new->type = OLSR_STATION_TO_MPR;
+      m_new->station = m->station;
+      m_new->mpr = m->mpr;
+      m_new->max_hop_count = 0;
+      m_new->hop_count = 0;
+      m_new->contention_window = cw;
+      tw_event_send(e);
+      return;
+    }
   
+  s->slot_busy = 1;
+
   if( tw_rand_unif( lp->rng ) > s->station[m->station].success_rate ) 
     {
       bf->c1 = 1;
@@ -264,6 +305,7 @@ void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   m_new->mpr = m->mpr;
   m_new->max_hop_count = tw_rand_integer( lp->rng, 1, OLSR_MAX_HOPS );
   m_new->hop_count = 1;
+  m_new->contention_window = m->contention_window;
   tw_event_send(e);
 
   // Schedule next packet send
@@ -274,12 +316,15 @@ void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   m_new->mpr = m->mpr;
   m_new->max_hop_count = 0;
   m_new->hop_count = 0;
+  m_new->contention_window = 0;
   tw_event_send(e);
-
 }
 
 void olsr_station_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
 {
+  if( s->slot_busy )
+    tw_rand_reverse_unif(lp->rng);
+
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
@@ -298,6 +343,8 @@ void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   olsr_message *new_m=NULL;
   tw_stime ts;
 
+  //free slot
+  s->slot_busy = 0;
   // increment waiting packets
   s->mpr[m->mpr].waiting_packets++;
   
@@ -306,7 +353,7 @@ void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
     {
       bf->c1 = 1;
       s->mpr[m->mpr].packets_delivered++;
-      printf("LP %d: Packet delivered at TS(%lf) for MPR %d\n", lp->gid, tw_now(lp), m->mpr);
+      // printf("LP %d: Packet delivered at TS(%lf) for MPR %d\n", lp->gid, tw_now(lp), m->mpr);
       return;
     }
 
@@ -319,6 +366,7 @@ void olsr_arrival_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
   new_m->station = m->station;
   new_m->max_hop_count = m->max_hop_count;
   new_m->hop_count = m->hop_count;
+  new_m->contention_window = m->contention_window;
 }
 
 void olsr_arrival_to_mpr_rc(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw_lp * lp) 
@@ -476,6 +524,7 @@ void olsr_departure_from_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m
   m_new->mpr = m->mpr;
   m_new->max_hop_count = m->max_hop_count;
   m_new->hop_count = m->hop_count + 1;
+  m_new->contention_window = m->contention_window;
   tw_event_send(e);
 }
 
