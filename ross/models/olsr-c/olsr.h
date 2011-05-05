@@ -9,12 +9,12 @@
 
 
 // These define the regions space -- should be square
-#define NUM_REGIONS_X 32
-#define NUM_REGIONS_Y 32
+#define NUM_REGIONS_X 64
+#define NUM_REGIONS_Y 64
 #define NUM_VP_X 8
 #define NUM_VP_Y 8
 
-#define OLSR_MAX_STATIONS_PER_REGION 32
+#define OLSR_MAX_STATIONS_PER_REGION 256
 #define OLSR_MAX_MPRS_PER_REGION 4
 
 #define MAX_X_DIST 1
@@ -37,11 +37,12 @@
 #define DATA_PACKET_TIME (((DATA_PACKET_SIZE * 8) /  (11.0 * 1024.0 * 1024.0)) * 1000000.0)
 #define HELLO_PACKET_TIME (((HELLO_PACKET_SIZE * 8) /  (11.0 * 1024.0 * 1024.0)) * 1000000.0)
 #define MEAN_TIME_BETWEEN_DATA_PACKETS 100000.0 // 100K useconds for each station
+#define MEAN_TIME_BETWEEN_MOVES 10000000.0 // 10 seconds between each stations region moves
 
 #define REGION_SIZE 100 // 100 meters by default -- each region is 100x100
 
-#define OLSR_MPR_POWER 48     // 30 dbm
-#define OLSR_STATION_POWER 48 // 10 dbm
+#define OLSR_MPR_POWER 80     // 30 dbm
+#define OLSR_STATION_POWER 80 // 10 dbm
 #define OLSR_MPR_PACKET_SERVICE_TIME 100 // 100 useconds
 #define OLSR_MAX_HOPS 16
 
@@ -73,6 +74,12 @@ typedef enum {
   OLSR_EAST, 
   OLSR_WEST} olsr_direction_type;
 
+typedef enum
+  {
+    STATION_SLOT_FREE,
+    STATION_SLOT_BUSY
+  } station_status_type;
+
 struct olsr_mpr_station_state 
 {
   unsigned int failed_packets;
@@ -86,15 +93,18 @@ struct olsr_mpr_station_state
   // double data_packet_time; What is this for ?
   tw_grid_pt location;
   unsigned int my_mpr;
+  tw_stime next_move_time;
 };
 
 struct olsr_region_state 
 {
   olsr_mpr_station_state mpr[OLSR_MAX_MPRS_PER_REGION];
   olsr_mpr_station_state station[OLSR_MAX_STATIONS_PER_REGION];
+  station_status_type station_status[OLSR_MAX_STATIONS_PER_REGION];
   unsigned int num_mprs;
   unsigned int num_stations;
   unsigned int slot_busy;
+  unsigned int station_drops;
   tw_integer_grid_pt region_location;
   
 };
@@ -109,6 +119,8 @@ struct olsr_message
   unsigned int max_hop_count;
   unsigned int hop_count;
   unsigned int contention_window;
+  tw_stime     next_move_time;
+  double       success_rate;
 };
 
 double success_rate;
