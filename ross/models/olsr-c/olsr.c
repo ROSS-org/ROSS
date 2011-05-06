@@ -856,15 +856,23 @@ void olsr_region_event_handler_rc(olsr_region_state * s, tw_bf * bf, olsr_messag
 
 void olsr_region_finish(olsr_region_state * s, tw_lp * lp)
 {
-  int i;
+  int i, j;
   unsigned long long station_failed_packets=0;
+  unsigned long long station_sent_packets=0;
+  unsigned long long station_packets_delivered=0;
   
   for( i=0; i < OLSR_MAX_STATIONS_PER_REGION; i++)
     {
       station_failed_packets += s->station[i].failed_packets;
+      station_sent_packets += s->station[i].sent_packets;
     }
-  printf("LP %lld had %lld failed Access Point to Station packets\n", lp->gid, 
-	 station_failed_packets);
+  for( j=0; j < OLSR_MAX_MPRS_PER_REGION; j++) 
+    {
+      station_packets_delivered += s->mpr[j].packets_delivered;
+    }
+
+  printf("LP %lld, Sent Packets: %lld, Failed Packets: %lld, MPR Delivered Packets: %lld \n", 
+	 lp->gid, station_sent_packets, station_failed_packets, packets_delivered);
 }
 
 const tw_optdef app_opt[] =
