@@ -872,7 +872,7 @@ void olsr_region_finish(olsr_region_state * s, tw_lp * lp)
     }
 
   printf("LP %lld, Sent Packets: %lld, Failed Packets: %lld, MPR Delivered Packets: %lld \n", 
-	 lp->gid, station_sent_packets, station_failed_packets, packets_delivered);
+	 lp->gid, station_sent_packets, station_failed_packets, station_packets_delivered);
 }
 
 const tw_optdef app_opt[] =
