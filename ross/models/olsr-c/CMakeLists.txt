@@ -23,5 +23,5 @@ SET(olsr_test
 ADD_EXECUTABLE(olsr ${olsr_srcs})
 # ADD_EXECUTABLE(olsr-tests ${olsr_test})
 
-TARGET_LINK_LIBRARIES(olsr ROSS m mpi)
+TARGET_LINK_LIBRARIES(olsr ROSS m)
 
