@@ -5,20 +5,22 @@
  * @brief Support for mobility in models
  *
  */
-
+#define PI 3.1415926535
 
 /** deg2rad
  * @brief Covert Degrees to Radians
  *
  * 
  */
-
-#define PI 3.1415926535
-
 static inline double deg2rad(double deg) {
 	return deg*(PI/180);
 }
 
+/** rad2deg
+ * @brief Covert Radians to Degrees
+ *
+ * 
+ */
 static inline double rad2deg(double rad) {
 	return rad*(180/PI);
 }
