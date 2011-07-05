@@ -131,6 +131,9 @@ static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
 static int optimistic_memory = 100;
 
+static uint64_t dropped_packets;
+
+
 static unsigned int g_regions_per_vp_x=NUM_REGIONS_X/NUM_VP_X;
 static unsigned int g_regions_per_vp_y= NUM_REGIONS_Y/NUM_VP_Y;
 static unsigned int g_regions_per_vp=(NUM_REGIONS_X/NUM_VP_X)*(NUM_REGIONS_Y/NUM_VP_Y);
