@@ -52,6 +52,7 @@ extern void packet_generate(CN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void packet_arrive( CN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void dimension_order_routing(CN_state* , MsgData* , tw_lpid* );
 
+extern int nlp_per_pe;
 
 extern int rootCN;
 

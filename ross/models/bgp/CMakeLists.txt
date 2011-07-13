@@ -5,13 +5,12 @@ SET( bgp_srcs
      bgp-extern.h
      bgp-types.h
      bgp.c 
-     torus.c
      bgp-globals.c
      bgp-cn.c
      bgp-ion.c 
      bgp-fs.c
      bgp-controller.c
-     bgp-ddn.c)
+     bgp-ddn.c )
 
 ADD_EXECUTABLE(bgp ${bgp_srcs})
 
