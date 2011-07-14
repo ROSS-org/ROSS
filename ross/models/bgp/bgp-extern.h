@@ -11,6 +11,63 @@
 
 #include "bgp.h"
 
+///////////////////////////////////
+// configuration
+extern int nlp_per_pe;
+
+extern int rootCN;
+
+extern int nlp_DDN;
+extern int nlp_Controller;
+extern int nlp_FS;
+extern int nlp_ION;
+extern int nlp_CN;
+
+extern int N_CN_per_DDN;
+extern int N_ION_per_DDN;
+extern int N_FS_per_DDN;
+extern int N_controller_per_DDN;
+extern int N_DDN_per_PE;
+
+extern int N_FS_t;
+extern int N_ION_per_FS;
+extern int N_CN_per_ION;
+
+extern int N_CN_per_FS;
+extern int N_Disk_per_FS;
+
+extern int NumDDN;
+extern int NumControllerPerDDN;
+extern int NumFSPerController;
+
+extern int N_lp_per_FS;
+
+//////////////////////////////////
+// hardware parameter
+extern double collective_block_size;
+
+extern double payload_size;
+extern double ACK_message_size;
+extern double CN_message_wrap_time;
+
+extern double CN_packet_service_time;
+extern double ION_packet_service_time;
+extern double FS_packet_service_time;
+extern double CON_packet_service_time;
+extern double DDN_packet_service_time;
+
+extern double link_transmission_time;
+
+// all links bandwidth
+extern double CN_tree_bw;
+extern double CN_ION_bw;
+extern double ION_FS_bw;
+extern double FS_CON_bw;
+extern double CON_DDN_bw;
+
+extern int msg_collective_counter;
+
+
 // Compute Node Globals
 extern void bgp_cn_init(CN_state* , tw_lp* );
 extern void bgp_cn_eventHandler(CN_state* , tw_bf* , MsgData * , tw_lp* );
@@ -43,50 +100,6 @@ extern void bgp_ddn_eventHandler(DDN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ddn_eventHandler_rc(DDN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ddn_finish(DDN_state* , tw_lp* );
 
-// Inheriate from torus model
-extern void torus_init(CN_state* , tw_lp* );
-extern void torus_setup(CN_state* , tw_lp* );
-extern void packet_send(CN_state* , tw_bf* , MsgData* , tw_lp* );
-extern void packet_process(CN_state* , tw_bf* , MsgData* , tw_lp* );
-extern void packet_generate(CN_state* , tw_bf* , MsgData* , tw_lp* );
-extern void packet_arrive( CN_state* , tw_bf* , MsgData* , tw_lp* );
-extern void dimension_order_routing(CN_state* , MsgData* , tw_lpid* );
 
-extern int nlp_per_pe;
-
-extern int rootCN;
-
-extern int nlp_DDN;
-extern int nlp_Controller;
-extern int nlp_FS;
-extern int nlp_ION;
-extern int nlp_CN;
-
-extern int N_CN_per_DDN;
-extern int N_ION_per_DDN;
-extern int N_FS_per_DDN;
-extern int N_controller_per_DDN;
-extern int N_DDN_per_PE;
-
-extern int N_FS_t;
-extern int N_ION_per_FS;
-extern int N_CN_per_ION;
-extern int N_CN_per_FS;
-extern int N_Disk_per_FS;
-
-extern int NumDDN;
-extern int NumControllerPerDDN;
-extern int NumFSPerController;
-
-extern int N_lp_per_FS;
-
-extern double CN_packet_service_time;
-extern double ION_packet_service_time;
-extern double FS_packet_service_time;
-extern double Disk_packet_service_time;
-
-extern double link_transmission_time;
-
-extern int msg_collective_counter;
 
 #endif

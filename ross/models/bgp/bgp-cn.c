@@ -8,13 +8,14 @@
 void bgp_cn_init( CN_state* s,  tw_lp* lp )
 {
 
-  /////////////////////////
   tw_event *e;
   tw_stime ts;
   MsgData *m;
 
+  // specific to this configuration, Kamil's BG/P tree graph
   rootCN = 7;
   
+  s->MsgPrepTime = CN_message_wrap_time;
   int N_PE = tw_nnodes();
 
   nlp_DDN = NumDDN / N_PE;
@@ -23,9 +24,6 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
   nlp_ION = nlp_FS * N_ION_per_FS;
   nlp_CN = nlp_ION * N_CN_per_ION;
 
-  // printf("Compute Node LP %d speaking \n",lp->gid);  
-// nlp_ION is %d \n nlp_FS is %d \n nlp_Controller is %d\n nlp_DDN is %d\n", lp->gid, nlp_ION, nlp_FS, nlp_Controller, nlp_DDN );
-
   int basePE = lp->gid/nlp_per_pe;
   // CN ID in the local process
   int localID = lp->gid - basePE * nlp_per_pe;
@@ -33,6 +31,7 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
   s->CN_ID_in_tree = localID % N_CN_per_ION;
   
   s->tree_next_hop_id = get_tree_next_hop(s->CN_ID_in_tree);
+
   // get reverse mapping
 
   s->tree_next_hop_id += basePE * nlp_per_pe + basePset * N_CN_per_ION;
@@ -40,13 +39,25 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
     s->tree_next_hop_id = basePE * nlp_per_pe + nlp_CN + basePset;
   s->upID = s->tree_next_hop_id;
 
-  //printf("compute node %d local id is %d next hop is %d basePE is %d basePset is %d \n",lp->gid,s->CN_ID_in_tree,s->tree_next_hop_id,basePE,basePset);
+  /////////////////////////////
+  // calculate packet round
+  s->N_packet_round = collective_block_size/payload_size/N_CN_per_ION;
+  
+  //printf("packet round is %d\n",s->N_packet_round);
 
+#ifdef PRINTid
+  printf("CN %d local ID is %d next hop is %d \n", 
+	 lp->gid,
+	 s->CN_ID_in_tree,
+	 s->tree_next_hop_id);
+#endif
 
   ts = 10000;
   e = tw_event_new( lp->gid, ts, lp );
   m = tw_event_data(e);
   m->type = GENERATE;
+
+  m->CN_message_round = s->N_packet_round;
 
   tw_event_send(e);
 }
@@ -58,40 +69,50 @@ void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
   
-    switch(msg->type)
+  switch(msg->type)
     {
     case GENERATE:
-      //printf("Generate\n");
-      //generate another generate event
       
+      // initialized to 0, count collective message
       msg_collective_counter++;
+      msg->CN_message_round--;
 
-      ts = 100000;
-      e = tw_event_new(lp->gid, ts, lp);
-      m = tw_event_data(e);
-      m->type = GENERATE;
+      // enter next round message send
+      if ( msg->CN_message_round > 0 )
+	{
+	  ts = 50;
+	  e = tw_event_new(lp->gid, ts, lp);
+	  m = tw_event_data(e);
+	  m->type = GENERATE;
       
-      m->MsgSrc = ComputeNode;
-      tw_event_send(e);
+	  m->CN_message_round = msg->CN_message_round;
+	  tw_event_send(e);
+	}
       
+      // send this message out
+      // add randomness
 
-      ts = 10000;
+      ts = s->MsgPrepTime + lp->gid%23;
       e = tw_event_new( lp->gid, ts, lp );
       m = tw_event_data(e);
       m->type = ARRIVAL;
 
+      m->message_size = payload_size;
+
       //trace packet time
       m->travel_start_time = tw_now(lp);
-      //trace collective calls
-      m->collective_msg_tag = msg_collective_counter;
-      m->MsgSrc = ComputeNode;
-      tw_event_send(e);
 
+      //trace collective calls
+      //printf("collective counter is %d\n",msg_collective_counter);
+      //m->collective_msg_tag = msg_collective_counter;
+
+      m->collective_msg_tag = 12180;
+      m->message_type = DATA;
+
+      tw_event_send(e);
 
       break;
     case ARRIVAL:
-      //printf("CN CN arrived\n");
-
       s->next_available_time = max(s->next_available_time, tw_now(lp));
       ts = s->next_available_time - tw_now(lp);
       
@@ -100,29 +121,33 @@ void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       e = tw_event_new( lp->gid, ts, lp );
       m = tw_event_data(e);
       m->type = PROCESS;
-
+      
+      // pass msg info
       m->travel_start_time = msg->travel_start_time;
       m->collective_msg_tag = msg->collective_msg_tag;
-      m->MsgSrc = ComputeNode;
+      m->message_type = msg->message_type;
+      m->message_size = msg->message_size;
+
       tw_event_send(e);
-      //packet_arrive(s,bf,msg,lp);
       break;
     case SEND:
 
       s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
       ts = s->nextLinkAvailableTime - tw_now(lp);
 
-      s->nextLinkAvailableTime += link_transmission_time;
+      s->nextLinkAvailableTime += msg->message_size/CN_tree_bw;
 
-      e = tw_event_new( s->tree_next_hop_id, ts, lp );
+      e = tw_event_new( s->tree_next_hop_id, ts + msg->message_size/CN_tree_bw, lp );
       m = tw_event_data(e);
       m->type = ARRIVAL;
 
       m->travel_start_time = msg->travel_start_time;
       m->collective_msg_tag = msg->collective_msg_tag;
-      m->MsgSrc = ComputeNode;
+      m->message_type = msg->message_type;
+      m->message_size = msg->message_size;
+
       tw_event_send(e);
-      //packet_send(s,bf,msg,lp);
+
       break;
     case PROCESS:
       ts = CN_packet_service_time;
@@ -132,9 +157,11 @@ void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
       m->travel_start_time = msg->travel_start_time;
       m->collective_msg_tag = msg->collective_msg_tag;
-      m->MsgSrc = ComputeNode;
+      m->message_type = msg->message_type;
+      m->message_size = msg->message_size;
+
       tw_event_send(e);
-      //packet_process(s,bf,msg,lp);
+
       break;
     }
   
@@ -148,6 +175,8 @@ void bgp_cn_finish( CN_state* s, tw_lp* lp )
 
 int get_tree_next_hop( int TreeNextHopIndex )
 {
+  // tree structure is hidden here
+  // only called in init phase
   // give me the index and return the next hop ID
   int TreeMatrix[32];
 
@@ -155,14 +184,6 @@ int get_tree_next_hop( int TreeNextHopIndex )
   TreeMatrix[1]=17;
   TreeMatrix[2]=6;
   TreeMatrix[3]=7;
-
-
-  //TreeMatrix[0]=1;
-  //TreeMatrix[1]=17;
-  //TreeMatrix[2]=6;
-  //TreeMatrix[3]=7;
-  
-
   TreeMatrix[4]=20;
   TreeMatrix[5]=1;
   TreeMatrix[6]=22;

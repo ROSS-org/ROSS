@@ -7,10 +7,8 @@
 
 void bgp_controller_init( CON_state* s,  tw_lp* lp )
 {
-  //printf("This is ION init\n");
-  //printf("ION LP %d talking\n",lp->gid);
-
   int N_PE = tw_nnodes();
+
   nlp_DDN = NumDDN / N_PE;
   nlp_Controller = nlp_DDN * NumControllerPerDDN;
   nlp_FS = nlp_Controller * NumFSPerController;
@@ -24,7 +22,6 @@ void bgp_controller_init( CON_state* s,  tw_lp* lp )
   localID = localID - nlp_CN - nlp_ION - nlp_FS;
   localID /= NumControllerPerDDN;
   s->ddn_id = PEid * nlp_per_pe + nlp_CN + nlp_ION + nlp_FS+ nlp_Controller + localID;
-  printf("controller LP %d speaking, my DDN is %d \n", lp->gid, s->ddn_id);
 
   // get the IDs of the file servers which are hooked to this DDN
   int i;
@@ -33,11 +30,15 @@ void bgp_controller_init( CON_state* s,  tw_lp* lp )
   localID = lp->gid % nlp_per_pe;
   localID = localID - base - nlp_FS;
 
-  for (i=0; i<NumControllerPerDDN; i++)
+  for (i=0; i<NumFSPerController; i++)
     s->previous_FS_id[i] = PEid * nlp_per_pe + base +
       localID * NumFSPerController + i;
+
+#ifdef PRINTid
+  printf("controller LP %d speaking, my DDN is %d \n", lp->gid, s->ddn_id);
   for (i=0; i<NumFSPerController; i++)
     printf("Controller LP %d speaking, my FS is %d\n", lp->gid,s->previous_FS_id[i]);
+#endif
 
 }
 
@@ -51,11 +52,13 @@ void bgp_controller_eventHandler( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* 
   switch(msg->type)
     {
     case GENERATE:
-      //packet_generate(s,bf,msg,lp); 
       break;
     case ARRIVAL:
-      //printf("Disk arrival\n");
-      //ts = 10000;
+
+#ifdef TRACE
+      printf("Controller %d recieved data\n",lp->gid);
+#endif 
+
       s->next_available_time = max(s->next_available_time, tw_now(lp));
       ts = s->next_available_time - tw_now(lp);
 
@@ -67,66 +70,69 @@ void bgp_controller_eventHandler( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* 
 
       m->message_type = msg->message_type;
       m->travel_start_time = msg->travel_start_time;
+      m->collective_msg_tag = msg->collective_msg_tag;
+      m->message_size = msg->message_size;
 
-      m->MsgSrc = ComputeNode;
       tw_event_send(e);
       
-      //packet_arrive(s,bf,msg,lp);  
-      //printf("Travel time is %lf\n",tw_now(lp) - msg->travel_start_time );
-
       break;
     case SEND:
-      //ts = 10000;
-      if (msg->message_type==ACK)
+      switch ( msg->message_type )
 	{
-	  printf("controller received ACK message\n");
-	  for (i=0; i<NumControllerPerDDN; i++)
+	case ACK:
+	  //printf("Controller %d received ACK\n",lp->gid);
+	  
+	  for (i=0; i<NumFSPerController; i++)
 	    {
 	      ts = FS_packet_service_time;
 	      e = tw_event_new( s->previous_FS_id[i], ts, lp );
 	      m = tw_event_data(e);
 	      m->type = ARRIVAL;
-      
+	      
 	      m->message_type = ACK;
 	      m->travel_start_time = msg->travel_start_time; 
-	      m->MsgSrc = ComputeNode;
+	      m->collective_msg_tag = msg->collective_msg_tag;
+	      m->message_size = msg->message_size;
+	      
 	      tw_event_send(e);
 	    }
-	}
-      else
-	{
 
+	  break;
+	case DATA:
 	  s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
 	  ts = s->nextLinkAvailableTime - tw_now(lp);                    
-	  s->nextLinkAvailableTime += link_transmission_time;      
-
-	  e = tw_event_new( s->ddn_id, ts, lp );
+	  
+	  s->nextLinkAvailableTime += msg->message_size/CON_DDN_bw;      
+	  
+	  e = tw_event_new( s->ddn_id, ts + msg->message_size/CON_DDN_bw, lp );
 	  m = tw_event_data(e);
 	  m->type = ARRIVAL;
-      
+	  
 	  m->message_type = msg->message_type;
 	  m->travel_start_time = msg->travel_start_time; 
-	  m->MsgSrc = ComputeNode;
+	  m->collective_msg_tag = msg->collective_msg_tag; 
+	  m->message_size = msg->message_size;
+	  
 	  tw_event_send(e);
-	  //packet_send(s,bf,msg,lp); 
-	  //printf("File Server Sent \n");
+	  break;
+	case CONT:
+	  break;
 	}
-
-    break;
+      break;
 
     case PROCESS:
-      //ts = 10000;
-      ts = FS_packet_service_time;
+      ts = CON_packet_service_time;
       e = tw_event_new( lp->gid, ts, lp );
       m = tw_event_data(e);
       m->type = SEND;
 
       m->message_type = msg->message_type;
       m->travel_start_time = msg->travel_start_time;
-                                
-      m->MsgSrc = ComputeNode;
+      m->collective_msg_tag = msg->collective_msg_tag;
+      m->message_size = msg->message_size;                 
+               
       tw_event_send(e);
-      //packet_process(s,bf,msg,lp);
+
       break;
     }
 }
@@ -135,4 +141,6 @@ void bgp_controller_eventHandler_rc( CON_state* s, tw_bf* bf, MsgData* m, tw_lp*
 {}
 
 void bgp_controller_finish( CON_state* s, tw_lp* lp )
-{}
+{
+  free( s->previous_FS_id );
+}

@@ -7,10 +7,8 @@
 
 void bgp_fs_init( FS_state* s,  tw_lp* lp )
 {
-  //printf("This is ION init\n");
-  //printf("FS LP %d talking\n",lp->gid);
-
   int N_PE = tw_nnodes();                                                          
+
   nlp_DDN = NumDDN / N_PE;                                                         
   nlp_Controller = nlp_DDN * NumControllerPerDDN;                                  
   nlp_FS = nlp_Controller * NumFSPerController;                                    
@@ -27,8 +25,6 @@ void bgp_fs_init( FS_state* s,  tw_lp* lp )
   localID /= NumFSPerController; 
   s->controller_id = PEid * nlp_per_pe + nlp_CN + nlp_ION + nlp_FS + localID; 
 
-  printf("FS LP %d speaking, my controller is %d \n", lp->gid, s->controller_id); 
-
   // get the IDs of the IONs which are hooked to this file server
   int i;                                                       
   s->previous_ION_id = (int *)calloc( N_ION_per_FS, sizeof(int) );
@@ -39,8 +35,12 @@ void bgp_fs_init( FS_state* s,  tw_lp* lp )
  for (i=0; i<N_ION_per_FS; i++)                        
     s->previous_ION_id[i] = PEid * nlp_per_pe + base +          
       localID * N_ION_per_FS + i;                        
+
+#ifdef PRINTid
+ printf("FS LP %d speaking, my controller is %d \n", lp->gid, s->controller_id); 
  for (i=0; i<N_ION_per_FS; i++)                         
    printf("FS LP %d speaking, my ION is %d\n", lp->gid, s->previous_ION_id[i]);
+#endif
 
 }
 
@@ -54,62 +54,76 @@ void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   switch(msg->type)
     {
     case GENERATE:
-      //packet_generate(s,bf,msg,lp);                                           
+      // rest
       break;
     case ARRIVAL:
+#ifdef TRACE
+      printf("FS %d recieved data\n",lp->gid);
+#endif
       s->next_available_time = max(s->next_available_time, tw_now(lp));
       ts = s->next_available_time - tw_now(lp);
       
       s->next_available_time += FS_packet_service_time;
       
-      //ts = 10000;
       e = tw_event_new( lp->gid, ts, lp );
       m = tw_event_data(e);
       m->type = PROCESS;
       
       m->message_type = msg->message_type;
       m->travel_start_time = msg->travel_start_time;
-      m->MsgSrc = ComputeNode;
+      m->collective_msg_tag = msg->collective_msg_tag;                              
+      m->message_size = msg->message_size; 
+
       tw_event_send(e);
       
-      //packet_arrive(s,bf,msg,lp);
- 
       break;
     case SEND:
-      if (msg->message_type==ACK)                                                   
-        {                                                                           
-          printf("file server received ACK message\n");
+      switch( msg->message_type )
+	{
+	case ACK:
+
+#ifdef TRACE
+	  printf("file server %d received ACK %d \n",
+		 lp->gid,
+		 msg->collective_msg_tag );
+#endif
+	  
 	  for (i=0; i<N_ION_per_FS; i++)                                     
             {                            
 	      ts = FS_packet_service_time;
               e = tw_event_new( s->previous_ION_id[i], ts, lp );
               m = tw_event_data(e);                                                 
-              m->type = ARRIVAL;                                                    
-                                                                                    
-              m->message_type = ACK;                                                
-              m->travel_start_time = msg->travel_start_time;                        
-              tw_event_send(e);                                                     
+              m->type = ARRIVAL; 
+	      
+	      // pass msg info
+	      m->message_type = msg->message_type; 
+	      m->travel_start_time = msg->travel_start_time;
+	      m->collective_msg_tag = msg->collective_msg_tag; 
+	      m->message_size = msg->message_size;   
+	      
+	      tw_event_send(e);                                                     
             }
-	}
-      else
-	{
+	  
+	  break;
+	case DATA:
 	  s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
 	  ts = s->nextLinkAvailableTime - tw_now(lp);
 	  
-	  s->nextLinkAvailableTime += link_transmission_time;
+	  s->nextLinkAvailableTime += msg->message_size/FS_CON_bw;
 	  
-	  //ts = 10000;
-	  e = tw_event_new( s->controller_id, ts, lp );
+	  e = tw_event_new( s->controller_id, ts + msg->message_size/FS_CON_bw, lp );
 	  m = tw_event_data(e);
 	  m->type = ARRIVAL;
 	  
 	  m->message_type = msg->message_type;
 	  m->travel_start_time = msg->travel_start_time;
-	  m->MsgSrc = ComputeNode;
-	  tw_event_send(e);
-	  //packet_send(s,bf,msg,lp);
+	  m->collective_msg_tag = msg->collective_msg_tag;
+	  m->message_size = msg->message_size;
 	  
-	  //printf("File Server Sent \n"); 
+	  tw_event_send(e);
+	  break; 
+	case CONT:
+          break;
 	}                             
       break;
       
@@ -118,12 +132,14 @@ void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       e = tw_event_new( lp->gid, ts, lp );
       m = tw_event_data(e);
       m->type = SEND;
-
+      
       m->message_type = msg->message_type;
       m->travel_start_time = msg->travel_start_time;
-      m->MsgSrc = ComputeNode;
+      m->collective_msg_tag = msg->collective_msg_tag;
+      m->message_size = msg->message_size;
+
       tw_event_send(e);
-      //packet_process(s,bf,msg,lp);                                           
+
       break;
     }
 
@@ -134,5 +150,5 @@ void bgp_fs_eventHandler_rc( FS_state* s, tw_bf* bf, MsgData* m, tw_lp* lp )
 
 void bgp_fs_finish( FS_state* s, tw_lp* lp )
 {
-  //free(s->disk_id);
+  free(s->previous_ION_id);
 }

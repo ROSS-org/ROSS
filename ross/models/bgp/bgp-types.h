@@ -8,7 +8,6 @@
 
 #include "bgp.h"
 
-
 /* type define */
 typedef struct compute_node_state CN_state;
 typedef struct io_node_state ION_state;
@@ -42,41 +41,44 @@ enum block_t
   ComputeNode,
   IONode,
   FileServer,
-  Disk
+  Controller,
+  DDN
 };
 
 struct compute_node_state
 {
+  int N_packet_round;
   /////////////////////////////
   int upID;
   int * dwonID;
-  ///////////////////////////////
 
+  // local id in tree
   int CN_ID_in_tree;
-  int FS_group_id;
-  int ION_group_id;
 
   int tree_next_hop_id;
-  int tree_previous_hop_id;
-  int * torus_neighbour_minus_id;
-  int * torus_neighbour_plus_id;
+  int * tree_previous_hop_id;
 
   ////////////////////////////////
-
   unsigned long long packet_counter;
 
+  // used for queueing in processor and link
   tw_stime next_available_time;
   tw_stime nextLinkAvailableTime;
 
+  // mesage wrap time
+  tw_stime MsgPrepTime;
 };
 
 struct io_node_state
 {  
+  int N_packet_round;
   int file_server_id;
   int root_CN_id;
 
   tw_stime next_available_time;
   tw_stime nextLinkAvailableTime;
+
+  double total_size;
 
   int collective_round_counter;
   
@@ -109,16 +111,27 @@ struct ddn_state
 
 struct nodes_message
 {
-  ///////////////////////////////
-  int collective_msg_tag;
-  int msg_size;
-  BlockType MsgSrc;
+  // message type is packet type
+  // data packet contains real data
+  // ack packet is used in TCP-like protocols
+  // control packet is high priority message
   MsgType message_type;
+  int CN_message_round;
 
-  ///////////////////////////////
+  // message decide the link transmission time
+  int message_size;
+
+  // used in CN->ION data aggregation
+  int collective_msg_tag;
+
+  // message source
+  BlockType MsgSrc;
+
+  // record message send time
   tw_stime   travel_start_time;
-  EventType  type;
 
+  // decide event type
+  EventType  type;
 };
 
 #endif

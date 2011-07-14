@@ -34,8 +34,7 @@ tw_lptype mylps[] =
       (final_f) bgp_ion_finish,
       (map_f) bgp_mapping,
       sizeof( ION_state )
-    },
-    
+    },    
     {
       (init_f) bgp_fs_init,
       (event_f) bgp_fs_eventHandler,
@@ -73,7 +72,6 @@ int main( int argc, char** argv )
   printf("First version BGP model! \n");
 
   ////////////
-
   N_controller_per_DDN = NumControllerPerDDN;
   N_FS_per_DDN = N_controller_per_DDN * NumFSPerController;
   N_ION_per_DDN = N_FS_per_DDN * N_ION_per_FS;
