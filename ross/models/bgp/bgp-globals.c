@@ -15,11 +15,11 @@ int nlp_CN;
 
 int rootCN;
 
-int NumDDN = 16;
-int NumControllerPerDDN = 2;
-int NumFSPerController = 4;
+int NumDDN = 2;
+int NumControllerPerDDN = 1;
+int NumFSPerController = 1;
 
-int N_ION_per_FS = 5;
+int N_ION_per_FS = 1;
 int N_CN_per_ION = 64;
 
 int N_CN_per_DDN;
@@ -29,12 +29,13 @@ int N_controller_per_DDN;
 int N_DDN_per_PE;
 
 // default packet size
-double payload_size = 128;
+double payload_size = 256;
 double ACK_message_size = 20;
 
-double CN_message_wrap_time = 10;
+// IO request message prep time 
+double CN_message_wrap_time = 10000;
 
-double CN_packet_service_time = 300;
+double CN_packet_service_time = 20;
 double ION_packet_service_time = 300;
 double FS_packet_service_time = 800;
 double CON_packet_service_time = 300;
@@ -42,7 +43,7 @@ double DDN_packet_service_time = 300;
 
 double link_transmission_time = 500;
 
-double collective_block_size = 4*1024*16;
+double collective_block_size = 16*1024;
 
 /////////////////////////////////////
 // links bandwidth

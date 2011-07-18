@@ -85,7 +85,7 @@ int main( int argc, char** argv )
 
   N_DDN_per_PE = NumDDN/tw_nnodes()/g_tw_npe;
 
-  g_tw_events_per_pe = nlp_per_pe * 16 + OPT_MEM;
+  g_tw_events_per_pe = nlp_per_pe * 32 + 14096;
   tw_define_lps(nlp_per_pe, sizeof(MsgData), 0);
 
 

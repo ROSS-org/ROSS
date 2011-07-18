@@ -7,6 +7,7 @@
 
 void bgp_ion_init( ION_state* s,  tw_lp* lp )
 {
+  //default mapping of ION to FS
 
   // figure out which file server I hooked to
   int N_PE = tw_nnodes(); 
@@ -46,19 +47,44 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
   switch(msg->type)
     {
+    case CONFIG:
+      printf("ION %d received CONFIG CONT message\n", lp->gid);
+      s->root_CN_id = msg->msg_src_lp_id;
+      break;
+    case IOrequest:
+      s->collective_round_counter++;
+      if ( s->collective_round_counter == N_CN_per_ION)
+	{
+	  s->collective_round_counter = 0;
+	  printf("ION received IO request from CN\n");
+	  e = tw_event_new( s->root_CN_id, ts, lp );
+	  m = tw_event_data(e);
+	  m->type = IOrequest;
+	  
+	  m->travel_start_time = msg->travel_start_time;
+	  m->collective_msg_tag = msg->collective_msg_tag;
+	  m->message_type = ACK;
+	  
+	  tw_event_send(e);
+	}
+      break;
     case GENERATE:
       // Take a rest here. Maybe used for debugging.
       break;
     case ARRIVAL:
       switch( msg->message_type )
-	{      
-	case ACK:
-	  printf("ION recieved ACK message, tag is %d, travel time is %lf\n", 
-		 msg->collective_msg_tag,
-		 tw_now(lp) - msg->travel_start_time);
-      
-	  break;
+	{
 	case DATA:
+	  //printf("collective round counter is %d\n",s->collective_round_counter);
+	  s->collective_round_counter++;
+	  if ( s->collective_round_counter == N_CN_per_ION * 
+	       collective_block_size/payload_size )
+	    {
+	      printf("ION recieved data payload and travel time is %lf\n",
+		     tw_now(lp) - msg->travel_start_time );
+	    }
+	    
+	  /*
 	  s->next_available_time = max(s->next_available_time, tw_now(lp));
 	  ts = s->next_available_time - tw_now(lp);
 	  
@@ -72,7 +98,21 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  m->collective_msg_tag = msg->collective_msg_tag;
 	  m->message_type = msg->message_type; 
 	  m->message_size = msg->message_size; 
-
+	  
+	  tw_event_send(e);
+	  */
+	  break;
+	case ACK:
+	  ts = 10;
+	  e = tw_event_new( lp->gid, ts, lp );
+	  m = tw_event_data(e);
+	  m->type = PROCESS;
+	  
+	  m->travel_start_time = msg->travel_start_time;
+	  m->collective_msg_tag = msg->collective_msg_tag;
+	  m->message_type = msg->message_type; 
+	  m->message_size = msg->message_size; 
+	  
 	  tw_event_send(e);
 	  break;
 	}
@@ -85,7 +125,22 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	    printf("ION recieved ACK message, tag is %d, travel time is %lf\n", 
 		   msg->collective_msg_tag,
 		   tw_now(lp) - msg->travel_start_time);
+	    ts =10;
+
+	    e = tw_event_new( s->root_CN_id, ts, lp);
+	    m = tw_event_data(e);
+	    m->type = ARRIVAL;
+	    
+	    // pass msg info
+	    m->message_type = msg->message_type;
+	    m->travel_start_time = msg->travel_start_time;
+	    m->collective_msg_tag = msg->collective_msg_tag;
+	    m->message_size = msg->message_size;
+	  
+	    tw_event_send(e);
+	    
 	  }
+	  break;
 	case DATA:
 	  {
 	    s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
@@ -105,6 +160,7 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  
 	    tw_event_send(e);
 	  }
+	  break;
 	}
       break;
     case PROCESS:
@@ -131,6 +187,8 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	    s->collective_round_counter++;
 	    // accumulate payload
 	    s->total_size += m->message_size;
+
+	    printf("ION received DATA\n");
 	    
 	    // IO aggregation
 	    if ( s->collective_round_counter == N_CN_per_ION*s->N_packet_round )
@@ -151,6 +209,10 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 		s->total_size = 0;
 
 		tw_event_send(e);
+
+		printf("ION aggregated DATA message, tag is %d, travel time is %lf\n", 
+		       msg->collective_msg_tag,
+		       tw_now(lp) - msg->travel_start_time);
 	      }
 	  }
 	  break;

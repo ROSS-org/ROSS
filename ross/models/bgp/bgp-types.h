@@ -23,6 +23,8 @@ typedef enum   message_t MsgType;
 
 enum event_t
 {
+  IOrequest,
+  CONFIG,
   GENERATE,
   ARRIVAL,
   SEND,
@@ -50,13 +52,12 @@ struct compute_node_state
   int N_packet_round;
   /////////////////////////////
   int upID;
-  int * dwonID;
 
   // local id in tree
   int CN_ID_in_tree;
 
   int tree_next_hop_id;
-  int * tree_previous_hop_id;
+  int tree_previous_hop_id[2];
 
   ////////////////////////////////
   unsigned long long packet_counter;
@@ -117,6 +118,8 @@ struct nodes_message
   // control packet is high priority message
   MsgType message_type;
   int CN_message_round;
+
+  int msg_src_lp_id;
 
   // message decide the link transmission time
   int message_size;
