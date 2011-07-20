@@ -30,10 +30,12 @@ int N_DDN_per_PE;
 
 // default packet size
 double payload_size = 256;
+double PVFS_payload_size = 256*1024;
 double ACK_message_size = 20;
 
 // IO request message prep time 
-double CN_message_wrap_time = 10000;
+double CN_message_wrap_time = 300000;
+double PVFS_handshake_time = 3000;
 
 double CN_packet_service_time = 20;
 double ION_packet_service_time = 300;
@@ -43,7 +45,7 @@ double DDN_packet_service_time = 300;
 
 double link_transmission_time = 500;
 
-double collective_block_size = 16*1024;
+double collective_block_size = 10*1024*1024;
 
 /////////////////////////////////////
 // links bandwidth

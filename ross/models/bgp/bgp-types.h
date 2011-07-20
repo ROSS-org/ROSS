@@ -82,7 +82,8 @@ struct io_node_state
   double total_size;
 
   int collective_round_counter;
-  
+
+  tw_stime MsgPrepTime;
 };
 
 struct file_server_state
@@ -92,6 +93,8 @@ struct file_server_state
   
   tw_stime next_available_time;
   tw_stime nextLinkAvailableTime;
+
+  tw_stime MsgPrepTime;
 };
 
 struct controller_state

@@ -47,8 +47,10 @@ extern int N_lp_per_FS;
 extern double collective_block_size;
 
 extern double payload_size;
+extern double PVFS_payload_size;
 extern double ACK_message_size;
 extern double CN_message_wrap_time;
+extern double PVFS_handshake_time; 
 
 extern double CN_packet_service_time;
 extern double ION_packet_service_time;

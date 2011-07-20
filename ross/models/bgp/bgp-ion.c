@@ -37,6 +37,26 @@ void bgp_ion_init( ION_state* s,  tw_lp* lp )
 
   s->collective_round_counter = 0;
   s->total_size = 0;
+
+  s->MsgPrepTime = PVFS_handshake_time;
+
+  s->N_packet_round = collective_block_size/PVFS_payload_size;
+
+  // CONT message 
+  tw_event *e;
+  tw_stime ts;
+  MsgData *m;
+
+  ts = 1000;
+  e = tw_event_new( lp->gid, ts, lp );
+  m = tw_event_data(e);
+  m->type = IOrequest;
+  
+  m->travel_start_time = tw_now(lp);
+  m->message_type = CONT; 
+  m->MsgSrc = IONode;
+
+  tw_event_send(e);
 }
 
 void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -44,6 +64,7 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_event * e;
   tw_stime ts;
   MsgData * m;
+  int i;
 
   switch(msg->type)
     {
@@ -52,30 +73,118 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       s->root_CN_id = msg->msg_src_lp_id;
       break;
     case IOrequest:
-      s->collective_round_counter++;
-      if ( s->collective_round_counter == N_CN_per_ION)
+      if ( msg->MsgSrc == ComputeNode )
 	{
-	  s->collective_round_counter = 0;
-	  printf("ION received IO request from CN\n");
-	  e = tw_event_new( s->root_CN_id, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = IOrequest;
-	  
-	  m->travel_start_time = msg->travel_start_time;
-	  m->collective_msg_tag = msg->collective_msg_tag;
-	  m->message_type = ACK;
-	  
-	  tw_event_send(e);
+	  s->collective_round_counter++;
+	  if ( s->collective_round_counter == N_CN_per_ION)
+	    {
+	      s->collective_round_counter = 0;
+	      printf("ION received IO request from CN\n");
+	      e = tw_event_new( s->root_CN_id, ts, lp );
+	      m = tw_event_data(e);
+	      m->type = IOrequest;
+	      
+	      m->travel_start_time = msg->travel_start_time;
+	      m->collective_msg_tag = msg->collective_msg_tag;
+	      m->message_type = ACK;
+	      
+	      tw_event_send(e);
+	    }
+	}
+      else if ( msg->MsgSrc == IONode )
+	{
+	  switch (msg->message_type)
+	    {
+	    case CONT:
+	      ts = s->MsgPrepTime;
+	      e = tw_event_new( s->file_server_id, ts, lp );
+	      m = tw_event_data(e);
+	      m->type = IOrequest;
+	      m->MsgSrc = IONode;
+
+	      //trace packet time
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->collective_msg_tag = 12180;
+	      m->message_type = CONT;
+
+	      tw_event_send(e);
+	      break;
+	    case ACK:
+	      // nothing now
+	      break;
+	    }
+	}
+      else if ( msg->MsgSrc == FileServer )
+	{
+	  switch (msg->message_type)
+	    {
+	    case CONT:
+	      break;
+	    case ACK:
+	      // activate my GENERATE and send packets
+	      printf( "ION received ACK from FS travel time is %lf\n",
+		     tw_now(lp) - msg->travel_start_time );
+	      ts = s->MsgPrepTime;
+	      e = tw_event_new( lp->gid, ts, lp );
+	      m = tw_event_data(e);
+	      m->type = GENERATE;
+	      m->MsgSrc = IONode;
+
+	      //trace packet time
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->collective_msg_tag = 12180;
+	      m->message_type = CONT;
+
+	      tw_event_send(e);
+	      break;
+	    }
 	}
       break;
     case GENERATE:
-      // Take a rest here. Maybe used for debugging.
+      printf("n packet round is %d\n",s->N_packet_round);
+      //m->CN_message_round = s->N_packet_round;
+      
+      for ( i=0; i<s->N_packet_round; i++)
+	{
+	  ts = 5 + i;
+	  e = tw_event_new ( lp->gid, ts, lp);
+	  m = tw_event_data(e);
+	  m->type =ARRIVAL;
+
+	  m->message_size = PVFS_payload_size;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  m->message_type = DATA;
+	  tw_event_send(e);
+	}
+      
       break;
     case ARRIVAL:
       switch( msg->message_type )
 	{
 	case DATA:
+	  
 	  //printf("collective round counter is %d\n",s->collective_round_counter);
+	  s->next_available_time = max(s->next_available_time, tw_now(lp));
+	  ts = s->next_available_time - tw_now(lp);
+	  
+	  s->next_available_time += ION_packet_service_time;
+	  
+	  e = tw_event_new( lp->gid, ts, lp );
+	  m = tw_event_data(e);
+	  m->type = PROCESS;
+	  
+	  m->travel_start_time = msg->travel_start_time;
+	  m->collective_msg_tag = msg->collective_msg_tag;
+	  m->message_type = msg->message_type; 
+	  m->message_size = msg->message_size; 
+	  
+	  tw_event_send(e);
+
+	  /*  // this is the CN <--> ION test code
 	  s->collective_round_counter++;
 	  if ( s->collective_round_counter == N_CN_per_ION * 
 	       collective_block_size/payload_size )
@@ -84,7 +193,6 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 		     tw_now(lp) - msg->travel_start_time );
 	    }
 	    
-	  /*
 	  s->next_available_time = max(s->next_available_time, tw_now(lp));
 	  ts = s->next_available_time - tw_now(lp);
 	  
@@ -143,9 +251,12 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  break;
 	case DATA:
 	  {
+	    printf("generated data arrives at SEND\n");
 	    s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
 	    ts = s->nextLinkAvailableTime - tw_now(lp);
-	    
+	   
+	    printf("message size is %d", msg->message_size);
+ 
 	    s->nextLinkAvailableTime += msg->message_size/ION_FS_bw;
 	    
 	    e = tw_event_new( s->file_server_id, ts + msg->message_size/ION_FS_bw, lp);
@@ -184,6 +295,21 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  break;
 	case DATA:
 	  {
+	    ts = ION_packet_service_time;
+	    e = tw_event_new( lp->gid, ts, lp );
+	    m = tw_event_data(e);
+	    m->type = SEND;
+	    
+	    m->message_type = msg->message_type;
+	        
+	    m->travel_start_time = msg->travel_start_time;
+	    m->collective_msg_tag = msg->collective_msg_tag;
+	    
+	    m->message_size = msg->message_size;
+	    
+	    tw_event_send(e);
+
+	    /*
 	    s->collective_round_counter++;
 	    // accumulate payload
 	    s->total_size += m->message_size;
@@ -214,6 +340,7 @@ void bgp_ion_eventHandler( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 		       msg->collective_msg_tag,
 		       tw_now(lp) - msg->travel_start_time);
 	      }
+	    */
 	  }
 	  break;
 	}

@@ -81,7 +81,7 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
 
   tw_event_send(e);*/
 
-  // CONT message stream
+  /*// CONT message stream
   ts = 10000;
   e = tw_event_new( lp->gid, ts, lp );
   m = tw_event_data(e);
@@ -91,7 +91,7 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
   m->message_type = CONT;
 
   tw_event_send(e);
-  
+  */
 }
 
 void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )

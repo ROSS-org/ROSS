@@ -36,6 +36,8 @@ void bgp_fs_init( FS_state* s,  tw_lp* lp )
     s->previous_ION_id[i] = PEid * nlp_per_pe + base +          
       localID * N_ION_per_FS + i;                        
 
+ s->MsgPrepTime = PVFS_handshake_time;
+
 #ifdef PRINTid
  printf("FS LP %d speaking, my controller is %d \n", lp->gid, s->controller_id); 
  for (i=0; i<N_ION_per_FS; i++)                         
@@ -53,6 +55,22 @@ void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
   switch(msg->type)
     {
+    case IOrequest:
+
+      ts = s->MsgPrepTime;
+
+      e = tw_event_new( s->previous_ION_id[0], ts, lp );
+      m = tw_event_data(e);
+      m->type = IOrequest;
+      m->MsgSrc = FileServer;
+      
+      m->message_type = ACK;
+      m->travel_start_time = msg->travel_start_time;
+      m->collective_msg_tag = msg->collective_msg_tag;                              
+
+      tw_event_send(e);
+      
+      break;
     case GENERATE:
       // rest
       break;
@@ -60,6 +78,9 @@ void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 #ifdef TRACE
       printf("FS %d recieved data\n",lp->gid);
 #endif
+      printf("FS recieved ION data and traveil time is %lf\n",
+	     tw_now(lp) - msg->travel_start_time );
+      /*
       s->next_available_time = max(s->next_available_time, tw_now(lp));
       ts = s->next_available_time - tw_now(lp);
       
@@ -75,7 +96,7 @@ void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       m->message_size = msg->message_size; 
 
       tw_event_send(e);
-      
+      */
       break;
     case SEND:
       switch( msg->message_type )
