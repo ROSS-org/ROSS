@@ -1,6 +1,6 @@
 /*
  *  Blue Gene/P model
- *  DDN
+ *  DDN controller
  *  by Ning Liu 
  */
 #include "bgp.h"
@@ -34,6 +34,8 @@ void bgp_controller_init( CON_state* s,  tw_lp* lp )
     s->previous_FS_id[i] = PEid * nlp_per_pe + base +
       localID * NumFSPerController + i;
 
+  s->processor_next_available_time = 0;
+
 #ifdef PRINTid
   printf("controller LP %d speaking, my DDN is %d \n", lp->gid, s->ddn_id);
   for (i=0; i<NumFSPerController; i++)
@@ -42,6 +44,313 @@ void bgp_controller_init( CON_state* s,  tw_lp* lp )
 
 }
 
+void cont_create_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("create %d arrive at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
+  ts = s->fs_receiver_next_available_time - tw_now(lp);
+  s->fs_receiver_next_available_time += FS_DDN_meta_payload/CONT_FS_in_bw;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CREATE_PROCESS;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  tw_event_send(e);
+
+}
+
+void cont_create_process( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("create %d process at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CONT_CONT_msg_prep_time;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CREATE_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  tw_event_send(e);
+
+
+}
+
+void cont_create_ack( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("create %d ACKed at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CONT_CONT_msg_prep_time;
+
+  e = tw_event_new( msg->message_FS_source, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CREATE_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  tw_event_send(e);
+
+}
+
+void cont_data_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("data %d arrive at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
+  ts = s->fs_receiver_next_available_time - tw_now(lp);
+  s->fs_receiver_next_available_time += msg->io_payload_size/CONT_FS_in_bw;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = DATA_PROCESS;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+}
+
+void cont_close_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("close %d arrive at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
+  ts = s->fs_receiver_next_available_time - tw_now(lp);
+  s->fs_receiver_next_available_time += msg->io_payload_size/CONT_FS_in_bw;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CLOSE_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+}
+
+void cont_data_process( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("data %d process at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CONT_CONT_msg_prep_time;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = DATA_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+
+}
+
+void cont_data_ack( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("data %d ACKed at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CONT_CONT_msg_prep_time;
+
+  e = tw_event_new( msg->message_FS_source, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = DATA_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+}
+
+void cont_close_ack( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("close %d ACKed at controller travel time is %lf\n",
+         msg->message_CN_source,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CONT_CONT_msg_prep_time;
+
+  e = tw_event_new( msg->message_FS_source, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CLOSE_ACK;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+  m->message_CN_source = msg->message_CN_source;
+  m->io_tag = msg->io_tag;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+}
+
+
 void bgp_controller_eventHandler( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
   tw_event * e;
@@ -49,91 +358,34 @@ void bgp_controller_eventHandler( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* 
   MsgData * m;
   int i;
 
-  switch(msg->type)
+  switch(msg->event_type)
     {
-    case GENERATE:
+    case CREATE_ARRIVE:
+      cont_create_arrive(s, bf, msg, lp);
       break;
-    case ARRIVAL:
-
-#ifdef TRACE
-      printf("Controller %d recieved data\n",lp->gid);
-#endif 
-
-      s->next_available_time = max(s->next_available_time, tw_now(lp));
-      ts = s->next_available_time - tw_now(lp);
-
-      s->next_available_time += FS_packet_service_time;
-
-      e = tw_event_new( lp->gid, ts, lp );
-      m = tw_event_data(e);
-      m->type = PROCESS;
-
-      m->message_type = msg->message_type;
-      m->travel_start_time = msg->travel_start_time;
-      m->collective_msg_tag = msg->collective_msg_tag;
-      m->message_size = msg->message_size;
-
-      tw_event_send(e);
-      
+    case DATA_ARRIVE:
+      cont_data_arrive(s, bf, msg, lp);
       break;
-    case SEND:
-      switch ( msg->message_type )
-	{
-	case ACK:
-	  //printf("Controller %d received ACK\n",lp->gid);
-	  
-	  for (i=0; i<NumFSPerController; i++)
-	    {
-	      ts = FS_packet_service_time;
-	      e = tw_event_new( s->previous_FS_id[i], ts, lp );
-	      m = tw_event_data(e);
-	      m->type = ARRIVAL;
-	      
-	      m->message_type = ACK;
-	      m->travel_start_time = msg->travel_start_time; 
-	      m->collective_msg_tag = msg->collective_msg_tag;
-	      m->message_size = msg->message_size;
-	      
-	      tw_event_send(e);
-	    }
-
-	  break;
-	case DATA:
-	  s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
-	  ts = s->nextLinkAvailableTime - tw_now(lp);                    
-	  
-	  s->nextLinkAvailableTime += msg->message_size/CON_DDN_bw;      
-	  
-	  e = tw_event_new( s->ddn_id, ts + msg->message_size/CON_DDN_bw, lp );
-	  m = tw_event_data(e);
-	  m->type = ARRIVAL;
-	  
-	  m->message_type = msg->message_type;
-	  m->travel_start_time = msg->travel_start_time; 
-	  m->collective_msg_tag = msg->collective_msg_tag; 
-	  m->message_size = msg->message_size;
-	  
-	  tw_event_send(e);
-	  break;
-	case CONT:
-	  break;
-	}
+    case CLOSE_ARRIVE:
+      cont_close_arrive(s, bf, msg, lp);
       break;
-
-    case PROCESS:
-      ts = CON_packet_service_time;
-      e = tw_event_new( lp->gid, ts, lp );
-      m = tw_event_data(e);
-      m->type = SEND;
-
-      m->message_type = msg->message_type;
-      m->travel_start_time = msg->travel_start_time;
-      m->collective_msg_tag = msg->collective_msg_tag;
-      m->message_size = msg->message_size;                 
-               
-      tw_event_send(e);
-
+    case CREATE_PROCESS:
+      cont_create_process(s, bf, msg, lp);
       break;
+    case DATA_PROCESS:
+      cont_data_process(s, bf, msg, lp);
+      break;
+    case CREATE_ACK:
+      cont_create_ack(s, bf, msg, lp);
+      break;
+    case DATA_ACK:
+      cont_data_ack(s, bf, msg, lp);
+      break;
+    case CLOSE_ACK:
+      cont_close_ack(s, bf, msg, lp);
+      break;
+    default:
+      printf("Scheduled wrong events in controller\n");
     }
 }
 

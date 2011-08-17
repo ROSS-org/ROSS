@@ -7,11 +7,51 @@
 #ifndef BGP_EXTERN_H
 #define BGP_EXTERN_H
 
-#define OPT_MEM 64
+//#define TRACE
+//#define INDIVIDUAL
+#define COLLECTIVE
+//#define UNALIGNED
 
 #include "bgp.h"
 
+extern double CN_ION_meta_payload;
+extern double CN_out_bw;
+extern double CN_in_bw;
+
+extern double ION_CONT_msg_prep_time;
+extern double ION_FS_meta_payload;
+extern double ION_CN_out_bw;
+extern double ION_CN_in_bw;
+extern double ION_FS_out_bw;
+extern double ION_FS_in_bw;
+
+extern double FS_ION_in_bw;
+extern double FS_ION_out_bw;
+extern double FS_DDN_in_bw;
+extern double FS_DDN_out_bw;
+extern double FS_CONT_msg_prep_time;
+extern double CONT_FS_in_bw;
+
+extern double CONT_CONT_msg_prep_time;
+extern double FS_DDN_meta_payload;
+extern double DDN_ACK_size;
+
+extern long long stripe_size;
+
 ///////////////////////////////////
+extern double CN_CONT_msg_prep_time;
+extern double CONT_FS_msg_prep_time;
+
+extern int N_PE;
+extern int N_ION_active;
+extern double meta_payload_size;
+extern double create_payload_size;
+extern double handshake_payload_size;
+extern double ION_out_bw;
+extern double ION_in_bw;
+extern double FS_in_bw;
+extern double FS_out_bw;
+//////////////////////////////////
 // configuration
 extern int nlp_per_pe;
 
@@ -75,14 +115,12 @@ extern void bgp_cn_init(CN_state* , tw_lp* );
 extern void bgp_cn_eventHandler(CN_state* , tw_bf* , MsgData * , tw_lp* );
 extern void bgp_cn_eventHandler_rc(CN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_cn_finish(CN_state* , tw_lp* );
-extern int get_tree_next_hop( int );
 
 // IO node Globals
 extern void bgp_ion_init(ION_state* ,  tw_lp* );
 extern void bgp_ion_eventHandler(ION_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ion_eventHandler_rc(ION_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ion_finish(ION_state* , tw_lp* );
-
 
 // File Server Globals
 extern void bgp_fs_init(FS_state* ,  tw_lp* );
@@ -101,7 +139,5 @@ extern void bgp_ddn_init(DDN_state* ,  tw_lp* );
 extern void bgp_ddn_eventHandler(DDN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ddn_eventHandler_rc(DDN_state* , tw_bf* , MsgData* , tw_lp* );
 extern void bgp_ddn_finish(DDN_state* , tw_lp* );
-
-
 
 #endif

@@ -15,6 +15,7 @@ const tw_optdef app_opt [] =
 tw_peid bgp_mapping( tw_lpid gid)
 {
   return (tw_peid)gid/g_tw_nlp;
+  //return (tw_peid)gid%tw_nnodes();
 }
 
 tw_lptype mylps[] =

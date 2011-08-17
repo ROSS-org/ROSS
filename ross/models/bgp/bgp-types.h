@@ -20,22 +20,43 @@ typedef struct nodes_message MsgData;
 typedef enum   event_t EventType;
 typedef enum   block_t BlockType;
 typedef enum   message_t MsgType;
+// new version
+typedef enum   iorequest_t IOType;
+// end
 
 enum event_t
 {
-  IOrequest,
-  CONFIG,
-  GENERATE,
-  ARRIVAL,
-  SEND,
-  PROCESS
-};
+  LOOKUP_SEND,
+  LOOKUP_ARRIVE,
+  LOOKUP_PROCESS,
+  LOOKUP_ACK,
+  LOOKUP_END,
+  
+  CREATE_SEND,
+  CREATE_ARRIVE,
+  CREATE_PROCESS,
+  CREATE_ACK,
+  CREATE_END,
 
-enum message_t
-{
-  DATA,
-  ACK,
-  CONT
+  HANDSHAKE_SEND,
+  HANDSHAKE_ARRIVE,
+  HANDSHAKE_PROCESS,
+  HANDSHAKE_ACK,
+  HANDSHAKE_END,
+
+  DATA_SEND,
+  DATA_ARRIVE,
+  DATA_PROCESS,
+  DATA_ACK,
+  DATA_END,
+
+  CLOSE_SEND,
+  CLOSE_ARRIVE,
+  CLOSE_PROCESS,
+  CLOSE_ACK,
+  CLOSE_END,
+
+  APP_IO_REQUEST,
 };
 
 enum block_t
@@ -47,97 +68,96 @@ enum block_t
   DDN
 };
 
+enum iorequest_t
+  {
+    WRITE_COLLECTIVE,
+    WRITE_UNALIGNED,
+    WRITE_INDIVIDUAL,
+    READ_COLLECTIVE,
+    READ_UNALIGNED,
+    READ_INDIVIDUAL
+  };
+
 struct compute_node_state
 {
-  int N_packet_round;
-  /////////////////////////////
-  int upID;
-
-  // local id in tree
+  int CN_ID;
   int CN_ID_in_tree;
-
   int tree_next_hop_id;
-  int tree_previous_hop_id[2];
+  tw_stime sender_next_available_time;
 
-  ////////////////////////////////
-  unsigned long long packet_counter;
-
-  // used for queueing in processor and link
-  tw_stime next_available_time;
-  tw_stime nextLinkAvailableTime;
-
-  // mesage wrap time
-  tw_stime MsgPrepTime;
 };
 
 struct io_node_state
 {  
-  int N_packet_round;
-  int file_server_id;
-  int root_CN_id;
+  tw_stime cn_sender_next_available_time;
+  tw_stime fs_sender_next_available_time;
+  tw_stime processor_next_available_time;
+  tw_stime cn_receiver_next_available_time;
+  tw_stime fs_receiver_next_available_time;
 
-  tw_stime next_available_time;
-  tw_stime nextLinkAvailableTime;
+  int * file_server;
+  int * io_node;
+  int myID_in_ION;
 
-  double total_size;
+  int* io_counter;
 
-  int collective_round_counter;
-
-  tw_stime MsgPrepTime;
 };
 
 struct file_server_state
 {
+  tw_stime ion_receiver_next_available_time;
+  tw_stime ddn_receiver_next_available_time;
+  tw_stime processor_next_available_time;
+  tw_stime ion_sender_next_available_time;
+  tw_stime ddn_sender_next_available_time;
+
   int * previous_ION_id;
   int controller_id;
-  
-  tw_stime next_available_time;
-  tw_stime nextLinkAvailableTime;
 
-  tw_stime MsgPrepTime;
 };
 
 struct controller_state
 {
+  tw_stime fs_receiver_next_available_time;
+  tw_stime ddn_receiver_next_available_time;
+  tw_stime processor_next_available_time;
+  tw_stime fs_sender_next_available_time;
+  tw_stime ddn_sender_next_available_time;
+
   int * previous_FS_id;
   int ddn_id;
-  tw_stime next_available_time;
-  tw_stime nextLinkAvailableTime;
 };
 
 struct ddn_state
 {
   int * previous_CON_id;
   int file_server_id;
+
+  tw_stime processor_next_available_time;
   tw_stime next_available_time;
   tw_stime nextLinkAvailableTime;
 };
 
 struct nodes_message
 {
-  // message type is packet type
-  // data packet contains real data
-  // ack packet is used in TCP-like protocols
-  // control packet is high priority message
-  MsgType message_type;
-  int CN_message_round;
+  unsigned long long io_offset;
+  unsigned long long io_payload_size;
+  
+  int io_tag;
+  int collective_group_size;
+  int collective_group_rank;
+  int collective_master_node_id;
 
-  int msg_src_lp_id;
+  int IsLastPacket;
 
-  // message decide the link transmission time
-  int message_size;
+  tw_stime travel_start_time;
+  EventType  event_type;  
+  IOType io_type;
 
-  // used in CN->ION data aggregation
-  int collective_msg_tag;
+  tw_lpid message_CN_source;
+  tw_lpid message_ION_source;
+  tw_lpid message_FS_source;
 
-  // message source
-  BlockType MsgSrc;
-
-  // record message send time
-  tw_stime   travel_start_time;
-
-  // decide event type
-  EventType  type;
 };
 
 #endif

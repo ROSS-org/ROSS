@@ -12,14 +12,6 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
   tw_stime ts;
   MsgData *m;
 
-  // specific to this configuration, Kamil's BG/P tree graph
-  rootCN = 7;
-  
-  // tree, previous hop
-  s->tree_previous_hop_id[0] = -1;
-  s->tree_previous_hop_id[1] = -1;
-
-  s->MsgPrepTime = CN_message_wrap_time;
   int N_PE = tw_nnodes();
 
   nlp_DDN = NumDDN / N_PE;
@@ -33,66 +25,335 @@ void bgp_cn_init( CN_state* s,  tw_lp* lp )
   int localID = lp->gid - basePE * nlp_per_pe;
   int basePset = localID/N_CN_per_ION;
   s->CN_ID_in_tree = localID % N_CN_per_ION;
+
+  s->CN_ID = basePE * nlp_CN + basePset * N_CN_per_ION + s->CN_ID_in_tree;
   
-  s->tree_next_hop_id = get_tree_next_hop(s->CN_ID_in_tree);
-
-  // get reverse mapping
-
-  s->tree_next_hop_id += basePE * nlp_per_pe + basePset * N_CN_per_ION;
-  if ( s->CN_ID_in_tree == rootCN )
-    s->tree_next_hop_id = basePE * nlp_per_pe + nlp_CN + basePset;
-  s->upID = s->tree_next_hop_id;
-
-  /////////////////////////////
-  // calculate packet round
-  s->N_packet_round = collective_block_size/payload_size;
-
-  
-  //printf("packet round is %d\n",s->N_packet_round);
+  s->tree_next_hop_id = basePE * nlp_per_pe + nlp_CN + basePset;
+  s->sender_next_available_time = 0;
 
 #ifdef PRINTid
-  printf("CN %d local ID is %d next hop is %d \n", 
+  printf("CN %d local ID is %d next hop is %d and CN ID is %d\n", 
 	 lp->gid,
 	 s->CN_ID_in_tree,
-	 s->tree_next_hop_id);
+	 s->tree_next_hop_id,
+	 s->CN_ID );
 #endif
 
-  // configure tree network, before GENERATE
-  // seperate line from the DATA stream
-  ts = 10;
-  e = tw_event_new( s->tree_next_hop_id, ts, lp );
-  m = tw_event_data(e);
-  m->type = CONFIG;
-
-  m->msg_src_lp_id = lp->gid;
-  m->message_type = CONT;
-  m->travel_start_time = tw_now(lp);
-
-  tw_event_send(e);
-
-  /*// DATA stream
-  ts = 10000;
+  //CONT message stream
+  // avoid 0 time stamp events
+  ts = s->CN_ID_in_tree;
   e = tw_event_new( lp->gid, ts, lp );
   m = tw_event_data(e);
-  m->type = GENERATE;
-  
-  //m->msg_src_lp_id = lp->gid;
-  m->message_type = DATA;
+  m->event_type = APP_IO_REQUEST;
 
-  tw_event_send(e);*/
+  m->travel_start_time = tw_now(lp) + ts;
 
-  /*// CONT message stream
-  ts = 10000;
-  e = tw_event_new( lp->gid, ts, lp );
-  m = tw_event_data(e);
-  m->type = IOrequest;
+  //m->io_offset = s->CN_ID * 16 * PVFS_payload_size;
+  m->io_offset = 0;
+  m->io_payload_size = 16 * PVFS_payload_size;
+  // if collective size = 1  then unique
+  // if collective size = full CN then collective
+  //m->collective_group_size = nlp_CN * N_PE;
+  m->collective_group_size = 1;
+  //m->collective_group_rank = s->CN_ID;
+  m->collective_group_rank = 0;
+  m->collective_master_node_id = 0;
 
-  m->travel_start_time = tw_now(lp);
-  m->message_type = CONT;
+  // send out write reques
+  //m->io_type = WRITE_INDIVIDUAL;
+  m->io_type = WRITE_COLLECTIVE;
+  //m->io_type = WRITE_UNALIGNED;
+  //m->io_type = READ_COLLECTIVE;
+  //m->io_type = READ_UNALIGNED;
+  //m->io_type = READ_INDIVIDUAL;
+
+  //m->io_tag = 12;
+  m->io_tag = tw_rand_integer(lp->rng,0,nlp_FS*N_PE);;
 
   tw_event_send(e);
-  */
 }
+
+void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("Message %d start from CN %d travel time is %lf\n",
+	 lp->gid,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+
+  ts = s->CN_ID_in_tree;
+  e = tw_event_new( lp->gid, ts, lp );
+  m = tw_event_data(e);
+  m->event_type = HANDSHAKE_SEND;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+  m->io_tag = msg->io_tag;
+
+  m->message_CN_source = lp->gid;
+
+  tw_event_send(e);
+}
+
+void cn_handshake_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("Handshake %d start from CN %d travel time is %lf\n",
+	 msg->message_CN_source,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+  ts = s->sender_next_available_time - tw_now(lp);
+
+  s->sender_next_available_time += CN_ION_meta_payload/CN_out_bw;
+
+  e = tw_event_new( s->tree_next_hop_id, ts + CN_ION_meta_payload/CN_out_bw, lp );
+  m = tw_event_data(e);
+  m->event_type = HANDSHAKE_ARRIVE;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+  m->io_tag = msg->io_tag;
+
+  m->message_CN_source = msg->message_CN_source;
+
+  tw_event_send(e);
+
+}
+
+void cn_handshake_end( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("Handshake %d END from CN %d travel time is %lf\n open create end\n",
+	 msg->message_CN_source,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+  ts = CN_CONT_msg_prep_time;
+
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = DATA_SEND;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+  m->io_tag = msg->io_tag;
+
+  m->message_CN_source = msg->message_CN_source;
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+
+  tw_event_send(e);
+
+}
+
+void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("data %d start from CN %d travel time is %lf\n",
+	 msg->message_CN_source,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+  ts = s->sender_next_available_time - tw_now(lp);
+
+  s->sender_next_available_time += msg->io_payload_size/CN_out_bw;
+
+  e = tw_event_new( s->tree_next_hop_id, ts + msg->io_payload_size/CN_out_bw, lp );
+  m = tw_event_data(e);
+  m->event_type = DATA_ARRIVE;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+  m->io_tag = msg->io_tag;
+
+  m->message_CN_source = msg->message_CN_source;
+  m->message_ION_source = msg->message_ION_source;
+  m->message_FS_source = msg->message_FS_source;
+
+  tw_event_send(e);
+
+}
+
+void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+      printf("data %d ACKed at CN travel time is %lf, IO tag is %d\n",
+             msg->message_CN_source,
+             tw_now(lp) - msg->travel_start_time,
+             msg->io_tag);
+#endif
+      ts = ION_CONT_msg_prep_time;
+
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = CLOSE_SEND;
+
+      m->travel_start_time = msg->travel_start_time;
+
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_CN_source = lp->gid;
+      m->message_FS_source = msg->message_FS_source;
+
+      m->IsLastPacket = msg->IsLastPacket;
+
+      tw_event_send(e);
+
+}
+
+void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+  double virtual_delay;
+  long long size;
+
+#ifdef TRACE
+      printf("close %d ACKed at CN travel time is %lf, IO tag is %d\n",
+             msg->message_CN_source,
+             tw_now(lp) - msg->travel_start_time,
+             msg->io_tag);
+#endif
+
+      virtual_delay = (tw_now(lp) - msg->travel_start_time)/1000000000 ;
+      size = N_ION_active*PVFS_payload_size*16*N_CN_per_ION/1024/1024/1024;
+     
+      if (msg->message_CN_source%127 == 0)
+	printf("close %d ACKed by CN, travel time is %lf, bandwidth is %lf GB/s\n",
+	       msg->message_CN_source,
+	       virtual_delay,
+	       size/virtual_delay );
+      
+
+      /* ts = ION_CONT_msg_prep_time; */
+
+      /* e = tw_event_new( lp->gid, ts , lp ); */
+      /* m = tw_event_data(e); */
+      /* m->event_type = CLOSE_SEND; */
+
+      /* m->travel_start_time = msg->travel_start_time; */
+
+      /* m->io_offset = msg->io_offset; */
+      /* m->io_payload_size = msg->io_payload_size; */
+      /* m->collective_group_size = msg->collective_group_size; */
+      /* m->collective_group_rank = msg->collective_group_rank; */
+
+      /* m->collective_master_node_id = msg->collective_master_node_id; */
+      /* m->io_type = msg->io_type; */
+      /* m->io_tag = msg->io_tag; */
+      /* m->message_ION_source = msg->message_ION_source; */
+      /* m->message_CN_source = lp->gid; */
+      /* m->message_FS_source = msg->message_FS_source; */
+
+      /* m->IsLastPacket = msg->IsLastPacket; */
+
+      /* tw_event_send(e); */
+
+}
+
+void cn_close_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+  printf("Close %d start from CN %d travel time is %lf\n",
+	 msg->message_CN_source,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+  ts = s->sender_next_available_time - tw_now(lp);
+
+  s->sender_next_available_time += CN_ION_meta_payload/CN_out_bw;
+
+  e = tw_event_new( s->tree_next_hop_id, ts + CN_ION_meta_payload/CN_out_bw, lp );
+  m = tw_event_data(e);
+  m->event_type = CLOSE_ARRIVE;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+  m->io_tag = msg->io_tag;
+
+  m->message_ION_source = msg->message_ION_source;
+  m->message_CN_source = lp->gid;
+  m->message_FS_source = msg->message_FS_source;
+
+  m->IsLastPacket = msg->IsLastPacket;
+
+  tw_event_send(e);
+
+}
+
 
 void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
@@ -102,294 +363,32 @@ void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   MsgData * m;
   int i;
   
-  switch(msg->type)
+  switch(msg->event_type)
     {
-    case CONFIG:
-      switch(msg->message_type)
-	{
-	case CONT:
-	  {
-	    // when receive data message, record msg source
-	    if ( s->tree_previous_hop_id[0] == -1)
-	      s->tree_previous_hop_id[0] = msg->msg_src_lp_id;
-	    else
-	      s->tree_previous_hop_id[1] = msg->msg_src_lp_id;
-	
-#ifdef TRACE 
-	    printf("CN %d received CONFIG CONT message\n",s->CN_ID_in_tree);
-	    for ( i=0; i<2; i++ )
-	      printf("CN %d previous hop [%d] is %d\n",
-		     s->CN_ID_in_tree,
-		     i,
-		     s->tree_previous_hop_id[i]);
-#endif
-
-	    // configure the tree, identify previous hops
-	    ts = s->MsgPrepTime + lp->gid % 64;
-	    
-	    // handshake: send back
-	    for ( i=0; i<2; i++ )
-	      {
-		if ( s->tree_previous_hop_id[i] >0 )
-		  {
-		    e = tw_event_new( s->tree_previous_hop_id[i], ts, lp );
-		    m = tw_event_data(e);
-		    
-		    m->type = CONFIG;
-		    m->msg_src_lp_id = lp->gid;
-		    m->travel_start_time = msg->travel_start_time;
-		    
-		    m->collective_msg_tag = 12180;
-		    m->message_type = ACK;
-		    
-		    tw_event_send(e);
-		  }
-	      }
-	    
-	  }
-	  break;
-	case ACK:
-#ifdef TRACE
-	  printf("CN %d received CONFIG ACK message, travel time is %lf\n",
-		 s->CN_ID_in_tree,
-		 tw_now(lp) - msg->travel_start_time );
-	  
-#endif
-	  break;
-	}
+    case APP_IO_REQUEST:
+      cn_io_request( s, bf, msg, lp );
       break;
-    case IOrequest:
-      switch (msg->message_type)
-	{
-	case CONT:
-	  ts = s->MsgPrepTime + s->CN_ID_in_tree;
-	  e = tw_event_new( s->tree_next_hop_id, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = IOrequest;
-	  
-	  //trace packet time
-	  m->travel_start_time = msg->travel_start_time;
-	  
-	  m->collective_msg_tag = 12180;
-	  m->message_type = CONT;
-	  
-	  tw_event_send(e);
-	  
-	  break;
-	case ACK:
-	  //printf("CN %d received IO request ACK\n",s->CN_ID_in_tree);
-	  ts = 10;
-	  // send ACK message to all my leafs
-	  for ( i=0; i<2; i++)
-	    {
-	      if ( s->tree_previous_hop_id[i] > -1 )
-		{
-		  e = tw_event_new( s->tree_previous_hop_id[i], 
-				    ts, lp );
-		  m = tw_event_data(e);
-		  m->type = IOrequest;
-		  
-		  m->travel_start_time = msg->travel_start_time;
-		  m->collective_msg_tag = msg->collective_msg_tag;
-		  m->message_type = msg->message_type;
-		  m->message_size = msg->message_size;
-		  
-		  tw_event_send(e);
-		}
-	    }
-	  // ready to send data
-	  // ACK requests and turn to DATA stream
-	  e = tw_event_new( lp->gid, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = GENERATE;
-
-	  m->travel_start_time = msg->travel_start_time;
-	  m->CN_message_round = s->N_packet_round;
-	  tw_event_send(e);
-	  
-	  break;
-	case DATA:
-	  printf("Error: data message has been sent to IOrequest\n");
-	  break;
-	  }
+    case HANDSHAKE_SEND:
+      cn_handshake_send( s, bf, msg, lp );
       break;
-    case GENERATE:
-
-      // enter next round message send
-      /*
-      if ( msg->CN_message_round > 0 )
-	{
-	  ts = tw_rand_exponential(lp->rng, 5);
-	  e = tw_event_new(lp->gid, ts, lp);
-	  m = tw_event_data(e);
-	  m->type = GENERATE;
-      
-	  m->CN_message_round = msg->CN_message_round;
-	  tw_event_send(e);
-	}
-      */
-      // send this message out
-      // add randomness
-      /*
-      printf("lp %d this round is %d\n",
-	     s->CN_ID_in_tree,
-	     msg->CN_message_round);
-      */
-      for ( i=0; i<msg->CN_message_round; i++)
-	{
-	  ts = s->MsgPrepTime + i;
-	  e = tw_event_new( s->tree_next_hop_id, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = ARRIVAL;
-	  
-	  m->message_size = payload_size;
-	  
-	  //trace packet time
-	  //m->travel_start_time = tw_now(lp);
-	  m->travel_start_time = msg->travel_start_time;
-	  
-	  //trace collective calls
-	  //printf("collective counter is %d\n",msg_collective_counter);
-	  //m->collective_msg_tag = msg_collective_counter;
-	  
-	  m->collective_msg_tag = 12180;
-	  m->message_type = DATA;
-	  
-	  tw_event_send(e);
-	}
-      for ( i=0; i<msg->CN_message_round; i++)
-	{
-	  ts = s->MsgPrepTime + i;
-	  e = tw_event_new( lp->gid, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = ARRIVAL;
-	  
-	  m->message_size = payload_size;
-	  
-	  //trace packet time
-	  //m->travel_start_time = tw_now(lp);
-	  m->travel_start_time = msg->travel_start_time;
-	  
-	  //trace collective calls
-	  //printf("collective counter is %d\n",msg_collective_counter);
-	  //m->collective_msg_tag = msg_collective_counter;
-	  
-	  m->collective_msg_tag = 12180;
-	  m->message_type = DATA;
-	  
-	  tw_event_send(e);
-	}
+    case HANDSHAKE_END:
+      cn_handshake_end( s, bf, msg, lp );
       break;
-    case ARRIVAL:
-      {
-	switch( msg->message_type )
-	  {
-	case DATA:
-	  {
-
-	    //printf("CN received DATA message\n");
-	    s->next_available_time = max(s->next_available_time, tw_now(lp));
-	    ts = s->next_available_time - tw_now(lp);
-	    
-	    s->next_available_time += CN_packet_service_time;
-	    
-	    e = tw_event_new( lp->gid, ts, lp );
-	    m = tw_event_data(e);
-	    m->type = PROCESS;
-	    
-	    // pass msg info
-	    m->travel_start_time = msg->travel_start_time;
-	    m->collective_msg_tag = msg->collective_msg_tag;
-	    m->message_type = msg->message_type;
-	    m->message_size = msg->message_size;
-	    
-	    tw_event_send(e);
-	  }
-	  break;
-	  }
-      }
+    case DATA_SEND:
+      cn_data_send( s, bf, msg, lp );
       break;
-    case SEND:
-      switch( msg->message_type )
-        {
-	case CONT:
-	  ts = 10;
-	  e = tw_event_new( s->tree_next_hop_id, ts, lp );
-	  m = tw_event_data(e);
-	  m->type = ARRIVAL;
-	  
-	  // pass msg info
-	  m->travel_start_time = msg->travel_start_time;
-	  m->collective_msg_tag = msg->collective_msg_tag;
-	  m->message_type = CONT;
-	  m->MsgSrc = ComputeNode;
-	  
-	  tw_event_send(e);
-	  
-	  break;
-        case ACK:
-          {   
-	    ts = 10;
-	    // send ACK message to all my leafs
-	    for ( i=0; i<2; i++)
-	      {
-		if ( s->tree_previous_hop_id[i] > -1 )
-		  {
-		    e = tw_event_new( s->tree_previous_hop_id[i], 
-				      ts, lp );
-		    m = tw_event_data(e);
-		    m->type = ARRIVAL;
-		    
-		    m->travel_start_time = msg->travel_start_time;
-		    m->collective_msg_tag = msg->collective_msg_tag;
-		    m->message_type = msg->message_type;
-		    m->message_size = msg->message_size;
-		    
-		    tw_event_send(e);
-		  }
-	      }
-	  }	
-	  break;
-	case DATA:
-	  {    
-	    s->nextLinkAvailableTime = max(s->nextLinkAvailableTime, tw_now(lp));
-	    ts = s->nextLinkAvailableTime - tw_now(lp);
-	    
-	    s->nextLinkAvailableTime += msg->message_size/CN_tree_bw;
-	    
-	    e = tw_event_new( s->tree_next_hop_id, 
-			      ts + msg->message_size/CN_tree_bw, lp );
-	    m = tw_event_data(e);
-	    m->type = ARRIVAL;
-	    
-	    m->travel_start_time = msg->travel_start_time;
-	    m->collective_msg_tag = msg->collective_msg_tag;
-	    m->message_type = msg->message_type;
-	    m->message_size = msg->message_size;
-	    
-	    tw_event_send(e);
-	    
-	  }
-	  break;
-	}
-      
+    case DATA_ACK:
+      cn_data_ack( s, bf, msg, lp );
       break;
-    case PROCESS:
-      ts = CN_packet_service_time;
-      e = tw_event_new( lp->gid, ts, lp );
-      m = tw_event_data(e);
-      m->type = SEND;
-
-      m->travel_start_time = msg->travel_start_time;
-      m->collective_msg_tag = msg->collective_msg_tag;
-      m->message_type = msg->message_type;
-      m->message_size = msg->message_size;
-
-      tw_event_send(e);
-
+    case CLOSE_SEND:
+      cn_close_send( s, bf, msg, lp );
       break;
+    case CLOSE_ACK:
+      cn_close_ack( s, bf, msg, lp );
+      break;
+    default:
+      printf("Scheduled the wrong events in compute NODEs!\n");
     }
-  
 }
 
 void bgp_cn_eventHandler_rc( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -452,3 +451,66 @@ int get_tree_next_hop( int TreeNextHopIndex )
     return TreeMatrix[TreeNextHopIndex];
 
 }
+
+
+/* void cn_configure( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp ) */
+/* { */
+/*   tw_event * e;  */
+/*   tw_stime ts; */
+/*   MsgData * m; */
+/*   int i; */
+
+/*   switch(msg->message_type) */
+/*     { */
+/*     case CONT: */
+/*       { */
+/* 	// when receive data message, record msg source */
+/* 	if ( s->tree_previous_hop_id[0] == -1) */
+/* 	  s->tree_previous_hop_id[0] = msg->msg_src_lp_id; */
+/* 	else */
+/* 	  s->tree_previous_hop_id[1] = msg->msg_src_lp_id; */
+	
+/* #ifdef TRACE  */
+/* 	printf("CN %d received CONFIG CONT message\n",s->CN_ID_in_tree); */
+/* 	for ( i=0; i<2; i++ ) */
+/* 	  printf("CN %d previous hop [%d] is %d\n", */
+/* 		 s->CN_ID_in_tree, */
+/* 		 i, */
+/* 		 s->tree_previous_hop_id[i]); */
+/* #endif */
+
+/* 	// configure the tree, identify previous hops */
+/* 	ts = s->MsgPrepTime + lp->gid % 64; */
+	    
+/* 	// handshake: send back */
+/* 	for ( i=0; i<2; i++ ) */
+/* 	  { */
+/* 	    if ( s->tree_previous_hop_id[i] >0 ) */
+/* 	      { */
+/* 		e = tw_event_new( s->tree_previous_hop_id[i], ts, lp ); */
+/* 		m = tw_event_data(e); */
+		    
+/* 		m->type = CONFIG; */
+/* 		m->msg_src_lp_id = lp->gid; */
+/* 		m->travel_start_time = msg->travel_start_time; */
+		    
+/* 		m->collective_msg_tag = 12180; */
+/* 		m->message_type = ACK; */
+		    
+/* 		tw_event_send(e); */
+/* 	      } */
+/* 	  } */
+	    
+/*       } */
+/*       break; */
+/*     case ACK: */
+/* #ifdef TRACE */
+/*       printf("CN %d received CONFIG ACK message, travel time is %lf\n", */
+/* 	     s->CN_ID_in_tree, */
+/* 	     tw_now(lp) - msg->travel_start_time ); */
+	  
+/* #endif */
+/*       break; */
+/*     } */
+  
+/* } */
