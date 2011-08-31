@@ -60,6 +60,8 @@ void bgp_ion_init( ION_state* s,  tw_lp* lp )
   for (i=0;i<256;i++)
     s->io_counter = 0;
   
+  N_FS_active = min(N_FS_active, nlp_FS*N_PE);
+
 }
 
 void ion_handshake_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -68,38 +70,40 @@ void ion_handshake_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = CN_ION_meta_payload/ION_CN_in_bw;
+
   if (s->myID_in_ION<N_ION_active)
     {
 
 #ifdef TRACE
-  printf("Handshake %d arrive at ION %d travel time is %lf\n",
-         msg->message_CN_source,
-	 s->myID_in_ION,
-         tw_now(lp) - msg->travel_start_time );
+      printf("Handshake %d arrive at ION %d travel time is %lf\n",
+	     msg->message_CN_source,
+	     s->myID_in_ION,
+	     tw_now(lp) - msg->travel_start_time );
 #endif
 
-  s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp));
-  ts = s->cn_receiver_next_available_time - tw_now(lp);
+      s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp) - transmission_time);
+      ts = s->cn_receiver_next_available_time - tw_now(lp) + transmission_time;
 
-  s->cn_receiver_next_available_time += CN_ION_meta_payload/ION_CN_in_bw;
+      s->cn_receiver_next_available_time += transmission_time;
 
-  e = tw_event_new( lp->gid, ts , lp );
-  m = tw_event_data(e);
-  m->event_type = HANDSHAKE_PROCESS;
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = HANDSHAKE_PROCESS;
 
-  m->travel_start_time = msg->travel_start_time;
+      m->travel_start_time = msg->travel_start_time;
 
-  m->io_offset = msg->io_offset;
-  m->io_payload_size = msg->io_payload_size;
-  m->collective_group_size = msg->collective_group_size;
-  m->collective_group_rank = msg->collective_group_rank;
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
 
-  m->collective_master_node_id = msg->collective_master_node_id;
-  m->io_type = msg->io_type;
-  m->io_tag = msg->io_tag;
-  m->message_CN_source = msg->message_CN_source;
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      m->message_CN_source = msg->message_CN_source;
 
-  tw_event_send(e);
+      tw_event_send(e);
     }
 
 }
@@ -110,6 +114,8 @@ void ion_data_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = msg->io_payload_size/ION_CN_in_bw;
+
 #ifdef TRACE
   printf("Data %d arrive at ION %d travel time is %lf IO tag is %d\n",
          msg->message_CN_source,
@@ -118,10 +124,10 @@ void ion_data_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	 msg->io_tag);
 #endif
 
-  s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp));
-  ts = s->cn_receiver_next_available_time - tw_now(lp);
+  s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->cn_receiver_next_available_time - tw_now(lp) + transmission_time;
 
-  s->cn_receiver_next_available_time += msg->io_payload_size/ION_CN_in_bw;
+  s->cn_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -185,32 +191,73 @@ void ion_data_process( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  int random_FS;
+  int my_start_FS;
+
+  if ( burst_buffer_on )
+    {
+      random_FS = msg->io_tag % ( N_FS_active );
+      my_start_FS = (int)(msg->io_offset / stripe_size);
+      my_start_FS += random_FS;
+      my_start_FS %= N_FS_active;
+
 #ifdef TRACE
-  printf("data %d processed at ION %d travel time is %lf\n",
+  printf("burst buffer on data %d processed at ION %d travel time is %lf\n",
          msg->message_CN_source,
 	 s->myID_in_ION,
          tw_now(lp) - msg->travel_start_time );
 #endif
 
-  ts = ION_CONT_msg_prep_time;
-  e = tw_event_new( lp->gid, ts , lp );
-  m = tw_event_data(e);
-  m->event_type = HANDSHAKE_SEND;
+      ts = ION_CONT_msg_prep_time;
 
-  m->travel_start_time = msg->travel_start_time;
+      e = tw_event_new( msg->message_CN_source, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = DATA_ACK;
 
-  m->io_offset = msg->io_offset;
-  m->io_payload_size = msg->io_payload_size;
-  m->collective_group_size = msg->collective_group_size;
-  m->collective_group_rank = msg->collective_group_rank;
+      m->travel_start_time = msg->travel_start_time;
 
-  m->collective_master_node_id = msg->collective_master_node_id;
-  m->io_type = msg->io_type;
-  m->io_tag = msg->io_tag;
-  m->message_CN_source = msg->message_CN_source;
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
 
-  tw_event_send(e);
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      m->message_ION_source = lp->gid;
+      m->message_FS_source = s->file_server[my_start_FS];
 
+      tw_event_send(e);
+    }
+  else
+    {
+
+#ifdef TRACE
+      printf("burst buffer off data %d processed at ION %d travel time is %lf\n",
+	     msg->message_CN_source,
+	     s->myID_in_ION,
+	     tw_now(lp) - msg->travel_start_time );
+#endif
+
+      ts = ION_CONT_msg_prep_time;
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = HANDSHAKE_SEND;
+
+      m->travel_start_time = msg->travel_start_time;
+
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      m->message_CN_source = msg->message_CN_source;
+
+      tw_event_send(e);
+  }
 }
 
 void ion_lookup_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -219,6 +266,9 @@ void ion_lookup_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  if (msg->collective_group_rank == msg->collective_master_node_id)
+    {
+      
 #ifdef TRACE
   printf("Lookup %d send at ION %d travel time is %lf\n",
          msg->message_CN_source,
@@ -228,9 +278,9 @@ void ion_lookup_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
   ts = s->fs_sender_next_available_time - tw_now(lp);
 
-  s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+  s->fs_sender_next_available_time += lookup_meta_size/ION_FS_out_bw;
 
-  e = tw_event_new( s->file_server[0], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+  e = tw_event_new( s->file_server[0], ts + lookup_meta_size/ION_FS_out_bw, lp );
   m = tw_event_data(e);
   m->event_type = LOOKUP_ARRIVE;
 
@@ -249,6 +299,42 @@ void ion_lookup_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->message_CN_source = msg->message_CN_source;
 
   tw_event_send(e);
+    }
+  else
+    {
+#ifdef TRACE
+  printf("Lookup %d send at ION %d travel time is %lf\n",
+         msg->message_CN_source,
+	 s->myID_in_ION,
+         tw_now(lp) - msg->travel_start_time );
+#endif
+/*   s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp)); */
+/*   ts = s->fs_sender_next_available_time - tw_now(lp); */
+
+/*   s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw; */
+
+  ts = ION_CONT_msg_prep_time;
+  e = tw_event_new( lp->gid, ts , lp );
+  m = tw_event_data(e);
+  m->event_type = CREATE_END;
+
+  m->travel_start_time = msg->travel_start_time;
+
+  m->io_offset = msg->io_offset;
+  m->io_payload_size = msg->io_payload_size;
+  m->collective_group_size = msg->collective_group_size;
+  m->collective_group_rank = msg->collective_group_rank;
+
+  m->collective_master_node_id = msg->collective_master_node_id;
+  m->io_type = msg->io_type;
+
+  m->message_ION_source = lp->gid;
+  m->io_tag = msg->io_tag;
+  m->message_CN_source = msg->message_CN_source;
+
+  tw_event_send(e);
+      
+    }
 
 }
 
@@ -280,10 +366,10 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 #endif
   // break data to stripes and 
   // random_FS is the start FS
-  random_FS = msg->io_tag % ( nlp_FS*N_PE );
+  random_FS = msg->io_tag % ( N_FS_active );
   my_start_FS = (int)(msg->io_offset / stripe_size);
   my_start_FS += random_FS;
-  my_start_FS %= nlp_FS*N_PE;
+  my_start_FS %= N_FS_active;
 
   if ( msg->io_payload_size >= stripe_size )
     {
@@ -292,6 +378,8 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       first_block = stripe_size - start_offset_in_stripe;
       // last block could be 0
       last_block = (msg->io_offset + msg->io_payload_size) % stripe_size;
+
+      //printf("First block is %ld and Last block size is %ld \n",first_block,last_block);
       
       N_stripe = (int)((msg->io_payload_size - first_block - last_block)/stripe_size);
 
@@ -299,9 +387,9 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
       ts = s->fs_sender_next_available_time - tw_now(lp);
 
-      s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+      s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-      e = tw_event_new( s->file_server[my_start_FS], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+      e = tw_event_new( s->file_server[my_start_FS], ts + handshake_payload_size/ION_FS_out_bw, lp );
       m = tw_event_data(e);
       m->event_type = HANDSHAKE_ARRIVE;
 
@@ -325,16 +413,15 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
       tw_event_send(e);
 
-
       for ( i=0; i<N_stripe; i++ )
 	{
 	  // 2 ---- N-1 blocks
 	  s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
 	  ts = s->fs_sender_next_available_time - tw_now(lp);
 
-	  s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+	  s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-	  e = tw_event_new( s->file_server[( my_start_FS + i)%(nlp_FS*N_PE)], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+	  e = tw_event_new( s->file_server[( my_start_FS + i)%(N_FS_active)], ts + handshake_payload_size/ION_FS_out_bw, lp );
 	  m = tw_event_data(e);
 	  m->event_type = HANDSHAKE_ARRIVE;
 
@@ -361,17 +448,21 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	}
 
       if (last_block > 0)
-	last_FS = ( my_start_FS + N_stripe)%(nlp_FS*N_PE);
+	last_FS = ( my_start_FS + N_stripe)%(N_FS_active);
       else
-	last_FS = ( my_start_FS + N_stripe - 1)%(nlp_FS*N_PE);
+	{
+	  last_FS = ( my_start_FS + N_stripe - 1 + N_FS_active)%(N_FS_active);
+
+	  //printf("Last fs %d is %d\n",last_FS,s->file_server[last_FS]);
+	}
 
       // last block, if size = 0, serve as ghost message
       s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
       ts = s->fs_sender_next_available_time - tw_now(lp);
 
-      s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+      s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-      e = tw_event_new( s->file_server[last_FS], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+      e = tw_event_new( s->file_server[last_FS], ts + handshake_payload_size/ION_FS_out_bw, lp );
       m = tw_event_data(e);
       m->event_type = HANDSHAKE_ARRIVE;
 
@@ -400,8 +491,8 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       /* 	printf("middle random start FS is %d, my start is %d I am talking to %d\n", */
       /* 	       random_FS, */
       /* 	       my_start_FS, */
-      /* 	       (  my_start_FS + 1 + i )%( nlp_FS*N_PE ) ); */
-      /* printf("last block is %lld and finish FS is %d\n",last_block, (my_start_FS+N_stripe+1)%(nlp_FS*N_PE)); */
+      /* 	       (  my_start_FS + 1 + i )%( N_FS_active ) ); */
+      /* printf("last block is %lld and finish FS is %d\n",last_block, (my_start_FS+N_stripe+1)%(N_FS_active)); */
 
     }
   else
@@ -414,9 +505,9 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
 	  ts = s->fs_sender_next_available_time - tw_now(lp);
 
-	  s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+	  s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-	  e = tw_event_new( s->file_server[my_start_FS], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+	  e = tw_event_new( s->file_server[my_start_FS], ts + handshake_payload_size/ION_FS_out_bw, lp );
 	  m = tw_event_data(e);
 	  m->event_type = HANDSHAKE_ARRIVE;
 
@@ -446,9 +537,9 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
 	  ts = s->fs_sender_next_available_time - tw_now(lp);
 
-	  s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+	  s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-	  e = tw_event_new( s->file_server[my_start_FS], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+	  e = tw_event_new( s->file_server[my_start_FS], ts + handshake_payload_size/ION_FS_out_bw, lp );
 	  m = tw_event_data(e);
 	  m->event_type = HANDSHAKE_ARRIVE;
 
@@ -476,9 +567,9 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	  s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
 	  ts = s->fs_sender_next_available_time - tw_now(lp);
 
-	  s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
+	  s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
 
-	  e = tw_event_new( s->file_server[(my_start_FS + 1)%(nlp_FS*N_PE)], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
+	  e = tw_event_new( s->file_server[(my_start_FS + 1)%(N_FS_active)], ts + handshake_payload_size/ION_FS_out_bw, lp );
 	  m = tw_event_data(e);
 	  m->event_type = HANDSHAKE_ARRIVE;
 
@@ -521,7 +612,7 @@ void ion_handshake_end( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
   ts = s->fs_receiver_next_available_time - tw_now(lp);
 
-  s->fs_receiver_next_available_time += ION_FS_meta_payload/ION_FS_in_bw;
+  s->fs_receiver_next_available_time += handshake_payload_size/ION_FS_in_bw;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -646,7 +737,7 @@ void ion_create_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
   s->fs_sender_next_available_time += ION_FS_meta_payload/ION_FS_out_bw;
 
-  random_FS = msg->io_tag % ( nlp_FS*N_PE ) ; 
+  random_FS = msg->io_tag % ( N_FS_active ) ; 
 
   e = tw_event_new( s->file_server[random_FS], ts + ION_FS_meta_payload/ION_FS_out_bw, lp );
   m = tw_event_data(e);
@@ -766,6 +857,8 @@ void ion_close_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = close_meta_size/ION_CN_in_bw;
+
 #ifdef TRACE
   printf("close %d arrive at ION %d travel time is %lf IO tag is %d\n",
          msg->message_CN_source,
@@ -774,10 +867,10 @@ void ion_close_arrive( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	 msg->io_tag);
 #endif
 
-  s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp));
-  ts = s->cn_receiver_next_available_time - tw_now(lp);
+  s->cn_receiver_next_available_time = max(s->cn_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->cn_receiver_next_available_time - tw_now(lp) + transmission_time;
 
-  s->cn_receiver_next_available_time += msg->io_payload_size/ION_CN_in_bw;
+  s->cn_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -808,37 +901,46 @@ void ion_data_ack( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
-  if (msg->IsLastPacket)
+
+  if( burst_buffer_on )
     {
+      printf("Piece of data committed\n");
+    }
+  else
+    {
+      if (msg->IsLastPacket)
+	{
 #ifdef TRACE
-      printf("data %d ACKed at ION travel time is %lf, IO tag is %d\n",
-             msg->message_CN_source,
-             tw_now(lp) - msg->travel_start_time,
-             msg->io_tag);
+	  printf("data %d ACKed at ION travel time is %lf, IO tag is %d\n",
+		 msg->message_CN_source,
+		 tw_now(lp) - msg->travel_start_time,
+		 msg->io_tag);
 #endif
-      ts = ION_CONT_msg_prep_time;
 
-      e = tw_event_new( msg->message_CN_source, ts , lp );
-      m = tw_event_data(e);
-      m->event_type = DATA_ACK;
+	  ts = ION_CONT_msg_prep_time;
 
-      m->travel_start_time = msg->travel_start_time;
+	  e = tw_event_new( msg->message_CN_source, ts , lp );
+	  m = tw_event_data(e);
+	  m->event_type = DATA_ACK;
 
-      m->io_offset = msg->io_offset;
-      m->io_payload_size = msg->io_payload_size;
-      m->collective_group_size = msg->collective_group_size;
-      m->collective_group_rank = msg->collective_group_rank;
+	  m->travel_start_time = msg->travel_start_time;
 
-      m->collective_master_node_id = msg->collective_master_node_id;
-      m->io_type = msg->io_type;
-      m->io_tag = msg->io_tag;
-      m->message_ION_source = lp->gid;
-      m->message_CN_source = msg->message_CN_source;
-      m->message_FS_source = msg->message_FS_source;
+	  m->io_offset = msg->io_offset;
+	  m->io_payload_size = msg->io_payload_size;
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
 
-      m->IsLastPacket = msg->IsLastPacket;
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  m->io_tag = msg->io_tag;
+	  m->message_ION_source = lp->gid;
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_FS_source = msg->message_FS_source;
 
-      tw_event_send(e);
+	  m->IsLastPacket = msg->IsLastPacket;
+
+	  tw_event_send(e);
+	}
     }
 }
 

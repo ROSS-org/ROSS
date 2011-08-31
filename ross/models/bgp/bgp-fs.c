@@ -50,14 +50,16 @@ void fs_lookup_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = lookup_meta_size/FS_ION_in_bw;
+
 #ifdef TRACE
   printf("Lookup %d arrive at FS 0 travel time is %lf\n",
 	 msg->message_CN_source,
          tw_now(lp) - msg->travel_start_time );
 #endif
-  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
-  ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += ION_FS_meta_payload/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->ion_receiver_next_available_time - tw_now(lp) + transmission_time;                                                                
+  s->ion_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -86,15 +88,17 @@ void fs_create_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = ION_FS_meta_payload/FS_ION_in_bw;
+
 #ifdef TRACE
   printf("create %d arrive at FS travel time is %lf, IO tag is %d\n",
          msg->message_CN_source,
 	 tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
-  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
-  ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += ION_FS_meta_payload/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->ion_receiver_next_available_time - tw_now(lp) + transmission_time;                                                                
+  s->ion_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -131,7 +135,7 @@ void fs_handshake_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 #endif
   s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
   ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += ION_FS_meta_payload/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time += handshake_payload_size/FS_ION_in_bw; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -162,15 +166,17 @@ void fs_data_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = msg->io_payload_size/FS_ION_in_bw;
+
 #ifdef TRACE
   printf("data %d arrive at FS travel time is %lf, IO tag is %d\n",
          msg->message_CN_source,
 	 tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
-  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
-  ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += msg->io_payload_size/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->ion_receiver_next_available_time - tw_now(lp) + transmission_time;                                                                
+  s->ion_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -201,15 +207,17 @@ void fs_close_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = close_meta_size/FS_ION_in_bw;
+
 #ifdef TRACE
   printf("close %d arrive at FS travel time is %lf, IO tag is %d\n",
          msg->message_CN_source,
 	 tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
-  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
-  ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += msg->io_payload_size/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->ion_receiver_next_available_time - tw_now(lp) + transmission_time;                                                                
+  s->ion_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -425,15 +433,17 @@ void fs_create_ack( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = DDN_ACK_size/FS_DDN_in_bw;
+
 #ifdef TRACE
   printf("create %d ACKed at FS travel time is %lf, IO tag is %d\n",
          msg->message_CN_source,
 	 tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
-  s->ddn_receiver_next_available_time = max(s->ddn_receiver_next_available_time, tw_now(lp)); 
-  ts = s->ddn_receiver_next_available_time - tw_now(lp);
-  s->ddn_receiver_next_available_time += DDN_ACK_size/FS_DDN_in_bw; 
+  s->ddn_receiver_next_available_time = max(s->ddn_receiver_next_available_time, tw_now(lp)) - transmission_time; 
+  ts = s->ddn_receiver_next_available_time - tw_now(lp) + transmission_time;
+  s->ddn_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( msg->message_ION_source, ts , lp );
   m = tw_event_data(e);
@@ -504,7 +514,6 @@ void fs_data_ack( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
-
 #ifdef TRACE
       printf("data %d ACKed at FS travel time is %lf, IO tag is %d\n",
 	     msg->message_CN_source,
@@ -514,6 +523,8 @@ void fs_data_ack( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       s->ion_sender_next_available_time = max(s->ion_sender_next_available_time, tw_now(lp)); 
       ts = s->ion_sender_next_available_time - tw_now(lp);
       s->ion_sender_next_available_time += ION_FS_meta_payload/FS_ION_out_bw; 
+
+      //printf("ION source is %d\n",msg->message_ION_source);
 
       e = tw_event_new( msg->message_ION_source, ts + ION_FS_meta_payload/FS_ION_out_bw, lp );
       m = tw_event_data(e);
@@ -579,25 +590,22 @@ void fs_close_ack( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
 }
 
-
-
 void fs_create_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
   tw_event * e;
   tw_stime ts;
   MsgData * m;
 
-  if (msg->collective_group_rank == msg->collective_master_node_id)
-    {
 #ifdef TRACE
-      printf("create %d send at FS travel time is %lf, IO tag is %d\n",
-	     msg->message_CN_source,
-	     tw_now(lp) - msg->travel_start_time,
-	     msg->io_tag);
+  printf("create %d send at FS travel time is %lf, IO tag is %d\n",
+	 msg->message_CN_source,
+	 tw_now(lp) - msg->travel_start_time,
+	 msg->io_tag);
 #endif
-      //printf("send once ******\n");
+
       s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp));                                                                      
-      ts = s->ddn_sender_next_available_time - tw_now(lp);                                                                                                                       
+      ts = s->ddn_sender_next_available_time - tw_now(lp);
+
       s->ddn_sender_next_available_time += FS_DDN_meta_payload/FS_DDN_out_bw; 
 
       e = tw_event_new( s->controller_id, ts + FS_DDN_meta_payload/FS_DDN_out_bw, lp );
@@ -619,41 +627,80 @@ void fs_create_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       m->message_FS_source = lp->gid;
 
       tw_event_send(e);
-    }
-  else
-    {
-#ifdef TRACE
-      printf("create %d send to create ACK at FS travel time is %lf, IO tag is %d\n",
-             msg->message_CN_source,
-             tw_now(lp) - msg->travel_start_time,
-             msg->io_tag);
-#endif
-      //s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp));
-      //ts = s->ddn_sender_next_available_time - tw_now(lp);
+    
+/*   // working version from Argonne */
+  
+/* #ifdef PARA */
 
-      ts = FS_DDN_meta_payload/FS_DDN_out_bw + CONT_CONT_msg_prep_time;
+/*   if (msg->collective_group_rank == msg->collective_master_node_id) */
+/*     { */
+/*       //#ifdef TRACE */
+/*       printf("create %d send at FS travel time is %lf, IO tag is %d\n", */
+/* 	     msg->message_CN_source, */
+/* 	     tw_now(lp) - msg->travel_start_time, */
+/* 	     msg->io_tag); */
+/*       //#endif */
+/*       //printf("send once ******\n"); */
+/*       s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp));    */
+/*       ts = s->ddn_sender_next_available_time - tw_now(lp); */                                        
+/*       s->ddn_sender_next_available_time += FS_DDN_meta_payload/FS_DDN_out_bw;  */
 
-      e = tw_event_new( lp->gid, ts , lp );
-      m = tw_event_data(e);
-      m->event_type = CREATE_ACK;
+/*       e = tw_event_new( s->controller_id, ts + FS_DDN_meta_payload/FS_DDN_out_bw, lp ); */
+/*       m = tw_event_data(e); */
+/*       m->event_type = CREATE_ARRIVE; */
 
-      m->travel_start_time = msg->travel_start_time;
+/*       m->travel_start_time = msg->travel_start_time; */
 
-      m->io_offset = msg->io_offset;
-      m->io_payload_size = msg->io_payload_size;
-      m->collective_group_size = msg->collective_group_size;
-      m->collective_group_rank = msg->collective_group_rank;
+/*       m->io_offset = msg->io_offset; */
+/*       m->io_payload_size = msg->io_payload_size; */
+/*       m->collective_group_size = msg->collective_group_size; */
+/*       m->collective_group_rank = msg->collective_group_rank; */
 
-      m->collective_master_node_id = msg->collective_master_node_id;
-      m->io_type = msg->io_type;
-      m->io_tag = msg->io_tag;
-      m->message_ION_source = msg->message_ION_source;
-      m->message_CN_source = msg->message_CN_source;
-      m->message_FS_source = lp->gid;
+/*       m->collective_master_node_id = msg->collective_master_node_id; */
+/*       m->io_type = msg->io_type; */
+/*       m->io_tag = msg->io_tag; */
+/*       m->message_ION_source = msg->message_ION_source; */
+/*       m->message_CN_source = msg->message_CN_source; */
+/*       m->message_FS_source = lp->gid; */
 
-      tw_event_send(e);
+/*       tw_event_send(e); */
+/*     } */
+/*   else */
+/*     { */
+/*       //#ifdef TRACE */
+/*       printf("create %d send to create ACK at FS travel time is %lf, IO tag is %d\n", */
+/*              msg->message_CN_source, */
+/*              tw_now(lp) - msg->travel_start_time, */
+/*              msg->io_tag); */
+/*       //#endif */
+/*       //s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp)); */
+/*       //ts = s->ddn_sender_next_available_time - tw_now(lp); */
 
-    }
+/*       ts = close_meta_size/FS_DDN_out_bw + CONT_CONT_msg_prep_time; */
+
+/*       e = tw_event_new( lp->gid, ts , lp ); */
+/*       m = tw_event_data(e); */
+/*       m->event_type = CREATE_ACK; */
+
+/*       m->travel_start_time = msg->travel_start_time; */
+
+/*       m->io_offset = msg->io_offset; */
+/*       m->io_payload_size = msg->io_payload_size; */
+/*       m->collective_group_size = msg->collective_group_size; */
+/*       m->collective_group_rank = msg->collective_group_rank; */
+
+/*       m->collective_master_node_id = msg->collective_master_node_id; */
+/*       m->io_type = msg->io_type; */
+/*       m->io_tag = msg->io_tag; */
+/*       m->message_ION_source = msg->message_ION_source; */
+/*       m->message_CN_source = msg->message_CN_source; */
+/*       m->message_FS_source = lp->gid; */
+
+/*       tw_event_send(e); */
+
+/*     } */
+/* #endif */
+
 }
 
 void fs_data_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -712,9 +759,9 @@ void fs_close_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 #endif
       s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp));                                                                      
       ts = s->ddn_sender_next_available_time - tw_now(lp);                                                                                                                       
-      s->ddn_sender_next_available_time += FS_DDN_meta_payload/FS_DDN_out_bw; 
+      s->ddn_sender_next_available_time += close_meta_size/FS_DDN_out_bw; 
 
-      e = tw_event_new( s->controller_id, ts + FS_DDN_meta_payload/FS_DDN_out_bw, lp );
+      e = tw_event_new( s->controller_id, ts + close_meta_size/FS_DDN_out_bw, lp );
       m = tw_event_data(e);
       m->event_type = CLOSE_ARRIVE;
 
@@ -747,7 +794,7 @@ void fs_close_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       //s->ddn_sender_next_available_time = max(s->ddn_sender_next_available_time, tw_now(lp));                                                                      
       //ts = s->ddn_sender_next_available_time - tw_now(lp);
 
-      ts = FS_DDN_meta_payload/FS_DDN_out_bw; 
+      ts = close_meta_size/FS_DDN_out_bw; 
 
       e = tw_event_new( s->controller_id, ts , lp );
       m = tw_event_data(e);
@@ -778,11 +825,7 @@ void fs_close_send( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
 void bgp_fs_eventHandler( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
-  tw_event * e;
-  tw_stime ts;
-  MsgData * m;
-  int i;
-
+  
   switch(msg->event_type)
     {
     case LOOKUP_ARRIVE:

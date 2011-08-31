@@ -14,6 +14,10 @@
 
 #include "bgp.h"
 
+extern int computation_time;
+extern int N_checkpoint;
+extern int burst_buffer_on;
+
 extern double CN_ION_meta_payload;
 extern double CN_out_bw;
 extern double CN_in_bw;
@@ -32,6 +36,7 @@ extern double FS_DDN_out_bw;
 extern double FS_CONT_msg_prep_time;
 extern double CONT_FS_in_bw;
 
+extern double close_meta_size;
 extern double CONT_CONT_msg_prep_time;
 extern double FS_DDN_meta_payload;
 extern double DDN_ACK_size;
@@ -44,6 +49,9 @@ extern double CONT_FS_msg_prep_time;
 
 extern int N_PE;
 extern int N_ION_active;
+extern int N_FS_active;
+
+extern double lookup_meta_size;
 extern double meta_payload_size;
 extern double create_payload_size;
 extern double handshake_payload_size;

@@ -35,10 +35,10 @@ void bgp_ddn_init( DDN_state* s,  tw_lp* lp )
 
 void bgp_ddn_eventHandler( DDN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
-  tw_event * e;
-  tw_stime ts;
-  MsgData * m;
-  int i;
+/*   tw_event * e; */
+/*   tw_stime ts; */
+/*   MsgData * m; */
+/*   int i; */
 
 
 }

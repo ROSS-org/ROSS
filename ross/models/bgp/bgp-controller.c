@@ -50,14 +50,16 @@ void cont_create_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = FS_DDN_meta_payload/CONT_FS_in_bw;
+
 #ifdef TRACE
   printf("create %d arrive at controller travel time is %lf\n",
          msg->message_CN_source,
          tw_now(lp) - msg->travel_start_time );
 #endif
-  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
-  ts = s->fs_receiver_next_available_time - tw_now(lp);
-  s->fs_receiver_next_available_time += FS_DDN_meta_payload/CONT_FS_in_bw;
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->fs_receiver_next_available_time - tw_now(lp) + transmission_time;
+  s->fs_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -116,7 +118,6 @@ void cont_create_process( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
   tw_event_send(e);
 
-
 }
 
 void cont_create_ack( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -161,14 +162,16 @@ void cont_data_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = msg->io_payload_size/CONT_FS_in_bw;
+
 #ifdef TRACE
   printf("data %d arrive at controller travel time is %lf\n",
          msg->message_CN_source,
          tw_now(lp) - msg->travel_start_time );
 #endif
-  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
-  ts = s->fs_receiver_next_available_time - tw_now(lp);
-  s->fs_receiver_next_available_time += msg->io_payload_size/CONT_FS_in_bw;
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->fs_receiver_next_available_time - tw_now(lp) + transmission_time;
+  s->fs_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -201,14 +204,16 @@ void cont_close_arrive( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = close_meta_size/CONT_FS_in_bw;
+
 #ifdef TRACE
   printf("close %d arrive at controller travel time is %lf\n",
          msg->message_CN_source,
          tw_now(lp) - msg->travel_start_time );
 #endif
-  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
-  ts = s->fs_receiver_next_available_time - tw_now(lp);
-  s->fs_receiver_next_available_time += msg->io_payload_size/CONT_FS_in_bw;
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->fs_receiver_next_available_time - tw_now(lp) + transmission_time;
+  s->fs_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);
@@ -353,10 +358,6 @@ void cont_close_ack( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
 void bgp_controller_eventHandler( CON_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
-  tw_event * e;
-  tw_stime ts;
-  MsgData * m;
-  int i;
 
   switch(msg->event_type)
     {

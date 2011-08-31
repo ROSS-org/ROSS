@@ -56,6 +56,9 @@ enum event_t
   CLOSE_ACK,
   CLOSE_END,
 
+  CONFIGURE,
+  SYNC,
+  CHECKPOINT,
   APP_IO_REQUEST,
 };
 
@@ -85,6 +88,17 @@ struct compute_node_state
   int tree_next_hop_id;
   tw_stime sender_next_available_time;
 
+  int * compute_node;
+  double * time_stamp;
+
+  double bandwidth;
+
+  int sync_counter;
+  int checkpoint_counter;
+  int write_counter;
+
+  tw_lpid FS_source;
+
 };
 
 struct io_node_state
@@ -94,6 +108,9 @@ struct io_node_state
   tw_stime processor_next_available_time;
   tw_stime cn_receiver_next_available_time;
   tw_stime fs_receiver_next_available_time;
+
+  unsigned long long bb_size;
+  int bb_status;
 
   int * file_server;
   int * io_node;
