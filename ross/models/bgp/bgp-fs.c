@@ -127,15 +127,17 @@ void fs_handshake_arrive( FS_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = handshake_payload_size/FS_ION_in_bw;
+
 #ifdef TRACE
   printf("handshake %d arrive at FS travel time is %lf, IO tag is %d\n",
          msg->message_CN_source,
 	 tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
-  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp));                                                                      
-  ts = s->ion_receiver_next_available_time - tw_now(lp);                                                                                                                       
-  s->ion_receiver_next_available_time += handshake_payload_size/FS_ION_in_bw; 
+  s->ion_receiver_next_available_time = max(s->ion_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->ion_receiver_next_available_time - tw_now(lp) + transmission_time;                                                                
+  s->ion_receiver_next_available_time += transmission_time; 
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);

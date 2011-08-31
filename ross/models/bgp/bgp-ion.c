@@ -371,7 +371,48 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   my_start_FS += random_FS;
   my_start_FS %= N_FS_active;
 
-  if ( msg->io_payload_size >= stripe_size )
+  if ( (msg->io_payload_size % stripe_size)==0 )
+    {
+      N_stripe = msg->io_payload_size/stripe_size;
+
+      for ( i=0; i<N_stripe; i++ )
+	{
+	  // 1 ---- N blocks
+	  s->fs_sender_next_available_time = max(s->fs_sender_next_available_time, tw_now(lp));
+	  ts = s->fs_sender_next_available_time - tw_now(lp);
+
+	  s->fs_sender_next_available_time += handshake_payload_size/ION_FS_out_bw;
+
+	  e = tw_event_new( s->file_server[( my_start_FS + i)%(N_FS_active)], ts + handshake_payload_size/ION_FS_out_bw, lp );
+	  m = tw_event_data(e);
+	  m->event_type = HANDSHAKE_ARRIVE;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  m->io_offset = msg->io_offset;
+	  // size change
+	  m->io_payload_size = stripe_size;
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+
+	  m->message_ION_source = lp->gid;
+	  m->io_tag = msg->io_tag;
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_ION_source = lp->gid;
+
+	  m->IsLastPacket = 0;
+
+	  if ( i==N_stripe-1 )
+	    m->IsLastPacket = 1;
+
+	  tw_event_send(e);
+
+	}
+    }
+  else if ( msg->io_payload_size >= stripe_size )
     {
 
       start_offset_in_stripe = msg->io_offset % stripe_size;
@@ -603,16 +644,18 @@ void ion_handshake_end( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   tw_stime ts;
   MsgData * m;
 
+  double transmission_time = handshake_payload_size/ION_FS_in_bw;
+
 #ifdef TRACE
   printf("handshake %d End at ION %d travel time is %lf\n",
          msg->message_CN_source,
 	 s->myID_in_ION,
          tw_now(lp) - msg->travel_start_time );
 #endif
-  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp));
-  ts = s->fs_receiver_next_available_time - tw_now(lp);
+  s->fs_receiver_next_available_time = max(s->fs_receiver_next_available_time, tw_now(lp) - transmission_time);
+  ts = s->fs_receiver_next_available_time - tw_now(lp) + transmission_time;
 
-  s->fs_receiver_next_available_time += handshake_payload_size/ION_FS_in_bw;
+  s->fs_receiver_next_available_time += transmission_time;
 
   e = tw_event_new( lp->gid, ts , lp );
   m = tw_event_data(e);

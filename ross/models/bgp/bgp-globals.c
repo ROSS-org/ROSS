@@ -6,15 +6,15 @@
 #include "bgp.h"
 
 int computation_time = 5000;
-int N_checkpoint = 4;
+int N_checkpoint = 2;
 int burst_buffer_on = 0;
 
 double CN_ION_meta_payload = 20;
 double CN_out_bw = 0.7;
 double CN_in_bw = 0.7;
 
-double ION_CONT_msg_prep_time = 64;
-double ION_FS_meta_payload = 128;
+double ION_CONT_msg_prep_time = 1024;
+double ION_FS_meta_payload = 1024;
 double ION_CN_out_bw = 0.7;
 double ION_CN_in_bw = 0.7;
 double ION_FS_out_bw = 0.28;
@@ -26,30 +26,33 @@ double FS_DDN_in_bw = 0.6;
 double FS_DDN_out_bw = 0.6;
 double FS_CONT_msg_prep_time = 128;
 
+double handshake_payload_size = 271610;
+
 double lookup_meta_size = 64*1024;
 double close_meta_size = 64*1024;
-double FS_DDN_meta_payload = 64*1024;
-double CONT_CONT_msg_prep_time = 128;
-double DDN_ACK_size = 128;
+double FS_DDN_meta_payload = 1024*1024;
+double CONT_CONT_msg_prep_time = 1024;
+double DDN_ACK_size = 1024;
 double CONT_FS_in_bw = 0.6;
 double CN_CONT_msg_prep_time = 64;
 
 long long stripe_size = 4*1024*1024;
 double PVFS_payload_size = 4*1024*1024;
+double payload_size = 4*1000*1000;
 /////////////////////
 
 double CONT_FS_msg_prep_time = 224;
 
 int N_PE;
-int N_ION_active = 128;
+int N_ION_active = 256;
 int N_FS_active = 123;
 
 double meta_payload_size = 20;
 double create_payload_size = 4*1024;
-double handshake_payload_size = 27161;
-double ION_out_bw = 0.28;
-double FS_in_bw = 0.35;
-double ION_in_bw = 0.28;
+
+double ION_out_bw = 0.27;
+double FS_in_bw = 0.32;
+double ION_in_bw = 0.27;
 double FS_out_bw = 0.3;
 //////////////////////
 int nlp_DDN;
@@ -74,7 +77,7 @@ int N_controller_per_DDN;
 int N_DDN_per_PE;
 
 // default packet size
-double payload_size = 4000*1000+1;
+
 
 double ACK_message_size = 20;
 

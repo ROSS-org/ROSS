@@ -5,9 +5,9 @@
  */
 #include "bgp.h"
 
-//#define ALIGNED
+#define ALIGNED
 //#define UNALIGNED
-#define UNIQUE
+//#define UNIQUE
 
 
 void bgp_cn_init( CN_state* s,  tw_lp* lp )
@@ -155,7 +155,22 @@ void cn_checkpoint( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   //if( s->sync_counter==nlp_CN*tw_nnodes() )
   if( s->sync_counter==N_ION_active*N_CN_per_ION )
     {
-      printf("\n Observed bandwidth is %lf GB/sec \n\n", s->bandwidth);
+#ifdef ALIGNED
+      printf("\n Observed aligned %d K processes bandwidth is %lf GB/sec \n\n",
+	     N_ION_active * N_CN_per_ION / 1024,
+	     s->bandwidth );
+#endif
+#ifdef UNALIGNED
+      printf("\n Observed unaligned %d K processes bandwidth is %lf GB/sec \n\n",
+	     N_ION_active * N_CN_per_ION / 1024,
+	     s->bandwidth );
+#endif
+#ifdef UNIQUE
+      printf("\n Observed unique %d K processes bandwidth is %lf GB/sec \n\n",
+	     N_ION_active * N_CN_per_ION / 1024,
+	     s->bandwidth );
+#endif
+
 
       s->sync_counter = 0;
       s->checkpoint_counter++;
@@ -204,8 +219,8 @@ void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       payload = payload_size;
 #endif
 
-      virtual_delay = (tw_now(lp) - msg->travel_start_time)/1000000000 ;
-      size = N_ION_active*payload*16*N_CN_per_ION/1024/1024/1024;
+      virtual_delay = (tw_now(lp) - msg->travel_start_time) ;
+      size = N_ION_active*payload*16*N_CN_per_ION/1.024/1.024/1.024;
      
       /* //if (msg->message_CN_source == 0) */
       /* printf("Round %d, close %d ACKed by CN, travel time is %lf, bandwidth is %lf GB/s\n", */
@@ -224,7 +239,6 @@ void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       m->travel_start_time = size/virtual_delay;
 
       tw_event_send(e);
-
 
 }
 
@@ -410,8 +424,7 @@ void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
       m->collective_master_node_id = msg->collective_master_node_id;
       m->io_type = msg->io_type;
-      m->io_tag = i;
-      //m->io_tag = msg->io_tag;
+      m->io_tag = msg->io_tag;
 
       m->message_CN_source = msg->message_CN_source;
       m->message_ION_source = msg->message_ION_source;
@@ -447,8 +460,8 @@ void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
       m->collective_master_node_id = msg->collective_master_node_id;
       m->io_type = msg->io_type;
-      m->io_tag = i;
-      //m->io_tag = msg->io_tag;
+      //m->io_tag = i;
+      m->io_tag = msg->io_tag;
 
       m->message_CN_source = msg->message_CN_source;
       m->message_ION_source = msg->message_ION_source;
