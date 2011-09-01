@@ -5,11 +5,6 @@
  */
 #include "bgp.h"
 
-#define ALIGNED
-//#define UNALIGNED
-//#define UNIQUE
-
-
 void bgp_cn_init( CN_state* s,  tw_lp* lp )
 {
 

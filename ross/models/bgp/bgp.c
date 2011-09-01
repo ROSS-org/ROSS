@@ -9,6 +9,10 @@
 const tw_optdef app_opt [] =
 {
   TWOPT_GROUP("BGP Model"),
+  TWOPT_UINT("memory", opt_mem, "optimistic memory"),
+  TWOPT_UINT("numfs", N_FS_active, "number of file server active"),
+  TWOPT_UINT("numion", N_ION_active, "number of ION active"),
+  TWOPT_UINT("burst", burst_buffer_on, "burst buffer button"),
   TWOPT_END()
 };
 
@@ -86,9 +90,8 @@ int main( int argc, char** argv )
 
   N_DDN_per_PE = NumDDN/tw_nnodes()/g_tw_npe;
 
-  g_tw_events_per_pe = nlp_per_pe * 32 + 1440960;
+  g_tw_events_per_pe = nlp_per_pe * 32 + opt_mem;
   tw_define_lps(nlp_per_pe, sizeof(MsgData), 0);
-
 
   // mapping initialization
 

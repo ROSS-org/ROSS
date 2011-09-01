@@ -8,15 +8,19 @@
 #define BGP_EXTERN_H
 
 //#define TRACE
-//#define INDIVIDUAL
-#define COLLECTIVE
+#define ALIGNED
 //#define UNALIGNED
+//#define UNIQUE 
 
 #include "bgp.h"
 
+extern int N_ION_active;
+extern int N_FS_active;
+extern int opt_mem;
+extern int burst_buffer_on;
+
 extern int computation_time;
 extern int N_checkpoint;
-extern int burst_buffer_on;
 
 extern double CN_ION_meta_payload;
 extern double CN_out_bw;
@@ -48,8 +52,6 @@ extern double CN_CONT_msg_prep_time;
 extern double CONT_FS_msg_prep_time;
 
 extern int N_PE;
-extern int N_ION_active;
-extern int N_FS_active;
 
 extern double lookup_meta_size;
 extern double meta_payload_size;
