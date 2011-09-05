@@ -11,7 +11,7 @@ int opt_mem = 1024;
 int burst_buffer_on = 0;
 
 int computation_time = 5000;
-int N_checkpoint = 1;
+int N_checkpoint = 2;
 
 double CN_ION_meta_payload = 20;
 double CN_out_bw = 0.7;
@@ -65,12 +65,12 @@ int nlp_CN;
 
 int rootCN;
 
-int NumDDN = 1024;
+int NumDDN = 2;
 int NumControllerPerDDN = 1;
 int NumFSPerController = 1;
 
-int N_ION_per_FS = 5;
-int N_CN_per_ION = 256;
+int N_ION_per_FS = 1;
+int N_CN_per_ION = 1;
 
 int N_CN_per_DDN;
 int N_ION_per_DDN;

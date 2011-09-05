@@ -150,27 +150,31 @@ void cn_checkpoint( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   //if( s->sync_counter==nlp_CN*tw_nnodes() )
   if( s->sync_counter==N_ION_active*N_CN_per_ION )
     {
-#ifdef ALIGNED
-      printf("\n Observed aligned %d K processes bandwidth is %lf GB/sec \n\n",
-	     N_ION_active * N_CN_per_ION / 1024,
-	     s->bandwidth );
-#endif
-#ifdef UNALIGNED
-      printf("\n Observed unaligned %d K processes bandwidth is %lf GB/sec \n\n",
-	     N_ION_active * N_CN_per_ION / 1024,
-	     s->bandwidth );
-#endif
-#ifdef UNIQUE
-      printf("\n Observed unique %d K processes bandwidth is %lf GB/sec \n\n",
-	     N_ION_active * N_CN_per_ION / 1024,
-	     s->bandwidth );
-#endif
+      //#ifdef ALIGNED
+      if (msg->io_type == WRITE_ALIGNED)
+	printf("\n Observed aligned %d K processes bandwidth is %lf GB/sec \n\n",
+	       N_ION_active * N_CN_per_ION / 1024,
+	       s->bandwidth );
+      //#endif
+
+      //#ifdef UNALIGNED
+      if (msg->io_type == WRITE_UNALIGNED)
+      	printf("\n Observed unaligned %d K processes bandwidth is %lf GB/sec \n\n",
+      	       N_ION_active * N_CN_per_ION / 1024,
+      	       s->bandwidth );
+      //#endif
+      //#ifdef UNIQUE
+      if (msg->io_type == WRITE_UNIQUE)
+	printf("\n Observed unique %d K processes bandwidth is %lf GB/sec \n\n",
+	       N_ION_active * N_CN_per_ION / 1024,
+	       s->bandwidth );
+      //#endif
 
 
       s->sync_counter = 0;
       s->checkpoint_counter++;
 
-      // do 4 steps of checkpoint
+      // do N steps of checkpoint
       if( s->checkpoint_counter <= N_checkpoint )
 	{
 	  s->time_stamp[s->checkpoint_counter-1] = tw_now(lp);
@@ -192,50 +196,6 @@ void cn_checkpoint( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
  
 }
 
-void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
-{
-  tw_event * e;
-  tw_stime ts;
-  MsgData * m;
-  int i;
-
-  double virtual_delay;
-  long long size;
-  double payload = PVFS_payload_size;
-
-#ifdef TRACE
-      printf("close %d ACKed at CN travel time is %lf, IO tag is %d\n",
-             msg->message_CN_source,
-             tw_now(lp) - msg->travel_start_time,
-             msg->io_tag);
-#endif
-
-#ifdef UNALIGNED
-      payload = payload_size;
-#endif
-
-      virtual_delay = (tw_now(lp) - msg->travel_start_time) ;
-      size = N_ION_active*payload*16*N_CN_per_ION/1.024/1.024/1.024;
-     
-      /* //if (msg->message_CN_source == 0) */
-      /* printf("Round %d, close %d ACKed by CN, travel time is %lf, bandwidth is %lf GB/s\n", */
-      /* 	     s->checkpoint_counter, */
-      /* 	     msg->message_CN_source, */
-      /* 	     virtual_delay, */
-      /* 	     size/virtual_delay); */
-      
-      // send sync signal to root 0
-      e = tw_event_new( 0, 1, lp );
-      m = tw_event_data(e);
-      m->event_type = CHECKPOINT;
-
-      // use travel_start_time (double) to
-      // piggyback the bandwidth value
-      m->travel_start_time = size/virtual_delay;
-
-      tw_event_send(e);
-
-}
 
 void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
@@ -255,7 +215,6 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m = tw_event_data(e);
   m->event_type = HANDSHAKE_SEND;
 
-
   m->travel_start_time = tw_now(lp) + ts;
 
   // aligned 
@@ -267,7 +226,7 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->collective_group_rank = s->CN_ID;
 
   m->collective_master_node_id = 0;
-  m->io_type = WRITE_COLLECTIVE;
+  m->io_type = WRITE_ALIGNED;
   m->io_tag = 12;
 #endif
 
@@ -293,7 +252,7 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->collective_group_rank = 0;
 
   m->collective_master_node_id = 0;
-  m->io_type = WRITE_INDIVIDUAL;
+  m->io_type = WRITE_UNIQUE;
   //m->io_tag = 12;
   m->io_tag = tw_rand_integer(lp->rng,0,nlp_FS*N_PE);
 #endif
@@ -302,6 +261,62 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
   tw_event_send(e);
 }
+
+void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+  int i;
+
+  double virtual_delay;
+  long long size;
+  double payload = PVFS_payload_size;
+
+#ifdef TRACE
+      printf("close %d ACKed at CN travel time is %lf, IO tag is %d\n",
+             msg->message_CN_source,
+             tw_now(lp) - msg->travel_start_time,
+             msg->io_tag);
+#endif
+
+/* #ifdef UNALIGNED */
+/*       payload = payload_size; */
+/* #endif */
+
+      if ( msg->io_type==WRITE_UNALIGNED)
+	payload = payload_size;
+
+      virtual_delay = (tw_now(lp) - msg->travel_start_time) ;
+      size = N_ION_active*payload*16*N_CN_per_ION/1.024/1.024/1.024;
+     
+      /* //if (msg->message_CN_source == 0) */
+      /* printf("Round %d, close %d ACKed by CN, travel time is %lf, bandwidth is %lf GB/s\n", */
+      /* 	     s->checkpoint_counter, */
+      /* 	     msg->message_CN_source, */
+      /* 	     virtual_delay, */
+      /* 	     size/virtual_delay); */
+      
+      // send sync signal to root 0
+      e = tw_event_new( 0, 1, lp );
+      m = tw_event_data(e);
+      m->event_type = CHECKPOINT;
+
+      // use travel_start_time (double) to
+      // piggyback the bandwidth value
+      m->travel_start_time = size/virtual_delay;
+
+      m->io_type = msg->io_type;
+
+      /* if (msg->io_type==WRITE_ALIGNED) */
+      /* 	printf("It works ******* \n"); */
+
+      //printf("Close ack here\n");
+
+      tw_event_send(e);
+
+}
+
 
 void cn_handshake_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
@@ -394,26 +409,101 @@ void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	 tw_now(lp) - msg->travel_start_time );
 #endif
 
-#ifdef ALIGNED
-  piece_size = msg->io_payload_size / 16;
+  //#ifdef ALIGNED
+  if (msg->io_type==WRITE_ALIGNED)
+    {
+      piece_size = msg->io_payload_size / 16;
 
-  for ( i=0; i<16; i++ )
+      for ( i=0; i<16; i++ )
+	{
+	  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+	  ts = s->sender_next_available_time - tw_now(lp);
+
+	  s->sender_next_available_time += piece_size/CN_out_bw;
+
+	  e = tw_event_new( s->tree_next_hop_id, ts + piece_size/CN_out_bw, lp );
+	  m = tw_event_data(e);
+	  m->event_type = DATA_ARRIVE;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  // change of piece size
+	  m->io_offset = msg->io_offset + piece_size * i;
+	  m->io_payload_size = piece_size;
+
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  m->io_tag = msg->io_tag;
+
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_ION_source = msg->message_ION_source;
+	  m->message_FS_source = msg->message_FS_source;
+
+	  tw_event_send(e);
+      
+	}
+    }
+  //#endif
+
+  //#ifdef UNALIGNED
+  if(msg->io_type==WRITE_UNALIGNED)
+    {
+      piece_size = msg->io_payload_size / 16;
+
+      for ( i=0; i<16; i++ )
+	{
+	  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+	  ts = s->sender_next_available_time - tw_now(lp);
+
+	  s->sender_next_available_time += piece_size/CN_out_bw;
+
+	  e = tw_event_new( s->tree_next_hop_id, ts + piece_size/CN_out_bw, lp );
+	  m = tw_event_data(e);
+	  m->event_type = DATA_ARRIVE;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  // change of piece size
+	  m->io_offset = msg->io_offset + piece_size * i;
+	  m->io_payload_size = piece_size;
+
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  //m->io_tag = i;
+	  m->io_tag = msg->io_tag;
+
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_ION_source = msg->message_ION_source;
+	  m->message_FS_source = msg->message_FS_source;
+
+	  tw_event_send(e);
+      
+	}
+    }
+  //#endif
+
+  //#ifdef UNIQUE
+  if(msg->io_type==WRITE_UNIQUE)
     {
       s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
       ts = s->sender_next_available_time - tw_now(lp);
 
-      s->sender_next_available_time += piece_size/CN_out_bw;
+      s->sender_next_available_time += msg->io_payload_size/CN_out_bw;
 
-      e = tw_event_new( s->tree_next_hop_id, ts + piece_size/CN_out_bw, lp );
+      e = tw_event_new( s->tree_next_hop_id, ts + msg->io_payload_size/CN_out_bw, lp );
       m = tw_event_data(e);
       m->event_type = DATA_ARRIVE;
 
       m->travel_start_time = msg->travel_start_time;
 
-      // change of piece size
-      m->io_offset = msg->io_offset + piece_size * i;
-      m->io_payload_size = piece_size;
-
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
       m->collective_group_size = msg->collective_group_size;
       m->collective_group_rank = msg->collective_group_rank;
 
@@ -426,75 +516,8 @@ void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
       m->message_FS_source = msg->message_FS_source;
 
       tw_event_send(e);
-      
     }
-#endif
-
-#ifdef UNALIGNED
-  piece_size = msg->io_payload_size / 16;
-
-  for ( i=0; i<16; i++ )
-    {
-      s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
-      ts = s->sender_next_available_time - tw_now(lp);
-
-      s->sender_next_available_time += piece_size/CN_out_bw;
-
-      e = tw_event_new( s->tree_next_hop_id, ts + piece_size/CN_out_bw, lp );
-      m = tw_event_data(e);
-      m->event_type = DATA_ARRIVE;
-
-      m->travel_start_time = msg->travel_start_time;
-
-      // change of piece size
-      m->io_offset = msg->io_offset + piece_size * i;
-      m->io_payload_size = piece_size;
-
-      m->collective_group_size = msg->collective_group_size;
-      m->collective_group_rank = msg->collective_group_rank;
-
-      m->collective_master_node_id = msg->collective_master_node_id;
-      m->io_type = msg->io_type;
-      //m->io_tag = i;
-      m->io_tag = msg->io_tag;
-
-      m->message_CN_source = msg->message_CN_source;
-      m->message_ION_source = msg->message_ION_source;
-      m->message_FS_source = msg->message_FS_source;
-
-      tw_event_send(e);
-      
-    }
-#endif
-
-#ifdef UNIQUE
-  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
-  ts = s->sender_next_available_time - tw_now(lp);
-
-  s->sender_next_available_time += msg->io_payload_size/CN_out_bw;
-
-  e = tw_event_new( s->tree_next_hop_id, ts + msg->io_payload_size/CN_out_bw, lp );
-  m = tw_event_data(e);
-  m->event_type = DATA_ARRIVE;
-
-  m->travel_start_time = msg->travel_start_time;
-
-  m->io_offset = msg->io_offset;
-  m->io_payload_size = msg->io_payload_size;
-  m->collective_group_size = msg->collective_group_size;
-  m->collective_group_rank = msg->collective_group_rank;
-
-  m->collective_master_node_id = msg->collective_master_node_id;
-  m->io_type = msg->io_type;
-  m->io_tag = msg->io_tag;
-
-  m->message_CN_source = msg->message_CN_source;
-  m->message_ION_source = msg->message_ION_source;
-  m->message_FS_source = msg->message_FS_source;
-
-  tw_event_send(e);
-#endif
-
+  //#endif
 }
 
 void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -510,14 +533,83 @@ void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
              msg->io_tag);
 #endif
 
-#ifdef ALIGNED
-      s->write_counter++;
-      if ( s->write_counter == 16 )
+      //#ifdef ALIGNED
+      if(msg->io_type==WRITE_ALIGNED)
 	{
-	  s->write_counter = 0;
+	  s->write_counter++;
+	  if ( s->write_counter == 16 )
+	    {
+	      s->write_counter = 0;
 
+	      ts = ION_CONT_msg_prep_time;
+
+	      e = tw_event_new( lp->gid, ts , lp );
+	      m = tw_event_data(e);
+	      m->event_type = CLOSE_SEND;
+
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->io_offset = msg->io_offset;
+	      m->io_payload_size = msg->io_payload_size;
+
+	      m->collective_group_size = msg->collective_group_size;
+	      m->collective_group_rank = msg->collective_group_rank;
+
+	      m->collective_master_node_id = msg->collective_master_node_id;
+	      m->io_type = msg->io_type;
+	      m->io_tag = msg->io_tag;
+	      m->message_ION_source = msg->message_ION_source;
+	      m->message_CN_source = lp->gid;
+	      m->message_FS_source = msg->message_FS_source;
+
+	      m->IsLastPacket = msg->IsLastPacket;
+
+	      tw_event_send(e);
+	    }
+	}
+      //#endif
+
+	//#ifdef UNALIGNED
+      if(msg->io_type==WRITE_UNALIGNED)
+	{
+	  s->write_counter++;
+	  if ( s->write_counter == 16 )
+	    {
+	      s->write_counter = 0;
+
+	      ts = ION_CONT_msg_prep_time;
+
+	      e = tw_event_new( lp->gid, ts , lp );
+	      m = tw_event_data(e);
+	      m->event_type = CLOSE_SEND;
+
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->io_offset = msg->io_offset;
+	      m->io_payload_size = msg->io_payload_size;
+
+	      m->collective_group_size = msg->collective_group_size;
+	      m->collective_group_rank = msg->collective_group_rank;
+
+	      m->collective_master_node_id = msg->collective_master_node_id;
+	      m->io_type = msg->io_type;
+	      m->io_tag = msg->io_tag;
+	      m->message_ION_source = msg->message_ION_source;
+	      m->message_CN_source = lp->gid;
+	      m->message_FS_source = msg->message_FS_source;
+
+	      m->IsLastPacket = msg->IsLastPacket;
+
+	      tw_event_send(e);
+	    }
+	}
+      //#endif
+
+      //#ifdef UNIQUE
+      if(msg->io_type==WRITE_UNIQUE)
+	{
 	  ts = ION_CONT_msg_prep_time;
-
+	  
 	  e = tw_event_new( lp->gid, ts , lp );
 	  m = tw_event_data(e);
 	  m->event_type = CLOSE_SEND;
@@ -541,70 +633,7 @@ void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 
 	  tw_event_send(e);
 	}
-#endif
-
-#ifdef UNALIGNED
-      s->write_counter++;
-      if ( s->write_counter == 16 )
-	{
-	  s->write_counter = 0;
-
-	  ts = ION_CONT_msg_prep_time;
-
-	  e = tw_event_new( lp->gid, ts , lp );
-	  m = tw_event_data(e);
-	  m->event_type = CLOSE_SEND;
-
-	  m->travel_start_time = msg->travel_start_time;
-
-	  m->io_offset = msg->io_offset;
-	  m->io_payload_size = msg->io_payload_size;
-
-	  m->collective_group_size = msg->collective_group_size;
-	  m->collective_group_rank = msg->collective_group_rank;
-
-	  m->collective_master_node_id = msg->collective_master_node_id;
-	  m->io_type = msg->io_type;
-	  m->io_tag = msg->io_tag;
-	  m->message_ION_source = msg->message_ION_source;
-	  m->message_CN_source = lp->gid;
-	  m->message_FS_source = msg->message_FS_source;
-
-	  m->IsLastPacket = msg->IsLastPacket;
-
-	  tw_event_send(e);
-	}
-#endif
-
-#ifdef UNIQUE
-
-      ts = ION_CONT_msg_prep_time;
-
-      e = tw_event_new( lp->gid, ts , lp );
-      m = tw_event_data(e);
-      m->event_type = CLOSE_SEND;
-
-      m->travel_start_time = msg->travel_start_time;
-
-      m->io_offset = msg->io_offset;
-      m->io_payload_size = msg->io_payload_size;
-
-      m->collective_group_size = msg->collective_group_size;
-      m->collective_group_rank = msg->collective_group_rank;
-
-      m->collective_master_node_id = msg->collective_master_node_id;
-      m->io_type = msg->io_type;
-      m->io_tag = msg->io_tag;
-      m->message_ION_source = msg->message_ION_source;
-      m->message_CN_source = lp->gid;
-      m->message_FS_source = msg->message_FS_source;
-
-      m->IsLastPacket = msg->IsLastPacket;
-
-      tw_event_send(e);
-
-#endif
-
+	//#endif
 }
 
 

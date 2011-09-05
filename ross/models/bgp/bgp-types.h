@@ -73,12 +73,12 @@ enum block_t
 
 enum iorequest_t
   {
-    WRITE_COLLECTIVE,
+    WRITE_ALIGNED,
     WRITE_UNALIGNED,
-    WRITE_INDIVIDUAL,
-    READ_COLLECTIVE,
+    WRITE_UNIQUE,
+    READ_ALIGNED,
     READ_UNALIGNED,
-    READ_INDIVIDUAL
+    READ_UNIQUE
   };
 
 struct compute_node_state

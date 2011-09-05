@@ -8,8 +8,8 @@
 #define BGP_EXTERN_H
 
 //#define TRACE
-#define ALIGNED
-//#define UNALIGNED
+//#define ALIGNED
+#define UNALIGNED
 //#define UNIQUE 
 
 #include "bgp.h"

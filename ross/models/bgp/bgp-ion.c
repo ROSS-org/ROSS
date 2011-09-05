@@ -364,6 +364,7 @@ void ion_handshake_send( ION_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
          tw_now(lp) - msg->travel_start_time,
 	 msg->io_tag);
 #endif
+
   // break data to stripes and 
   // random_FS is the start FS
   random_FS = msg->io_tag % ( N_FS_active );
