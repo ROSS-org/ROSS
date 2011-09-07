@@ -5,7 +5,7 @@
 
 #include "bgp.h"
 
-int N_ION_active = 4; // default, we can set it in command line
+int N_ION_active = 8; // default, we can set it in command line
 int N_FS_active = 123;
 int opt_mem = 1024;
 int burst_buffer_on = 0;
@@ -18,23 +18,28 @@ double CN_out_bw = 0.7;
 double CN_in_bw = 0.7;
 
 double ION_CONT_msg_prep_time = 1024;
-double ION_FS_meta_payload = 1024;
+double ION_FS_meta_payload = 4*1024;
 double ION_CN_out_bw = 0.7;
 double ION_CN_in_bw = 0.7;
 double ION_FS_out_bw = 0.28;
-double ION_FS_in_bw = 0.28;
+double ION_FS_in_bw = 0.23;
 
 double FS_ION_in_bw = 0.4;
-double FS_ION_out_bw = 0.4;
+double FS_ION_out_bw = 0.42;
 double FS_DDN_in_bw = 0.6;
 double FS_DDN_out_bw = 0.6;
 double FS_CONT_msg_prep_time = 128;
+double DDN_FS_out_bw = 0.6;
+double DDN_FS_in_bw = 0.6;
 
-double handshake_payload_size = 371610;
+// used in write
+//double handshake_payload_size = 371610;
+double handshake_payload_size = 2716100;
 
-double lookup_meta_size = 256*1024;
-double close_meta_size = 256*1024;
-double FS_DDN_meta_payload = 1024*1024;
+double lookup_meta_size = 4*1024;
+double close_meta_size = 4*1024;
+double FS_DDN_meta_payload = 64*1024;
+double FS_DDN_read_meta = 1024;
 double CONT_CONT_msg_prep_time = 1024;
 double DDN_ACK_size = 1024;
 double CONT_FS_in_bw = 0.6;
@@ -65,12 +70,12 @@ int nlp_CN;
 
 int rootCN;
 
-int NumDDN = 2;
+int NumDDN = 128;
 int NumControllerPerDDN = 1;
 int NumFSPerController = 1;
 
-int N_ION_per_FS = 1;
-int N_CN_per_ION = 1;
+int N_ION_per_FS = 5;
+int N_CN_per_ION = 256;
 
 int N_CN_per_DDN;
 int N_ION_per_DDN;

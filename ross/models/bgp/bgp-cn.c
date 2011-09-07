@@ -152,24 +152,42 @@ void cn_checkpoint( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
     {
       //#ifdef ALIGNED
       if (msg->io_type == WRITE_ALIGNED)
-	printf("\n Observed aligned %d K processes bandwidth is %lf GB/sec \n\n",
+	printf("\n Observed write aligned %d K processes bandwidth is %lf GB/sec \n\n",
 	       N_ION_active * N_CN_per_ION / 1024,
 	       s->bandwidth );
       //#endif
 
       //#ifdef UNALIGNED
       if (msg->io_type == WRITE_UNALIGNED)
-      	printf("\n Observed unaligned %d K processes bandwidth is %lf GB/sec \n\n",
+      	printf("\n Observed write unaligned %d K processes bandwidth is %lf GB/sec \n\n",
       	       N_ION_active * N_CN_per_ION / 1024,
       	       s->bandwidth );
       //#endif
       //#ifdef UNIQUE
       if (msg->io_type == WRITE_UNIQUE)
-	printf("\n Observed unique %d K processes bandwidth is %lf GB/sec \n\n",
+	printf("\n Observed write unique %d K processes bandwidth is %lf GB/sec \n\n",
+	       N_ION_active * N_CN_per_ION / 1024,
+	       s->bandwidth );
+      //#endif
+      //#ifdef ALIGNED
+      if (msg->io_type == READ_ALIGNED)
+	printf("\n Observed read aligned %d K processes bandwidth is %lf GB/sec \n\n",
 	       N_ION_active * N_CN_per_ION / 1024,
 	       s->bandwidth );
       //#endif
 
+      //#ifdef UNALIGNED
+      if (msg->io_type == READ_UNALIGNED)
+      	printf("\n Observed read unaligned %d K processes bandwidth is %lf GB/sec \n\n",
+      	       N_ION_active * N_CN_per_ION / 1024,
+      	       s->bandwidth );
+      //#endif
+      //#ifdef UNIQUE
+      if (msg->io_type == READ_UNIQUE)
+	printf("\n Observed read unique %d K processes bandwidth is %lf GB/sec \n\n",
+	       N_ION_active * N_CN_per_ION / 1024,
+	       s->bandwidth );
+      //#endif
 
       s->sync_counter = 0;
       s->checkpoint_counter++;
@@ -191,7 +209,7 @@ void cn_checkpoint( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	      tw_event_send(e);
 	    }
 	}
-      s->bandwidth = 1000000000000;
+      s->bandwidth = 10000000000000;
     }
  
 }
@@ -226,7 +244,8 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->collective_group_rank = s->CN_ID;
 
   m->collective_master_node_id = 0;
-  m->io_type = WRITE_ALIGNED;
+  //m->io_type = WRITE_ALIGNED;
+  m->io_type = READ_ALIGNED;
   m->io_tag = 12;
 #endif
 
@@ -239,7 +258,8 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->collective_group_rank = s->CN_ID;
   
   m->collective_master_node_id = 0;
-  m->io_type = WRITE_UNALIGNED;
+  m->io_type = READ_UNALIGNED;
+  //m->io_type = WRITE_UNALIGNED;
   m->io_tag = 12;
 #endif
 
@@ -252,7 +272,8 @@ void cn_io_request( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   m->collective_group_rank = 0;
 
   m->collective_master_node_id = 0;
-  m->io_type = WRITE_UNIQUE;
+  m->io_type = READ_UNIQUE;
+  //m->io_type = WRITE_UNIQUE;
   //m->io_tag = 12;
   m->io_tag = tw_rand_integer(lp->rng,0,nlp_FS*N_PE);
 #endif
@@ -285,6 +306,9 @@ void cn_close_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 /* #endif */
 
       if ( msg->io_type==WRITE_UNALIGNED)
+	payload = payload_size;
+
+      if ( msg->io_type==READ_UNALIGNED)
 	payload = payload_size;
 
       virtual_delay = (tw_now(lp) - msg->travel_start_time) ;
@@ -369,29 +393,108 @@ void cn_handshake_end( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	 tw_now(lp) - msg->travel_start_time );
 #endif
   
-  ts = CN_CONT_msg_prep_time;
+  switch(msg->io_type)
+    {
+    case READ_ALIGNED:
+      ts = CN_CONT_msg_prep_time;
+      
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = READ_SEND;
+      
+      m->travel_start_time = msg->travel_start_time;
+      
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+      
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      
+      m->message_CN_source = msg->message_CN_source;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_FS_source = msg->message_FS_source;
+      
+      tw_event_send(e);
 
-  e = tw_event_new( lp->gid, ts , lp );
-  m = tw_event_data(e);
-  m->event_type = DATA_SEND;
+      break;
+    case READ_UNALIGNED:
+      ts = CN_CONT_msg_prep_time;
+      
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = READ_SEND;
+      
+      m->travel_start_time = msg->travel_start_time;
+      
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+      
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      
+      m->message_CN_source = msg->message_CN_source;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_FS_source = msg->message_FS_source;
+      
+      tw_event_send(e);
 
-  m->travel_start_time = msg->travel_start_time;
+      break;
+    case READ_UNIQUE:
+      ts = CN_CONT_msg_prep_time;
+      
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = READ_SEND;
+      
+      m->travel_start_time = msg->travel_start_time;
+      
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+      
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      
+      m->message_CN_source = msg->message_CN_source;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_FS_source = msg->message_FS_source;
+      
+      tw_event_send(e);
 
-  m->io_offset = msg->io_offset;
-  m->io_payload_size = msg->io_payload_size;
-  m->collective_group_size = msg->collective_group_size;
-  m->collective_group_rank = msg->collective_group_rank;
+      break;
+    default: // write requests
 
-  m->collective_master_node_id = msg->collective_master_node_id;
-  m->io_type = msg->io_type;
-  m->io_tag = msg->io_tag;
-
-  m->message_CN_source = msg->message_CN_source;
-  m->message_ION_source = msg->message_ION_source;
-  m->message_FS_source = msg->message_FS_source;
-
-  tw_event_send(e);
-  
+      ts = CN_CONT_msg_prep_time;
+      
+      e = tw_event_new( lp->gid, ts , lp );
+      m = tw_event_data(e);
+      m->event_type = DATA_SEND;
+      
+      m->travel_start_time = msg->travel_start_time;
+      
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+      
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+      
+      m->message_CN_source = msg->message_CN_source;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_FS_source = msg->message_FS_source;
+      
+      tw_event_send(e);
+    }
 }
 
 void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
@@ -520,6 +623,128 @@ void cn_data_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
   //#endif
 }
 
+void cn_read_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e; 
+  tw_stime ts;
+  MsgData * m;
+  int i;
+  double piece_size;
+
+#ifdef TRACE
+  printf("read %d start from CN %d travel time is %lf\n",
+	 msg->message_CN_source,
+	 s->CN_ID,
+	 tw_now(lp) - msg->travel_start_time );
+#endif
+
+  if (msg->io_type==READ_ALIGNED)
+    {
+      piece_size = msg->io_payload_size / 16;
+
+      for ( i=0; i<16; i++ )
+	{
+	  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+	  ts = s->sender_next_available_time - tw_now(lp);
+
+	  s->sender_next_available_time += CN_ION_meta_payload/CN_out_bw;
+
+	  e = tw_event_new( s->tree_next_hop_id, ts + CN_ION_meta_payload/CN_out_bw, lp );
+	  m = tw_event_data(e);
+	  m->event_type = READ_ARRIVE;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  // change of piece size
+	  m->io_offset = msg->io_offset + piece_size * i;
+	  m->io_payload_size = piece_size;
+
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  m->io_tag = msg->io_tag;
+
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_ION_source = msg->message_ION_source;
+	  m->message_FS_source = msg->message_FS_source;
+
+	  tw_event_send(e);
+      
+	}
+    }
+
+  if(msg->io_type==READ_UNALIGNED)
+    {
+      piece_size = msg->io_payload_size / 16;
+
+      for ( i=0; i<16; i++ )
+	{
+	  s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+	  ts = s->sender_next_available_time - tw_now(lp);
+
+	  s->sender_next_available_time += CN_ION_meta_payload/CN_out_bw;
+
+	  e = tw_event_new( s->tree_next_hop_id, ts + CN_ION_meta_payload/CN_out_bw, lp );
+	  m = tw_event_data(e);
+	  m->event_type = READ_ARRIVE;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  // change of piece size
+	  m->io_offset = msg->io_offset + piece_size * i;
+	  m->io_payload_size = piece_size;
+
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  //m->io_tag = i;
+	  m->io_tag = msg->io_tag;
+
+	  m->message_CN_source = msg->message_CN_source;
+	  m->message_ION_source = msg->message_ION_source;
+	  m->message_FS_source = msg->message_FS_source;
+
+	  tw_event_send(e);
+      
+	}
+    }
+
+  if(msg->io_type==READ_UNIQUE)
+    {
+      s->sender_next_available_time = max(s->sender_next_available_time, tw_now(lp));
+      ts = s->sender_next_available_time - tw_now(lp);
+
+      s->sender_next_available_time += CN_ION_meta_payload/CN_out_bw;
+
+      e = tw_event_new( s->tree_next_hop_id, ts + CN_ION_meta_payload/CN_out_bw, lp );
+      m = tw_event_data(e);
+      m->event_type = READ_ARRIVE;
+
+      m->travel_start_time = msg->travel_start_time;
+
+      m->io_offset = msg->io_offset;
+      m->io_payload_size = msg->io_payload_size;
+      m->collective_group_size = msg->collective_group_size;
+      m->collective_group_rank = msg->collective_group_rank;
+
+      m->collective_master_node_id = msg->collective_master_node_id;
+      m->io_type = msg->io_type;
+      m->io_tag = msg->io_tag;
+
+      m->message_CN_source = msg->message_CN_source;
+      m->message_ION_source = msg->message_ION_source;
+      m->message_FS_source = msg->message_FS_source;
+
+      tw_event_send(e);
+    }
+
+}
+
+
 void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
   tw_event * e;
@@ -636,6 +861,117 @@ void cn_data_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 	//#endif
 }
 
+void cn_read_ack( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
+{
+  tw_event * e;
+  tw_stime ts;
+  MsgData * m;
+
+#ifdef TRACE
+      printf("read %d ACKed at CN travel time is %lf, IO tag is %d\n",
+             msg->message_CN_source,
+             tw_now(lp) - msg->travel_start_time,
+             msg->io_tag);
+#endif
+
+      if(msg->io_type==READ_ALIGNED)
+	{
+	  s->write_counter++;
+	  if ( s->write_counter == 16 )
+	    {
+	      s->write_counter = 0;
+
+	      ts = ION_CONT_msg_prep_time;
+
+	      e = tw_event_new( lp->gid, ts , lp );
+	      m = tw_event_data(e);
+	      m->event_type = CLOSE_SEND;
+
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->io_offset = msg->io_offset;
+	      m->io_payload_size = msg->io_payload_size;
+
+	      m->collective_group_size = msg->collective_group_size;
+	      m->collective_group_rank = msg->collective_group_rank;
+
+	      m->collective_master_node_id = msg->collective_master_node_id;
+	      m->io_type = msg->io_type;
+	      m->io_tag = msg->io_tag;
+	      m->message_ION_source = msg->message_ION_source;
+	      m->message_CN_source = lp->gid;
+	      m->message_FS_source = msg->message_FS_source;
+
+	      m->IsLastPacket = msg->IsLastPacket;
+
+	      tw_event_send(e);
+	    }
+	}
+
+      if(msg->io_type==READ_UNALIGNED)
+	{
+	  s->write_counter++;
+	  if ( s->write_counter == 16 )
+	    {
+	      s->write_counter = 0;
+
+	      ts = ION_CONT_msg_prep_time;
+
+	      e = tw_event_new( lp->gid, ts , lp );
+	      m = tw_event_data(e);
+	      m->event_type = CLOSE_SEND;
+
+	      m->travel_start_time = msg->travel_start_time;
+
+	      m->io_offset = msg->io_offset;
+	      m->io_payload_size = msg->io_payload_size;
+
+	      m->collective_group_size = msg->collective_group_size;
+	      m->collective_group_rank = msg->collective_group_rank;
+
+	      m->collective_master_node_id = msg->collective_master_node_id;
+	      m->io_type = msg->io_type;
+	      m->io_tag = msg->io_tag;
+	      m->message_ION_source = msg->message_ION_source;
+	      m->message_CN_source = lp->gid;
+	      m->message_FS_source = msg->message_FS_source;
+
+	      m->IsLastPacket = msg->IsLastPacket;
+
+	      tw_event_send(e);
+	    }
+	}
+
+      if(msg->io_type==READ_UNIQUE)
+	{
+	  ts = ION_CONT_msg_prep_time;
+	  
+	  e = tw_event_new( lp->gid, ts , lp );
+	  m = tw_event_data(e);
+	  m->event_type = CLOSE_SEND;
+
+	  m->travel_start_time = msg->travel_start_time;
+
+	  m->io_offset = msg->io_offset;
+	  m->io_payload_size = msg->io_payload_size;
+
+	  m->collective_group_size = msg->collective_group_size;
+	  m->collective_group_rank = msg->collective_group_rank;
+
+	  m->collective_master_node_id = msg->collective_master_node_id;
+	  m->io_type = msg->io_type;
+	  m->io_tag = msg->io_tag;
+	  m->message_ION_source = msg->message_ION_source;
+	  m->message_CN_source = lp->gid;
+	  m->message_FS_source = msg->message_FS_source;
+
+	  m->IsLastPacket = msg->IsLastPacket;
+
+	  tw_event_send(e);
+	}
+
+}
+
 
 void cn_close_send( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
 {
@@ -712,8 +1048,14 @@ void bgp_cn_eventHandler( CN_state* s, tw_bf* bf, MsgData* msg, tw_lp* lp )
     case DATA_SEND:
       cn_data_send( s, bf, msg, lp );
       break;
+    case READ_SEND:
+      cn_read_send( s, bf, msg, lp );
+      break;
     case DATA_ACK:
       cn_data_ack( s, bf, msg, lp );
+      break;
+    case READ_ACK:
+      cn_read_ack( s, bf, msg, lp );
       break;
     case CLOSE_SEND:
       cn_close_send( s, bf, msg, lp );

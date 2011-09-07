@@ -9,8 +9,8 @@
 
 //#define TRACE
 //#define ALIGNED
-#define UNALIGNED
-//#define UNIQUE 
+//#define UNALIGNED
+#define UNIQUE 
 
 #include "bgp.h"
 
@@ -39,10 +39,13 @@ extern double FS_DDN_in_bw;
 extern double FS_DDN_out_bw;
 extern double FS_CONT_msg_prep_time;
 extern double CONT_FS_in_bw;
+extern double DDN_FS_in_bw;
+extern double DDN_FS_out_bw;
 
 extern double close_meta_size;
 extern double CONT_CONT_msg_prep_time;
 extern double FS_DDN_meta_payload;
+extern double FS_DDN_read_meta;
 extern double DDN_ACK_size;
 
 extern long long stripe_size;
