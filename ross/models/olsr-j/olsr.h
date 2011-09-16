@@ -16,17 +16,18 @@
 /** HELLO message interval */
 #define HELLO_INTERVAL 2
 /** max neighbors (for array implementation) */
-#define OLSR_MAX_NEIGHBORS 30
+#define OLSR_MAX_NEIGHBORS 16
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
 typedef enum {
-    HELLO
+    HELLO_RX,
+    HELLO_TX
 } olsr_ev_type;
 
 /**
  struct hello - a basic hello message used by OLSR for link sensing / topology
- detection.
+ detection.  NOTE: we'll hold OUR address in neighbor_addrs[0]!!!
  
  Here is the ns3 hello class:
  @code
@@ -101,7 +102,7 @@ typedef struct /* NeighborTuple */
     uint8_t willingness;
 } neigh_tuple;
 
-struct TwoHopNeighborTuple
+typedef struct /* TwoHopNeighborTuple */
 {
     /// Main address of a neighbor.
     o_addr neighborMainAddr;
@@ -109,7 +110,7 @@ struct TwoHopNeighborTuple
     o_addr twoHopNeighborAddr;
     /// Time at which this tuple expires and must be removed.
     Time expirationTime; // previously called 'time_'
-};
+} two_hop_neigh_tuple;
 
 /**
  This struct contains all of the OLSR per-node state.  Not everything in the
@@ -140,12 +141,17 @@ typedef struct /*OlsrState */
     double lng;
     /// Latitude for this node only
     double lat;
+    /// this node's address
+    o_addr local_address;
+    
     /// vector<LinkTuple>
     link_tuple linkSet[OLSR_MAX_NEIGHBORS];
     unsigned num_tuples;
     /// vector<LinkTuple>
     neigh_tuple neighSet[OLSR_MAX_NEIGHBORS];
     unsigned num_neigh;
+    two_hop_neigh_tuple twoHopSet[OLSR_MAX_NEIGHBORS];
+    unsigned num_two_hop;
     
 } node_state;
 
@@ -156,10 +162,11 @@ union message_type {
 typedef struct
 {
     olsr_ev_type type;     ///< What type of message is this?
-    tw_lpid node_id;       ///< Node responsible for this event
+    o_addr originator;     ///< Node responsible for this event
     double lng;            ///< Longitude for node_id
     double lat;            ///< Latitude for node_id
     union message_type mt; ///< Union for message type
+    unsigned long target;  ///< Target index into g_tw_lp
 } olsr_msg_data;
 
 
