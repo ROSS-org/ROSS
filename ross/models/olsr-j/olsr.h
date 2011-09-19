@@ -17,6 +17,7 @@
 #define HELLO_INTERVAL 2
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
+#define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
@@ -145,12 +146,12 @@ typedef struct /*OlsrState */
     o_addr local_address;
     
     /// vector<LinkTuple>
-    link_tuple linkSet[OLSR_MAX_NEIGHBORS];
-    unsigned num_tuples;
+    //link_tuple linkSet[OLSR_MAX_NEIGHBORS];
+    //unsigned num_tuples;
     /// vector<LinkTuple>
     neigh_tuple neighSet[OLSR_MAX_NEIGHBORS];
     unsigned num_neigh;
-    two_hop_neigh_tuple twoHopSet[OLSR_MAX_NEIGHBORS];
+    two_hop_neigh_tuple twoHopSet[OLSR_MAX_2_HOP];
     unsigned num_two_hop;
     
 } node_state;

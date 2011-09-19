@@ -25,8 +25,9 @@ void olsr_init(node_state *s, tw_lp *lp)
     olsr_msg_data *msg;
     tw_stime ts;
     
-    s->num_tuples = 0;
+    //s->num_tuples = 0;
     s->num_neigh  = 0;
+    s->num_two_hop = 0;
     s->local_address = lp->gid;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
@@ -43,6 +44,29 @@ void olsr_init(node_state *s, tw_lp *lp)
     h->num_neighbors = 0;
     //h->neighbor_addrs[0] = s->local_address;
     tw_event_send(e);
+}
+
+#define RANGE 40.0
+
+static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
+{
+    const double range = RANGE;
+    
+    double sender_lng = m->lng;
+    double sender_lat = m->lat;
+    double receiver_lng = s->lng;
+    double receiver_lat = s->lat;
+    
+    double dist = (sender_lng - receiver_lng) * (sender_lng - receiver_lng);
+    dist += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
+    
+    dist = sqrt(dist);
+    
+    if (dist > range) {
+        return 1;
+    }
+    
+    return 0;
 }
 
 /**
@@ -155,10 +179,20 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                 tw_event_send(e);
             }
             
+            // We've already passed along the message which has to happen
+            // regardless of whether or not it can be heard, handled, etc.
+            
+            // Check to see if we can hear this message or not
+            if (out_of_radio_range(s, m)) {
+                //printf("Out of range!\n");
+                return;
+            }
+            
             if (s->local_address == m->originator) {
                 return;
             }
             
+            // BEGIN 1-HOP PROCESSING
             for (i = 0; i < s->num_neigh; i++) {
                 if (s->neighSet[i].neighborMainAddr == m->originator) {
                     in = 1;
@@ -170,6 +204,39 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                 s->num_neigh++;
                 assert(s->num_neigh < OLSR_MAX_NEIGHBORS);
             }
+            // END 1-HOP PROCESSING
+            
+            // BEGIN 2-HOP PROCESSING
+            
+            h = &m->mt.h;
+            
+            for (i = 0; i < h->num_neighbors; i++) {
+                if (s->local_address == h->neighbor_addrs[i]) {
+                    // We are not going to be our own 2-hop neighbor!
+                    continue;
+                }
+                
+                // Check and see if h->neighbor_addrs[i] is in our list
+                // already
+                in = 0;
+                for (j = 0; j < s->num_two_hop; j++) {
+                    if (s->twoHopSet[j].neighborMainAddr == m->originator &&
+                        s->twoHopSet[j].twoHopNeighborAddr == h->neighbor_addrs[i]) {
+                        in = 1;
+                    }
+                }
+                
+                if (!in) {
+                    s->twoHopSet[s->num_two_hop].neighborMainAddr = m->originator;
+                    s->twoHopSet[s->num_two_hop].twoHopNeighborAddr = h->neighbor_addrs[i];
+                    assert(s->twoHopSet[s->num_two_hop].neighborMainAddr !=
+                           s->twoHopSet[s->num_two_hop].twoHopNeighborAddr);
+                    s->num_two_hop++;
+                    assert(s->num_two_hop < OLSR_MAX_2_HOP);
+                }
+            }
+            
+            // END 2-HOP PROCESSING
             
             break;
             
@@ -199,9 +266,16 @@ void olsr_final(node_state *s, tw_lp *lp)
 {
     int i;
     
-    printf("node %p contains %d neighbors\n", s->local_address, s->num_neigh);
+    printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     for (i = 0; i < s->num_neigh; i++) {
-        printf("   neighbor[%d] is %p\n", i, s->neighSet[i].neighborMainAddr);
+        printf("   neighbor[%d] is %lu\n", i, s->neighSet[i].neighborMainAddr);
+    }
+    printf("node %lu has %d two-hop neighbors\n", s->local_address, 
+           s->num_two_hop);
+    for (i = 0; i < s->num_two_hop; i++) {
+        printf("   two-hop neighbor[%d] is %lu : %lu\n", i, 
+               s->twoHopSet[i].neighborMainAddr,
+               s->twoHopSet[i].twoHopNeighborAddr);
     }
 }
 
