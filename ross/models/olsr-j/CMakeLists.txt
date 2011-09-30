@@ -7,5 +7,4 @@ SET(olsr_srcs
 
 ADD_EXECUTABLE(olsr-j ${olsr_srcs})
 
-TARGET_LINK_LIBRARIES(olsr-j ROSS m)
-
+TARGET_LINK_LIBRARIES(olsr-j ROSS m mpi)

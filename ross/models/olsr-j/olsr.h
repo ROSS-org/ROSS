@@ -11,6 +11,16 @@
  * - single interface
  */
 
+// From http://c-faq.com/misc/bitsets.html
+#include <limits.h>		/* for CHAR_BIT */
+
+#define BITMASK(b) (1 << ((b) % CHAR_BIT))
+#define BITSLOT(b) ((b) / CHAR_BIT)
+#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
+#define BITCLEAR(a, b) ((a)[BITSLOT(b)] &= ~BITMASK(b))
+#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
+#define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
+
 #include "ross.h"
 
 /** HELLO message interval */
@@ -145,14 +155,19 @@ typedef struct /*OlsrState */
     /// this node's address
     o_addr local_address;
     
-    /// vector<LinkTuple>
+    // vector<LinkTuple>
     //link_tuple linkSet[OLSR_MAX_NEIGHBORS];
     //unsigned num_tuples;
-    /// vector<LinkTuple>
+    
+    // vector<NeighborTuple>
     neigh_tuple neighSet[OLSR_MAX_NEIGHBORS];
     unsigned num_neigh;
+    // vector<TwoHopNeighborTuple>
     two_hop_neigh_tuple twoHopSet[OLSR_MAX_2_HOP];
     unsigned num_two_hop;
+    // set<Ipv4Address>
+    o_addr mprSet[OLSR_MAX_NEIGHBORS];
+    unsigned num_mpr;
     
 } node_state;
 

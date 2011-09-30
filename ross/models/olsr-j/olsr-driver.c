@@ -15,6 +15,17 @@
 
 static unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
+// Used as scratch space for MPR calculations
+unsigned g_Dy[OLSR_MAX_NEIGHBORS];
+unsigned g_num_one_hop;
+neigh_tuple g_mpr_one_hop[OLSR_MAX_NEIGHBORS];
+unsigned g_num_two_hop;
+two_hop_neigh_tuple g_mpr_two_hop[OLSR_MAX_2_HOP];
+unsigned g_reachability[OLSR_MAX_NEIGHBORS];
+neigh_tuple g_mpr_neigh_to_add;
+unsigned g_mpr_num_add_nodes;
+char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
+
 /**
  * Initializer for OLSR
  */
@@ -28,6 +39,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     //s->num_tuples = 0;
     s->num_neigh  = 0;
     s->num_two_hop = 0;
+    s->num_mpr = 0;
     s->local_address = lp->gid;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
@@ -70,6 +82,80 @@ static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
 }
 
 /**
+ * Compute D(y) as described in the "MPR Computation" section.  Description:
+ *
+ * The degree of an one hop neighbor node y (where y is a member of N), is
+ * defined as the number of symmetric neighbors of node y, EXCLUDING all the
+ * members of N and EXCLUDING the node performing the computation.
+ *
+ * N is the subset of neighbors of the node, which are neighbors of the
+ * interface I.
+ */
+static inline unsigned Dy(node_state *s, o_addr target)
+{
+    int i, j, in;
+    o_addr temp[OLSR_MAX_NEIGHBORS];
+    int temp_size = 0;
+    
+    for (i = 0; i < s->num_two_hop; i++) {
+        
+        in = 0;
+        for (j = 0; j < s->num_neigh; j++) {
+            if (s->twoHopSet[i].twoHopNeighborAddr == s->neighSet[j].neighborMainAddr) {
+                // EXCLUDING all members of N...
+                in = 1;
+                continue;
+            }
+        }
+        
+        if (in) continue;
+        
+        if (s->twoHopSet[i].neighborMainAddr == target) {
+            in = 0;
+            // Add s->twoHopSet[i].twoHopNeighborAddr to this set
+            for (j = 0; j < temp_size; j++) {
+                if (temp[j] == s->twoHopSet[i].twoHopNeighborAddr) {
+                    in = 1;
+                }
+            }
+            
+            if (!in) {
+                temp[temp_size] = s->twoHopSet[i].twoHopNeighborAddr;
+                temp_size++;
+                assert(temp_size < OLSR_MAX_NEIGHBORS);
+            }
+        }
+    }
+    
+    return temp_size;
+}
+
+/**
+ * Remove "n" from N2 (stored in g_mpr_two_hop)
+ */
+static inline void remove_node_from_n2(o_addr n)
+{
+    int i;
+    int index_to_remove;
+    
+    while (1) {
+        index_to_remove = -1;
+        for (i = 0; i < g_num_two_hop; i++) {
+            if (g_mpr_two_hop[i].twoHopNeighborAddr == n) {
+                index_to_remove = i;
+                break;
+            }
+        }
+        
+        if (index_to_remove == -1) break;
+        
+        //printf("Removing %d\n", index_to_remove);
+        g_mpr_two_hop[index_to_remove] = g_mpr_two_hop[g_num_two_hop-1];
+        g_num_two_hop--;
+    }
+}
+
+/**
  * Event handler.  Basically covers two events at the moment:
  * - HELLO_TX: HELLO transmit required now, so package up all of our
  * neighbors into a message and send it.  Also schedule our next TX
@@ -83,11 +169,12 @@ static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
 void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 {
     int in;
-    int i, j;
+    int i, j, k;
     hello *h;
     tw_event *e;
     tw_stime ts;
     olsr_msg_data *msg;
+    //char covered[BITNSLOTS(OLSR_MAX_2_HOP)];
     
     switch(m->type) {
         case HELLO_TX:
@@ -238,6 +325,262 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             // END 2-HOP PROCESSING
             
+            // BEGIN MPR COMPUTATION
+            
+            // Initially no nodes are covered
+            memset(g_covered, 0, BITNSLOTS(OLSR_MAX_NEIGHBORS));
+            s->num_mpr = 0;
+            
+            // Copy all relevant information to scratch space
+            g_num_one_hop = s->num_neigh;
+            for (i = 0; i < g_num_one_hop; i++) {
+                g_mpr_one_hop[i] = s->neighSet[i];
+            }
+            
+            g_num_two_hop = s->num_two_hop;
+            for (i = 0; i < g_num_two_hop; i++) {
+                g_mpr_two_hop[i] = s->twoHopSet[i];
+            }
+            
+            // Calculate D(y), where y is a member of N, for all nodes in N
+            for (i = 0; i < g_num_one_hop; i++) {
+                g_Dy[i] = Dy(s, g_mpr_one_hop[i].neighborMainAddr);
+                g_reachability[i] = 0;
+            }
+            
+            // Take care of the "unused" bits
+//            for (i = g_num_two_hop; i < OLSR_MAX_2_HOP; i++) {
+//                BITSET(g_covered, i);
+//            }
+            
+//            // 2. Calculate D(y), where y is a member of N, for all nodes in N.
+//            for (i = 0; i < g_num_one_hop; i++) {
+//                g_Dy[i] = Dy(s, s->neighSet[i].neighborMainAddr);
+//            }
+            
+            // 3. Add to the MPR set those nodes in N, which are the *only*
+            // nodes to provide reachability to a node in N2.
+//            std::set<Ipv4Address> coveredTwoHopNeighbors;
+//            for (TwoHopNeighborSet::const_iterator twoHopNeigh = N2.begin (); twoHopNeigh != N2.end (); twoHopNeigh++)
+//            {
+//                bool onlyOne = true;
+//                // try to find another neighbor that can reach twoHopNeigh->twoHopNeighborAddr
+//                for (TwoHopNeighborSet::const_iterator otherTwoHopNeigh = N2.begin (); otherTwoHopNeigh != N2.end (); otherTwoHopNeigh++)
+//                {
+//                    if (otherTwoHopNeigh->twoHopNeighborAddr == twoHopNeigh->twoHopNeighborAddr
+//                        && otherTwoHopNeigh->neighborMainAddr != twoHopNeigh->neighborMainAddr)
+//                    {
+//                        onlyOne = false;
+//                        break;
+//                    }
+//                }
+//                if (onlyOne)
+//                {
+//                    NS_LOG_LOGIC ("Neighbor " << twoHopNeigh->neighborMainAddr
+//                                  << " is the only that can reach 2-hop neigh. "
+//                                  << twoHopNeigh->twoHopNeighborAddr
+//                                  << " => select as MPR.");
+//                    
+//                    mprSet.insert (twoHopNeigh->neighborMainAddr);
+//                    
+//                    // take note of all the 2-hop neighbors reachable by the newly elected MPR
+//                    for (TwoHopNeighborSet::const_iterator otherTwoHopNeigh = N2.begin ();
+//                         otherTwoHopNeigh != N2.end (); otherTwoHopNeigh++)
+//                    {
+//                        if (otherTwoHopNeigh->neighborMainAddr == twoHopNeigh->neighborMainAddr)
+//                        {
+//                            coveredTwoHopNeighbors.insert (otherTwoHopNeigh->twoHopNeighborAddr);
+//                        }
+//                    }
+//                }
+//            }
+            
+            for (i = 0; i < g_num_two_hop; i++) {
+                int onlyOne = 1;
+                // try to find another neighbor that can reach twoHopNeigh->twoHopNeighborAddr
+                for (j = 0; j < g_num_two_hop; j++) {
+                    if (g_mpr_two_hop[j].twoHopNeighborAddr == g_mpr_two_hop[i].twoHopNeighborAddr
+                        && g_mpr_two_hop[j].neighborMainAddr != g_mpr_two_hop[i].neighborMainAddr) {
+                        onlyOne = 0;
+                        break;
+                    }
+                }
+                
+                if (onlyOne) {
+                    s->mprSet[s->num_mpr] = g_mpr_two_hop[i].neighborMainAddr;
+                    s->num_mpr++;
+                    
+                    // take note of all the 2-hop neighbors reachable by the newly elected MPR
+                    for (j = 0; j < g_num_two_hop; j++) {
+                        if (g_mpr_two_hop[j].neighborMainAddr == g_mpr_two_hop[i].neighborMainAddr) {
+                            //coveredTwoHopNeighbors.insert (otherTwoHopNeigh->twoHopNeighborAddr);
+                            // We don't do that, we use bitfields.  Make sure
+                            // our assumptions are correct then create a mask
+                            assert(g_mpr_two_hop[j].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
+                        }
+                    }
+                }
+            }
+            
+//            // Remove the nodes from N2 which are now covered by a node in the MPR set.
+//            for (TwoHopNeighborSet::iterator twoHopNeigh = N2.begin ();
+//                 twoHopNeigh != N2.end (); )
+//            {
+//                if (coveredTwoHopNeighbors.find (twoHopNeigh->twoHopNeighborAddr) != coveredTwoHopNeighbors.end ())
+//                {
+//                    // This works correctly only because it is known that twoHopNeigh is reachable by exactly one neighbor, 
+//                    // so only one record in N2 exists for each of them. This record is erased here.
+//                    NS_LOG_LOGIC ("2-hop neigh. " << twoHopNeigh->twoHopNeighborAddr << " is already covered by an MPR.");
+//                    twoHopNeigh = N2.erase (twoHopNeigh);
+//                }
+//                else
+//                {
+//                    twoHopNeigh++;
+//                }
+//            }
+            // Remove the nodes from N2 which are now covered by a node in the MPR set.
+            for (i = 0; i < g_num_two_hop; i++) {
+                if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr)) {
+                    //printf("1. g_num_two_hop is %d\n", g_num_two_hop);
+                    remove_node_from_n2(g_mpr_two_hop[i].twoHopNeighborAddr);
+                    //printf("2. g_num_two_hop is %d\n", g_num_two_hop);
+                }
+            }
+            
+            //return;
+            
+//            // 4. While there exist nodes in N2 which are not covered by at
+//            // least one node in the MPR set:
+//            while (N2.begin () != N2.end ())
+            //printf("\n\n");
+            while (g_num_two_hop) {
+                //printf(".");
+//                // 4.1. For each node in N, calculate the reachability, i.e., the
+//                // number of nodes in N2 which are not yet covered by at
+//                // least one node in the MPR set, and which are reachable
+//                // through this 1-hop neighbor
+//                std::map<int, std::vector<const NeighborTuple *> > reachability;
+//                std::set<int> rs;
+//                for (NeighborSet::iterator it = N.begin (); it != N.end (); it++)
+//                {
+//                    NeighborTuple const &nb_tuple = *it;
+//                    int r = 0;
+//                    for (TwoHopNeighborSet::iterator it2 = N2.begin (); it2 != N2.end (); it2++)
+//                    {
+//                        TwoHopNeighborTuple const &nb2hop_tuple = *it2;
+//                        if (nb_tuple.neighborMainAddr == nb2hop_tuple.neighborMainAddr)
+//                            r++;
+//                    }
+//                    rs.insert (r);
+//                    reachability[r].push_back (&nb_tuple);
+//                }
+                
+                for (i = 0; i < g_num_one_hop; i++) {
+                    int r = 0;
+                    
+                    for (j = 0; j < g_num_two_hop; j++) {
+                        if (g_mpr_one_hop[i].neighborMainAddr == g_mpr_two_hop[j].neighborMainAddr)
+                            r++;
+                    }
+                    assert(g_mpr_one_hop[i].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                    g_reachability[i] = r;
+                }
+                
+//                // 4.2. Select as a MPR the node with highest N_willingness among
+//                // the nodes in N with non-zero reachability. In case of
+//                // multiple choice select the node which provides
+//                // reachability to the maximum number of nodes in N2. In
+//                // case of multiple nodes providing the same amount of
+//                // reachability, select the node as MPR whose D(y) is
+//                // greater. Remove the nodes from N2 which are now covered
+//                // by a node in the MPR set.
+//                NeighborTuple const *max = NULL;
+//                int max_r = 0;
+//                for (std::set<int>::iterator it = rs.begin (); it != rs.end (); it++)
+//                {
+//                    int r = *it;
+//                    if (r == 0)
+//                    {
+//                        continue;
+//                    }
+//                    for (std::vector<const NeighborTuple *>::iterator it2 = reachability[r].begin ();
+//                         it2 != reachability[r].end (); it2++)
+//                    {
+//                        const NeighborTuple *nb_tuple = *it2;
+//                        if (max == NULL || nb_tuple->willingness > max->willingness)
+//                        {
+//                            max = nb_tuple;
+//                            max_r = r;
+//                        }
+//                        else if (nb_tuple->willingness == max->willingness)
+//                        {
+//                            if (r > max_r)
+//                            {
+//                                max = nb_tuple;
+//                                max_r = r;
+//                            }
+//                            else if (r == max_r)
+//                            {
+//                                if (Degree (*nb_tuple) > Degree (*max))
+//                                {
+//                                    max = nb_tuple;
+//                                    max_r = r;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+                
+                int max = 0;
+                int max_Dy = 0;
+                
+                for (i = 0; i < g_num_one_hop; i++) {
+                    if (g_reachability[i] == 0) continue;
+                    
+                    if (g_reachability[i] > max) {
+                        max = g_reachability[i];
+                        g_mpr_neigh_to_add = g_mpr_one_hop[i];
+                        max_Dy = g_Dy[i];
+                    }
+                    else if (g_reachability[i] == max) {
+                        if (g_Dy[i] > max_Dy) {
+                            max = g_reachability[i];
+                            g_mpr_neigh_to_add = g_mpr_one_hop[i];
+                            max_Dy = g_Dy[i];
+                        }
+                    }
+                }
+                
+                if (max > 0) {
+                    s->mprSet[s->num_mpr] = g_mpr_neigh_to_add.neighborMainAddr;
+                    s->num_mpr++;
+                    
+                    // take note of all the 2-hop neighbors reachable by the newly elected MPR
+                    for (j = 0; j < g_num_two_hop; j++) {
+                        if (g_mpr_two_hop[j].neighborMainAddr == g_mpr_neigh_to_add.neighborMainAddr) {
+                            //coveredTwoHopNeighbors.insert (otherTwoHopNeigh->twoHopNeighborAddr);
+                            // We don't do that, we use bitfields.  Make sure
+                            // our assumptions are correct then create a mask
+                            assert(g_mpr_two_hop[j].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
+                        }
+                    }
+                }
+                
+                // Remove the nodes from N2 which are now covered by a node in the MPR set.
+                for (i = 0; i < g_num_two_hop; i++) {
+                    if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr)) {
+                        //printf("1. g_num_two_hop is %d\n", g_num_two_hop);
+                        remove_node_from_n2(g_mpr_two_hop[i].twoHopNeighborAddr);
+                        //printf("2. g_num_two_hop is %d\n", g_num_two_hop);
+                    }
+                }
+                
+            }
+            
+            // END MPR COMPUTATION
+            
             break;
             
             /*
@@ -269,6 +612,8 @@ void olsr_final(node_state *s, tw_lp *lp)
     printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     for (i = 0; i < s->num_neigh; i++) {
         printf("   neighbor[%d] is %lu\n", i, s->neighSet[i].neighborMainAddr);
+        printf("   Dy(%lu) is %d\n", s->neighSet[i].neighborMainAddr,
+               Dy(s, s->neighSet[i].neighborMainAddr));
     }
     printf("node %lu has %d two-hop neighbors\n", s->local_address, 
            s->num_two_hop);
@@ -302,7 +647,11 @@ const tw_optdef olsr_opts[] = {
     TWOPT_END(),
 };
 
-int main(int argc, char *argv[])
+// Done mainly so doxygen will catch and differentiate this main
+// from other mains while allowing smooth compilation.
+#define olsr_main main
+
+int olsr_main(int argc, char *argv[])
 {
     int i;
     
