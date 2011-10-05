@@ -38,7 +38,7 @@ typedef enum {
 
 /**
  struct hello - a basic hello message used by OLSR for link sensing / topology
- detection.  NOTE: we'll hold OUR address in neighbor_addrs[0]!!!
+ detection.
  
  Here is the ns3 hello class:
  @code
@@ -73,6 +73,7 @@ struct Hello
 typedef struct /* Hello */
 {
     /* No support for link codes yet! */
+    char is_mpr[OLSR_MAX_NEIGHBORS];
     /** Addresses of our neighbors */
     o_addr neighbor_addrs[OLSR_MAX_NEIGHBORS];
     /** Number of neighbors, 0..n-1 */
@@ -123,6 +124,14 @@ typedef struct /* TwoHopNeighborTuple */
     Time expirationTime; // previously called 'time_'
 } two_hop_neigh_tuple;
 
+typedef struct /* MprSelectorTuple */
+{
+    /// Main address of a node which have selected this node as a MPR.
+    o_addr mainAddr;
+    /// Time at which this tuple expires and must be removed.
+    // Time expirationTime; // previously called 'time_'
+} mpr_sel_tuple;
+
 /**
  This struct contains all of the OLSR per-node state.  Not everything in the
  ns3 class is necessary or implemented, but here is the ns3 OlsrState class:
@@ -168,6 +177,9 @@ typedef struct /*OlsrState */
     // set<Ipv4Address>
     o_addr mprSet[OLSR_MAX_NEIGHBORS];
     unsigned num_mpr;
+    // vector<MprSelectorTuple>
+    mpr_sel_tuple mprSelSet[OLSR_MAX_NEIGHBORS];
+    unsigned num_mpr_sel;
     
 } node_state;
 
