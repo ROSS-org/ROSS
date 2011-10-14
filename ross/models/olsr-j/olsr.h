@@ -25,6 +25,10 @@
 
 /** HELLO message interval */
 #define HELLO_INTERVAL 2
+/** TC message interval */
+#define TC_INTERVAL 5
+#define TOP_HOLD_TIME (3*TC_INTERVAL)
+
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
@@ -33,7 +37,9 @@ typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
 typedef enum {
     HELLO_RX,
-    HELLO_TX
+    HELLO_TX,
+    TC_RX,
+    TC_TX
 } olsr_ev_type;
 
 /**
@@ -87,6 +93,32 @@ typedef struct /* Hello */
     /* Link message size is an unnecessary field */
 } hello;
 
+/**
+ struct TC - Topology Control information.
+ 
+ The ns3 code is as follows:
+ @code
+struct Tc
+{
+    std::vector<Ipv4Address> neighborAddresses;
+    uint16_t ansn;
+    
+    void Print (std::ostream &os) const;
+    uint32_t GetSerializedSize (void) const;
+    void Serialize (Buffer::Iterator start) const;
+    uint32_t Deserialize (Buffer::Iterator start, uint32_t messageSize);
+};
+ @endcode
+ */
+
+typedef struct /* Tc */
+{
+    uint16_t ansn;
+    o_addr neighborAddresses[OLSR_MAX_NEIGHBORS];
+    unsigned num_mpr_sel;
+} TC;
+
+
 typedef struct /* LinkTuple */
 {
     /// Interface address of the local node.
@@ -131,6 +163,18 @@ typedef struct /* MprSelectorTuple */
     /// Time at which this tuple expires and must be removed.
     // Time expirationTime; // previously called 'time_'
 } mpr_sel_tuple;
+
+typedef struct /* TopologyTuple */
+{
+    /// Main address of the destination.
+    o_addr destAddr;
+    /// Main address of a node which is a neighbor of the destination.
+    o_addr lastAddr;
+    /// Sequence number.
+    uint16_t sequenceNumber;
+    /// Time at which this tuple expires and must be removed.
+    Time expirationTime;
+} top_tuple;
 
 /**
  This struct contains all of the OLSR per-node state.  Not everything in the
@@ -180,17 +224,26 @@ typedef struct /*OlsrState */
     // vector<MprSelectorTuple>
     mpr_sel_tuple mprSelSet[OLSR_MAX_NEIGHBORS];
     unsigned num_mpr_sel;
+    // vector<TopologyTuple>
+    top_tuple topSet[OLSR_MAX_NEIGHBORS];
+    unsigned num_top_set;
+    
+    // Not part of the state in ns3 but fits here mostly
+    uint16_t ansn;
     
 } node_state;
 
 union message_type {
     hello h;
+    TC t;
 };
 
 typedef struct
 {
     olsr_ev_type type;     ///< What type of message is this?
+    uint8_t ttl;           ///< The Time To Live field for this packet
     o_addr originator;     ///< Node responsible for this event
+    o_addr sender;         ///< Node to last touch this message (TC)
     double lng;            ///< Longitude for node_id
     double lat;            ///< Latitude for node_id
     union message_type mt; ///< Union for message type
