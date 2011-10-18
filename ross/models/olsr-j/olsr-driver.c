@@ -32,6 +32,7 @@ char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
 void olsr_init(node_state *s, tw_lp *lp)
 {
     hello *h;
+    TC *t;
     tw_event *e;
     olsr_msg_data *msg;
     tw_stime ts;
@@ -46,8 +47,8 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
     
+    // Build our initial HELLO_TX messages
     ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
-    
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
     msg->type = HELLO_TX;
@@ -56,7 +57,18 @@ void olsr_init(node_state *s, tw_lp *lp)
     msg->lat = s->lat;
     h = &msg->mt.h;
     h->num_neighbors = 0;
-    //h->neighbor_addrs[0] = s->local_address;
+    tw_event_send(e);
+    
+    // Build our initial TC_TX messages
+    ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
+    e = tw_event_new(lp->gid, ts, lp);
+    msg = tw_event_data(e);
+    msg->type = TC_TX;
+    msg->originator = s->local_address;
+    msg->lng = s->lng;
+    msg->lat = s->lat;
+    t = &msg->mt.t;
+    t->num_mpr_sel = 0;
     tw_event_send(e);
 }
 
@@ -696,7 +708,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             for (j = 0; j < s->num_mpr_sel; j++) {
                 t->neighborAddresses[j] = s->mprSelSet[j].mainAddr;
             }
-            tw_event_send(e);
+            if (s->num_mpr_sel > 0) {
+                tw_event_send(e);
+            }
+            //tw_event_send(e);
             
             e = tw_event_new(lp->gid, HELLO_INTERVAL, lp);
             msg = tw_event_data(e);
@@ -740,9 +755,9 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                 msg->lat = m->lat;
                 msg->target = m->target + 1;
                 t = &msg->mt.t;
-                t->ansn = 0;
+                t->ansn = m->mt.t.ansn;
                 t->num_mpr_sel = m->mt.t.num_mpr_sel;
-                for (j = 0; j < h->num_neighbors; j++) {
+                for (j = 0; j < t->num_mpr_sel; j++) {
                     t->neighborAddresses[j] = m->mt.t.neighborAddresses[j];
                 }
                 tw_event_send(e);
@@ -781,7 +796,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // then further processing of this TC message MUST NOT be
             // performed.
             top_tuple *tt = FindNewerTopologyTuple(m->originator, m->mt.t.ansn, s);
-            if (tt == NULL)
+            if (tt != NULL)
                 return;
             
             // 3. All tuples in the topology set where:
@@ -813,7 +828,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                     //	T_seq       = ANSN,
                     //	T_time      = current time + validity time.
                     s->num_top_set++;
-                    assert(s->num_top_set < OLSR_MAX_NEIGHBORS);
+                    assert(s->num_top_set < OLSR_MAX_TOP_TUPLES);
                     s->topSet[s->num_top_set-1].destAddr = addr;
                     s->topSet[s->num_top_set-1].lastAddr = m->originator;
                     s->topSet[s->num_top_set-1].sequenceNumber = m->mt.t.ansn;

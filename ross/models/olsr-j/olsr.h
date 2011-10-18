@@ -32,6 +32,7 @@
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
+#define OLSR_MAX_TOP_TUPLES (3 * OLSR_MAX_NEIGHBORS)
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
@@ -114,7 +115,7 @@ struct Tc
 typedef struct /* Tc */
 {
     uint16_t ansn;
-    o_addr neighborAddresses[OLSR_MAX_NEIGHBORS];
+    o_addr neighborAddresses[OLSR_MAX_TOP_TUPLES];
     unsigned num_mpr_sel;
 } TC;
 
@@ -225,7 +226,7 @@ typedef struct /*OlsrState */
     mpr_sel_tuple mprSelSet[OLSR_MAX_NEIGHBORS];
     unsigned num_mpr_sel;
     // vector<TopologyTuple>
-    top_tuple topSet[OLSR_MAX_NEIGHBORS];
+    top_tuple topSet[OLSR_MAX_TOP_TUPLES];
     unsigned num_top_set;
     
     // Not part of the state in ns3 but fits here mostly
