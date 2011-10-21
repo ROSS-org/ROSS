@@ -33,6 +33,7 @@
 #define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_TOP_TUPLES (3 * OLSR_MAX_NEIGHBORS)
+#define OLSR_MAX_ROUTES (3 * OLSR_MAX_NEIGHBORS)
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
@@ -177,6 +178,16 @@ typedef struct /* TopologyTuple */
     Time expirationTime;
 } top_tuple;
 
+/// An OLSR's routing table entry.
+typedef struct /* RoutingTableEntry */
+{
+    o_addr destAddr; ///< Address of the destination node.
+    o_addr nextAddr; ///< Address of the next hop.
+    // Only one interface in our model
+    //uint32_t interface; ///< Interface index
+    uint32_t distance; ///< Distance in hops to the destination.
+} RT_entry;
+
 /**
  This struct contains all of the OLSR per-node state.  Not everything in the
  ns3 class is necessary or implemented, but here is the ns3 OlsrState class:
@@ -228,6 +239,9 @@ typedef struct /*OlsrState */
     // vector<TopologyTuple>
     top_tuple topSet[OLSR_MAX_TOP_TUPLES];
     unsigned num_top_set;
+    // vector<RoutingTableEntry>
+    RT_entry route_table[OLSR_MAX_ROUTES];
+    unsigned num_routes;
     
     // Not part of the state in ns3 but fits here mostly
     uint16_t ansn;

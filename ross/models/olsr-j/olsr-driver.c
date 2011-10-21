@@ -243,6 +243,116 @@ top_tuple * FindTopologyTuple(o_addr destAddr, o_addr lastAddr, node_state *s)
     return NULL;
 }
 
+neigh_tuple * FindSymNeighborTuple(node_state *s, o_addr mainAddr)
+{
+    int i;
+    
+    for (i = 0; i < s->num_neigh; i++) {
+        if (s->neighSet[i].neighborMainAddr == mainAddr) {
+            return &s->neighSet[i];
+        }
+    }
+    
+    return NULL;
+}
+
+RT_entry * Lookup(node_state *s, o_addr dest)
+{
+    int i;
+    
+    for (i = 0; i < s->num_routes; i++) {
+        if (s->route_table[i].destAddr == dest) {
+            return &s->route_table[i];
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Trying to ripoff the corresponding ns3 function :)
+ * Fortunately we don't need steps 4 or 5 since we don't support
+ * multiple interfaces or HNA.
+ */
+void RoutingTableComputation(node_state *s)
+{
+    int i, h;
+    RT_entry *route;
+    
+    // 1. All the entries from the routing table are removed.
+    s->num_routes = 0;
+    
+    // 2. The new routing entries are added starting with the
+    // symmetric neighbors (h=1) as the destination nodes.
+    for (i = 0; i < s->num_neigh; i++) {
+        s->route_table[s->num_routes].destAddr = s->neighSet[i].neighborMainAddr;
+        s->route_table[s->num_routes].nextAddr = s->neighSet[i].neighborMainAddr;
+        s->route_table[s->num_routes].distance = 1;
+        s->num_routes++;
+        assert(s->num_routes < OLSR_MAX_ROUTES);
+    }
+    
+    //  3. for each node in N2, i.e., a 2-hop neighbor which is not a
+    //  neighbor node or the node itself, and such that there exist at
+    //  least one entry in the 2-hop neighbor set where
+    //  N_neighbor_main_addr correspond to a neighbor node with
+    //  willingness different of WILL_NEVER,
+    for (i = 0; i < s->num_two_hop; i++) {
+        
+        if (FindSymNeighborTuple(s, s->twoHopSet[i].twoHopNeighborAddr)) {
+            continue;
+        }
+        
+        if (s->twoHopSet[i].twoHopNeighborAddr == s->local_address) {
+            continue;
+        }
+        
+        // one selects one 2-hop tuple and creates one entry in the routing table with:
+        //                R_dest_addr  =  the main address of the 2-hop neighbor;
+        //                R_next_addr  = the R_next_addr of the entry in the
+        //                               routing table with:
+        //                                   R_dest_addr == N_neighbor_main_addr
+        //                                                  of the 2-hop tuple;
+        //                R_dist       = 2;
+        //                R_iface_addr = the R_iface_addr of the entry in the
+        //                               routing table with:
+        //                                   R_dest_addr == N_neighbor_main_addr
+        //                                                  of the 2-hop tuple;
+        if ((route = Lookup(s, s->twoHopSet[i].neighborMainAddr))) {
+            s->route_table[s->num_routes].destAddr = s->twoHopSet[i].twoHopNeighborAddr;
+            s->route_table[s->num_routes].nextAddr = route->nextAddr;
+            s->route_table[s->num_routes].distance = 2;
+            s->num_routes++;
+            assert(s->num_routes < OLSR_MAX_ROUTES);
+        }
+    }
+    
+    // 3.1. For each topology entry in the topology table, if its
+    // T_dest_addr does not correspond to R_dest_addr of any
+    // route entry in the routing table AND its T_last_addr
+    // corresponds to R_dest_addr of a route entry whose R_dist
+    // is equal to h, then a new route entry MUST be recorded in
+    // the routing table (if it does not already exist)
+    for (h = 2; ; h++) {
+        int added = 0;
+        
+        for (i = 0; i < s->num_top_set; i++) {
+            RT_entry *destAddrEntry = Lookup(s, s->topSet[i].destAddr);
+            RT_entry *lastAddrEntry = Lookup(s, s->topSet[i].lastAddr);
+            if (!destAddrEntry && lastAddrEntry && lastAddrEntry->distance == h) {
+                s->route_table[s->num_routes].destAddr = s->topSet[i].destAddr;
+                s->route_table[s->num_routes].nextAddr = lastAddrEntry->nextAddr;
+                s->route_table[s->num_routes].distance = h + 1;
+                added = 1;
+            }
+        }
+        
+        if (!added) {
+            break;
+        }
+    }
+}
+
 /**
  * Event handler.  Basically covers two events at the moment:
  * - HELLO_TX: HELLO transmit required now, so package up all of our
@@ -842,6 +952,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             break;
     }
+    
+    RoutingTableComputation(s);
 }
 
 void olsr_final(node_state *s, tw_lp *lp)
@@ -871,6 +983,13 @@ void olsr_final(node_state *s, tw_lp *lp)
     }
     
     printf("node %lu had %d MPR selectors\n", s->local_address, s->num_mpr_sel);
+    
+    printf("node %lu routing table\n", s->local_address);
+    for (i = 0; i < s->num_routes; i++) {
+        printf("   route[%d]: dest: %lu \t next %lu \t distance %d\n",
+               i, s->route_table[i].destAddr,
+               s->route_table[i].nextAddr, s->route_table[i].distance);
+    }
 }
 
 tw_peid olsr_map(tw_lpid gid)
