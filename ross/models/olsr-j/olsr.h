@@ -28,12 +28,16 @@
 /** TC message interval */
 #define TC_INTERVAL 5
 #define TOP_HOLD_TIME (3*TC_INTERVAL)
+#define SA_INTERVAL 10
+#define MASTER_SA_INTERVAL 60
+#define OLSR_DUP_HOLD_TIME 30
 
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
-#define OLSR_MAX_TOP_TUPLES (3 * OLSR_MAX_NEIGHBORS)
+#define OLSR_MAX_TOP_TUPLES (16 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_ROUTES (3 * OLSR_MAX_NEIGHBORS)
+#define OLSR_MAX_DUPES 32
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
@@ -41,7 +45,9 @@ typedef enum {
     HELLO_RX,
     HELLO_TX,
     TC_RX,
-    TC_TX
+    TC_TX,
+    SA_RX,
+    SA_TX
 } olsr_ev_type;
 
 /**
@@ -117,7 +123,7 @@ typedef struct /* Tc */
 {
     uint16_t ansn;
     o_addr neighborAddresses[OLSR_MAX_TOP_TUPLES];
-    unsigned num_mpr_sel;
+    unsigned num_neighbors;
 } TC;
 
 
@@ -188,6 +194,21 @@ typedef struct /* RoutingTableEntry */
     uint32_t distance; ///< Distance in hops to the destination.
 } RT_entry;
 
+/// A Duplicate Tuple
+typedef struct /* DuplicateTuple */
+{
+    /// Originator address of the message.
+    o_addr address;
+    /// Message sequence number.
+    uint16_t sequenceNumber;
+    /// Indicates whether the message has been retransmitted or not.
+    int retransmitted;
+    /// List of interfaces which the message has been received on.
+    // std::vector<Ipv4Address> ifaceList;
+    /// Time at which this tuple expires and must be removed.
+    Time expirationTime;
+} dup_tuple;
+
 /**
  This struct contains all of the OLSR per-node state.  Not everything in the
  ns3 class is necessary or implemented, but here is the ns3 OlsrState class:
@@ -242,6 +263,9 @@ typedef struct /*OlsrState */
     // vector<RoutingTableEntry>
     RT_entry route_table[OLSR_MAX_ROUTES];
     unsigned num_routes;
+    // vector<DuplicateTuple>
+    dup_tuple dupSet[OLSR_MAX_DUPES];
+    unsigned num_dupes;
     
     // Not part of the state in ns3 but fits here mostly
     uint16_t ansn;
@@ -259,10 +283,11 @@ typedef struct
     uint8_t ttl;           ///< The Time To Live field for this packet
     o_addr originator;     ///< Node responsible for this event
     o_addr sender;         ///< Node to last touch this message (TC)
-    double lng;            ///< Longitude for node_id
-    double lat;            ///< Latitude for node_id
+    double lng;            ///< Longitude for 'sender' (above)
+    double lat;            ///< Latitude for 'sender' (above)
     union message_type mt; ///< Union for message type
     unsigned long target;  ///< Target index into g_tw_lp
+    uint16_t seq_num;      ///< Sequence number for this message
 } olsr_msg_data;
 
 
