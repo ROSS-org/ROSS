@@ -39,6 +39,9 @@
 #define OLSR_MAX_ROUTES (3 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_DUPES 32
 
+/** For Situational Awareness (SA) */
+#define MASTER_NODE 0
+
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */
 typedef enum {
@@ -282,7 +285,8 @@ typedef struct
     olsr_ev_type type;     ///< What type of message is this?
     uint8_t ttl;           ///< The Time To Live field for this packet
     o_addr originator;     ///< Node responsible for this event
-    o_addr sender;         ///< Node to last touch this message (TC)
+    o_addr sender;         ///< Node to last touch this message (TC) or MITM (SA)
+    o_addr destination;    ///< Destination node
     double lng;            ///< Longitude for 'sender' (above)
     double lat;            ///< Latitude for 'sender' (above)
     union message_type mt; ///< Union for message type

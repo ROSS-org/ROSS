@@ -28,6 +28,7 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
+int SA_per_node[OLSR_MAX_NEIGHBORS];
 
 /**
  * Initializer for OLSR
@@ -78,15 +79,16 @@ void olsr_init(node_state *s, tw_lp *lp)
     t->num_neighbors = 0;
     tw_event_send(e);
     
-//    // Build our initial SA_TX messages
-//    ts = tw_rand_unif(lp->rng) * STAGGER_MAX + SA_INTERVAL;
-//    e = tw_event_new(lp->gid, ts, lp);
-//    msg = tw_event_data(e);
-//    msg->type = SA_TX;
-//    msg->originator = s->local_address;
-//    msg->lng = s->lng;
-//    msg->lat = s->lat;
-//    tw_event_send(e);
+    // Build our initial SA_TX messages
+    ts = tw_rand_unif(lp->rng) * STAGGER_MAX + SA_INTERVAL;
+    e = tw_event_new(lp->gid, ts, lp);
+    msg = tw_event_data(e);
+    msg->type = SA_TX;
+    msg->originator = s->local_address;
+    msg->destination = MASTER_NODE;
+    msg->lng = s->lng;
+    msg->lat = s->lat;
+    tw_event_send(e);
 }
 
 #define RANGE 40.0
@@ -415,11 +417,6 @@ dup_tuple * FindDuplicateTuple(o_addr addr, uint16_t seq_num, node_state *s)
     return NULL;
 }
 
-void send_rr_rx()
-{
-    
-}
-
 void printTC(olsr_msg_data *m, node_state *s)
 {
 #ifdef JML_DEBUG
@@ -534,6 +531,29 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
         s->num_dupes++;
         assert(s->num_dupes < OLSR_MAX_DUPES);
     }
+}
+
+void route_packet(node_state *s, tw_event *e)
+{
+    olsr_msg_data *m = tw_event_data(e);
+    RT_entry * route = Lookup(s, m->destination);
+    if (route == NULL) {
+        printf("No route yet!\n");
+        return;
+    }
+    
+    m->ttl--;
+    
+    //printf("routing from %lu to %lu, next hop %lu\n", m->originator,
+    //       m->destination, route->nextAddr);
+    
+    m->sender = route->nextAddr;
+    tw_event_send(e);
+}
+
+void process_sa(olsr_msg_data *m)
+{
+    SA_per_node[m->originator]++;
 }
 
 /**
@@ -1163,17 +1183,125 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
              */
         case SA_TX:
             
-            // Build our initial SA_TX messages
-            e = tw_event_new(lp->gid, SA_INTERVAL, lp);
+            // Schedule ourselves again...
+            ts = SA_INTERVAL;
+            e = tw_event_new(lp->gid, ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_TX;
             msg->originator = s->local_address;
+            msg->destination = MASTER_NODE;
             msg->lng = s->lng;
             msg->lat = s->lat;
             tw_event_send(e);
             
+            
+            // Check and see if we are the destination...
+            if (m->destination == s->local_address) {
+                // This is the final stop
+                process_sa(m);
+                return;
+            }
+            
+            // Might want to rename HELLO_DELTA...
+            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            
+            cur_lp = g_tw_lp[0];
+            
+            e = tw_event_new(cur_lp->gid, ts, lp);
+            msg = tw_event_data(e);
+            msg->type = SA_RX;
+            msg->ttl = 255;
+            msg->originator = s->local_address;
+            msg->sender = s->local_address;
+            msg->destination = MASTER_NODE;
+            msg->lng = s->lng;
+            msg->lat = s->lat;
+            msg->target = 0;
+            
+            route_packet(s, e);
+            
+            // We don't need to compute our routing table here so just return!
+            return;
+            
         case SA_RX:
-            break;
+            
+            // 1. When a packet arrives at the router, the router evaluates the TTL.
+            // 2a. If the TTL=0, the router drops the packet, and sends an ICMP TTL Exceeded message to the source.
+            // 2b. If the TTL>0, then the router decrements the TTL by 1, and then forwards the packet.
+            // From http://www.dslreports.com/forum/r25655787-When-is-TTL-Decremented-by-a-Router-
+            
+            if (m->ttl == 0) {
+                printf("TTL Expired\n");
+                return;
+            }
+            
+            // Check and see if we are the destination...
+            if (m->destination == s->local_address) {
+                // This is the final stop
+                process_sa(m);
+                return;
+            }
+            
+            // Copy the message we just received; we can't add data to
+            // a message sent by another node
+            
+            if (m->target < g_tw_nlp - 1) {
+                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                
+                tw_lp *cur_lp = g_tw_lp[m->target + 1];
+                
+                e = tw_event_new(cur_lp->gid, ts, lp);
+                msg = tw_event_data(e);
+                msg->type = SA_RX;
+                msg->ttl = m->ttl;
+                msg->originator = m->originator;
+                msg->sender = m->sender;
+                msg->destination = m->destination;
+                msg->lng = m->lng;
+                msg->lat = m->lat;
+                msg->target = m->target + 1;
+                t = &msg->mt.t;
+                t->ansn = m->mt.t.ansn;
+                //t->num_mpr_sel = m->mt.t.num_mpr_sel;
+                t->num_neighbors = m->mt.t.num_neighbors;
+                for (j = 0; j < t->num_neighbors; j++) {
+                    t->neighborAddresses[j] = m->mt.t.neighborAddresses[j];
+                }
+                //printTC(t);
+                tw_event_send(e);
+            }
+            
+            // We've already passed along the message which has to happen
+            // regardless of whether or not it can be heard, handled, etc.
+            
+            // Check to see if we can hear this message or not
+            if (out_of_radio_range(s, m)) {
+                //printf("Out of range!\n");
+                return;
+            }
+            
+            if (s->local_address == m->originator) {
+                return;
+            }
+            
+            if (m->sender == s->local_address) {
+                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                e = tw_event_new(lp->gid, ts, lp);
+                msg = tw_event_data(e);
+                msg->type = SA_RX;
+                msg->ttl = m->ttl;
+                msg->originator = m->originator;
+                msg->sender = s->local_address;
+                msg->destination = MASTER_NODE;
+                msg->lng = s->lng;
+                msg->lat = s->lat;
+                
+                route_packet(s, e);
+            }
+            
+            
+            // We don't need to compute our routing table here so just return!
+            return;
     }
     
     RoutingTableComputation(s);
@@ -1182,6 +1310,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 void olsr_final(node_state *s, tw_lp *lp)
 {
     int i;
+    
+    printf("node %lu had %d SA packets received.\n", s->local_address, SA_per_node[s->local_address]);
     
     printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     printf("x: %f   \ty: %f\n", s->lng, s->lat);
@@ -1261,9 +1391,13 @@ int olsr_main(int argc, char *argv[])
 {
     int i;
     
+    for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
+        SA_per_node[i] = 0;
+    }
+    
     g_tw_lookahead = HELLO_INTERVAL * 2;
     
-    g_tw_events_per_pe = nlp_per_pe * nlp_per_pe * 32 + 32768*2;
+    g_tw_events_per_pe = nlp_per_pe * nlp_per_pe * 32 + 32768*3;
     
     tw_opt_add(olsr_opts);
     
