@@ -41,6 +41,7 @@
 
 /** For Situational Awareness (SA) */
 #define MASTER_NODE 0
+//#define MASTER_NODE ((s->local_address == 0) ? 0 : (OLSR_MAX_NEIGHBORS / s->local_address))
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
 typedef double Time;    /**< Use a double for time, check w/ Chris */

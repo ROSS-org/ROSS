@@ -47,9 +47,10 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->num_mpr = 0;
     s->num_mpr_sel = 0;
     s->num_top_set = 0;
-    s->local_address = lp->gid;
+    s->local_address = lp->gid % OLSR_MAX_NEIGHBORS;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
+    printf("Initializing node %lu on CPU %llu\n", s->local_address, lp->pe->id);
     
     g_X[s->local_address] = s->lng;
     g_Y[s->local_address] = s->lat;
@@ -1397,13 +1398,13 @@ int olsr_main(int argc, char *argv[])
     
     g_tw_lookahead = HELLO_INTERVAL * 2;
     
-    g_tw_events_per_pe = nlp_per_pe * nlp_per_pe * 32 + 32768*3;
+    g_tw_events_per_pe = nlp_per_pe * nlp_per_pe * 32 + 32768*5;
     
     tw_opt_add(olsr_opts);
     
     tw_init(&argc, &argv);
     
-    nlp_per_pe = OLSR_MAX_NEIGHBORS / tw_nnodes();
+    nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
         
     tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
