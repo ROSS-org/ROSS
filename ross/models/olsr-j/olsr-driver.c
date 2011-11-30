@@ -50,7 +50,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->local_address = lp->gid % OLSR_MAX_NEIGHBORS;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
-    printf("Initializing node %lu on CPU %llu\n", s->local_address, lp->pe->id);
+    printf("Initializing node %lu on CPU %llu\n", lp->gid, lp->pe->id);
     
     g_X[s->local_address] = s->lng;
     g_Y[s->local_address] = s->lat;
@@ -539,7 +539,7 @@ void route_packet(node_state *s, tw_event *e)
     olsr_msg_data *m = tw_event_data(e);
     RT_entry * route = Lookup(s, m->destination);
     if (route == NULL) {
-        printf("No route yet!\n");
+      //printf("No route yet!\n");
         return;
     }
     
@@ -583,7 +583,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         case HELLO_TX:
             ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
             
-            cur_lp = g_tw_lp[0];
+            cur_lp = g_tw_lp[lp->gid / OLSR_MAX_NEIGHBORS];
             
             e = tw_event_new(cur_lp->gid, ts, lp);
             msg = tw_event_data(e);
@@ -1316,6 +1316,7 @@ void olsr_final(node_state *s, tw_lp *lp)
     
     printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     printf("x: %f   \ty: %f\n", s->lng, s->lat);
+    /*
     for (i = 0; i < s->num_neigh; i++) {
         printf("   neighbor[%d] is %lu\n", i, s->neighSet[i].neighborMainAddr);
         printf("   Dy(%lu) is %d\n", s->neighSet[i].neighborMainAddr,
@@ -1358,6 +1359,7 @@ void olsr_final(node_state *s, tw_lp *lp)
             printf("%lu and %d are out of range.\n", s->local_address, i);
         }
     }
+    */
     printf("\n");
 }
 
@@ -1404,7 +1406,7 @@ int olsr_main(int argc, char *argv[])
     
     tw_init(&argc, &argv);
     
-    nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
+    // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
         
     tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
