@@ -28,7 +28,12 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
-int SA_per_node[OLSR_MAX_NEIGHBORS];
+int SA_per_node[2*OLSR_MAX_NEIGHBORS];
+
+unsigned region(o_addr a)
+{
+    return a / OLSR_MAX_NEIGHBORS;
+}
 
 /**
  * Initializer for OLSR
@@ -47,7 +52,8 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->num_mpr = 0;
     s->num_mpr_sel = 0;
     s->num_top_set = 0;
-    s->local_address = lp->gid % OLSR_MAX_NEIGHBORS;
+    // Now we store the GID as opposed to an int from 0-OMN
+    s->local_address = lp->gid;// % OLSR_MAX_NEIGHBORS;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
     printf("Initializing node %lu on CPU %llu\n", lp->gid, lp->pe->id);
@@ -102,6 +108,11 @@ static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
     double sender_lat = m->lat;
     double receiver_lng = s->lng;
     double receiver_lat = s->lat;
+    
+    // We have to make sure that everyone is in the same region even though
+    // they may have overlapping x/y coordinates, i.e. a region describes the
+    // local plane of existence for the nodes
+    assert(region(s->local_address) == region(m->originator));
     
     double dist = (sender_lng - receiver_lng) * (sender_lng - receiver_lng);
     dist += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
@@ -227,6 +238,8 @@ void mpr_sel_set_uniq(node_state *s)
             return;
         }
     }
+    
+    s->ansn++;
 }
 
 /**
@@ -489,7 +502,8 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
             ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
             ts += 1;
             
-            cur_lp = g_tw_lp[0];
+            //cur_lp = g_tw_lp[0];
+            cur_lp = g_tw_lp[region(s->local_address)*OLSR_MAX_NEIGHBORS];
             
             e = tw_event_new(cur_lp->gid, ts, lp);
             msg = tw_event_data(e);
@@ -499,7 +513,7 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
             msg->sender = s->local_address;
             msg->lng = s->lng;
             msg->lat = s->lat;
-            msg->target = 0;
+            msg->target = region(s->local_address) * OLSR_MAX_NEIGHBORS;
             t = &msg->mt.t;
             t->ansn = olsrMessage->mt.t.ansn;
             //t->num_mpr_sel = olsrMessage->mt.t.num_mpr_sel;
@@ -539,7 +553,7 @@ void route_packet(node_state *s, tw_event *e)
     olsr_msg_data *m = tw_event_data(e);
     RT_entry * route = Lookup(s, m->destination);
     if (route == NULL) {
-      //printf("No route yet!\n");
+        printf("Node %lu doesn't have a route to %lu\n", s->local_address, m->destination);
         return;
     }
     
@@ -581,9 +595,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     
     switch(m->type) {
         case HELLO_TX:
+        {
             ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
             
-            cur_lp = g_tw_lp[lp->gid / OLSR_MAX_NEIGHBORS];
+            cur_lp = g_tw_lp[region(s->local_address)*OLSR_MAX_NEIGHBORS];
             
             e = tw_event_new(cur_lp->gid, ts, lp);
             msg = tw_event_data(e);
@@ -591,7 +606,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->originator = m->originator;
             msg->lng = s->lng;
             msg->lat = s->lat;
-            msg->target = 0;
+            msg->target = region(s->local_address) * OLSR_MAX_NEIGHBORS;
             h = &msg->mt.h;
             h->num_neighbors = s->num_neigh;// + 1;
             //h->neighbor_addrs[0] = s->local_address;
@@ -626,9 +641,9 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             tw_event_send(e);
             
             break;
-            
+        }
         case HELLO_RX:
-            
+        {
             h = &m->mt.h;
             
             in = 0;
@@ -638,7 +653,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             // Copy the message we just received; we can't add data to
             // a message sent by another node
-            if (m->target < g_tw_nlp - 1) {
+            if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
                 ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
                 tw_lp *cur_lp = g_tw_lp[m->target + 1];
@@ -647,6 +662,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                 msg = tw_event_data(e);
                 msg->type = HELLO_RX;
                 msg->originator = m->originator;
+                msg->sender = m->sender;
                 msg->lng = m->lng;
                 msg->lat = m->lat;
                 msg->target = m->target + 1;
@@ -684,6 +700,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                 s->neighSet[s->num_neigh].neighborMainAddr = m->originator;
                 s->num_neigh++;
                 assert(s->num_neigh < OLSR_MAX_NEIGHBORS);
+                assert(region(s->local_address) == region(m->originator));
                 s->ansn++;
             }
             // END 1-HOP PROCESSING
@@ -814,7 +831,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                             //coveredTwoHopNeighbors.insert (otherTwoHopNeigh->twoHopNeighborAddr);
                             // We don't do that, we use bitfields.  Make sure
                             // our assumptions are correct then create a mask
-                            assert(g_mpr_two_hop[j].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                            //printf("%lu\n", g_mpr_two_hop[j].neighborMainAddr);
+                            assert(g_mpr_two_hop[j].neighborMainAddr < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS);
                             BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
                         }
                     }
@@ -881,7 +899,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                         if (g_mpr_one_hop[i].neighborMainAddr == g_mpr_two_hop[j].neighborMainAddr)
                             r++;
                     }
-                    assert(g_mpr_one_hop[i].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                    // Make sure our neighbors are from our region
+                    //assert(g_mpr_one_hop[i].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                    assert(g_mpr_one_hop[i].neighborMainAddr < region(s->local_address)*OLSR_MAX_NEIGHBORS + OLSR_MAX_NEIGHBORS);
+                    assert(g_mpr_one_hop[i].neighborMainAddr >= region(s->local_address)*OLSR_MAX_NEIGHBORS);
                     g_reachability[i] = r;
                 }
                 
@@ -963,7 +984,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                             //coveredTwoHopNeighbors.insert (otherTwoHopNeigh->twoHopNeighborAddr);
                             // We don't do that, we use bitfields.  Make sure
                             // our assumptions are correct then create a mask
-                            assert(g_mpr_two_hop[j].neighborMainAddr < OLSR_MAX_NEIGHBORS);
+                            assert(g_mpr_two_hop[j].neighborMainAddr < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS);
                             BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
                         }
                     }
@@ -1001,12 +1022,14 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // END MPR SELECTOR SET
             
             break;
-            
+        }
         case TC_TX:
+        {
             // Might want to rename HELLO_DELTA...
             ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
             
-            cur_lp = g_tw_lp[0];
+            //cur_lp = g_tw_lp[0];
+            cur_lp = g_tw_lp[region(s->local_address)*OLSR_MAX_NEIGHBORS];
             
             e = tw_event_new(cur_lp->gid, ts, lp);
             msg = tw_event_data(e);
@@ -1016,7 +1039,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->sender = s->local_address;
             msg->lng = s->lng;
             msg->lat = s->lat;
-            msg->target = 0;
+            msg->target = region(s->local_address) * OLSR_MAX_NEIGHBORS;
             t = &msg->mt.t;
             t->ansn = s->ansn;
             //t->num_mpr_sel = s->num_mpr_sel;
@@ -1043,9 +1066,9 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             tw_event_send(e);
             
             break;
-            
+        }
         case TC_RX:
-            
+        {
             // 1. When a packet arrives at the router, the router evaluates the TTL.
             // 2a. If the TTL=0, the router drops the packet, and sends an ICMP TTL Exceeded message to the source.
             // 2b. If the TTL>0, then the router decrements the TTL by 1, and then forwards the packet.
@@ -1061,9 +1084,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Copy the message we just received; we can't add data to
             // a message sent by another node
             
-            if (m->target < g_tw_nlp - 1) {
+            if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
                 ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
+                //tw_lp *cur_lp = g_tw_lp[m->target + 1];
                 tw_lp *cur_lp = g_tw_lp[m->target + 1];
                 
                 e = tw_event_new(cur_lp->gid, ts, lp);
@@ -1100,7 +1124,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             }
             
             // BEGIN TC PROCESSING
-            
+
             //int do_forwarding = 1;
             dup_tuple *duplicated = FindDuplicateTuple(m->originator, m->seq_num, s);
             
@@ -1175,15 +1199,15 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             
             break;
-            
+        }
+        case SA_TX:
+        {
             /*
              Situational awareness - every 10 seconds send a UDP packet
              containing a node's location to a specified node with an
              uplink.  Every 60 seconds, that uplink sends a message containing
              all nodes' locations.
-             */
-        case SA_TX:
-            
+             */    
             // Schedule ourselves again...
             ts = SA_INTERVAL;
             e = tw_event_new(lp->gid, ts, lp);
@@ -1206,7 +1230,13 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Might want to rename HELLO_DELTA...
             ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
             
-            cur_lp = g_tw_lp[0];
+            //cur_lp = g_tw_lp[0];
+            cur_lp = g_tw_lp[region(s->local_address)*OLSR_MAX_NEIGHBORS];
+            
+            // If we don't have a route, don't allocate an event!
+            if (Lookup(s, MASTER_NODE) == NULL) {
+                return;
+            }
             
             e = tw_event_new(cur_lp->gid, ts, lp);
             msg = tw_event_data(e);
@@ -1217,15 +1247,15 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->destination = MASTER_NODE;
             msg->lng = s->lng;
             msg->lat = s->lat;
-            msg->target = 0;
+            msg->target = region(s->local_address) * OLSR_MAX_NEIGHBORS;
             
             route_packet(s, e);
             
             // We don't need to compute our routing table here so just return!
             return;
-            
+        }
         case SA_RX:
-            
+        {
             // 1. When a packet arrives at the router, the router evaluates the TTL.
             // 2a. If the TTL=0, the router drops the packet, and sends an ICMP TTL Exceeded message to the source.
             // 2b. If the TTL>0, then the router decrements the TTL by 1, and then forwards the packet.
@@ -1246,9 +1276,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Copy the message we just received; we can't add data to
             // a message sent by another node
             
-            if (m->target < g_tw_nlp - 1) {
+            if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
                 ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
+                //tw_lp *cur_lp = g_tw_lp[m->target + 1];
                 tw_lp *cur_lp = g_tw_lp[m->target + 1];
                 
                 e = tw_event_new(cur_lp->gid, ts, lp);
@@ -1286,6 +1317,11 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             }
             
             if (m->sender == s->local_address) {
+                // If we don't have a route, don't allocate an event!
+                if (Lookup(s, MASTER_NODE) == NULL) {
+                    return;
+                }
+                
                 ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
                 e = tw_event_new(lp->gid, ts, lp);
                 msg = tw_event_data(e);
@@ -1303,6 +1339,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             // We don't need to compute our routing table here so just return!
             return;
+        }
     }
     
     RoutingTableComputation(s);
@@ -1316,7 +1353,6 @@ void olsr_final(node_state *s, tw_lp *lp)
     
     printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     printf("x: %f   \ty: %f\n", s->lng, s->lat);
-    /*
     for (i = 0; i < s->num_neigh; i++) {
         printf("   neighbor[%d] is %lu\n", i, s->neighSet[i].neighborMainAddr);
         printf("   Dy(%lu) is %d\n", s->neighSet[i].neighborMainAddr,
@@ -1359,7 +1395,6 @@ void olsr_final(node_state *s, tw_lp *lp)
             printf("%lu and %d are out of range.\n", s->local_address, i);
         }
     }
-    */
     printf("\n");
 }
 

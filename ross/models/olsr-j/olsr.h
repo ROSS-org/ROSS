@@ -34,13 +34,13 @@
 
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
-#define OLSR_MAX_2_HOP (3 * OLSR_MAX_NEIGHBORS)
+#define OLSR_MAX_2_HOP (8 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_TOP_TUPLES (16 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_ROUTES (3 * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_DUPES 32
 
 /** For Situational Awareness (SA) */
-#define MASTER_NODE 0
+#define MASTER_NODE ((s->local_address / OLSR_MAX_NEIGHBORS) * OLSR_MAX_NEIGHBORS)
 //#define MASTER_NODE ((s->local_address == 0) ? 0 : (OLSR_MAX_NEIGHBORS / s->local_address))
 
 typedef tw_lpid o_addr; /**< We'll use this as a place holder for addresses */
