@@ -259,7 +259,8 @@ tw_sched_init(tw_pe * me)
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
-	
+	tw_stime gvt = 0.0;
+    
 	if(tw_nnodes() > 1) 
 		tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
 	
@@ -275,13 +276,21 @@ void tw_scheduler_sequential(tw_pe * me) {
       
       me->cur_event = cev;
       ckp->last_time = cev->recv_ts;
-      
+        
+      gvt = cev->recv_ts;
+      if(gvt / g_tw_ts_end > percent_complete &&
+           tw_node_eq(&g_tw_mynode, &g_tw_masternode))
+      {
+            gvt_print(gvt);
+      }
+        
       (*clp->type.event)(
 			 clp->cur_state,
 			 &cev->cv,
 			 tw_event_data(cev),
 			 clp);
       
+        
       if (me->cev_abort)
 		tw_error(TW_LOC, "insufficient event memory");
       
