@@ -58,8 +58,8 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
     printf("Initializing node %lu on CPU %llu\n", lp->gid, lp->pe->id);
     
-    g_X[s->local_address] = s->lng;
-    g_Y[s->local_address] = s->lat;
+    //g_X[s->local_address] = s->lng;
+    //g_Y[s->local_address] = s->lat;
     
     // Build our initial HELLO_TX messages
     ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
@@ -832,7 +832,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                             // our assumptions are correct then create a mask
                             //printf("%lu\n", g_mpr_two_hop[j].neighborMainAddr);
                             assert(region(g_mpr_two_hop[j].neighborMainAddr) == region(s->local_address));
-                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
+                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr % OLSR_MAX_NEIGHBORS);
                         }
                     }
                 }
@@ -856,7 +856,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 //            }
             // Remove the nodes from N2 which are now covered by a node in the MPR set.
             for (i = 0; i < g_num_two_hop; i++) {
-                if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr)) {
+                if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr % OLSR_MAX_NEIGHBORS)) {
                     //printf("1. g_num_two_hop is %d\n", g_num_two_hop);
                     remove_node_from_n2(g_mpr_two_hop[i].twoHopNeighborAddr);
                     //printf("2. g_num_two_hop is %d\n", g_num_two_hop);
@@ -982,14 +982,14 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                             // We don't do that, we use bitfields.  Make sure
                             // our assumptions are correct then create a mask
                             assert(region(g_mpr_two_hop[j].neighborMainAddr) == region(s->local_address));
-                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr);
+                            BITSET(g_covered, g_mpr_two_hop[j].twoHopNeighborAddr % OLSR_MAX_NEIGHBORS);
                         }
                     }
                 }
                 
                 // Remove the nodes from N2 which are now covered by a node in the MPR set.
                 for (i = 0; i < g_num_two_hop; i++) {
-                    if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr)) {
+                    if (BITTEST(g_covered, g_mpr_two_hop[i].twoHopNeighborAddr % OLSR_MAX_NEIGHBORS)) {
                         //printf("1. g_num_two_hop is %d\n", g_num_two_hop);
                         remove_node_from_n2(g_mpr_two_hop[i].twoHopNeighborAddr);
                         //printf("2. g_num_two_hop is %d\n", g_num_two_hop);
@@ -1426,9 +1426,9 @@ int olsr_main(int argc, char *argv[])
         SA_per_node[i] = 0;
     }
     
-    g_tw_lookahead = HELLO_INTERVAL * 2;
+    g_tw_lookahead = HELLO_INTERVAL * 1024;
     
-    g_tw_events_per_pe = nlp_per_pe * nlp_per_pe * 32 + 32768*5;
+    g_tw_events_per_pe =  nlp_per_pe * 32 + 32768*5;
     
     tw_opt_add(olsr_opts);
     
