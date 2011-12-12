@@ -130,6 +130,73 @@ static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
 }
 
 /**
+ Copied from ns3 - propogation-loss-model.cc
+ */
+double 
+DoCalcRxPower (double txPowerDbm,
+               node_state *s,
+               olsr_msg_data *m)
+{
+    /*
+     * Friis free space equation:
+     * where Pt, Gr, Gr and P are in Watt units
+     * L is in meter units.
+     *
+     *    P     Gt * Gr * (lambda^2)
+     *   --- = ---------------------
+     *    Pt     (4 * pi * d)^2 * L
+     *
+     * Gt: tx gain (unit-less)
+     * Gr: rx gain (unit-less)
+     * Pt: tx power (W)
+     * d: distance (m)
+     * L: system loss
+     * lambda: wavelength (m)
+     *
+     * Here, we ignore tx and rx gain and the input and output values 
+     * are in dB or dBm:
+     *
+     *                           lambda^2
+     * rx = tx +  10 log10 (-------------------)
+     *                       (4 * pi * d)^2 * L
+     *
+     * rx: rx power (dB)
+     * tx: tx power (dB)
+     * d: distance (m)
+     * L: system loss (unit-less)
+     * lambda: wavelength (m)
+     */
+    
+    double sender_lng = m->lng;
+    double sender_lat = m->lat;
+    double receiver_lng = s->lng;
+    double receiver_lat = s->lat;
+    
+    // We have to make sure that everyone is in the same region even though
+    // they may have overlapping x/y coordinates, i.e. a region describes the
+    // local plane of existence for the nodes
+    assert(region(s->local_address) == region(m->originator));
+    
+    double distance = (sender_lng - receiver_lng) * (sender_lng - receiver_lng);
+    distance += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
+    
+    distance = sqrt(distance);
+    
+    //double distance = a->GetDistanceFrom (b);
+    double m_minDistance = 1.0; // A reasonable default
+    if (distance <= m_minDistance)
+    {
+        return txPowerDbm;
+    }
+    double m_lambda = 2437000000.0; // (2.437 GHz, chan 6)
+    double numerator = m_lambda * m_lambda;
+    double denominator = 16 * M_PI * M_PI * distance * distance;// * m_systemLoss;
+    double pr = 10 * log10 (numerator / denominator);
+    //NS_LOG_DEBUG ("distance="<<distance<<"m, attenuation coefficient="<<pr<<"dB");
+    return txPowerDbm + pr;
+}
+
+/**
  * Compute D(y) as described in the "MPR Computation" section.  Description:
  *
  * The degree of an one hop neighbor node y (where y is a member of N), is
