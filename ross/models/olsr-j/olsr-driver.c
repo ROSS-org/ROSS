@@ -28,7 +28,7 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
-int SA_per_node[2*OLSR_MAX_NEIGHBORS];
+//int SA_per_node[2*OLSR_MAX_NEIGHBORS];
 
 unsigned region(o_addr a)
 {
@@ -52,6 +52,9 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->num_mpr = 0;
     s->num_mpr_sel = 0;
     s->num_top_set = 0;
+    for (int i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
+        s->SA_per_node[i] = 0;
+    }
     // Now we store the GID as opposed to an int from 0-OMN
     s->local_address = lp->gid;// % OLSR_MAX_NEIGHBORS;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
@@ -565,9 +568,9 @@ void route_packet(node_state *s, tw_event *e)
     tw_event_send(e);
 }
 
-void process_sa(olsr_msg_data *m)
+void process_sa(node_state *s, olsr_msg_data *m)
 {
-    SA_per_node[m->originator]++;
+    s->SA_per_node[m->originator % OLSR_MAX_NEIGHBORS]++;
 }
 
 /**
@@ -1218,7 +1221,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Check and see if we are the destination...
             if (m->destination == s->local_address) {
                 // This is the final stop
-                process_sa(m);
+                process_sa(s, m);
                 return;
             }
             
@@ -1263,7 +1266,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Check and see if we are the destination...
             if (m->destination == s->local_address) {
                 // This is the final stop
-                process_sa(m);
+                process_sa(s, m);
                 return;
             }
             
@@ -1342,7 +1345,11 @@ void olsr_final(node_state *s, tw_lp *lp)
 {
     int i;
     
-    printf("node %lu had %d SA packets received.\n", s->local_address, SA_per_node[s->local_address]);
+    if (s->local_address % OLSR_MAX_NEIGHBORS == 0) {
+        for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
+            printf("node %lu had %d SA packets received.\n", s->local_address, s->SA_per_node[i]);
+        }
+    }
     
     printf("node %lu contains %d neighbors\n", s->local_address, s->num_neigh);
     printf("x: %f   \ty: %f\n", s->lng, s->lat);
@@ -1382,12 +1389,14 @@ void olsr_final(node_state *s, tw_lp *lp)
                i, s->topSet[i].destAddr, s->topSet[i].lastAddr, s->topSet[i].sequenceNumber);
     }
     
+    /*
     for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
         if (sqrt((s->lng - g_X[i]) * (s->lng - g_X[i]) +
                  (s->lat - g_Y[i]) * (s->lat - g_Y[i])) > RANGE) {
             printf("%lu and %d are out of range.\n", s->local_address, i);
         }
     }
+    */
     printf("\n");
 }
 
@@ -1421,10 +1430,6 @@ const tw_optdef olsr_opts[] = {
 int olsr_main(int argc, char *argv[])
 {
     int i;
-    
-    for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
-        SA_per_node[i] = 0;
-    }
     
     g_tw_lookahead = HELLO_INTERVAL * 1024;
     

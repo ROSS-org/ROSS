@@ -273,6 +273,7 @@ typedef struct /*OlsrState */
     
     // Not part of the state in ns3 but fits here mostly
     uint16_t ansn;
+    int SA_per_node[OLSR_MAX_NEIGHBORS];
     
 } node_state;
 
