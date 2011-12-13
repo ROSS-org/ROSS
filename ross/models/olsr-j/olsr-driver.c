@@ -15,6 +15,7 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define GRID_MAX 100
 #define STAGGER_MAX 10
 #define HELLO_DELTA 0.0001
+#define OLSR_NO_FINAL_OUTPUT 1
 
 static unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
@@ -45,21 +46,22 @@ void olsr_init(node_state *s, tw_lp *lp)
     tw_event *e;
     olsr_msg_data *msg;
     tw_stime ts;
-    
+    int i;
+
     //s->num_tuples = 0;
     s->num_neigh  = 0;
     s->num_two_hop = 0;
     s->num_mpr = 0;
     s->num_mpr_sel = 0;
     s->num_top_set = 0;
-    for (int i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
+    for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
         s->SA_per_node[i] = 0;
     }
     // Now we store the GID as opposed to an int from 0-OMN
     s->local_address = lp->gid;// % OLSR_MAX_NEIGHBORS;
     s->lng = tw_rand_unif(lp->rng) * GRID_MAX;
     s->lat = tw_rand_unif(lp->rng) * GRID_MAX;
-    printf("Initializing node %lu on CPU %llu\n", lp->gid, lp->pe->id);
+    // printf("Initializing node %lu on CPU %llu\n", lp->gid, lp->pe->id);
     
     //g_X[s->local_address] = s->lng;
     //g_Y[s->local_address] = s->lat;
@@ -101,7 +103,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     tw_event_send(e);
 }
 
-#define RANGE 40.0
+#define RANGE 60.0
 
 static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
 {
@@ -1412,6 +1414,9 @@ void olsr_final(node_state *s, tw_lp *lp)
 {
     int i;
     
+    if( OLSR_NO_FINAL_OUTPUT )
+      return;
+
     if (s->local_address % OLSR_MAX_NEIGHBORS == 0) {
         for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
             printf("node %lu had %d SA packets received.\n", s->local_address, s->SA_per_node[i]);
@@ -1498,21 +1503,17 @@ int olsr_main(int argc, char *argv[])
 {
     int i;
     
-    g_tw_lookahead = HELLO_INTERVAL * 1024;
-    
-    g_tw_events_per_pe =  nlp_per_pe * 32 + 32768*5;
-    
     tw_opt_add(olsr_opts);
-    
     tw_init(&argc, &argv);
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
-        
-    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
+   g_tw_lookahead = HELLO_INTERVAL * 1024;
+   g_tw_events_per_pe =  4 * nlp_per_pe  + 65536;
+   tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
-    for (i = 0; i < g_tw_nlp; i++) {
-        tw_lp_settype(i, &olsr_lps[0]);
-    }
+   for (i = 0; i < g_tw_nlp; i++) {
+     tw_lp_settype(i, &olsr_lps[0]);
+   }
     
     tw_run();
     
