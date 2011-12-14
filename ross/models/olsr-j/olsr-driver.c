@@ -16,6 +16,7 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define STAGGER_MAX 10
 #define HELLO_DELTA 0.0001
 #define OLSR_NO_FINAL_OUTPUT 1
+#define USE_RADIO_DISTANCE 0
 
 static unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
@@ -29,7 +30,6 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
-//int SA_per_node[2*OLSR_MAX_NEIGHBORS];
 
 unsigned region(o_addr a)
 {
@@ -101,34 +101,20 @@ void olsr_init(node_state *s, tw_lp *lp)
     msg->lng = s->lng;
     msg->lat = s->lat;
     tw_event_send(e);
-}
-
-#define RANGE 60.0
-
-static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
-{
-    const double range = RANGE;
     
-    double sender_lng = m->lng;
-    double sender_lat = m->lat;
-    double receiver_lng = s->lng;
-    double receiver_lat = s->lat;
-    
-    // We have to make sure that everyone is in the same region even though
-    // they may have overlapping x/y coordinates, i.e. a region describes the
-    // local plane of existence for the nodes
-    assert(region(s->local_address) == region(m->originator));
-    
-    double dist = (sender_lng - receiver_lng) * (sender_lng - receiver_lng);
-    dist += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
-    
-    dist = sqrt(dist);
-    
-    if (dist > range) {
-        return 1;
+    // Build our initial SA_MASTER_TX messages
+    if (s->local_address == MASTER_NODE) {
+        ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
+        e = tw_event_new(lp->gid, ts, lp);
+        msg = tw_event_data(e);
+        msg->type = SA_MASTER_TX;
+        msg->originator = s->local_address;
+        // Always send these to node zero, who receives all SA_MASTER msgs
+        msg->destination = 0;
+        msg->lng = s->lng;
+        msg->lat = s->lat;
+        tw_event_send(e);
     }
-    
-    return 0;
 }
 
 /**
@@ -183,19 +169,54 @@ DoCalcRxPower (double txPowerDbm,
     distance += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
     
     distance = sqrt(distance);
-    
+        
     //double distance = a->GetDistanceFrom (b);
     double m_minDistance = 1.0; // A reasonable default
     if (distance <= m_minDistance)
     {
         return txPowerDbm;
     }
-    double m_lambda = 2437000000.0; // (2.437 GHz, chan 6)
+    double m_lambda = 3.0e8 / 2437000000.0; // (2.437 GHz, chan 6)
     double numerator = m_lambda * m_lambda;
     double denominator = 16 * M_PI * M_PI * distance * distance;// * m_systemLoss;
     double pr = 10 * log10 (numerator / denominator);
-    //NS_LOG_DEBUG ("distance="<<distance<<"m, attenuation coefficient="<<pr<<"dB");
+    //printf("distance=%fm, attenuation coefficient=%fdB\n", distance, pr);
     return txPowerDbm + pr;
+}
+
+#define RANGE 60.0
+
+static inline int out_of_radio_range(node_state *s, olsr_msg_data *m)
+{
+#if USE_RADIO_DISTANCE
+    const double range = RANGE;
+    
+    double sender_lng = m->lng;
+    double sender_lat = m->lat;
+    double receiver_lng = s->lng;
+    double receiver_lat = s->lat;
+    
+    // We have to make sure that everyone is in the same region even though
+    // they may have overlapping x/y coordinates, i.e. a region describes the
+    // local plane of existence for the nodes
+    assert(region(s->local_address) == region(m->originator));
+    
+    double dist = (sender_lng - receiver_lng) * (sender_lng - receiver_lng);
+    dist += (sender_lat - receiver_lat) * (sender_lat - receiver_lat);
+    
+    dist = sqrt(dist);
+    
+    if (dist > range) {
+        return 1;
+    }
+    
+    return 0;
+#else
+    if (DoCalcRxPower(OLSR_MPR_POWER, s, m) < -96.0)
+        return 1;
+    
+    return 0;
+#endif
 }
 
 /**
@@ -1403,6 +1424,40 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             
             // We don't need to compute our routing table here so just return!
+            return;
+        }
+        case SA_MASTER_TX:
+        {
+            printf("originator is %lu\n", m->originator);
+            // Schedule ourselves again...
+            ts = MASTER_SA_INTERVAL;
+            e = tw_event_new(lp->gid, ts, lp);
+            msg = tw_event_data(e);
+            msg->type = SA_MASTER_TX;
+            msg->originator = s->local_address;
+            // Always send these to node zero, who receives all SA_MASTER msgs
+            msg->destination = 0;
+            msg->lng = s->lng;
+            msg->lat = s->lat;
+            tw_event_send(e);
+                        
+            // Send it on to node 0
+            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            e = tw_event_new(0, ts, lp);
+            msg = tw_event_data(e);
+            msg->type = SA_MASTER_RX;
+            msg->originator = s->local_address;
+            msg->sender = s->local_address;
+            msg->destination = 0;
+            msg->lng = s->lng;
+            msg->lat = s->lat;
+            tw_event_send(e);
+            
+            return;
+        }
+        case SA_MASTER_RX:
+        {
+            printf("RECEIVED SA_MASTER\n");
             return;
         }
     }

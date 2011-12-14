@@ -32,6 +32,10 @@
 #define MASTER_SA_INTERVAL 60
 #define OLSR_DUP_HOLD_TIME 30
 
+
+#define OLSR_MPR_POWER 16     // dbm
+
+
 /** max neighbors (for array implementation) */
 #define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (16 * OLSR_MAX_NEIGHBORS)
@@ -51,7 +55,9 @@ typedef enum {
     TC_RX,
     TC_TX,
     SA_RX,
-    SA_TX
+    SA_TX,
+    SA_MASTER_TX,
+    SA_MASTER_RX
 } olsr_ev_type;
 
 /**
