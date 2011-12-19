@@ -73,7 +73,7 @@ FindB(long long a, long long k, long long m)
  * Returns(s*t) MOD M.  Assumes that -M < s < M and -M < t < M.    
  */
 
-inline long
+long
 MultModM(long s, long t, long M)
 {
   long R, S0, S1, q, qh, rh, k;

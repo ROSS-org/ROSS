@@ -1604,8 +1604,8 @@ int olsr_main(int argc, char *argv[])
     tw_init(&argc, &argv);
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
-   g_tw_lookahead = HELLO_INTERVAL * 1024;
-   g_tw_events_per_pe =  25 * nlp_per_pe  + 65536*2;
+   g_tw_lookahead = SA_INTERVAL;
+   g_tw_events_per_pe =  5 * nlp_per_pe  + 32768;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
    for (i = 0; i < g_tw_nlp; i++) {

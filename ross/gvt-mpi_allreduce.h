@@ -1,7 +1,7 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
-static tw_stime gvt_print_interval = 0.05;
+static tw_stime gvt_print_interval = 0.01;
 static tw_stime percent_complete = 0.0;
 
 static inline int 
@@ -22,9 +22,10 @@ gvt_print(tw_stime gvt)
 		return;
 	}
 
-	printf("GVT #%d: simulation %d%% complete (",
+	printf("GVT #%d: simulation %d%% complete, event queue size %u (",
 		g_tw_gvt_done,
-		(int) min(100, floor(100 * (gvt/g_tw_ts_end))));
+		(int) min(100, floor(100 * (gvt/g_tw_ts_end))), 
+           tw_pq_get_size(g_tw_pe[0]->pq));
 
 	if (gvt == DBL_MAX)
 		printf("GVT = %s", "MAX");
