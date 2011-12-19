@@ -524,6 +524,42 @@ dup_tuple * FindDuplicateTuple(o_addr addr, uint16_t seq_num, node_state *s)
     return NULL;
 }
 
+/**
+ * Had to add this function to minimize our dupe array
+ */
+void AddDuplicate(o_addr originator,
+                  uint16_t seq_num,
+                  Time ts,
+                  int retransmitted,
+                  node_state *s)
+{
+  int i;
+    
+  if (s->num_dupes == OLSR_MAX_DUPES - 1) {
+    // Find the oldest and replace it
+    int oldest = 0;
+        
+    for (i = 0; i < s->num_dupes; i++) {
+      if (s->dupSet[i].expirationTime < s->dupSet[oldest].expirationTime) {
+	oldest = i;
+      }
+    }
+        
+    s->dupSet[oldest].address = originator;
+    s->dupSet[oldest].sequenceNumber = seq_num;
+    s->dupSet[oldest].expirationTime = ts;
+    s->dupSet[oldest].retransmitted = retransmitted;
+  }
+  else {
+    s->dupSet[s->num_dupes].address = originator;
+    s->dupSet[s->num_dupes].sequenceNumber = seq_num;
+    s->dupSet[s->num_dupes].expirationTime = ts;
+    s->dupSet[s->num_dupes].retransmitted = retransmitted;
+    s->num_dupes++;
+    assert(s->num_dupes < OLSR_MAX_DUPES);
+  }
+}
+
 void printTC(olsr_msg_data *m, node_state *s)
 {
 #ifdef JML_DEBUG
@@ -631,12 +667,18 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
         duplicated->retransmitted = retransmitted;
     }
     else {
-        s->dupSet[s->num_dupes].address = olsrMessage->originator;
-        s->dupSet[s->num_dupes].sequenceNumber = olsrMessage->seq_num;
-        s->dupSet[s->num_dupes].expirationTime = tw_now(lp) + OLSR_DUP_HOLD_TIME;
-        s->dupSet[s->num_dupes].retransmitted = retransmitted;
-        s->num_dupes++;
-        assert(s->num_dupes < OLSR_MAX_DUPES);
+      AddDuplicate(olsrMessage->originator,
+		   olsrMessage->seq_num,
+		   tw_now(lp) + OLSR_DUP_HOLD_TIME,
+		   retransmitted,
+		   s);
+
+      //        s->dupSet[s->num_dupes].address = olsrMessage->originator;
+      //        s->dupSet[s->num_dupes].sequenceNumber = olsrMessage->seq_num;
+      //        s->dupSet[s->num_dupes].expirationTime = tw_now(lp) + OLSR_DUP_HOLD_TIME;
+      //        s->dupSet[s->num_dupes].retransmitted = retransmitted;
+      //        s->num_dupes++;
+      //        assert(s->num_dupes < OLSR_MAX_DUPES);
     }
 }
 
@@ -1428,7 +1470,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         }
         case SA_MASTER_TX:
         {
-            printf("originator is %lu\n", m->originator);
+	  //printf("originator is %lu\n", m->originator);
             // Schedule ourselves again...
             ts = MASTER_SA_INTERVAL;
             e = tw_event_new(lp->gid, ts, lp);
@@ -1457,7 +1499,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         }
         case SA_MASTER_RX:
         {
-            printf("RECEIVED SA_MASTER\n");
+	  //printf("RECEIVED SA_MASTER\n");
             return;
         }
     }
@@ -1563,7 +1605,7 @@ int olsr_main(int argc, char *argv[])
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    g_tw_lookahead = HELLO_INTERVAL * 1024;
-   g_tw_events_per_pe =  4 * nlp_per_pe  + 65536;
+   g_tw_events_per_pe =  25 * nlp_per_pe  + 65536*2;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
    for (i = 0; i < g_tw_nlp; i++) {
