@@ -1,5 +1,5 @@
 #include <ross.h>
-#include <mpi.h>
+#include </usr/local/include/mpi.h>
 
 struct act_q
 {
