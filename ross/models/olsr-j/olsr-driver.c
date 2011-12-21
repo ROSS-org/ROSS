@@ -1589,6 +1589,7 @@ tw_lptype olsr_lps[] = {
 const tw_optdef olsr_opts[] = {
     TWOPT_GROUP("OLSR Model"),
     TWOPT_UINT("lp_per_pe", nlp_per_pe, "number of LPs per processor"),
+    TWOPT_STIME("lookahead", g_tw_lookahead, "lookahead for the simulation"),
     TWOPT_END(),
 };
 
@@ -1604,7 +1605,7 @@ int olsr_main(int argc, char *argv[])
     tw_init(&argc, &argv);
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
-   g_tw_lookahead = SA_INTERVAL;
+   //g_tw_lookahead = SA_INTERVAL;
    g_tw_events_per_pe =  5 * nlp_per_pe  + 32768;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
