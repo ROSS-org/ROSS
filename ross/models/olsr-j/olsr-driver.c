@@ -628,8 +628,8 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
         if (s->mprSelSet[i].mainAddr == senderAddress) {
             // Round-robin-RX
             // Might want to rename HELLO_DELTA...
-            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
-            ts += 1;
+            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            // ts += 1;
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -730,7 +730,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     switch(m->type) {
         case HELLO_TX:
         {
-            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -788,7 +788,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Copy the message we just received; we can't add data to
             // a message sent by another node
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1158,7 +1158,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         case TC_TX:
         {
             // Might want to rename HELLO_DELTA...
-            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -1216,7 +1216,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // a message sent by another node
             
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1358,7 +1358,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             }
             
             // Might want to rename HELLO_DELTA...
-            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -1406,7 +1406,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // a message sent by another node
             
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1450,7 +1450,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                     return;
                 }
                 
-                ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
                 e = tw_event_new(lp->gid, ts, lp);
                 msg = tw_event_data(e);
                 msg->type = SA_RX;
@@ -1484,7 +1484,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             tw_event_send(e);
                         
             // Send it on to node 0
-            ts = tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
             e = tw_event_new(0, ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_MASTER_RX;
@@ -1606,7 +1606,7 @@ int olsr_main(int argc, char *argv[])
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    //g_tw_lookahead = SA_INTERVAL;
-   g_tw_events_per_pe =  5 * nlp_per_pe  + 32768;
+   g_tw_events_per_pe =  5 * nlp_per_pe  + 65536;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
    for (i = 0; i < g_tw_nlp; i++) {
