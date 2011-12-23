@@ -538,12 +538,14 @@ void AddDuplicate(o_addr originator,
   if (s->num_dupes == OLSR_MAX_DUPES - 1) {
     // Find the oldest and replace it
     int oldest = 0;
-        
+      
     for (i = 0; i < s->num_dupes; i++) {
       if (s->dupSet[i].expirationTime < s->dupSet[oldest].expirationTime) {
 	oldest = i;
       }
     }
+      
+      printf("Evicting dup %d (%lu)\n", oldest, s->dupSet[oldest].address);
         
     s->dupSet[oldest].address = originator;
     s->dupSet[oldest].sequenceNumber = seq_num;
@@ -1206,6 +1208,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // From http://www.dslreports.com/forum/r25655787-When-is-TTL-Decremented-by-a-Router-
             
             if (m->ttl == 0) {
+	      printf("TC_RX\n");
                 printf("TTL Expired\n");
                 return;
             }
@@ -1391,6 +1394,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // From http://www.dslreports.com/forum/r25655787-When-is-TTL-Decremented-by-a-Router-
             
             if (m->ttl == 0) {
+	      printf("SA_RX\n");
                 printf("TTL Expired\n");
                 return;
             }
