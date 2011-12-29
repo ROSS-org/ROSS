@@ -630,7 +630,7 @@ void ForwardDefault(olsr_msg_data *olsrMessage,
         if (s->mprSelSet[i].mainAddr == senderAddress) {
             // Round-robin-RX
             // Might want to rename HELLO_DELTA...
-            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
             // ts += 1;
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
@@ -732,7 +732,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     switch(m->type) {
         case HELLO_TX:
         {
-            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -790,7 +790,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // Copy the message we just received; we can't add data to
             // a message sent by another node
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1160,7 +1160,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         case TC_TX:
         {
             // Might want to rename HELLO_DELTA...
-            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -1219,7 +1219,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // a message sent by another node
             
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1361,7 +1361,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             }
             
             // Might want to rename HELLO_DELTA...
-            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
             
             cur_lp = tw_getlocal_lp(region(s->local_address)*OLSR_MAX_NEIGHBORS);
             
@@ -1410,7 +1410,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // a message sent by another node
             
             if (m->target < region(s->local_address)*OLSR_MAX_NEIGHBORS+OLSR_MAX_NEIGHBORS-1) {
-                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
                 
                 tw_lp *cur_lp = tw_getlocal_lp(m->target + 1);
                 
@@ -1454,7 +1454,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                     return;
                 }
                 
-                ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+                ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
                 e = tw_event_new(lp->gid, ts, lp);
                 msg = tw_event_data(e);
                 msg->type = SA_RX;
@@ -1488,7 +1488,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             tw_event_send(e);
                         
             // Send it on to node 0
-            ts = g_tw_lookahead + tw_rand_exponential(lp->rng, HELLO_DELTA);
+            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
             e = tw_event_new(0, ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_MASTER_RX;
