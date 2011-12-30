@@ -56,6 +56,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     s->num_mpr = 0;
     s->num_mpr_sel = 0;
     s->num_top_set = 0;
+    s->num_dupes = 0;
     for (i = 0; i < OLSR_MAX_NEIGHBORS; i++) {
         s->SA_per_node[i] = 0;
     }
