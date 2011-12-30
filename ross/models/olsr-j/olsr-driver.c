@@ -1150,7 +1150,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                         // We should add this guy to the selector set
                         s->mprSelSet[s->num_mpr_sel].mainAddr = m->originator;
                         s->num_mpr_sel++;
-                        assert(s->num_mpr_sel < OLSR_MAX_NEIGHBORS);
+                        assert(s->num_mpr_sel <= OLSR_MAX_NEIGHBORS);
                         mpr_sel_set_uniq(s);
                     }
                 }
