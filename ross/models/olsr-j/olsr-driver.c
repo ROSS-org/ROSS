@@ -546,7 +546,7 @@ void AddDuplicate(o_addr originator,
     while (1) {
         index_to_remove = -1;
         for (i = 0; i < s->num_dupes; i++) {
-            if (s->dupSet[i].expirationTime > exp) {
+            if (s->dupSet[i].expirationTime < exp) {
                 index_to_remove = i;
                 break;
             }
