@@ -16,7 +16,9 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define STAGGER_MAX 10
 #define HELLO_DELTA 0.0001
 #define OLSR_NO_FINAL_OUTPUT 1
-#define USE_RADIO_DISTANCE 0
+#define USE_RADIO_DISTANCE 1
+
+#define DEBUG 1
 
 static unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
@@ -102,6 +104,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     msg->lat = s->lat;
     tw_event_send(e);
     
+#if 0 /* Source of instability */
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
@@ -115,6 +118,7 @@ void olsr_init(node_state *s, tw_lp *lp)
         msg->lat = s->lat;
         tw_event_send(e);
     }
+#endif
 }
 
 /**
@@ -535,6 +539,28 @@ void AddDuplicate(o_addr originator,
                   tw_lp *lp)
 {
     int i;
+    int index_to_remove;
+    Time exp = tw_now(lp);
+    
+    while (1) {
+        index_to_remove = -1;
+        for (i = 0; i < s->num_dupes; i++) {
+            if (s->dupSet[i].expirationTime > exp) {
+                index_to_remove = i;
+                break;
+            }
+        }
+        
+        if (index_to_remove == -1) break;
+        
+        printf("Expiring Dupe\n");
+        
+        s->dupSet[index_to_remove].address        = s->dupSet[s->num_dupes-1].address;
+        s->dupSet[index_to_remove].expirationTime = s->dupSet[s->num_dupes-1].expirationTime;
+        s->dupSet[index_to_remove].retransmitted  = s->dupSet[s->num_dupes-1].retransmitted;
+        s->dupSet[index_to_remove].sequenceNumber = s->dupSet[s->num_dupes-1].sequenceNumber;
+        s->num_dupes--;
+    }
     
     if (s->num_dupes == OLSR_MAX_DUPES - 1) {
         // Find the oldest and replace it
@@ -546,7 +572,7 @@ void AddDuplicate(o_addr originator,
             }
         }
         
-        printf("node %lu evicting dup %d (%lu) at time %f\n", s->local_address, 
+        printf("node %lu (lpid = %llu) evicting dup %d (%lu) at time %f\n", s->local_address, lp->gid,
                oldest, s->dupSet[oldest].address, tw_now(lp));
         
         s->dupSet[oldest].address = originator;
@@ -731,6 +757,13 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     tw_lp *cur_lp;
     olsr_msg_data *msg;
     
+#if DEBUG
+    if( lp->gid == 1023 ) {
+        printf("LP DUMP Node %llu on Rank %d at TS=%lf: S Local Address = %llu, M Type = %d,M Sender = %llu, M Originator = %llu \n", 
+               lp->gid, g_tw_mynode, tw_now(lp), s->local_address, m->type, m->sender, m->originator );
+    }
+#endif /* DEBUG */
+
     switch(m->type) {
         case HELLO_TX:
         {
