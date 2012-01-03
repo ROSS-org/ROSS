@@ -554,7 +554,7 @@ void AddDuplicate(o_addr originator,
         
         if (index_to_remove == -1) break;
         
-        printf("Expiring Dupe\n");
+        //printf("Expiring Dupe\n");
         
         s->dupSet[index_to_remove].address        = s->dupSet[s->num_dupes-1].address;
         s->dupSet[index_to_remove].expirationTime = s->dupSet[s->num_dupes-1].expirationTime;
@@ -573,8 +573,8 @@ void AddDuplicate(o_addr originator,
             }
         }
         
-        printf("node %lu (lpid = %llu) evicting dup %d (%lu) at time %f\n", s->local_address, lp->gid,
-               oldest, s->dupSet[oldest].address, tw_now(lp));
+        //printf("node %lu (lpid = %llu) evicting dup %d (%lu) at time %f\n", s->local_address, lp->gid,
+         //      oldest, s->dupSet[oldest].address, tw_now(lp));
         
         s->dupSet[oldest].address = originator;
         s->dupSet[oldest].sequenceNumber = seq_num;
@@ -1245,7 +1245,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // From http://www.dslreports.com/forum/r25655787-When-is-TTL-Decremented-by-a-Router-
             
             if (m->ttl == 0) {
-	      printf("TC_RX\n");
+                printf("TC_RX\n");
                 printf("TTL Expired\n");
                 return;
             }
@@ -1431,7 +1431,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // From http://www.dslreports.com/forum/r25655787-When-is-TTL-Decremented-by-a-Router-
             
             if (m->ttl == 0) {
-	      printf("SA_RX\n");
+                printf("SA_RX\n");
                 printf("TTL Expired\n");
                 return;
             }
@@ -1647,7 +1647,7 @@ int olsr_main(int argc, char *argv[])
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    //g_tw_lookahead = SA_INTERVAL;
-   g_tw_events_per_pe =  5 * nlp_per_pe  + 65536;
+   g_tw_events_per_pe =  10 * nlp_per_pe  + 65536;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
     
    for (i = 0; i < g_tw_nlp; i++) {
