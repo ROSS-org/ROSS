@@ -18,7 +18,7 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define OLSR_NO_FINAL_OUTPUT 1
 #define USE_RADIO_DISTANCE 1
 
-#define DEBUG 1
+#define DEBUG 0
 
 static unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
@@ -32,6 +32,8 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
+
+unsigned long long g_olsr_event_stats[OLSR_END_EVENT];
 
 unsigned region(o_addr a)
 {
@@ -181,7 +183,8 @@ DoCalcRxPower (double txPowerDbm,
     {
         return txPowerDbm;
     }
-    double m_lambda = 3.0e8 / 2437000000.0; // (2.437 GHz, chan 6)
+    //double m_lambda = 3.0e8 / 2437000000.0; // (2.437 GHz, chan 6)
+    double m_lambda = 0.058; // Stolen from Ken's slides, ~ 5GHz
     double numerator = m_lambda * m_lambda;
     double denominator = 16 * M_PI * M_PI * distance * distance;// * m_systemLoss;
     double pr = 10 * log10 (numerator / denominator);
@@ -765,6 +768,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     }
 #endif /* DEBUG */
 
+    g_olsr_event_stats[m->type]++;
+    
     switch(m->type) {
         case HELLO_TX:
         {
@@ -1543,6 +1548,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 	  //printf("RECEIVED SA_MASTER\n");
             return;
         }
+        default:
+            return;
     }
     
     RoutingTableComputation(s);
@@ -1649,6 +1656,9 @@ int olsr_main(int argc, char *argv[])
    //g_tw_lookahead = SA_INTERVAL;
    g_tw_events_per_pe =  10 * nlp_per_pe  + 65536;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
+   
+    for(i = 0; i < OLSR_END_EVENT; i++)
+        g_olsr_event_stats[i] = 0;
     
    for (i = 0; i < g_tw_nlp; i++) {
      tw_lp_settype(i, &olsr_lps[0]);
@@ -1656,7 +1666,14 @@ int olsr_main(int argc, char *argv[])
     
     tw_run();
     
+    if( g_tw_synchronization_protocol != 1 )
+    {
+        MPI_Reduce( g_olsr_event_stats, g_olsr_event_stats, OLSR_END_EVENT, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+    
     if (tw_ismaster()) {
+        for( i = 0; i < OLSR_END_EVENT; i++ )
+            printf("OLSR Type %d Event Count = %llu \n", i, g_olsr_event_stats[i]);
         printf("Complete.\n");
     }
     

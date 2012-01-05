@@ -57,7 +57,8 @@ typedef enum {
     SA_RX,
     SA_TX,
     SA_MASTER_TX,
-    SA_MASTER_RX
+    SA_MASTER_RX,
+    OLSR_END_EVENT, // KEEP THIS LAST ELSE STATS ARRAY NOT BIG ENOUGH!!
 } olsr_ev_type;
 
 /**
