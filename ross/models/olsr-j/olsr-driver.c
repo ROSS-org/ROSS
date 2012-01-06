@@ -17,6 +17,7 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define HELLO_DELTA 0.0001
 #define OLSR_NO_FINAL_OUTPUT 1
 #define USE_RADIO_DISTANCE 1
+#define RWALK_INTERVAL 20
 
 #define DEBUG 0
 
@@ -32,6 +33,7 @@ unsigned g_reachability[OLSR_MAX_NEIGHBORS];
 neigh_tuple g_mpr_neigh_to_add;
 unsigned g_mpr_num_add_nodes;
 char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
+char g_olsr_mobility = 'N';
 
 unsigned long long g_olsr_event_stats[OLSR_END_EVENT];
 
@@ -106,6 +108,17 @@ void olsr_init(node_state *s, tw_lp *lp)
     msg->lng = s->lng;
     msg->lat = s->lat;
     tw_event_send(e);
+    
+    if (g_olsr_mobility != 'n' && g_olsr_mobility != 'N') {
+        // Build our initial RWALK_CHANGE messages
+        ts = tw_rand_unif(lp->rng) * RWALK_INTERVAL + 1.0;
+        e = tw_event_new(lp->gid, ts, lp);
+        msg = tw_event_data(e);
+        msg->type = RWALK_CHANGE;
+        msg->lng = tw_rand_unif(lp->rng) * GRID_MAX;
+        msg->lat = tw_rand_unif(lp->rng) * GRID_MAX;
+        tw_event_send(e);
+    }
     
 #if 0 /* Source of instability */
     // Build our initial SA_MASTER_TX messages
@@ -1548,6 +1561,23 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 	  //printf("RECEIVED SA_MASTER\n");
             return;
         }
+        case RWALK_CHANGE:
+        {
+            //printf("Changing our location to %f, %f\n",
+            //       m->lng, m->lat);
+            s->lng = m->lng;
+            s->lat = m->lat;
+            
+            // Build our initial RWALK_CHANGE messages
+            ts = tw_rand_unif(lp->rng) * RWALK_INTERVAL + 1.0;
+            e = tw_event_new(lp->gid, ts, lp);
+            msg = tw_event_data(e);
+            msg->type = RWALK_CHANGE;
+            msg->lng = tw_rand_unif(lp->rng) * GRID_MAX;
+            msg->lat = tw_rand_unif(lp->rng) * GRID_MAX;
+            tw_event_send(e);
+        }
+            
         default:
             return;
     }
@@ -1638,6 +1668,7 @@ const tw_optdef olsr_opts[] = {
     TWOPT_GROUP("OLSR Model"),
     TWOPT_UINT("lp_per_pe", nlp_per_pe, "number of LPs per processor"),
     TWOPT_STIME("lookahead", g_tw_lookahead, "lookahead for the simulation"),
+    TWOPT_CHAR("rwalk", g_olsr_mobility, "random walk [Y/N]"),
     TWOPT_END(),
 };
 
@@ -1654,7 +1685,7 @@ int olsr_main(int argc, char *argv[])
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    //g_tw_lookahead = SA_INTERVAL;
-   g_tw_events_per_pe =  10 * nlp_per_pe  + 65536;
+   g_tw_events_per_pe =  OLSR_MAX_NEIGHBORS / 2 * nlp_per_pe  + 65536;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
    
     for(i = 0; i < OLSR_END_EVENT; i++)
