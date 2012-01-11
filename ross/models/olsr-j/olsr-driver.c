@@ -36,6 +36,7 @@ char g_covered[BITNSLOTS(OLSR_MAX_NEIGHBORS)];
 char g_olsr_mobility = 'N';
 
 unsigned long long g_olsr_event_stats[OLSR_END_EVENT];
+unsigned long long g_olsr_root_event_stats[OLSR_END_EVENT];
 
 unsigned region(o_addr a)
 {
@@ -780,6 +781,13 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
                lp->gid, g_tw_mynode, tw_now(lp), s->local_address, m->type, m->sender, m->originator );
     }
 #endif /* DEBUG */
+
+#if ENABLE_OPTIMISTIC
+    if( g_tw_synchronization_protocol == OPTIMISTIC )
+      {
+	memcpy( &(m->state_copy), s, sizeof(node_state));
+      }
+#endif 
 
     g_olsr_event_stats[m->type]++;
     
@@ -1585,6 +1593,17 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     RoutingTableComputation(s);
 }
 
+void olsr_event_reverse(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
+{
+#if ENABLE_OPTIMISTIC
+    if( g_tw_synchronization_protocol == OPTIMISTIC )
+      {
+	memcpy( s, &(m->state_copy), sizeof(node_state));
+      }
+    g_olsr_event_stats[m->type]--;
+#endif 
+}
+
 void olsr_final(node_state *s, tw_lp *lp)
 {
     int i;
@@ -1656,7 +1675,7 @@ tw_lptype olsr_lps[] = {
     {
         (init_f) olsr_init,
         (event_f) olsr_event,
-        (revent_f) NULL,
+        (revent_f) olsr_event_reverse,
         (final_f) olsr_final,
         (map_f) olsr_map,
         sizeof(node_state)
@@ -1685,7 +1704,7 @@ int olsr_main(int argc, char *argv[])
     
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    //g_tw_lookahead = SA_INTERVAL;
-   g_tw_events_per_pe =  OLSR_MAX_NEIGHBORS / 2 * nlp_per_pe  + 65536;
+   g_tw_events_per_pe =  OLSR_MAX_NEIGHBORS / 2 * nlp_per_pe  + 16384;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
    
     for(i = 0; i < OLSR_END_EVENT; i++)
@@ -1699,12 +1718,12 @@ int olsr_main(int argc, char *argv[])
     
     if( g_tw_synchronization_protocol != 1 )
     {
-        MPI_Reduce( g_olsr_event_stats, g_olsr_event_stats, OLSR_END_EVENT, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce( g_olsr_event_stats, g_olsr_root_event_stats, OLSR_END_EVENT, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
     }
     
     if (tw_ismaster()) {
         for( i = 0; i < OLSR_END_EVENT; i++ )
-            printf("OLSR Type %d Event Count = %llu \n", i, g_olsr_event_stats[i]);
+            printf("OLSR Type %d Event Count = %llu \n", i, g_olsr_root_event_stats[i]);
         printf("Complete.\n");
     }
     

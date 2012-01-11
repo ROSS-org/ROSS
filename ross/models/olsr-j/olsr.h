@@ -23,6 +23,8 @@
 
 #include "ross.h"
 
+#define ENABLE_OPTIMISTIC 0
+
 /** HELLO message interval */
 #define HELLO_INTERVAL 2
 /** TC message interval */
@@ -37,7 +39,7 @@
 
 
 /** max neighbors (for array implementation) */
-#define OLSR_MAX_NEIGHBORS 64
+#define OLSR_MAX_NEIGHBORS 16
 #define OLSR_MAX_2_HOP (OLSR_MAX_NEIGHBORS * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_TOP_TUPLES (OLSR_MAX_NEIGHBORS * OLSR_MAX_NEIGHBORS)
 #define OLSR_MAX_ROUTES (OLSR_MAX_NEIGHBORS * OLSR_MAX_NEIGHBORS)
@@ -302,6 +304,9 @@ typedef struct
     union message_type mt; ///< Union for message type
     unsigned long target;  ///< Target index into g_tw_lp
     uint16_t seq_num;      ///< Sequence number for this message
+#if ENABLE_OPTIMISTIC
+    node_state state_copy;  ///< copy state for the lp that processes the event
+#endif 
 } olsr_msg_data;
 
 
