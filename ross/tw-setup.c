@@ -8,7 +8,7 @@
 #define VERIFY_MAPPING 0
 
 static tw_pe *setup_pes(void);
-static unsigned int nkp_per_pe = 16;
+unsigned int nkp_per_pe = 16;
 
 static const tw_optdef kernel_options[] = {
 	TWOPT_GROUP("ROSS Kernel"),
