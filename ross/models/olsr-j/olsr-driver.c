@@ -43,6 +43,20 @@ unsigned region(o_addr a)
     return a / OLSR_MAX_NEIGHBORS;
 }
 
+static unsigned int SA_range_start;
+
+o_addr sa_master_for_level(o_addr lpid, int level)
+{
+    // Get the region number
+    int rnum = region(lpid);
+    // Now correct for all the LPs before this aggregator
+    rnum += SA_range_start * tw_nnodes();
+    printf("We're sending SA data to node %d\n", rnum);
+    return rnum;
+    
+    return 0;
+}
+
 /**
  * Initializer for OLSR
  */
@@ -121,11 +135,12 @@ void olsr_init(node_state *s, tw_lp *lp)
         tw_event_send(e);
     }
     
-#if 0 /* Source of instability */
+#if 1 /* Source of instability if done naively */
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
-        e = tw_event_new(lp->gid, ts, lp);
+        //e = tw_event_new(lp->gid, ts, lp);
+        e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
         msg = tw_event_data(e);
         msg->type = SA_MASTER_TX;
         msg->originator = s->local_address;
@@ -136,6 +151,14 @@ void olsr_init(node_state *s, tw_lp *lp)
         tw_event_send(e);
     }
 #endif
+}
+
+void sa_master_init(node_state *s, tw_lp *lp)
+{
+    s->local_address = lp->gid;
+    printf("I am an SA master and my local_address is %lu\n", s->local_address);
+    fflush(stdout);
+    
 }
 
 /**
@@ -1666,17 +1689,146 @@ void olsr_final(node_state *s, tw_lp *lp)
     printf("\n");
 }
 
+extern unsigned int nkp_per_pe;
+
 tw_peid olsr_map(tw_lpid gid)
 {
-    return (tw_peid)gid / g_tw_nlp;
+    if (gid < SA_range_start * tw_nnodes()) {
+        return (tw_peid)gid / SA_range_start;
+    }
+    // gid is above the max lpid, it must be an aggregator
+    gid -= SA_range_start * tw_nnodes();
+    return gid / tw_nnodes();
+}
+
+//#define VERIFY_MAPPING 1
+
+void olsr_custom_mapping(void)
+{
+    tw_pe	*pe;
+    
+	int	 nlp_per_kp;
+	int	 lpid;
+	int	 kpid;
+	int	 i;
+	int	 j;
+    
+	// may end up wasting last KP, but guaranteed each KP has == nLPs
+	nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
+    
+	if(!nlp_per_kp)
+		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
+    
+	g_tw_lp_offset = g_tw_mynode * SA_range_start;
+    
+#if VERIFY_MAPPING
+	printf("NODE %d: nlp %lld, offset %lld\n", 
+           g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
+#endif
+    
+	for(kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); )
+	{
+#if VERIFY_MAPPING
+		printf("\tPE %d\n", pe->id);
+#endif
+        
+		for(i = 0; i < nkp_per_pe; i++, kpid++)
+		{
+			tw_kp_onpe(kpid, pe);
+            
+#if VERIFY_MAPPING
+			printf("\t\tKP %d", kpid);
+#endif
+            
+            int foo = g_tw_lp_offset;
+            
+			for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++)
+			{
+                
+                if (lpid < SA_range_start) {
+                    tw_lp_onpe(lpid, pe, g_tw_lp_offset+lpid);
+                    tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]); 
+                }
+
+                else {
+#if VERIFY_MAPPING
+                    printf("mapping LP %d to gid %d on PE %llu\n", lpid, SA_range_start * tw_nnodes() + region(foo), pe->id);
+#endif
+                    tw_lp_onpe(lpid, pe, SA_range_start * tw_nnodes() + region(foo));
+                    foo += OLSR_MAX_NEIGHBORS;
+                    tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+                }
+                
+#if VERIFY_MAPPING
+				if(0 == j % 20)
+					printf("\n\t\t\t");
+				printf("%lld ", lpid+g_tw_lp_offset);
+#endif
+			}
+            
+#if VERIFY_MAPPING
+			printf("\n");
+#endif
+		}
+	}
+    
+	if(!g_tw_lp[g_tw_nlp-1])
+		tw_error(TW_LOC, "Not all LPs defined! (g_tw_nlp=%d)", g_tw_nlp);
+    
+    /*
+	if(g_tw_lp[g_tw_nlp-1]->gid != g_tw_lp_offset + g_tw_nlp - 1)
+		tw_error(TW_LOC, "LPs not sequentially enumerated!");
+     */
+}
+
+tw_lp * olsr_mapping_to_lp(tw_lpid lpid)
+{
+    assert(lpid >= 0);
+    assert(lpid < g_tw_nlp * tw_nnodes());
+    
+    int id = lpid;
+    
+    if (id > SA_range_start * tw_nnodes()) {
+        id -= SA_range_start * tw_nnodes();
+        id /= tw_nnodes();
+        
+#if VERIFY_MAPPING
+        printf("Accessing gid %lu -> g_tw_lp[%d]\n", lpid, id);
+#endif
+        
+        return g_tw_lp[id];
+    }
+    
+    id %= SA_range_start;
+    
+#if VERIFY_MAPPING
+    printf("Accessing gid %lu -> g_tw_lp[%d]\n", lpid, id);
+#endif
+    
+    return g_tw_lp[id];
+}
+
+void null(void)
+{
+    
 }
 
 tw_lptype olsr_lps[] = {
+    // Our OLSR node handling functions
     {
         (init_f) olsr_init,
         (event_f) olsr_event,
         (revent_f) olsr_event_reverse,
         (final_f) olsr_final,
+        (map_f) olsr_map,
+        sizeof(node_state)
+    },
+    // Our SA aggregator handling functions
+    {
+        (init_f) sa_master_init,
+        (event_f) null,
+        (revent_f) NULL,
+        (final_f) null,
         (map_f) olsr_map,
         sizeof(node_state)
     },
@@ -1702,17 +1854,33 @@ int olsr_main(int argc, char *argv[])
     tw_opt_add(olsr_opts);
     tw_init(&argc, &argv);
     
+    g_tw_mapping = CUSTOM;
+    g_tw_custom_initial_mapping = &olsr_custom_mapping;
+    g_tw_custom_lp_global_to_local_map = &olsr_mapping_to_lp;
+    
     // nlp_per_pe = OLSR_MAX_NEIGHBORS;// / tw_nnodes();
    //g_tw_lookahead = SA_INTERVAL;
-   g_tw_events_per_pe =  OLSR_MAX_NEIGHBORS / 2 * nlp_per_pe  + 16384;
+    
+    SA_range_start = nlp_per_pe;
+    
+    // Increase nlp_per_pe by nlp_per_pe / OMN
+    nlp_per_pe += nlp_per_pe / OLSR_MAX_NEIGHBORS;
+    
+   g_tw_events_per_pe =  OLSR_MAX_NEIGHBORS / 2 * nlp_per_pe  + 65536;
    tw_define_lps(nlp_per_pe, sizeof(olsr_msg_data), 0);
    
     for(i = 0; i < OLSR_END_EVENT; i++)
         g_olsr_event_stats[i] = 0;
     
-   for (i = 0; i < g_tw_nlp; i++) {
+   for (i = 0; i < SA_range_start; i++) {
      tw_lp_settype(i, &olsr_lps[0]);
    }
+    
+    for (i = SA_range_start; i < nlp_per_pe; i++) {
+        tw_lp_settype(i, &olsr_lps[1]);
+    }
+    
+    printf("g_tw_nlp is %lu\n", g_tw_nlp);
     
     tw_run();
     
