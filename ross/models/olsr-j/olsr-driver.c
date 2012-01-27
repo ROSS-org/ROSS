@@ -145,7 +145,7 @@ void olsr_init(node_state *s, tw_lp *lp)
         msg->type = SA_MASTER_TX;
         msg->originator = s->local_address;
         // Always send these to node zero, who receives all SA_MASTER msgs
-        msg->destination = 0;
+        msg->destination = sa_master_for_level(lp->gid, 0);
         msg->lng = s->lng;
         msg->lat = s->lat;
         tw_event_send(e);
@@ -1616,6 +1616,14 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     RoutingTableComputation(s);
 }
 
+void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
+{
+    g_olsr_event_stats[m->type]++;
+    
+    printf("I fired\n");
+    fflush(stdout);
+}
+
 void olsr_event_reverse(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 {
 #if ENABLE_OPTIMISTIC
@@ -1788,8 +1796,8 @@ tw_lp * olsr_mapping_to_lp(tw_lpid lpid)
     
     int id = lpid;
     
-    if (id > SA_range_start * tw_nnodes()) {
-        id -= SA_range_start * tw_nnodes();
+    if (id >= SA_range_start * tw_nnodes()) {
+        id -= SA_range_start * g_tw_mynode;
         id /= tw_nnodes();
         
 #if VERIFY_MAPPING
@@ -1826,7 +1834,7 @@ tw_lptype olsr_lps[] = {
     // Our SA aggregator handling functions
     {
         (init_f) sa_master_init,
-        (event_f) null,
+        (event_f) sa_master_event,
         (revent_f) NULL,
         (final_f) null,
         (map_f) olsr_map,
