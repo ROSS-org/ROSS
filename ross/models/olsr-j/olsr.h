@@ -64,6 +64,18 @@ typedef enum {
     OLSR_END_EVENT, // KEEP THIS LAST ELSE STATS ARRAY NOT BIG ENOUGH!!
 } olsr_ev_type;
 
+char *event_names[OLSR_END_EVENT] = {
+    "HELLO_RX",
+    "HELLO_TX",
+    "TC_RX",
+    "TC_TX",
+    "SA_RX",
+    "SA_TX",
+    "SA_MASTER_TX",
+    "SA_MASTER_RX",
+    "RWALK_CHANGE"
+};
+
 /**
  struct hello - a basic hello message used by OLSR for link sensing / topology
  detection.

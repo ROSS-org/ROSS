@@ -45,6 +45,11 @@ unsigned region(o_addr a)
 
 static unsigned int SA_range_start;
 
+/**
+ * Returns the lpid of the master SA aggregator for the region containing lpid.  
+ * For example, if OMN = 16 then we have 16 OLSR nodes followed by one master
+ * on each pe.
+ */
 o_addr sa_master_for_level(o_addr lpid, int level)
 {
     // Get the region number
@@ -156,9 +161,7 @@ void olsr_init(node_state *s, tw_lp *lp)
 void sa_master_init(node_state *s, tw_lp *lp)
 {
     s->local_address = lp->gid;
-    printf("I am an SA master and my local_address is %lu\n", s->local_address);
-    fflush(stdout);
-    
+    printf("I am an SA master and my local_address is %lu\n", s->local_address);    
 }
 
 /**
@@ -1622,6 +1625,17 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     
     printf("I fired\n");
     fflush(stdout);
+    
+    switch (m->type) {
+        case SA_MASTER_TX:
+            break;
+            
+        case SA_MASTER_RX:
+            break;
+            
+        default:
+            break;
+    }
 }
 
 void olsr_event_reverse(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
@@ -1706,6 +1720,7 @@ tw_peid olsr_map(tw_lpid gid)
     }
     // gid is above the max lpid, it must be an aggregator
     gid -= SA_range_start * tw_nnodes();
+    gid /= (SA_range_start / OLSR_MAX_NEIGHBORS);
     return gid / tw_nnodes();
 }
 
@@ -1721,6 +1736,8 @@ void olsr_custom_mapping(void)
 	int	 i;
 	int	 j;
     
+    int foo;
+    
 	// may end up wasting last KP, but guaranteed each KP has == nLPs
 	nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
     
@@ -1728,6 +1745,7 @@ void olsr_custom_mapping(void)
 		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
     
 	g_tw_lp_offset = g_tw_mynode * SA_range_start;
+    foo = g_tw_lp_offset;
     
 #if VERIFY_MAPPING
 	printf("NODE %d: nlp %lld, offset %lld\n", 
@@ -1748,7 +1766,6 @@ void olsr_custom_mapping(void)
 			printf("\t\tKP %d", kpid);
 #endif
             
-            int foo = g_tw_lp_offset;
             
 			for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++)
 			{
@@ -1797,13 +1814,15 @@ tw_lp * olsr_mapping_to_lp(tw_lpid lpid)
     int id = lpid;
     
     if (id >= SA_range_start * tw_nnodes()) {
-        id -= SA_range_start * g_tw_mynode;
-        id /= tw_nnodes();
+        id -= SA_range_start * tw_nnodes();
+        id %= SA_range_start / OLSR_MAX_NEIGHBORS;
+        id += SA_range_start;
         
 #if VERIFY_MAPPING
         printf("Accessing gid %lu -> g_tw_lp[%d]\n", lpid, id);
 #endif
         
+        assert(id < g_tw_nlp);
         return g_tw_lp[id];
     }
     
@@ -1813,6 +1832,7 @@ tw_lp * olsr_mapping_to_lp(tw_lpid lpid)
     printf("Accessing gid %lu -> g_tw_lp[%d]\n", lpid, id);
 #endif
     
+    assert(id < g_tw_nlp);
     return g_tw_lp[id];
 }
 
@@ -1899,7 +1919,7 @@ int olsr_main(int argc, char *argv[])
     
     if (tw_ismaster()) {
         for( i = 0; i < OLSR_END_EVENT; i++ )
-            printf("OLSR Type %d Event Count = %llu \n", i, g_olsr_root_event_stats[i]);
+            printf("OLSR Type %s Event Count = %llu \n", event_names[i], g_olsr_root_event_stats[i]);
         printf("Complete.\n");
     }
     
