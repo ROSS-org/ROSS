@@ -144,8 +144,8 @@ void olsr_init(node_state *s, tw_lp *lp)
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
-        //e = tw_event_new(lp->gid, ts, lp);
-        e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
+        e = tw_event_new(lp->gid, ts, lp);
+        //e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
         msg = tw_event_data(e);
         msg->type = SA_MASTER_TX;
         msg->originator = s->local_address;
@@ -800,6 +800,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     tw_stime ts;
     tw_lp *cur_lp;
     olsr_msg_data *msg;
+    latlng *ll;
+    latlng_cluster *llc;
     
 #if DEBUG
     if( lp->gid == 1023 ) {
@@ -1561,29 +1563,47 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             // We don't need to compute our routing table here so just return!
             return;
         }
+#if 0 /* Source of instability if done naively */
+            // Build our initial SA_MASTER_TX messages
+            if (s->local_address == MASTER_NODE) {
+                ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
+                e = tw_event_new(lp->gid, ts, lp);
+                //e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
+                msg = tw_event_data(e);
+                msg->type = SA_MASTER_TX;
+                msg->originator = s->local_address;
+                // Always send these to node zero, who receives all SA_MASTER msgs
+                msg->destination = sa_master_for_level(lp->gid, 0);
+                msg->lng = s->lng;
+                msg->lat = s->lat;
+                tw_event_send(e);
+            }
+#endif
         case SA_MASTER_TX:
         {
+            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
+            fflush(stdout);
 	  //printf("originator is %lu\n", m->originator);
             // Schedule ourselves again...
-            ts = MASTER_SA_INTERVAL;
+            ts = MASTER_SA_INTERVAL + tw_rand_unif(lp->rng);
             e = tw_event_new(lp->gid, ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_MASTER_TX;
             msg->originator = s->local_address;
             // Always send these to node zero, who receives all SA_MASTER msgs
-            msg->destination = 0;
+            msg->destination = sa_master_for_level(lp->gid, 0);
             msg->lng = s->lng;
             msg->lat = s->lat;
             tw_event_send(e);
                         
             // Send it on to node 0
             ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
-            e = tw_event_new(0, ts, lp);
+            e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_MASTER_RX;
             msg->originator = s->local_address;
             msg->sender = s->local_address;
-            msg->destination = 0;
+            msg->destination = sa_master_for_level(lp->gid, 0);
             msg->lng = s->lng;
             msg->lat = s->lat;
             tw_event_send(e);
@@ -1592,7 +1612,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         }
         case SA_MASTER_RX:
         {
-	  //printf("RECEIVED SA_MASTER\n");
+            printf("RECEIVED SA_MASTER_RX in ERROR\n");
+            fflush(stdout);
             return;
         }
         case RWALK_CHANGE:
@@ -1623,14 +1644,15 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 {
     g_olsr_event_stats[m->type]++;
     
-    printf("I fired\n");
-    fflush(stdout);
-    
     switch (m->type) {
         case SA_MASTER_TX:
+            printf("RECEIVED SA_MASTER_TX in ERROR\n");
+            fflush(stdout);
             break;
             
         case SA_MASTER_RX:
+            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
+            fflush(stdout);
             break;
             
         default:
@@ -1721,7 +1743,7 @@ tw_peid olsr_map(tw_lpid gid)
     // gid is above the max lpid, it must be an aggregator
     gid -= SA_range_start * tw_nnodes();
     gid /= (SA_range_start / OLSR_MAX_NEIGHBORS);
-    return gid / tw_nnodes();
+    return gid;
 }
 
 //#define VERIFY_MAPPING 1

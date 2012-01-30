@@ -152,6 +152,17 @@ typedef struct /* Tc */
     unsigned num_neighbors;
 } TC;
 
+typedef struct
+{
+    double lng;
+    double lat;
+} latlng;
+
+typedef struct
+{
+    latlng ll[OLSR_MAX_NEIGHBORS];
+} latlng_cluster;
+
 
 typedef struct /* LinkTuple */
 {
@@ -302,6 +313,8 @@ typedef struct /*OlsrState */
 union message_type {
     hello h;
     TC t;
+    latlng l;
+    latlng_cluster llc;
 };
 
 typedef struct
