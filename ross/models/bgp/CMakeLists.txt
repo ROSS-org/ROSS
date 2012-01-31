@@ -10,7 +10,10 @@ SET( bgp_srcs
      bgp-ion.c 
      bgp-fs.c
      bgp-controller.c
-     bgp-ddn.c )
+     bgp-ddn.c 
+     codesparser.c
+     codeslexer.c
+     codesImpl.c )
 
 ADD_EXECUTABLE(bgp ${bgp_srcs})
 

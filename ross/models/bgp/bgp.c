@@ -13,6 +13,12 @@ const tw_optdef app_opt [] =
   TWOPT_UINT("numfs", N_FS_active, "number of file server active"),
   TWOPT_UINT("numion", N_ION_active, "number of ION active"),
   TWOPT_UINT("burst", burst_buffer_on, "burst buffer button"),
+  TWOPT_CHAR("iokernel", io_kernel_path, "absolute path to the IO kernel"),
+  TWOPT_CHAR("iokerneldef", io_kernel_def_path, "absolute path to the default IO kernel"),
+  TWOPT_CHAR("iokernelmeta", io_kernel_meta_path, "absolute path the IO kernel description file"),
+  TWOPT_CHAR("bbfilename", bbfilename, "monitored file name"),
+  TWOPT_CHAR("cnfilename", cnfilename, "monitored file name"),
+  TWOPT_CHAR("ddnfilename", ddnfilename, "monitored file name"),
   TWOPT_END()
 };
 
@@ -74,7 +80,6 @@ int main( int argc, char** argv )
 
   tw_opt_add(app_opt);
   tw_init(&argc, &argv);
-  printf("First version BGP model! \n");
 
   ////////////
   N_controller_per_DDN = NumControllerPerDDN;
@@ -116,6 +121,87 @@ int main( int argc, char** argv )
     tw_lp_settype(i + LPaccumulate, &mylps[4]);
 
   tw_run();
+
+  unsigned long long DDN_activity[N_sample];
+  unsigned long long CN_activity1[N_sample];
+  unsigned long long CN_activity2[N_sample];
+  unsigned long long CN_activity3[N_sample];
+  unsigned long long BB_activity1[N_sample];
+  unsigned long long BB_activity2[N_sample];
+  unsigned long long BB_activity3[N_sample];
+
+  for (i=0; i<N_sample; i++)
+    MPI_Reduce( &DDN_monitor[i], &DDN_activity[i],1,
+		MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  for (i=0; i<N_sample; i++)
+    {
+      MPI_Reduce( &CN_monitor1[i], &CN_activity1[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce( &CN_monitor2[i], &CN_activity2[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce( &CN_monitor3[i], &CN_activity3[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+      MPI_Reduce( &BB_monitor1[i], &BB_activity1[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce( &BB_monitor2[i], &BB_activity2[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce( &BB_monitor3[i], &BB_activity3[i],1,
+		  MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+
+  if (tw_ismaster())
+    {
+      FILE * pFile;
+      int n;
+      char name[512];
+
+      sprintf(name,"./%s.txt",ddnfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+  	fprintf(pFile,"%lld\n",DDN_activity[i]);
+      fclose (pFile);
+
+
+      sprintf(name,"./%s.txt.1",cnfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",CN_activity1[i]);
+      fclose (pFile);
+
+      sprintf(name,"./%s.txt.2",cnfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",CN_activity2[i]);
+      fclose (pFile);
+
+      sprintf(name,"./%s.txt.3",cnfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",CN_activity3[i]);
+      fclose (pFile);
+
+
+      sprintf(name,"./%s.txt.1",bbfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",BB_activity1[i]);
+      fclose (pFile);
+
+      sprintf(name,"./%s.txt.2",bbfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",BB_activity2[i]);
+      fclose (pFile);
+
+      sprintf(name,"./%s.txt.3",bbfilename);
+      pFile = fopen (name,"w");
+      for (i=0; i<N_sample; i++)
+	fprintf(pFile,"%lld\n",BB_activity3[i]);
+      fclose (pFile);
+
+    }
 
   tw_end();
   return 0;

@@ -7,17 +7,40 @@
 #ifndef BGP_EXTERN_H
 #define BGP_EXTERN_H
 
+//#define PRINTtrace
 //#define TRACE
 //#define ALIGNED
-//#define UNALIGNED
-#define UNIQUE 
+#define UNALIGNED
+//#define UNIQUE 
+
+#define BGP_DEFAULT_GID 0
 
 #include "bgp.h"
+
+extern char io_kernel_path[8192];
+
+extern char io_kernel_def_path[8192];
+extern char io_kernel_meta_path[8192];
+extern unsigned long long DDN_monitor[N_sample];
+extern unsigned long long CN_monitor1[N_sample];
+extern unsigned long long CN_monitor2[N_sample];
+extern unsigned long long CN_monitor3[N_sample];
+extern unsigned long long BB_monitor1[N_sample];
+extern unsigned long long BB_monitor2[N_sample];
+extern unsigned long long BB_monitor3[N_sample];
+
+extern char bbfilename[256];
+extern char cnfilename[256];
+extern char ddnfilename[256];
+
+extern unsigned long long timing_granuality;
 
 extern int N_ION_active;
 extern int N_FS_active;
 extern int opt_mem;
 extern int burst_buffer_on;
+extern unsigned long long burst_buffer_size;
+extern double bb_mem_copy_bw;
 
 extern int computation_time;
 extern int N_checkpoint;
@@ -39,13 +62,10 @@ extern double FS_DDN_in_bw;
 extern double FS_DDN_out_bw;
 extern double FS_CONT_msg_prep_time;
 extern double CONT_FS_in_bw;
-extern double DDN_FS_in_bw;
-extern double DDN_FS_out_bw;
 
 extern double close_meta_size;
 extern double CONT_CONT_msg_prep_time;
 extern double FS_DDN_meta_payload;
-extern double FS_DDN_read_meta;
 extern double DDN_ACK_size;
 
 extern long long stripe_size;

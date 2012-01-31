@@ -5,41 +5,57 @@
 
 #include "bgp.h"
 
-int N_ION_active = 8; // default, we can set it in command line
+char io_kernel_path[8192];
+
+char io_kernel_def_path[8192];
+char io_kernel_meta_path[8192];
+char bbfilename[256];
+char cnfilename[256];
+char ddnfilename[256];
+
+unsigned long long timing_granuality=10000000000;//5s
+unsigned long long DDN_monitor[N_sample];
+unsigned long long CN_monitor1[N_sample];
+unsigned long long CN_monitor2[N_sample];
+unsigned long long CN_monitor3[N_sample];
+unsigned long long BB_monitor1[N_sample];
+unsigned long long BB_monitor2[N_sample];
+unsigned long long BB_monitor3[N_sample];
+
+int N_ION_active = 4; // default, we can set it in command line
 int N_FS_active = 123;
 int opt_mem = 1024;
 int burst_buffer_on = 0;
+//unsigned long long burst_buffer_size = 4; //4GB
+//unsigned long long burst_buffer_size = 4294967296;//4194304*1024*10; //40GB
+unsigned long long burst_buffer_size = 400000000000;//4194304*1024*10; //40GB
+double bb_mem_copy_bw = 4;
 
 int computation_time = 5000;
-int N_checkpoint = 2;
+int N_checkpoint = 1;
 
 double CN_ION_meta_payload = 20;
 double CN_out_bw = 0.7;
 double CN_in_bw = 0.7;
 
 double ION_CONT_msg_prep_time = 1024;
-double ION_FS_meta_payload = 4*1024;
+double ION_FS_meta_payload = 1024;
 double ION_CN_out_bw = 0.7;
 double ION_CN_in_bw = 0.7;
 double ION_FS_out_bw = 0.28;
-double ION_FS_in_bw = 0.23;
+double ION_FS_in_bw = 0.28;
 
 double FS_ION_in_bw = 0.4;
-double FS_ION_out_bw = 0.42;
+double FS_ION_out_bw = 0.4;
 double FS_DDN_in_bw = 0.6;
 double FS_DDN_out_bw = 0.6;
 double FS_CONT_msg_prep_time = 128;
-double DDN_FS_out_bw = 0.6;
-double DDN_FS_in_bw = 0.6;
 
-// used in write
-//double handshake_payload_size = 371610;
-double handshake_payload_size = 2716100;
+double handshake_payload_size = 371600;
 
-double lookup_meta_size = 4*1024;
-double close_meta_size = 4*1024;
-double FS_DDN_meta_payload = 64*1024;
-double FS_DDN_read_meta = 1024;
+double lookup_meta_size = 256*1024;
+double close_meta_size = 256*1024;
+double FS_DDN_meta_payload = 1024*1024;
 double CONT_CONT_msg_prep_time = 1024;
 double DDN_ACK_size = 1024;
 double CONT_FS_in_bw = 0.6;
@@ -57,7 +73,7 @@ int N_PE;
 double meta_payload_size = 20;
 double create_payload_size = 4*1024;
 
-double ION_out_bw = 0.27;
+double ION_out_bw = 0.135;//0.27;
 double FS_in_bw = 0.31;
 double ION_in_bw = 0.27;
 double FS_out_bw = 0.3;
@@ -70,11 +86,11 @@ int nlp_CN;
 
 int rootCN;
 
-int NumDDN = 128;
+int NumDDN = 32;
 int NumControllerPerDDN = 1;
 int NumFSPerController = 1;
 
-int N_ION_per_FS = 5;
+int N_ION_per_FS = 4;
 int N_CN_per_ION = 256;
 
 int N_CN_per_DDN;
@@ -84,7 +100,6 @@ int N_controller_per_DDN;
 int N_DDN_per_PE;
 
 // default packet size
-
 
 double ACK_message_size = 20;
 
