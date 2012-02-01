@@ -329,6 +329,7 @@ typedef struct
     union message_type mt; ///< Union for message type
     unsigned long target;  ///< Target index into g_tw_lp
     uint16_t seq_num;      ///< Sequence number for this message
+    int level;             ///< Level for SA_MASTER messages
 #if ENABLE_OPTIMISTIC
     node_state state_copy;  ///< copy state for the lp that processes the event
 #endif 

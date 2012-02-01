@@ -50,16 +50,43 @@ static unsigned int SA_range_start;
  * For example, if OMN = 16 then we have 16 OLSR nodes followed by one master
  * on each pe.
  */
-o_addr sa_master_for_level(o_addr lpid, int level)
+o_addr sa_master_for_level(o_addr lpid)
 {
     // Get the region number
     int rnum = region(lpid);
     // Now correct for all the LPs before this aggregator
     rnum += SA_range_start * tw_nnodes();
-    printf("We're sending SA data to node %d\n", rnum);
+    //printf("We're sending SA data to node %d\n", rnum);
     return rnum;
+}
+
+/**
+ */
+o_addr master_hierarchy(o_addr lpid, int level)
+{
+    long val;
     
-    return 0;
+    //printf("master_hiearchy(%lu,%d): ", lpid, level);
+    
+    val = powl(2, level);
+    //printf("(val=%ld) ", val);
+    
+    // First, normalize the lpid
+    lpid -= SA_range_start * tw_nnodes();
+    assert(lpid >= 0);
+    
+    //printf("%lu -> ", lpid);
+    
+    lpid /= val;
+    lpid *= val;
+    
+    //printf("%lu -> ", lpid);
+    
+    lpid += SA_range_start * tw_nnodes();
+    
+    //printf("%lu\n", lpid);
+    
+    return lpid;
 }
 
 /**
@@ -145,12 +172,12 @@ void olsr_init(node_state *s, tw_lp *lp)
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
         e = tw_event_new(lp->gid, ts, lp);
-        //e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
+        //e = tw_event_new(sa_master_for_level(lp->gid), ts, lp);
         msg = tw_event_data(e);
         msg->type = SA_MASTER_TX;
         msg->originator = s->local_address;
         // Always send these to node zero, who receives all SA_MASTER msgs
-        msg->destination = sa_master_for_level(lp->gid, 0);
+        msg->destination = sa_master_for_level(lp->gid);
         msg->lng = s->lng;
         msg->lat = s->lat;
         tw_event_send(e);
@@ -161,7 +188,7 @@ void olsr_init(node_state *s, tw_lp *lp)
 void sa_master_init(node_state *s, tw_lp *lp)
 {
     s->local_address = lp->gid;
-    printf("I am an SA master and my local_address is %lu\n", s->local_address);    
+    //printf("I am an SA master and my local_address is %lu\n", s->local_address);    
 }
 
 /**
@@ -800,8 +827,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     tw_stime ts;
     tw_lp *cur_lp;
     olsr_msg_data *msg;
-    latlng *ll;
-    latlng_cluster *llc;
+    //latlng *ll;
+    //latlng_cluster *llc;
     
 #if DEBUG
     if( lp->gid == 1023 ) {
@@ -1568,7 +1595,7 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             if (s->local_address == MASTER_NODE) {
                 ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
                 e = tw_event_new(lp->gid, ts, lp);
-                //e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
+                //e = tw_event_new(sa_master_for_level(lp->gid), ts, lp);
                 msg = tw_event_data(e);
                 msg->type = SA_MASTER_TX;
                 msg->originator = s->local_address;
@@ -1581,9 +1608,11 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 #endif
         case SA_MASTER_TX:
         {
-            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
-            fflush(stdout);
-	  //printf("originator is %lu\n", m->originator);
+            int total_nodes = SA_range_start * tw_nnodes();
+            int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
+            
+            //printf("RECEIVED SA_MASTER_TX VALIDLY\n");
+            //fflush(stdout);
             // Schedule ourselves again...
             ts = MASTER_SA_INTERVAL + tw_rand_unif(lp->rng);
             e = tw_event_new(lp->gid, ts, lp);
@@ -1591,29 +1620,54 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->type = SA_MASTER_TX;
             msg->originator = s->local_address;
             // Always send these to node zero, who receives all SA_MASTER msgs
-            msg->destination = sa_master_for_level(lp->gid, 0);
+            msg->destination = sa_master_for_level(lp->gid);
             msg->lng = s->lng;
             msg->lat = s->lat;
             tw_event_send(e);
-                        
-            // Send it on to node 0
-            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
-            e = tw_event_new(sa_master_for_level(lp->gid, 0), ts, lp);
+            
+            // Send a new SA_MASTER_RX to an SA Master
+            ts = 1.0 + tw_rand_unif(lp->rng);
+            e = tw_event_new(sa_master_for_level(lp->gid), ts, lp);
             msg = tw_event_data(e);
             msg->type = SA_MASTER_RX;
             msg->originator = s->local_address;
             msg->sender = s->local_address;
-            msg->destination = sa_master_for_level(lp->gid, 0);
-            msg->lng = s->lng;
-            msg->lat = s->lat;
+            msg->destination = sa_master_for_level(lp->gid);
+            msg->level = 0;
             tw_event_send(e);
+            
+//            for (i = 0; i < total_regions; i++) {
+//                if (s->local_address == total_nodes + i) {
+//                    printf("Don't send a satellite message to ourselves! %lu->%d\n",
+//                           s->local_address, total_nodes + i);
+//                    continue;
+//                }
+//                // 2 second round-trip for satellite communications
+//                ts = 2.0 + tw_rand_unif(lp->rng);
+//                e = tw_event_new(total_nodes + i, ts, lp);
+//                msg = tw_event_data(e);
+//                msg->type = SA_MASTER_RX;
+//                tw_event_send(e);
+//            }
+                        
+//            // Send it on to node 0
+//            ts = g_tw_lookahead + tw_rand_unif(lp->rng) * HELLO_DELTA;
+//            e = tw_event_new(sa_master_for_level(lp->gid), ts, lp);
+//            msg = tw_event_data(e);
+//            msg->type = SA_MASTER_RX;
+//            msg->originator = s->local_address;
+//            msg->sender = s->local_address;
+//            msg->destination = sa_master_for_level(lp->gid);
+//            msg->lng = s->lng;
+//            msg->lat = s->lat;
+//            tw_event_send(e);
             
             return;
         }
         case SA_MASTER_RX:
         {
-            printf("RECEIVED SA_MASTER_RX in ERROR\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_RX in ERROR\n");
+            //fflush(stdout);
             return;
         }
         case RWALK_CHANGE:
@@ -1642,17 +1696,54 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 
 void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 {
+//    int i;
+    tw_stime ts;
+    tw_event *e;
+    olsr_msg_data *msg;
+    tw_lpid dest;
+//    int total_nodes = SA_range_start * tw_nnodes();
+//    int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
+    
     g_olsr_event_stats[m->type]++;
     
     switch (m->type) {
         case SA_MASTER_TX:
-            printf("RECEIVED SA_MASTER_TX in ERROR\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_TX in ERROR\n");
+            //fflush(stdout);
             break;
             
         case SA_MASTER_RX:
-            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_RX VALIDLY\n");
+            //fflush(stdout);
+            
+            if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
+                // Send a new SA_MASTER_RX to an SA Master
+                ts = 1.0 + tw_rand_unif(lp->rng);
+                dest = master_hierarchy(lp->gid, m->level+1);
+                e = tw_event_new(dest, ts, lp);
+                msg = tw_event_data(e);
+                msg->type = SA_MASTER_RX;
+                msg->originator = s->local_address;
+                msg->sender = s->local_address;
+                msg->destination = dest;
+                msg->level = m->level + 1;
+                tw_event_send(e);
+            }
+            
+            
+//            for (i = 0; i < total_regions; i++) {
+//                if (s->local_address == total_nodes + i) {
+//                    printf("Don't send a satellite message to ourselves! %lu->%d\n",
+//                           s->local_address, total_nodes + i);
+//                    continue;
+//                }
+//                // 2 second round-trip for satellite communications
+//                ts = 2.0 + tw_rand_unif(lp->rng);
+//                e = tw_event_new(total_nodes + i, ts, lp);
+//                msg = tw_event_data(e);
+//                msg->type = SA_MASTER_RX;
+//                tw_event_send(e);
+//            }
             break;
             
         default:
