@@ -1611,8 +1611,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             int total_nodes = SA_range_start * tw_nnodes();
             int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
             
-            printf("RECEIVED SA_MASTER_TX VALIDLY\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_TX VALIDLY\n");
+            //fflush(stdout);
             // Schedule ourselves again...
             ts = MASTER_SA_INTERVAL + tw_rand_unif(lp->rng);
             e = tw_event_new(lp->gid, ts, lp);
@@ -1666,8 +1666,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         }
         case SA_MASTER_RX:
         {
-            printf("RECEIVED SA_MASTER_RX in ERROR\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_RX in ERROR\n");
+            //fflush(stdout);
             return;
         }
         case RWALK_CHANGE:
@@ -1694,6 +1694,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     RoutingTableComputation(s);
 }
 
+tw_peid olsr_map(tw_lpid gid);
+
 void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 {
 //    int i;
@@ -1708,18 +1710,24 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     
     switch (m->type) {
         case SA_MASTER_TX:
-            printf("RECEIVED SA_MASTER_TX in ERROR\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_TX in ERROR\n");
+            //fflush(stdout);
             break;
             
         case SA_MASTER_RX:
-            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
-            fflush(stdout);
+            //printf("RECEIVED SA_MASTER_RX VALIDLY\n");
+            //fflush(stdout);
             
             if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
                 // Send a new SA_MASTER_RX to an SA Master
                 ts = 1.0 + tw_rand_unif(lp->rng);
                 dest = master_hierarchy(lp->gid, m->level+1);
+                
+                if (olsr_map(dest) != olsr_map(lp->gid)) {
+                    printf("Sending a remote message from %llu to %llu: LP gid %llu to %llu\n",
+                           olsr_map(lp->gid), olsr_map(dest), lp->gid, dest);
+                }
+                
                 e = tw_event_new(dest, ts, lp);
                 msg = tw_event_data(e);
                 msg->type = SA_MASTER_RX;
