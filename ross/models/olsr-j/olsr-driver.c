@@ -1611,8 +1611,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             int total_nodes = SA_range_start * tw_nnodes();
             int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
             
-            //printf("RECEIVED SA_MASTER_TX VALIDLY\n");
-            //fflush(stdout);
+            printf("RECEIVED SA_MASTER_TX VALIDLY\n");
+            fflush(stdout);
             // Schedule ourselves again...
             ts = MASTER_SA_INTERVAL + tw_rand_unif(lp->rng);
             e = tw_event_new(lp->gid, ts, lp);
@@ -1666,8 +1666,8 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
         }
         case SA_MASTER_RX:
         {
-            //printf("RECEIVED SA_MASTER_RX in ERROR\n");
-            //fflush(stdout);
+            printf("RECEIVED SA_MASTER_RX in ERROR\n");
+            fflush(stdout);
             return;
         }
         case RWALK_CHANGE:
@@ -1708,13 +1708,13 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     
     switch (m->type) {
         case SA_MASTER_TX:
-            //printf("RECEIVED SA_MASTER_TX in ERROR\n");
-            //fflush(stdout);
+            printf("RECEIVED SA_MASTER_TX in ERROR\n");
+            fflush(stdout);
             break;
             
         case SA_MASTER_RX:
-            //printf("RECEIVED SA_MASTER_RX VALIDLY\n");
-            //fflush(stdout);
+            printf("RECEIVED SA_MASTER_RX VALIDLY\n");
+            fflush(stdout);
             
             if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
                 // Send a new SA_MASTER_RX to an SA Master
@@ -2028,6 +2028,11 @@ int olsr_main(int argc, char *argv[])
     if( g_tw_synchronization_protocol != 1 )
     {
         MPI_Reduce( g_olsr_event_stats, g_olsr_root_event_stats, OLSR_END_EVENT, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+    else {
+        for (i = 0; i < OLSR_END_EVENT; i++) {
+            g_olsr_root_event_stats[i] = g_olsr_event_stats[i];
+        }
     }
     
     if (tw_ismaster()) {
