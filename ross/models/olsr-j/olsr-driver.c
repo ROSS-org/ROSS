@@ -66,25 +66,25 @@ o_addr master_hierarchy(o_addr lpid, int level)
 {
     long val;
     
-    //printf("master_hiearchy(%lu,%d): ", lpid, level);
+    printf("master_hiearchy(%lld,%d): ", lpid, level);
     
     val = powl(2, level);
-    //printf("(val=%ld) ", val);
+    printf("(val=%ld) ", val);
     
     // First, normalize the lpid
     lpid -= SA_range_start * tw_nnodes();
     assert(lpid >= 0);
     
-    //printf("%lu -> ", lpid);
+    printf("%lld -> ", lpid);
     
     lpid /= val;
     lpid *= val;
     
-    //printf("%lu -> ", lpid);
+    printf("%lld -> ", lpid);
     
     lpid += SA_range_start * tw_nnodes();
     
-    //printf("%lu\n", lpid);
+    printf("%lld\n", lpid);
     
     return lpid;
 }
@@ -1721,11 +1721,16 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             //fflush(stdout);
             
             x = log((double)(nlp_per_pe - SA_range_start) * tw_nnodes());
+            
+            printf("x = log (%lf)\n", (double)(nlp_per_pe - SA_range_start) * tw_nnodes());
+            
             printf("x1 is %lf\n", x);
 
             x = x / log(2.0);
             
             printf("x2 is %lf\n", x);
+            
+            printf("m->level is %d\n", m->level);
             
             //if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
             if (x > m->level) {
