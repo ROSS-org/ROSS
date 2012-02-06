@@ -119,7 +119,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     
     //g_X[s->local_address] = s->lng;
     //g_Y[s->local_address] = s->lat;
-    
+#if 0
     // Build our initial HELLO_TX messages
     ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
     e = tw_event_new(lp->gid, ts, lp);
@@ -166,6 +166,7 @@ void olsr_init(node_state *s, tw_lp *lp)
         msg->lat = tw_rand_unif(lp->rng) * GRID_MAX;
         tw_event_send(e);
     }
+#endif
     
 #if 1 /* Source of instability if done naively */
     // Build our initial SA_MASTER_TX messages
@@ -1703,6 +1704,7 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     tw_event *e;
     olsr_msg_data *msg;
     tw_lpid dest;
+    double x;
 //    int total_nodes = SA_range_start * tw_nnodes();
 //    int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
     
@@ -1718,7 +1720,15 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             //printf("RECEIVED SA_MASTER_RX VALIDLY\n");
             //fflush(stdout);
             
-            if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
+            x = log((double)(nlp_per_pe - SA_range_start) * tw_nnodes());
+            printf("x1 is %lf\n", x);
+
+            x = x / log(2.0);
+            
+            printf("x2 is %lf\n", x);
+            
+            //if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
+            if (x > m->level) {
                 // Send a new SA_MASTER_RX to an SA Master
                 ts = 1.0 + tw_rand_unif(lp->rng);
                 dest = master_hierarchy(lp->gid, m->level+1);
