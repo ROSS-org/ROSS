@@ -55,10 +55,10 @@ unsigned int    g_tw_periodicity = 1;
          */
 tw_stime g_tw_lookahead=0.005;
 
-	/*
+	/**
 	 * Number of messages to process at once out of the PQ before
 	 * returning back to handling things like GVT, message recption,
-	 * etc.
+	 * etc.  AKA the "batch" parameter to ROSS.
 	 */
 unsigned int g_tw_mblock = 16;
 unsigned int g_tw_gvt_interval = 16;
