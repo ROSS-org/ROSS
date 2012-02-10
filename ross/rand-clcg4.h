@@ -49,7 +49,7 @@ extern void     rng_set_initial_seed();
 extern void     rng_init_generator(tw_rng_stream * g, SeedType Where);
 extern void     rng_set_seed(tw_rng_stream * g, long * s);
 extern void     rng_get_state(tw_rng_stream * g, long * s);
-extern void     rng_write_state(tw_rng_stream * g);
+extern void     rng_write_state(tw_rng_stream * g, FILE *f);
 extern double   rng_gen_val(tw_rng_stream * g);
 extern double   rng_gen_reverse_val(tw_rng_stream * g);
 

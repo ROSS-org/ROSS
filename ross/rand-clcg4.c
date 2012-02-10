@@ -161,13 +161,13 @@ rng_set_seed(tw_rng_stream * g, long s[4])
  */
 
 void
-rng_write_state(tw_rng_stream * g)
+rng_write_state(tw_rng_stream * g, FILE *f)
 {
 	int	j;
 
 	for(j = 0; j < 4; j++)
-		printf("%lu ", g->Cg[j]);
-	printf("\n");
+	  fprintf( f, "%lu ", g->Cg[j]);
+	fprintf( f, "\n");
 }
 
 /*
