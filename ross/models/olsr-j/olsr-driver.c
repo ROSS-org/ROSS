@@ -38,6 +38,8 @@ char g_olsr_mobility = 'N';
 unsigned long long g_olsr_event_stats[OLSR_END_EVENT];
 unsigned long long g_olsr_root_event_stats[OLSR_END_EVENT];
 
+FILE *olsr_event_log=NULL;
+
 unsigned region(o_addr a)
 {
     return a / OLSR_MAX_NEIGHBORS;
@@ -100,6 +102,10 @@ void olsr_init(node_state *s, tw_lp *lp)
     olsr_msg_data *msg;
     tw_stime ts;
     int i;
+
+    fprintf( olsr_event_log, "OLSR Init LP %d RNG Seeds Are: ", lp->gid);
+    rng_write_state( lp->rng, olsr_event_log );
+
 
     //s->num_tuples = 0;
     s->num_neigh  = 0;
@@ -188,6 +194,9 @@ void olsr_init(node_state *s, tw_lp *lp)
 
 void sa_master_init(node_state *s, tw_lp *lp)
 {
+  fprintf( olsr_event_log, "SA Master Init LP %d RNG Seeds Are: ", lp->gid);
+  rng_write_state( lp->rng, olsr_event_log );
+
     s->local_address = lp->gid;
     //printf("I am an SA master and my local_address is %lu\n", s->local_address);    
 }
@@ -830,6 +839,9 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     olsr_msg_data *msg;
     //latlng *ll;
     //latlng_cluster *llc;
+
+    fprintf( olsr_event_log, "OLSR Event: LP %d Type %d at TS = %lf RNGs:", lp->gid, m->type, tw_now(lp) );
+    rng_write_state( lp->rng, olsr_event_log );
     
 #if DEBUG
     if( lp->gid == 1023 ) {
@@ -1635,6 +1647,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->sender = s->local_address;
             msg->destination = sa_master_for_level(lp->gid);
             msg->level = 0;
+
+	    fprintf(olsr_event_log, "Send Event OLSR LP %d to SA %d, Type %d at TS = %lf \n", 
+		    lp->gid, sa_master_for_level(lp->gid), m->type, ts );
+
             tw_event_send(e);
             
 //            for (i = 0; i < total_regions; i++) {
@@ -1708,6 +1724,9 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
 //    int total_nodes = SA_range_start * tw_nnodes();
 //    int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
     
+    fprintf( olsr_event_log, "SA Master Event: LP %d Type %d at TS = %lf RNGs:", lp->gid, m->type, tw_now(lp) );
+    rng_write_state( lp->rng, olsr_event_log );
+
     g_olsr_event_stats[m->type]++;
     
     switch (m->type) {
@@ -2014,9 +2033,16 @@ const tw_optdef olsr_opts[] = {
 int olsr_main(int argc, char *argv[])
 {
     int i;
+    char log[32];
     
     tw_opt_add(olsr_opts);
     tw_init(&argc, &argv);
+
+    sprintf( log, "olsr-log.%d", g_tw_mynode );
+
+    olsr_event_log = fopen( log, "w+");
+    if( olsr_event_log == NULL )
+      tw_error( TW_LOC, "Failed to Open OLSR Event Log file \n");
     
     g_tw_mapping = CUSTOM;
     g_tw_custom_initial_mapping = &olsr_custom_mapping;
