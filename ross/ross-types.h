@@ -34,7 +34,8 @@ enum tw_synch_e
     NO_SYNCH,
     SEQUENTIAL,
     CONSERVATIVE,
-    OPTIMISTIC
+    OPTIMISTIC,
+    OPTIMISTIC_DEBUG,
   };
 
 typedef enum tw_synch_e tw_synch;

@@ -258,41 +258,42 @@ tw_sched_init(tw_pe * me)
 /* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
 /*************************************************************************/
 
-void tw_scheduler_sequential(tw_pe * me) {
-	tw_stime gvt = 0.0;
-    
-	if(tw_nnodes() > 1) 
-		tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
-	
-	tw_event *cev;
-  	
-	tw_sched_init(me);
-  	tw_wall_now(&me->start_time);
-  	
-	while ((cev = tw_pq_dequeue(me->pq))) 
+void tw_scheduler_sequential(tw_pe * me) 
+{
+  tw_stime gvt = 0.0;
+  
+  if(tw_nnodes() > 1) 
+    tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
+  
+  tw_event *cev;
+  
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  
+  while ((cev = tw_pq_dequeue(me->pq))) 
     {
       tw_lp *clp = cev->dest_lp;
       tw_kp *ckp = clp->kp;
       
       me->cur_event = cev;
       ckp->last_time = cev->recv_ts;
-        
+      
       gvt = cev->recv_ts;
       if(gvt / g_tw_ts_end > percent_complete &&
-           tw_node_eq(&g_tw_mynode, &g_tw_masternode))
-      {
-            gvt_print(gvt);
-      }
-        
+	 tw_node_eq(&g_tw_mynode, &g_tw_masternode))
+	{
+	  gvt_print(gvt);
+	}
+      
       (*clp->type.event)(
 			 clp->cur_state,
 			 &cev->cv,
 			 tw_event_data(cev),
 			 clp);
       
-        
+      
       if (me->cev_abort)
-		tw_error(TW_LOC, "insufficient event memory");
+	tw_error(TW_LOC, "insufficient event memory");
       
       ckp->s_nevent_processed++;
       tw_event_free(me, cev);
@@ -452,5 +453,70 @@ tw_scheduler_optimistic(tw_pe * me)
   (*me->type.final)(me);
   
   tw_stats(me);
+}
+
+tw_stime g_tw_rollback_time=0.000000001;
+
+void
+tw_scheduler_optimistic_debug(tw_pe * me)
+{
+  tw_event *cev=NULL;
+
+  if(tw_nnodes() > 1) 
+    tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
+
+  printf("/***************************************************************************/\n");
+  printf("/***** WARNING: Starting Optimistic Debug Scheduler!! **********************/\n");
+  printf("This schedule assumes the following: \n");
+  printf(" 1) One 1 Processor/Core is used.\n");
+  printf(" 2) One 1 KP is used.\n");
+  printf(" 3) Events ARE NEVER RECLAIMED.\n");
+  printf(" 4) Executes til out of memory and injects rollback to first before primodal init event.\n");
+  printf(" 5) g_tw_rollback_time = %13.12lf \n", g_tw_rollback_time);
+  printf("/***************************************************************************/\n");
+
+  if( g_tw_nkp > 1 )
+    tw_error(TW_LOC, "Number of KPs is greater than 1.");
+  
+  
+  
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  
+  while ((cev = tw_pq_dequeue(me->pq))) 
+    {
+      tw_lp *clp = cev->dest_lp;
+      tw_kp *ckp = clp->kp;
+      
+      me->cur_event = cev;
+      ckp->last_time = cev->recv_ts;
+
+      /* don't update GVT */
+      (*clp->type.event)(
+			 clp->cur_state,
+			 &cev->cv,
+			 tw_event_data(cev),
+			 clp);
+      
+      
+      if (me->cev_abort)
+	{
+	  printf("/******************* Starting Rollback Phase ******************************/\n");
+	  tw_kp_rollback_to( cev->dest_lp->kp, g_tw_rollback_time );
+	  printf("/******************* Completed Rollback Phase ******************************/\n");
+
+	  return;
+	}      
+      ckp->s_nevent_processed++;
+      /* don't free events */
+    }
+  tw_wall_now(&me->end_time);
+  
+  printf("*** END SIMULATION ***\n\n");
+  
+  tw_stats(me);
+  
+  (*me->type.final)(me);
+
 }
 

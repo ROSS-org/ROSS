@@ -152,6 +152,7 @@ extern void tw_end(void);
 extern void tw_scheduler_sequential(tw_pe * me);
 extern void tw_scheduler_conservative(tw_pe * me);
 extern void tw_scheduler_optimistic(tw_pe * me);
+extern void tw_scheduler_optimistic_debug(tw_pe * me);
 
 /*
  * tw-signal.c
