@@ -70,7 +70,7 @@ o_addr master_hierarchy(o_addr lpid, int level)
     
     printf("master_hiearchy(%lld,%d): ", lpid, level);
     
-    val = powl(2, level);
+    val = (long)pow(2.0, (double)level);
     printf("(val=%ld) ", val);
     
     // First, normalize the lpid
@@ -125,7 +125,6 @@ void olsr_init(node_state *s, tw_lp *lp)
     
     //g_X[s->local_address] = s->lng;
     //g_Y[s->local_address] = s->lat;
-#if 0
     // Build our initial HELLO_TX messages
     ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
     e = tw_event_new(lp->gid, ts, lp);
@@ -172,9 +171,8 @@ void olsr_init(node_state *s, tw_lp *lp)
         msg->lat = tw_rand_unif(lp->rng) * GRID_MAX;
         tw_event_send(e);
     }
-#endif
     
-#if 1 /* Source of instability if done naively */
+#if 0 /* Source of instability if done naively */
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
