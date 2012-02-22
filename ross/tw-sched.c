@@ -471,14 +471,12 @@ tw_scheduler_optimistic_debug(tw_pe * me)
   printf(" 1) One 1 Processor/Core is used.\n");
   printf(" 2) One 1 KP is used.\n");
   printf(" 3) Events ARE NEVER RECLAIMED.\n");
-  printf(" 4) Executes til out of memory and injects rollback to first before primodal init event.\n");
+  printf(" 4) Executes til out of memory (16 events left) and \n    injects rollback to first before primodal init event.\n");
   printf(" 5) g_tw_rollback_time = %13.12lf \n", g_tw_rollback_time);
   printf("/***************************************************************************/\n");
 
   if( g_tw_nkp > 1 )
     tw_error(TW_LOC, "Number of KPs is greater than 1.");
-  
-  
   
   tw_sched_init(me);
   tw_wall_now(&me->start_time);
@@ -498,8 +496,14 @@ tw_scheduler_optimistic_debug(tw_pe * me)
 			 tw_event_data(cev),
 			 clp);
       
+      ckp->s_nevent_processed++;
+
+      /* Thread current event into processed queue of kp */
+      cev->state.owner = TW_kp_pevent_q;
+      tw_eventq_unshift(&ckp->pevent_q, cev);
       
-      if (me->cev_abort)
+      /* stop when we have 16 events left */
+      if ( me->free_q.size == 16)
 	{
 	  printf("/******************* Starting Rollback Phase ******************************/\n");
 	  tw_kp_rollback_to( cev->dest_lp->kp, g_tw_rollback_time );
@@ -507,8 +511,6 @@ tw_scheduler_optimistic_debug(tw_pe * me)
 
 	  return;
 	}      
-      ckp->s_nevent_processed++;
-      /* don't free events */
     }
   tw_wall_now(&me->end_time);
   
