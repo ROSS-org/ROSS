@@ -502,8 +502,8 @@ tw_scheduler_optimistic_debug(tw_pe * me)
       cev->state.owner = TW_kp_pevent_q;
       tw_eventq_unshift(&ckp->pevent_q, cev);
       
-      /* stop when we have 16 events left */
-      if ( me->free_q.size == 16)
+      /* stop when we have 1024 events left */
+      if ( me->free_q.size <= 1024)
 	{
 	  printf("/******************* Starting Rollback Phase ******************************/\n");
 	  tw_kp_rollback_to( cev->dest_lp->kp, g_tw_rollback_time );
