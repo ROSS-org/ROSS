@@ -68,25 +68,25 @@ o_addr master_hierarchy(o_addr lpid, int level)
 {
     long val;
     
-    printf("master_hiearchy(%lld,%d): ", lpid, level);
+    //printf("master_hiearchy(%lld,%d): ", lpid, level);
     
     val = (long)pow(2.0, (double)level);
-    printf("(val=%ld) ", val);
+    //printf("(val=%ld) ", val);
     
     // First, normalize the lpid
     lpid -= SA_range_start * tw_nnodes();
     assert(lpid >= 0);
     
-    printf("%lld -> ", lpid);
+    //printf("%lld -> ", lpid);
     
     lpid /= val;
     lpid *= val;
     
-    printf("%lld -> ", lpid);
+    //printf("%lld -> ", lpid);
     
     lpid += SA_range_start * tw_nnodes();
     
-    printf("%lld\n", lpid);
+    //printf("%lld\n", lpid);
     
     return lpid;
 }
@@ -103,9 +103,10 @@ void olsr_init(node_state *s, tw_lp *lp)
     tw_stime ts;
     int i;
 
+#if DEBUG
     fprintf( olsr_event_log, "OLSR Init LP %d RNG Seeds Are: ", lp->gid);
     rng_write_state( lp->rng, olsr_event_log );
-
+#endif
 
     //s->num_tuples = 0;
     s->num_neigh  = 0;
@@ -172,7 +173,7 @@ void olsr_init(node_state *s, tw_lp *lp)
         tw_event_send(e);
     }
     
-#if 0 /* Source of instability if done naively */
+#if 1 /* Source of instability if done naively */
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
         ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
@@ -192,9 +193,11 @@ void olsr_init(node_state *s, tw_lp *lp)
 
 void sa_master_init(node_state *s, tw_lp *lp)
 {
+#if DEBUG
   fprintf( olsr_event_log, "SA Master Init LP %d RNG Seeds Are: ", lp->gid);
   rng_write_state( lp->rng, olsr_event_log );
-
+#endif
+    
     s->local_address = lp->gid;
     //printf("I am an SA master and my local_address is %lu\n", s->local_address);    
 }
@@ -838,10 +841,10 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     //latlng *ll;
     //latlng_cluster *llc;
 
+#if DEBUG
     fprintf( olsr_event_log, "OLSR Event: LP %d Type %d at TS = %lf RNGs:", lp->gid, m->type, tw_now(lp) );
     rng_write_state( lp->rng, olsr_event_log );
     
-#if DEBUG
     if( lp->gid == 1023 ) {
         printf("LP DUMP Node %llu on Rank %d at TS=%lf: S Local Address = %llu, M Type = %d,M Sender = %llu, M Originator = %llu \n", 
                lp->gid, g_tw_mynode, tw_now(lp), s->local_address, m->type, m->sender, m->originator );
@@ -1646,9 +1649,11 @@ void olsr_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             msg->destination = sa_master_for_level(lp->gid);
             msg->level = 0;
 
+#if DEBUG
 	    fprintf(olsr_event_log, "Send Event OLSR LP %d to SA %d, Type %d at TS = %lf \n", 
 		    lp->gid, sa_master_for_level(lp->gid), m->type, ts );
-
+#endif
+            
             tw_event_send(e);
             
 //            for (i = 0; i < total_regions; i++) {
@@ -1721,10 +1726,12 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     double x;
 //    int total_nodes = SA_range_start * tw_nnodes();
 //    int total_regions = total_nodes / OLSR_MAX_NEIGHBORS;
-    
+
+#if DEBUG
     fprintf( olsr_event_log, "SA Master Event: LP %d Type %d at TS = %lf RNGs:", lp->gid, m->type, tw_now(lp) );
     rng_write_state( lp->rng, olsr_event_log );
-
+#endif
+    
     g_olsr_event_stats[m->type]++;
     
     switch (m->type) {
@@ -1739,26 +1746,31 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
             
             x = log((double)(nlp_per_pe - SA_range_start) * tw_nnodes());
             
+#if DEBUG
             printf("x = log (%lf)\n", (double)(nlp_per_pe - SA_range_start) * tw_nnodes());
             
             printf("x1 is %lf\n", x);
+#endif
 
             x = x / log(2.0);
             
+#if DEBUG
             printf("x2 is %lf\n", x);
             
             printf("m->level is %d\n", m->level);
+#endif
             
             //if (log2((nlp_per_pe - SA_range_start) * tw_nnodes()) > m->level) {
             if (x > m->level) {
                 // Send a new SA_MASTER_RX to an SA Master
                 ts = 1.0 + tw_rand_unif(lp->rng);
                 dest = master_hierarchy(lp->gid, m->level+1);
-                
+#if DEBUG    
                 if (olsr_map(dest) != olsr_map(lp->gid)) {
                     printf("Sending a remote message from %llu to %llu: LP gid %llu to %llu\n",
                            olsr_map(lp->gid), olsr_map(dest), lp->gid, dest);
                 }
+#endif
                 
                 e = tw_event_new(dest, ts, lp);
                 msg = tw_event_data(e);
@@ -2036,11 +2048,13 @@ int olsr_main(int argc, char *argv[])
     tw_opt_add(olsr_opts);
     tw_init(&argc, &argv);
 
+#if DEBUG
     sprintf( log, "olsr-log.%d", g_tw_mynode );
 
     olsr_event_log = fopen( log, "w+");
     if( olsr_event_log == NULL )
       tw_error( TW_LOC, "Failed to Open OLSR Event Log file \n");
+#endif
     
     g_tw_mapping = CUSTOM;
     g_tw_custom_initial_mapping = &olsr_custom_mapping;
@@ -2068,7 +2082,9 @@ int olsr_main(int argc, char *argv[])
         tw_lp_settype(i, &olsr_lps[1]);
     }
     
+#if DEBUG
     printf("g_tw_nlp is %lu\n", g_tw_nlp);
+#endif
     
     tw_run();
     
