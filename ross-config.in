@@ -1,0 +1,54 @@
+#!/bin/sh
+
+ROSS_CC="@ROSS_CC@"
+ROSS_CXX="@ROSS_CXX@"
+ROSS_LD="@ROSS_CC@"
+
+prefix=`(cd $(dirname $0);pwd) | sed -e 's/\/bin//'`
+CFLAGS_OPTS='-D_GNU_SOURCE -g -Wall -DROSS_OPTION_LIST="@ROSS_CFLAGS@" @ROSS_CFLAGS@'
+usage="\
+Usage: ross-config [--cflags] [--ldflags] [--libs] [--cc] [--cxx] [--ld]"
+
+if test $# -eq 0; then
+      echo "${usage}" 1>&2
+      exit 1
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --cc)
+        echo "${ROSS_CC}"
+
+	;;
+    --cxx)
+        echo "${ROSS_CXX}"
+
+	;;
+    --ld)
+        echo "${ROSS_LD}"
+
+	;;
+    --cflags)
+	echo "-I${prefix}/include ${CFLAGS_OPTS}"
+
+      ;;
+    --ldflags)
+	echo -L${prefix}/lib
+
+      ;;
+    --libs)
+	libflags="-lROSS -lm"
+	echo $libflags
+    ;;
+    *)
+	echo "${usage}" 1>&2
+	exit 1
+      ;;
+  esac
+  shift
+done
