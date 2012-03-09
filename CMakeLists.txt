@@ -119,7 +119,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.user.in
                ${CMAKE_BINARY_DIR}/Doxyfile.user)
 
 IF(DOXYGEN_FOUND)
-	OPTION(BUILD_DOXYGEN "Build Doxygen documentation" ON)
+	OPTION(BUILD_DOXYGEN "Build Doxygen documentation" OFF)
 	IF(DOXYGEN_DOT_FOUND)
 		OPTION(DEFAULT_GRAPHS "Build Default Doxygen Graphs" OFF)	
 		OPTION(CALL_GRAPHS "Build Doxygen Call Graphs" OFF)
