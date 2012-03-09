@@ -135,6 +135,10 @@ tw_sched_cancel_q(tw_pe * me)
 static void
 tw_sched_batch(tw_pe * me)
 {
+	/* Number of consecutive times we gave up because there were no free event buffers. */
+	static int no_free_event_buffers = 0;
+	static int warned_no_free_event_buffers = 0;
+
         tw_clock	 start;
 	unsigned int	 msg_i;
 
@@ -150,9 +154,15 @@ tw_sched_batch(tw_pe * me)
 		 * Go do fossil collect immediately.
 		 */
 		if (me->free_q.size <= g_tw_gvt_threshold) {
+            /* Suggested by Adam Crume */
+			if(++no_free_event_buffers > 10 && !warned_no_free_event_buffers) {
+				printf("WARNING: No free event buffers.  Try increasing memory.\n");
+				warned_no_free_event_buffers = 1;
+			}
 			tw_gvt_force_update(me);
 			break;
 		}
+		no_free_event_buffers = 0;
 
 		start = tw_clock_read();
 		if (!(cev = tw_pq_dequeue(me->pq)))
