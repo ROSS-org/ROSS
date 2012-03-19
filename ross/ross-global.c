@@ -4,11 +4,13 @@
 	 * LP data structures are allocated dynamically when the
 	 * process starts up based on the number it requires.
 	 *
-	 * g_tw_nlp         -- Number of LPs in simulation.
-	 * g_tw_lp_offset   -- global id of g_tw_lp[0]
-	 * g_tw_nkp         -- Number of KPs in simulation.
-	 * g_tw_lp          -- Public LP objects.
-	 * g_tw_kp          -- Public KP objects.
+	 * g_tw_nlp         -- Number of LPs on this processor
+	 * g_tw_lp_offset   -- global id of g_tw_lp[0] (on this processor)
+	 * g_tw_nkp         -- Number of KPs on this processor
+                            IF this is 1, then it gets over written as nkp_per_pe * g_tw_npe 
+                            thus it is total KPs in simulation, not on this processor
+	 * g_tw_lp          -- Public LP object array (on this processor)
+	 * g_tw_kp          -- Public KP object array (on this processor)
 	 * g_tw_sv_growcnt  -- Add this many SV's to an LP if it is empty.
 	 * g_tw_fossil_attempts  -- Number of times fossil_collect is called
          * g_tw_nRNG_per_lp -- Number of RNG per LP
@@ -65,8 +67,8 @@ unsigned int g_tw_gvt_interval = 16;
 tw_stime     g_tw_ts_end = 100000.0;
 
 	/*
-	 * g_tw_npe             -- Number of PEs.
-	 * g_tw_pe              -- Public PE objects.
+	 * g_tw_npe             -- Number of PEs on this processor (usually one)
+	 * g_tw_pe              -- Public PE object array (on this processor)
 	 * g_tw_events_per_pe   -- Number of events to place in for each PE.
 	 *                         MUST be > 1 because of abort buffer.
 	 */
