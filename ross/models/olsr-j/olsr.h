@@ -64,17 +64,18 @@ typedef enum {
     OLSR_END_EVENT, // KEEP THIS LAST ELSE STATS ARRAY NOT BIG ENOUGH!!
 } olsr_ev_type;
 
-char *event_names[OLSR_END_EVENT] = {
-    "HELLO_RX",
-    "HELLO_TX",
-    "TC_RX",
-    "TC_TX",
-    "SA_RX",
-    "SA_TX",
-    "SA_MASTER_TX",
-    "SA_MASTER_RX",
-    "RWALK_CHANGE"
-};
+extern char *event_names[];
+//= {
+//    "HELLO_RX",
+//    "HELLO_TX",
+//    "TC_RX",
+//    "TC_TX",
+//    "SA_RX",
+//    "SA_TX",
+//    "SA_MASTER_TX",
+//    "SA_MASTER_RX",
+//    "RWALK_CHANGE"
+//};
 
 /**
  struct hello - a basic hello message used by OLSR for link sensing / topology
@@ -335,5 +336,14 @@ typedef struct
 #endif 
 } olsr_msg_data;
 
+void olsr_custom_mapping(void);
+tw_lp * olsr_mapping_to_lp(tw_lpid lpid);
+
+extern unsigned int nlp_per_pe;
+extern char g_olsr_mobility;
+extern unsigned int SA_range_start;
+extern unsigned long long g_olsr_event_stats[OLSR_END_EVENT];
+extern unsigned long long g_olsr_root_event_stats[OLSR_END_EVENT];
+extern tw_lptype olsr_lps[];
 
 #endif /* OLSR_H_ */
