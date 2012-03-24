@@ -1,6 +1,7 @@
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(olsr_srcs
+	olsr-main.c
 	olsr-driver.c  
 	olsr.h
 )
