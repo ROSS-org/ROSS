@@ -90,6 +90,8 @@ IF(ARCH STREQUAL ppc64)
        #SET(CC   mpicc)
        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
        ADD_DEFINITIONS(-D_GNU_SOURCE)
+       # For using Unity on a 64-bit platform
+       ADD_DEFINITIONS(-DUNITY_INCLUDE_64)
        SET(CLOCK       ppc)
 ENDIF(ARCH STREQUAL ppc64)
 
@@ -99,6 +101,8 @@ IF(ARCH STREQUAL x86_64)
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O6 -Wall")
         SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
         ADD_DEFINITIONS(-D_GNU_SOURCE)
+        # For using Unity on a 64-bit platform
+        ADD_DEFINITIONS(-DUNITY_INCLUDE_64)	
         SET(CLOCK       amd64)
 ENDIF(ARCH STREQUAL x86_64)
 
@@ -165,3 +169,5 @@ IF(BUILD_DOXYGEN)
 	ADD_CUSTOM_TARGET(apidoc ALL DEPENDS ${DOXYGEN_OUTPUT})
 
 ENDIF(BUILD_DOXYGEN)
+
+OPTION(UNIT_TESTS        "Build ROSS tests" OFF)
