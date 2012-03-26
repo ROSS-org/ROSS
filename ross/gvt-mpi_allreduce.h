@@ -22,10 +22,10 @@ gvt_print(tw_stime gvt)
 		return;
 	}
 
-	printf("GVT #%d: simulation %d%% complete, event queue size %u (",
+	printf("GVT #%d: simulation %d%% complete, max event queue size %u (",
 		g_tw_gvt_done,
 		(int) min(100, floor(100 * (gvt/g_tw_ts_end))), 
-           tw_pq_get_size(g_tw_pe[0]->pq));
+           tw_pq_max_size(g_tw_pe[0]->pq));
 
 	if (gvt == DBL_MAX)
 		printf("GVT = %s", "MAX");
