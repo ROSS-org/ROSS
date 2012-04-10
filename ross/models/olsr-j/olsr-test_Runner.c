@@ -40,9 +40,9 @@ void resetTest()
 //=======MAIN=====
 int main(void)
 {
-  Unity.TestFile = "olsr-test.c";
+  Unity.TestFile = "/Users/laprej/TDD/rossnet/trunk/ross/models/olsr-j/olsr-test.c";
   UnityBegin();
-  RUN_TEST(test_region, 14);
+  RUN_TEST(test_region, 12);
 
   return (UnityEnd());
 }
