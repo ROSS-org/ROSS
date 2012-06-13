@@ -3,6 +3,7 @@
  * Ning Liu
  */
 
+
 #include "bgp.h"
 
 char io_kernel_path[8192];
@@ -86,9 +87,9 @@ int nlp_CN;
 
 int rootCN;
 
-int NumDDN = 32;
+int NumDDN = 128;
 int NumControllerPerDDN = 1;
-int NumFSPerController = 1;
+int NumFSPerController = 8;
 
 int N_ION_per_FS = 4;
 int N_CN_per_ION = 256;
