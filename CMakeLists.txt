@@ -85,6 +85,15 @@ IF(ARCH STREQUAL bgp)
        SET(CLOCK   bgl)
 ENDIF(ARCH STREQUAL bgp)
 
+IF(ARCH STREQUAL bgq)
+       SET(VALID_ARCH YES)
+       #SET(CC   mpixlc)
+       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O3")
+       SET(OPTIONS "")
+       SET(CLOCK   bgq)
+ENDIF(ARCH STREQUAL bgq)
+
+
 IF(ARCH STREQUAL ppc64)
        SET(VALID_ARCH YES)
        #SET(CC   mpicc)
