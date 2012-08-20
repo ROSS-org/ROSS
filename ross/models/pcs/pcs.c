@@ -922,7 +922,7 @@ main(int argc, char **argv)
   tw_init(&argc, &argv);
 
   nlp_per_pe = (NUM_CELLS_X * NUM_CELLS_Y) / (tw_nnodes() * g_tw_npe);
-  additional_memory_buffers = 4 * g_tw_mblock * g_tw_gvt_interval;
+  additional_memory_buffers = 2 * g_tw_mblock * g_tw_gvt_interval;
 
   g_tw_events_per_pe = (nlp_per_pe * (unsigned int)BIG_N) + 
     additional_memory_buffers;

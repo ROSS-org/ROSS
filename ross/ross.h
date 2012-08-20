@@ -171,6 +171,9 @@ typedef uintptr_t tw_lpid;
 #ifdef ROSS_CLOCK_bgl
 #  include "clock-bgl.h"
 #endif
+#ifdef ROSS_CLOCK_bgq
+#  include "clock-bgq.h"
+#endif
 #ifdef ROSS_CLOCK_none
 #  include "clock-none.h"
 #endif
