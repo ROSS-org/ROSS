@@ -178,7 +178,7 @@ tw_stats(tw_pe * me)
 	show_4f("Fossil Collect", (double) s.s_fossil_collect / g_tw_clock_rate);
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
-	show_4f("Total Time", (double) s.s_total / g_tw_clock_rate);
+	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);
 #endif
 
 	tw_gvt_stats(stdout);
