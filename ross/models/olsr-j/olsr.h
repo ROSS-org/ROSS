@@ -23,7 +23,9 @@
 
 #include "ross.h"
 
-#define ENABLE_OPTIMISTIC 0
+#define DEBUG 1
+
+#define ENABLE_OPTIMISTIC 1
 
 /** HELLO message interval */
 #define HELLO_INTERVAL 2

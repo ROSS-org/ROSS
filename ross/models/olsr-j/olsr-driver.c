@@ -19,8 +19,6 @@ double g_Y[OLSR_MAX_NEIGHBORS];
 #define USE_RADIO_DISTANCE 1
 #define RWALK_INTERVAL 20
 
-#define DEBUG 0
-
 unsigned int nlp_per_pe = OLSR_MAX_NEIGHBORS;
 
 // Used as scratch space for MPR calculations
