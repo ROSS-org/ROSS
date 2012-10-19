@@ -1744,6 +1744,13 @@ void sa_master_event(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
     rng_write_state( lp->rng, olsr_event_log );
 #endif
     
+#if ENABLE_OPTIMISTIC
+    if( g_tw_synchronization_protocol == OPTIMISTIC )
+    {
+        memcpy( &(m->state_copy), s, sizeof(node_state));
+    }
+#endif
+    
     g_olsr_event_stats[m->type]++;
     
     switch (m->type) {
@@ -1824,6 +1831,17 @@ void olsr_event_reverse(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
       }
     g_olsr_event_stats[m->type]--;
 #endif 
+}
+
+void sa_master_event_reverse(node_state *s, tw_bf *bf, olsr_msg_data *m, tw_lp *lp)
+{
+#if ENABLE_OPTIMISTIC
+    if( g_tw_synchronization_protocol == OPTIMISTIC )
+    {
+        memcpy( s, &(m->state_copy), sizeof(node_state));
+    }
+    g_olsr_event_stats[m->type]--;
+#endif
 }
 
 void olsr_final(node_state *s, tw_lp *lp)
@@ -2032,7 +2050,7 @@ tw_lptype olsr_lps[] = {
     {
         (init_f) sa_master_init,
         (event_f) sa_master_event,
-        (revent_f) NULL,
+        (revent_f) sa_master_event_reverse,
         (final_f) null,
         (map_f) olsr_map,
         sizeof(node_state)
