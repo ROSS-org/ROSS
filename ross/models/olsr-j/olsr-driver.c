@@ -139,7 +139,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     //g_X[s->local_address] = s->lng;
     //g_Y[s->local_address] = s->lat;
     // Build our initial HELLO_TX messages
-    ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
+    ts = g_tw_lookahead + tw_rand_unif(lp->rng) * STAGGER_MAX;
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
     msg->type = HELLO_TX;
@@ -151,7 +151,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     tw_event_send(e);
     
     // Build our initial TC_TX messages
-    ts = tw_rand_unif(lp->rng) * STAGGER_MAX;
+    ts = g_tw_lookahead + tw_rand_unif(lp->rng) * STAGGER_MAX;
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
     msg->type = TC_TX;
@@ -164,7 +164,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     tw_event_send(e);
     
     // Build our initial SA_TX messages
-    ts = tw_rand_unif(lp->rng) * STAGGER_MAX + SA_INTERVAL;
+    ts = g_tw_lookahead + tw_rand_unif(lp->rng) * STAGGER_MAX + SA_INTERVAL;
     e = tw_event_new(lp->gid, ts, lp);
     msg = tw_event_data(e);
     msg->type = SA_TX;
@@ -176,7 +176,7 @@ void olsr_init(node_state *s, tw_lp *lp)
     
     if (g_olsr_mobility != 'n' && g_olsr_mobility != 'N') {
         // Build our initial RWALK_CHANGE messages
-        ts = tw_rand_unif(lp->rng) * RWALK_INTERVAL + 1.0;
+        ts = g_tw_lookahead + tw_rand_unif(lp->rng) * RWALK_INTERVAL + 1.0;
         e = tw_event_new(lp->gid, ts, lp);
         msg = tw_event_data(e);
         msg->type = RWALK_CHANGE;
@@ -188,7 +188,7 @@ void olsr_init(node_state *s, tw_lp *lp)
 #if 1 /* Source of instability if done naively */
     // Build our initial SA_MASTER_TX messages
     if (s->local_address == MASTER_NODE) {
-        ts = tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
+        ts = g_tw_lookahead + tw_rand_unif(lp->rng) * MASTER_SA_INTERVAL + MASTER_SA_INTERVAL;
         e = tw_event_new(lp->gid, ts, lp);
         //e = tw_event_new(sa_master_for_level(lp->gid), ts, lp);
         msg = tw_event_data(e);
