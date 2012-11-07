@@ -23,6 +23,8 @@
 
 #include "ross.h"
 
+extern FILE *olsr_event_log;
+
 #define DEBUG 1
 
 #define ENABLE_OPTIMISTIC 1
