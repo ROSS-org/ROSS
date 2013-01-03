@@ -43,11 +43,10 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 	{
 		bf->c1 = 1;
 		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
-
-		dest += offset_lpid;
-
-		if(dest >= ttl_lps)
-			dest -= ttl_lps;
+		// Makes PHOLD non-deterministic across processors! Don't uncomment
+		/* dest += offset_lpid; */
+		/* if(dest >= ttl_lps) */
+		/* 	dest -= ttl_lps; */
 	} else
 	{
 		bf->c1 = 0;
