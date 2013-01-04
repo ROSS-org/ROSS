@@ -199,7 +199,7 @@ tw_hash_remove(void *h, tw_event * event, int pe)
     
     HASH_FIND(hh, event_hash, &lookup_key->event_id, keylen, found);
     
-    assert(found);
+    // assert(found); /* found should not be NULL! */
     
     HASH_DEL(event_hash, found);
     
