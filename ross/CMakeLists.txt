@@ -33,7 +33,8 @@ tw-state.c
 tw-stats.c
 tw-timing.c
 tw-timing.h
-tw-util.c)
+tw-util.c
+uthash.h)
 
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
