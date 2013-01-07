@@ -25,8 +25,9 @@ typedef struct {
 } lookup_key_t;
 
 tw_event *event_hash = NULL;
-static lookup_key_t *lookup_key = NULL;
-unsigned keylen;
+const unsigned keylen = offsetof(tw_event, send_pe)        /* offset of last key field */
+                        + sizeof(tw_peid)                  /* size of last key field */
+                        - offsetof(tw_event, event_id);    /* offset of first key field */
 #endif /* UTHASH */
 
 int
@@ -39,10 +40,6 @@ void           *
 tw_hash_create()
 {
 #ifdef UTHASH
-    lookup_key = calloc(sizeof(lookup_key_t), 1);
-    keylen = offsetof(tw_event, send_pe)        /* offset of last key field */
-        + sizeof(tw_peid)                       /* size of last key field */
-        - offsetof(tw_event, event_id);         /* offset of first key field */
     return (void *) event_hash;
 #else
 	tw_hash        *h;
@@ -193,11 +190,13 @@ tw_hash_remove(void *h, tw_event * event, int pe)
 {
 #ifdef UTHASH
     tw_event *found;
+    lookup_key_t key;
+
+    memset(&key, 0, sizeof(lookup_key_t));
+    key.event_id = event->event_id;
+    key.send_pe = pe;
     
-    lookup_key->event_id = event->event_id;
-    lookup_key->send_pe = pe;
-    
-    HASH_FIND(hh, event_hash, &lookup_key->event_id, keylen, found);
+    HASH_FIND(hh, event_hash, &key.event_id, keylen, found);
     
     // assert(found); /* found should not be NULL! */
     
@@ -271,11 +270,12 @@ hash_search(tw_event ** hash_t, tw_event *evt, int size)
 {
 #ifdef UTHASH
     tw_event *found;
+    lookup_key_t key;
+    memset(&key, 0, sizeof(lookup_key_t));
+    key.event_id = evt->event_id;
+    key.send_pe = evt->send_pe;
     
-    lookup_key->event_id = evt->event_id;
-    lookup_key->send_pe = evt->send_pe;
-    
-    HASH_FIND(hh, event_hash, &lookup_key->event_id, keylen, found);
+    HASH_FIND(hh, event_hash, &key.event_id, keylen, found);
     
     return found;
 #else
