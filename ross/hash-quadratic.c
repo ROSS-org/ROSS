@@ -1,7 +1,4 @@
 #include <ross.h>
-#ifdef UTHASH
-#include "uthash.h"
-#endif /* UTHASH */
 
 static void     rehash(tw_hash * hash_t, int pe);
 static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
@@ -18,18 +15,6 @@ void     hash_print(tw_hash * h);
 static unsigned int ncpu = 1;
 unsigned int g_tw_hash_size = 31;
 
-#ifdef UTHASH
-typedef struct {
-    tw_eventid event_id; /**< @brief Unique id assigned by src_lp->pe if remote. */
-    tw_peid    send_pe;  /**< @brief send_pe MUST follow event_id in order to be the key for UThash */
-} lookup_key_t;
-
-tw_event *event_hash = NULL;
-const unsigned keylen = offsetof(tw_event, send_pe)        /* offset of last key field */
-                        + sizeof(tw_peid)                  /* size of last key field */
-                        - offsetof(tw_event, event_id);    /* offset of first key field */
-#endif /* UTHASH */
-
 int
 hash_(tw_eventid event_id, int hash_size)
 {
@@ -39,9 +24,6 @@ hash_(tw_eventid event_id, int hash_size)
 void           *
 tw_hash_create()
 {
-#ifdef UTHASH
-    return (void *) event_hash;
-#else
 	tw_hash        *h;
 	unsigned int             pi;
 
@@ -66,15 +48,11 @@ tw_hash_create()
 	}
 
 	return (void *) h;
-#endif /* UTHASH */
 }
 
 void
 tw_hash_insert(void *h, tw_event * event, int pe)
 {
-#ifdef UTHASH
-    HASH_ADD(hh, event_hash, event_id, keylen, event);
-#else
 	tw_hash        *hash_t;
 
 	hash_t = (tw_hash *) h;
@@ -86,7 +64,6 @@ tw_hash_insert(void *h, tw_event * event, int pe)
 	{
 		rehash(hash_t, pe);
 	}
-#endif /* UTHASH */
 }
 
 void
@@ -188,22 +165,6 @@ allocate_table(int hash_size)
 tw_event       *
 tw_hash_remove(void *h, tw_event * event, int pe)
 {
-#ifdef UTHASH
-    tw_event *found;
-    lookup_key_t key;
-
-    memset(&key, 0, sizeof(lookup_key_t));
-    key.event_id = event->event_id;
-    key.send_pe = pe;
-    
-    HASH_FIND(hh, event_hash, &key.event_id, keylen, found);
-    
-    // assert(found); /* found should not be NULL! */
-    
-    HASH_DEL(event_hash, found);
-    
-    return found;
-#else
 	tw_hash        *hash_t = (tw_hash *) h;
 	tw_event       *ret_event;
 	int             key;
@@ -218,7 +179,6 @@ tw_hash_remove(void *h, tw_event * event, int pe)
 	(hash_t->num_stored[pe])--;
 	
 	return ret_event;
-#endif /* UTHASH */
 }
 
 int
@@ -268,17 +228,6 @@ is_prime(int ptst)
 tw_event *
 hash_search(tw_event ** hash_t, tw_event *evt, int size)
 {
-#ifdef UTHASH
-    tw_event *found;
-    lookup_key_t key;
-    memset(&key, 0, sizeof(lookup_key_t));
-    key.event_id = evt->event_id;
-    key.send_pe = evt->send_pe;
-    
-    HASH_FIND(hh, event_hash, &key.event_id, keylen, found);
-    
-    return found;
-#else
 	int             j, empty;
 	tw_event       *e;
 
@@ -297,7 +246,6 @@ hash_search(tw_event ** hash_t, tw_event *evt, int size)
 	printf("%d: HASH has %d empty cells. \n", g_tw_mynode, empty);
 
 	return NULL;
-#endif /* UTHASH */
 }
 
 void

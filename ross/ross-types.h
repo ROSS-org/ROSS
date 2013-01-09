@@ -5,8 +5,6 @@
  *  @brief Definition of ROSS basic types
  */
 
-#include "uthash.h"
-
 typedef struct tw_statistics tw_statistics;
 typedef struct tw_pq tw_pq;
 typedef struct tw_lptype tw_lptype;
@@ -285,7 +283,6 @@ struct tw_event
   	tw_event *cause_next; 			/**< @brief Next in parent's caused_by_me chain */
 
   	tw_eventid	 event_id; 			/**< @brief Unique id assigned by src_lp->pe if remote. */
-    tw_peid		 send_pe;               /**< @brief send_pe MUST follow event_id in order to be the key for UThash */
 
   	/** Status of the event's queue location(s). */
   	struct {
@@ -308,12 +305,11 @@ struct tw_event
   	tw_lp		*src_lp; 			/**< @brief Sending LP ID */
   	tw_stime	 recv_ts; 			/**< @brief Actual time to be received */
 
+  	tw_peid		 send_pe;
+
 #ifdef ROSS_MEMORY
   	tw_memory	*memory;
 #endif
-#ifdef UTHASH
-    UT_hash_handle hh;         /* makes this structure hashable */
-#endif /* UTHASH */
 };
 
 /**

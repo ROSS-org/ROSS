@@ -33,8 +33,7 @@ tw-state.c
 tw-stats.c
 tw-timing.c
 tw-timing.h
-tw-util.c
-uthash.h)
+tw-util.c)
 
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
@@ -44,10 +43,6 @@ ENDIF(MEMORY)
 IF(RAND_NORMAL)
 	SET(OPTIONS "${OPTIONS} -DRAND_NORMAL")
 ENDIF(RAND_NORMAL)
-
-IF(WITH_UTHASH)
-	SET(OPTIONS "${OPTIONS} -DUTHASH")
-ENDIF(WITH_UTHASH)
 
 IF(TIMING)
 	SET(OPTIONS "${OPTIONS} -DROSS_timing")
