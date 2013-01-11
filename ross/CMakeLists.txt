@@ -2,6 +2,8 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
+avl_tree.h
+avl_tree.c
 clock-${CLOCK}.c
 clock-${CLOCK}.h
 network-${NETWORK}.c
