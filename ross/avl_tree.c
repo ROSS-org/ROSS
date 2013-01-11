@@ -8,8 +8,6 @@
 
 /* implementation of an AVL tree with explicit heights */
 
-typedef struct tw_event tw_event;
-
 struct avlNode {
   struct avlNode *child[2];    /* left and right */
   tw_event *key;
