@@ -8,11 +8,7 @@
 
 /* implementation of an AVL tree with explicit heights */
 
-struct avlNode {
-  struct avlNode *child[2];    /* left and right */
-  tw_event *key;
-  int height;
-};
+
 
 /* free a tree */
 void 
@@ -21,7 +17,7 @@ avlDestroy(AvlTree t)
   if (t != AVL_EMPTY) {
     avlDestroy(t->child[0]);
     avlDestroy(t->child[1]);
-    free(t);
+    avl_free(t);
   }
 }
 
@@ -155,8 +151,11 @@ avlInsert(AvlTree *t, tw_event *key)
   /* insertion procedure */
   if (*t == AVL_EMPTY) {
     /* new t */
-    *t = malloc(sizeof(struct avlNode));
+    //*t = malloc(sizeof(struct avlNode));
+    *t = avl_alloc();
     assert(*t);
+    if (*t == 0 || *t == 0x10)
+      tw_error();
 
     (*t)->child[0] = AVL_EMPTY;
     (*t)->child[1] = AVL_EMPTY;
@@ -216,7 +215,7 @@ avlDeleteMin(AvlTree *t)
     oldroot = *t;
     event_with_lowest_ts = oldroot->key;
     *t = oldroot->child[1];
-    free(oldroot);
+    avl_free(oldroot);
   } 
   else {
     /* min value is in left subtree */
@@ -231,17 +230,15 @@ avlDeleteMin(AvlTree *t)
 tw_event *
 avlDelete(AvlTree *t, tw_event *key)
 {
-  tw_event *target;
+  tw_event *target = NULL;
   AvlTree oldroot;
   
-  /* if(*t != AVL_EMPTY) { */
-  /*   assert(0 && "We never look for non-existent events!"); */
-  /*   return NULL; */
-  /* } */
-  /* else  */
-  if ((*t)->key->recv_ts == key->recv_ts) {
+  if (*t == AVL_EMPTY) {
+    assert(0 && "We never look for non-existent events!");
+    return target;
+  } 
+  else if ((*t)->key->recv_ts == key->recv_ts) {
     target = (*t)->key;
-
     /* do we have a right child? */
     if ((*t)->child[1] != AVL_EMPTY) {
       /* give root min value in right subtree */
@@ -251,22 +248,21 @@ avlDelete(AvlTree *t, tw_event *key)
       /* splice out root */
       oldroot = (*t);
       *t = (*t)->child[0];
-      free(oldroot);
+      avl_free(oldroot);
     }
-    avlRebalance(t);
-    return target;
-  }
+  } 
   else {
+    //target = avlDelete(&(*t)->child[key > (*t)->key], key);
     if (key->recv_ts > (*t)->key->recv_ts) {
       target = avlDelete(&(*t)->child[1], key);
-      avlRebalance(t);
-      return target;
     }
-    target = avlDelete(&(*t)->child[0], key);
-    avlRebalance(t);
-    return target;
+    else {
+      target = avlDelete(&(*t)->child[0], key);
+    }
   }
   
   /* rebalance */
   avlRebalance(t);
+
+  return target;
 }

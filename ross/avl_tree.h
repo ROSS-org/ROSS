@@ -6,6 +6,13 @@
 
 typedef struct avlNode *AvlTree;
 
+struct avlNode {
+  struct avlNode *child[2];    /* left and right */
+  tw_event *key;
+  int height;
+  struct avlNode *next;        /* for ROSS weird linked-list memory */
+};
+
 /* empty avl tree is just a null pointer */
 
 #define AVL_EMPTY (0)
@@ -34,3 +41,7 @@ void avlPrintKeys(AvlTree t);
 tw_event * avlDeleteMin(AvlTree *t);
 
 tw_event * avlDelete(AvlTree *t, tw_event *key);
+
+AvlTree avl_alloc(void);
+
+void avl_free(AvlTree t);
