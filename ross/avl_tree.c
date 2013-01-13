@@ -45,9 +45,9 @@ avlSearch(AvlTree t, tw_event *key)
   } 
   else {
     if (t->key->recv_ts > key->recv_ts) {
-      return avlSearch(t->child[1], key);
+      return avlSearch(t->child[0], key);
     }
-    return avlSearch(t->child[0], key);
+    return avlSearch(t->child[1], key);
   }
 }
 
@@ -153,9 +153,9 @@ avlInsert(AvlTree *t, tw_event *key)
     /* new t */
     //*t = malloc(sizeof(struct avlNode));
     *t = avl_alloc();
-    assert(*t);
-    if (*t == 0 || *t == 0x10)
-      tw_error();
+    if (t == NULL) {
+      tw_error(TW_LOC, "Out of AVL tree nodes!");
+    }
 
     (*t)->child[0] = AVL_EMPTY;
     (*t)->child[1] = AVL_EMPTY;
@@ -205,8 +205,7 @@ tw_event *
 avlDeleteMin(AvlTree *t)
 {
   AvlTree oldroot;
-  tw_event *event_with_lowest_ts;
-  //double minValue;
+  tw_event *event_with_lowest_ts = NULL;
 
   assert(t != AVL_EMPTY);
 
