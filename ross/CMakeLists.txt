@@ -37,6 +37,10 @@ tw-timing.c
 tw-timing.h
 tw-util.c)
 
+IF(AVL_TREE)
+	SET(OPTIONS "${OPTIONS} -DUSE_AVL_TREE")
+ENDIF(AVL_TREE)
+
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
 	SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)

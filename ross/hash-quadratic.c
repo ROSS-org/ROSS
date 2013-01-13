@@ -1,4 +1,45 @@
 #include <ross.h>
+#ifdef USE_AVL_TREE
+
+#include <assert.h>
+#include "avl_tree.h"
+
+#define AVL_NODE_COUNT (1 << 18)
+
+/* AVL tree root */
+AvlTree avl_tree = NULL;
+
+/* AVL node free list and head pointers */
+AvlTree avl_list = NULL;
+AvlTree avl_list_head = NULL;
+
+AvlTree avl_alloc(void)
+{
+  AvlTree head = avl_list_head;
+  avl_list_head = avl_list_head->next;
+
+  if (avl_list_head == NULL) {
+    tw_error(TW_LOC, "avl_list_head is invalid!");
+  }
+
+  head->next = NULL;
+
+  return head;
+}
+
+void avl_free(AvlTree t)
+{
+  //memset(t, 0, sizeof(struct avlNode));
+  (t)->child[0] = AVL_EMPTY;
+  (t)->child[1] = AVL_EMPTY;
+  (t)->next = NULL;
+  (t)->key = NULL;
+  (t)->height = 0;
+  (t)->next = avl_list_head;
+  avl_list_head = t;
+}
+
+#endif /* USE_AVL_TREE */
 
 static void     rehash(tw_hash * hash_t, int pe);
 static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
@@ -24,6 +65,22 @@ hash_(tw_eventid event_id, int hash_size)
 void           *
 tw_hash_create()
 {
+#ifdef USE_AVL_TREE
+  int i;
+
+  avl_tree = AVL_EMPTY;
+
+  avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
+
+  for (i = 0; i < AVL_NODE_COUNT - 1; i++) {
+    avl_list[i].next = &avl_list[i + 1];
+  }
+  avl_list[i].next = NULL;
+
+  avl_list_head = &avl_list[0];
+
+  return NULL;
+#else
 	tw_hash        *h;
 	unsigned int             pi;
 
@@ -48,11 +105,15 @@ tw_hash_create()
 	}
 
 	return (void *) h;
+#endif
 }
 
 void
 tw_hash_insert(void *h, tw_event * event, int pe)
 {
+#ifdef USE_AVL_TREE
+  avlInsert(&avl_tree, event);
+#else
 	tw_hash        *hash_t;
 
 	hash_t = (tw_hash *) h;
@@ -64,6 +125,7 @@ tw_hash_insert(void *h, tw_event * event, int pe)
 	{
 		rehash(hash_t, pe);
 	}
+#endif
 }
 
 void
@@ -165,6 +227,15 @@ allocate_table(int hash_size)
 tw_event       *
 tw_hash_remove(void *h, tw_event * event, int pe)
 {
+#if USE_AVL_TREE
+  if (avlSearch(avl_tree, event))
+      return avlDelete(&avl_tree, event);
+
+  avlPrintKeys(avl_tree);
+  tw_error(TW_LOC, "event at %lf not found!\n", event->recv_ts);
+
+  return NULL; /* never gets here */
+#else
 	tw_hash        *hash_t = (tw_hash *) h;
 	tw_event       *ret_event;
 	int             key;
@@ -179,6 +250,7 @@ tw_hash_remove(void *h, tw_event * event, int pe)
 	(hash_t->num_stored[pe])--;
 	
 	return ret_event;
+#endif
 }
 
 int

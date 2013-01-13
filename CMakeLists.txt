@@ -39,6 +39,8 @@ OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
 OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
 
+OPTION(AVL_TREE	    "Use AVL trees for tw_events?" OFF)
+
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
 #SET(NETWORK      none)
