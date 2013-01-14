@@ -13,6 +13,8 @@ AvlTree avl_tree = NULL;
 AvlTree avl_list = NULL;
 AvlTree avl_list_head = NULL;
 
+unsigned avl_tree_size;
+
 AvlTree avl_alloc(void)
 {
   AvlTree head = avl_list_head;
@@ -68,6 +70,8 @@ tw_hash_create()
 #ifdef USE_AVL_TREE
   int i;
 
+  avl_tree_size = 0;
+    
   avl_tree = AVL_EMPTY;
 
   avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
@@ -112,6 +116,8 @@ void
 tw_hash_insert(void *h, tw_event * event, int pe)
 {
 #ifdef USE_AVL_TREE
+  avl_tree_size++;
+    
   avlInsert(&avl_tree, event);
 #else
 	tw_hash        *hash_t;
@@ -228,13 +234,9 @@ tw_event       *
 tw_hash_remove(void *h, tw_event * event, int pe)
 {
 #if USE_AVL_TREE
-  if (avlSearch(avl_tree, event))
-      return avlDelete(&avl_tree, event);
-
-  avlPrintKeys(avl_tree);
-  tw_error(TW_LOC, "event at %lf not found!\n", event->recv_ts);
-
-  return NULL; /* never gets here */
+  avl_tree_size--;
+    
+  return avlDelete(&avl_tree, event);
 #else
 	tw_hash        *hash_t = (tw_hash *) h;
 	tw_event       *ret_event;
