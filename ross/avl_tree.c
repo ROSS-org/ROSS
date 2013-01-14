@@ -169,6 +169,30 @@ avlInsert(AvlTree *t, tw_event *key)
   }
   else if (key->recv_ts == (*t)->key->recv_ts) {
     /* nothing to do */
+      printf("Trying to insert duplicate events\n");
+      printf("state.owner is [old : new] [%d : %d]\n",
+             (*t)->key->state.owner, key->state.owner);
+      // SOMETHING TO DO IS CHECK THE QUEUE AND EVENT ID
+      if ((*t)->key->state.owner == TW_pe_free_q) {
+          printf("Replacing old event in AVL tree\n");
+          (*t)->key = key;
+          return;
+      }
+      
+      if (key->event_id == (*t)->key->event_id) {
+          printf("Event IDs are the same!\n");
+      }
+      else {
+          printf("Event IDs are different! Saving the new one as well.\n");
+          //(*t)->key = key;
+          if (key->event_id > (*t)->key->event_id) {
+              avlInsert(&(*t)->child[1], key);
+          }
+          else {
+              avlInsert(&(*t)->child[0], key);
+          }
+          avlRebalance(t);
+      }
     return;
   } 
   else {
@@ -236,20 +260,32 @@ avlDelete(AvlTree *t, tw_event *key)
     assert(0 && "We never look for non-existent events!");
     return target;
   } 
-  else if ((*t)->key->recv_ts == key->recv_ts) {
-    target = (*t)->key;
-    /* do we have a right child? */
-    if ((*t)->child[1] != AVL_EMPTY) {
-      /* give root min value in right subtree */
-      (*t)->key = avlDeleteMin(&(*t)->child[1]);
-    }
-    else {
-      /* splice out root */
-      oldroot = (*t);
-      *t = (*t)->child[0];
-      avl_free(oldroot);
-    }
-  } 
+  
+  if ((*t)->key->recv_ts == key->recv_ts) {
+      if ((*t)->key->event_id == key->event_id) {
+          // This is actually the one we want to delete
+          target = (*t)->key;
+          /* do we have a right child? */
+          if ((*t)->child[1] != AVL_EMPTY) {
+              /* give root min value in right subtree */
+              (*t)->key = avlDeleteMin(&(*t)->child[1]);
+          }
+          else {
+              /* splice out root */
+              oldroot = (*t);
+              *t = (*t)->child[0];
+              avl_free(oldroot);
+          }
+      }
+      else {
+          if (key->event_id > (*t)->key->event_id) {
+              target = avlDelete(&(*t)->child[1], key);
+          }
+          else {
+              target = avlDelete(&(*t)->child[0], key);
+          }
+      }
+  }
   else {
     //target = avlDelete(&(*t)->child[key > (*t)->key], key);
     if (key->recv_ts > (*t)->key->recv_ts) {
