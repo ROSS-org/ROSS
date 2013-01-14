@@ -39,7 +39,7 @@ OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
 OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
 
-OPTION(AVL_TREE	    "Use AVL trees for tw_events?" OFF)
+OPTION(AVL_TREE	    "Use AVL trees for tw_events?" ON)
 
 SET(NETWORK       mpi)
 #SET(NETWORK      tcp)
@@ -90,7 +90,7 @@ ENDIF(ARCH STREQUAL bgp)
 IF(ARCH STREQUAL bgq)
        SET(VALID_ARCH YES)
        #SET(CC   mpixlc)
-       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
+       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O5 -qstrict -qprefetch=aggressive -qarch=qp -qtune=qp -qmaxmem=-1 -qsimd=noauto -qreport -qhot")
        SET(OPTIONS "")
        SET(CLOCK   bgq)
 ENDIF(ARCH STREQUAL bgq)
