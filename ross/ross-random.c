@@ -14,7 +14,10 @@ tw_rand_init(uint64_t v, uint64_t w)
  *
  * For LP # gen, return a uniform rn from low to high 
  */
-
+/**
+ * @bug Be careful not to pass LONG_MAX into the high variable for the
+ * function below.  high + 1 will cause it to overflow.
+ */
 long 
 tw_rand_integer(tw_rng_stream * g, long low, long high)
 {
@@ -24,6 +27,10 @@ tw_rand_integer(tw_rng_stream * g, long low, long high)
 		return (low + (long)(tw_rand_unif(g) * (high + 1 - low)));
 }
 
+/**
+ * @bug Be careful not to pass ULONG_MAX into the high variable for the
+ * function below.  high + 1 will cause it to overflow.
+ */
 unsigned long
 tw_rand_ulong(tw_rng_stream * g, unsigned long low, unsigned long high)
 {
