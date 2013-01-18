@@ -19,6 +19,11 @@ unsigned long int globalEventsScheduledR = 0;
 unsigned long int globalTiesR = 0;
 unsigned long int globalZeroDelaysR = 0;
 
+// numerator and denominator of the fraction of events that should be sent away
+// from this LP; we represent the fraction this way to avoid floating point arithmetic
+unsigned int remoteFractNumerator = 0.1 * UINT_MAX;
+unsigned int remoteFractDenominator = 1;
+
 // Init function
 // - called once for each LP
 // ! LP can only send messages to itself during init !
@@ -130,7 +135,7 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
         while (1) {
             msg->RC.rngLoopCount++;
             // 4 a, b, c... rng
-            dest = tw_rand_ulong(lp->rng, 0, nLPs);
+            dest = tw_rand_ulong(lp->rng, 0, nLPs-1);
             if (dest == lp->gid) {
                 // We don't want to send to ourselves so loop through again
                 continue;

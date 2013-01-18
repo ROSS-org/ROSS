@@ -30,6 +30,10 @@ int qhold_main(int argc, char *argv[])
         population = 1;
     }
     
+    remoteThreshold = ((unsigned long int)remoteFractNumerator * (1UL<<32) ) / (unsigned long int)remoteFractDenominator;
+    printf("remoteThreshold is %lu\n", remoteThreshold);
+    printf("Which is %3.2lf%%\n", 100.0 * (double)remoteThreshold / (double)ULONG_MAX);
+    
 	//Do some error checking?
 	//Print out some settings?
     
@@ -85,11 +89,11 @@ int qhold_main(int argc, char *argv[])
         /* Main output */
 		//output globalHash, globalEvents, globalEventsScheduled, globalTies, globalZeroDelays;
         printf("\n\nStatistics:\n");
-        printf("globalHash: %ld\n", globalHashR);
-        printf("globalEvents: %ld\n", globalEventsR);
-        printf("globalEventsScheduled: %ld\n", globalEventsScheduledR);
-        printf("globalTies: %ld\n", globalTiesR);
-        printf("globalZeroDelays: %ld\n", globalZeroDelaysR);
+        printf("globalHash: %lu\n", globalHashR);
+        printf("globalEvents: %lu\n", globalEventsR);
+        printf("globalEventsScheduled: %lu\n", globalEventsScheduledR);
+        printf("globalTies: %lu\n", globalTiesR);
+        printf("globalZeroDelays: %lu\n", globalZeroDelaysR);
         
         if (globalTiesR > 0) {
             printf("*** Warning: globalTies > 0\n");
@@ -99,9 +103,9 @@ int qhold_main(int argc, char *argv[])
         }
         if (globalEventsR + nLPs * population != globalEventsScheduledR) {
             printf("*** ERROR: globalEvents does not correspond to globalEventsScheduled\n");
-            printf("globalEventsR + nLPs * population (%ld, %ld, %d) = %ld\n", globalEventsR, nLPs, population,
+            printf("globalEventsR + nLPs * population (%lu, %lu, %ud) = %ld\n", globalEventsR, nLPs, population,
                    globalEventsR + nLPs * population);
-            printf("globalEventsScheduledR: %ld", globalEventsScheduledR);
+            printf("globalEventsScheduledR: %lu", globalEventsScheduledR);
         }
     }
     

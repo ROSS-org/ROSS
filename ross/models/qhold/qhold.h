@@ -30,6 +30,7 @@ typedef struct {
 extern unsigned long int nLPs;
 extern tw_lptype qhold_lps[];
 extern unsigned int nlp_per_pe;
+extern unsigned long int remoteThreshold;
 
 extern unsigned int population;
 extern unsigned long int randomSeedVariation;
@@ -46,5 +47,8 @@ extern unsigned long int globalEventsR;
 extern unsigned long int globalEventsScheduledR;
 extern unsigned long int globalTiesR;
 extern unsigned long int globalZeroDelaysR;
+
+extern unsigned int remoteFractNumerator;
+extern unsigned int remoteFractDenominator;
 
 #endif /* _QHOLD_H */
