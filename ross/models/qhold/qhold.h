@@ -29,10 +29,4 @@ extern unsigned int nlp_per_pe;
 extern unsigned int population;
 extern unsigned long int randomSeedVariation;
 
-extern unsigned long globalHash;
-extern unsigned long globalEvents;
-extern unsigned long globalEventsScheduled;
-extern unsigned long globalTies;
-extern unsigned long globalZeroDelays;
-
 #endif /* _QHOLD_H */

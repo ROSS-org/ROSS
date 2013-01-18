@@ -6,18 +6,18 @@ unsigned population;
 unsigned long int remoteThreshold;
 unsigned long int randomSeedVariation;
 
-unsigned long globalHash = 0;
-unsigned long globalEvents = 0;
-unsigned long globalEventsScheduled = 0;
-unsigned long globalTies = 0;
-unsigned long globalZeroDelays = 0;
+unsigned long int globalHash = 0;
+unsigned long int globalEvents = 0;
+unsigned long int globalEventsScheduled = 0;
+unsigned long int globalTies = 0;
+unsigned long int globalZeroDelays = 0;
 
 // Reduced versions of the above counters
-unsigned long globalHashR = 0;
-unsigned long globalEventsR = 0;
+unsigned long int globalHashR = 0;
+unsigned long int globalEventsR = 0;
 unsigned long int globalEventsScheduledR = 0;
-unsigned long globalTiesR = 0;
-unsigned long globalZeroDelaysR = 0;
+unsigned long int globalTiesR = 0;
+unsigned long int globalZeroDelaysR = 0;
 
 // Init function
 // - called once for each LP
@@ -29,7 +29,7 @@ void qhold_init(q_state *s, tw_lp *lp)
     
     /* initialize all of the PHOLD parameters */
 	// initialize self;
-    s->lastvtime = -1;
+    s->lastvtime = 0;
     s->stateValue = 0;
     s->zeroDelays = 0;
     s->ties = 0;
@@ -103,12 +103,14 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
         globalTies++;
     }
     
+    // 1 rng
     random = tw_rand_integer(lp->rng, 0, ULONG_MAX);
     msg->RC.oldStateValue = s->stateValue;
     s->stateValue = (s->stateValue + msg->msgValue) ^ random;
     globalHash += s->stateValue;
     
     /* Calculate next event time */
+    // 2 rng
 	nextEventDelay = tw_rand_integer(lp->rng, 0, UINT_MAX);  // 32-bit
 	if ( nextEventDelay == 0 ) {
         bf->c1 = 1;
@@ -118,11 +120,13 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     }
         
     /* Calculate next event destination */
+    // 3 rng
 	if ( tw_rand_integer(lp->rng, 0, ULONG_MAX) < remoteThreshold ) {
         bf->c2 = 1;
 		/* remote destination, uniformly distributed but excluding self */
         while (1) {
             msg->RC.rngLoopCount++;
+            // 4 a, b, c... rng
             dest = tw_rand_integer(lp->rng, 0, nLPs);
             if (dest == lp->gid) {
                 // We don't want to send to ourselves so loop through again
@@ -165,10 +169,12 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     if (bf->c2) {
         // We have at least one RNG call
         for (i = 0; i < msg->RC.rngLoopCount; i++) {
+            // 4 a, b, c...
             tw_rand_reverse_unif(lp->rng);
         }
     }
     
+    // 3
     tw_rand_reverse_unif(lp->rng);
     
     if (bf->c1) {
@@ -176,9 +182,13 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
         s->zeroDelays--;
     }
     
+    // 2
+    tw_rand_reverse_unif(lp->rng);
+    
     globalHash -= s->stateValue;
     s->stateValue = msg->RC.oldStateValue;
     
+    // 1
     tw_rand_reverse_unif(lp->rng);
     
     if (bf->c0) {
@@ -195,11 +205,16 @@ void qhold_final(q_state *s, tw_lp *lp)
 {
     if (g_tw_synchronization_protocol != SEQUENTIAL) {
         printf("globalEventsScheduled: %ld @ rank %d\n", globalEventsScheduled, g_tw_mynode);
-        MPI_Reduce(&globalHashR, &globalHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalEventsR, &globalEvents, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalEventsScheduledR, &globalEventsScheduled, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalTiesR, &globalTies, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&globalZeroDelaysR, &globalZeroDelays, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        if (MPI_SUCCESS != MPI_Reduce(&globalHashR, &globalHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
+            printf("FOO 1\n");
+        if (MPI_SUCCESS != MPI_Reduce(&globalEventsR, &globalEvents, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
+            printf("FOO 2\n");
+        if (MPI_SUCCESS != MPI_Reduce(&globalEventsScheduledR, &globalEventsScheduled, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
+            printf("FOO 3\n");
+        if (MPI_SUCCESS != MPI_Reduce(&globalTiesR, &globalTies, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
+            printf("FOO 4\n");
+        if (MPI_SUCCESS != MPI_Reduce(&globalZeroDelaysR, &globalZeroDelays, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
+            printf("FOO 5\n");
         printf("globalEventsScheduledR: %ld @ rank %d\n", globalEventsScheduledR, g_tw_mynode);
     }
     else {
