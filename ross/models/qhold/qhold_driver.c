@@ -24,6 +24,7 @@ unsigned long globalZeroDelaysR = 0;
 // ! LP can only send messages to itself during init !
 void qhold_init(q_state *s, tw_lp *lp)
 {
+    int i;
     //unsigned long int seed = 0;
     
     /* initialize all of the PHOLD parameters */
@@ -48,7 +49,7 @@ void qhold_init(q_state *s, tw_lp *lp)
     
 	/* create initial population of events, randomly distributed among the LPs */
     
-	for (int i = 0; i < population; i++) {
+	for (i = 0; i < population; i++) {
         tw_stime ts;
         tw_lpid dest;
         q_message *newData;
@@ -154,6 +155,8 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 // Reverse event handler
 void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 {
+    int i;
+    
     s->lastvtime = msg->RC.lastvtime;
     
     globalEventsScheduled--;
@@ -161,7 +164,7 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     
     if (bf->c2) {
         // We have at least one RNG call
-        for (int i = 0; i < msg->RC.rngLoopCount; i++) {
+        for (i = 0; i < msg->RC.rngLoopCount; i++) {
             tw_rand_reverse_unif(lp->rng);
         }
     }
