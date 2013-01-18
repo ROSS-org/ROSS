@@ -169,21 +169,21 @@ avlInsert(AvlTree *t, tw_event *key)
   }
   else if (key->recv_ts == (*t)->key->recv_ts) {
     /* nothing to do */
-      printf("Trying to insert duplicate events\n");
-      printf("state.owner is [old : new] [%d : %d]\n",
-             (*t)->key->state.owner, key->state.owner);
+      //printf("Trying to insert duplicate events\n");
+      //printf("state.owner is [old : new] [%d : %d]\n",
+      //       (*t)->key->state.owner, key->state.owner);
       // SOMETHING TO DO IS CHECK THE QUEUE AND EVENT ID
       if ((*t)->key->state.owner == TW_pe_free_q) {
-          printf("Replacing old event in AVL tree\n");
+          //printf("Replacing old event in AVL tree\n");
           (*t)->key = key;
           return;
       }
       
       if (key->event_id == (*t)->key->event_id) {
-          printf("Event IDs are the same!\n");
+          //printf("Event IDs are the same!\n");
       }
       else {
-          printf("Event IDs are different! Saving the new one as well.\n");
+          //printf("Event IDs are different! Saving the new one as well.\n");
           //(*t)->key = key;
           if (key->event_id > (*t)->key->event_id) {
               avlInsert(&(*t)->child[1], key);
@@ -218,7 +218,7 @@ avlPrintKeys(AvlTree t)
 {
   if (t != AVL_EMPTY) {
     avlPrintKeys(t->child[0]);
-    printf("%f\n", t->key->recv_ts);
+    //printf("%f\n", t->key->recv_ts);
     avlPrintKeys(t->child[1]);
   }
 }

@@ -51,4 +51,7 @@ extern unsigned long int globalZeroDelaysR;
 extern unsigned int remoteFractNumerator;
 extern unsigned int remoteFractDenominator;
 
+extern double percent_remote;
+extern unsigned optimistic_memory;
+
 #endif /* _QHOLD_H */

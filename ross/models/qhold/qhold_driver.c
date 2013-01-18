@@ -19,9 +19,12 @@ unsigned long int globalEventsScheduledR = 0;
 unsigned long int globalTiesR = 0;
 unsigned long int globalZeroDelaysR = 0;
 
+double percent_remote = 0.1;
+unsigned optimistic_memory = 1024;
+
 // numerator and denominator of the fraction of events that should be sent away
 // from this LP; we represent the fraction this way to avoid floating point arithmetic
-unsigned int remoteFractNumerator = 0.1 * UINT_MAX;
+unsigned int remoteFractNumerator = 1;
 unsigned int remoteFractDenominator = 1;
 
 // Init function
@@ -29,7 +32,7 @@ unsigned int remoteFractDenominator = 1;
 // ! LP can only send messages to itself during init !
 void qhold_init(q_state *s, tw_lp *lp)
 {
-    int i;
+    unsigned i;
     //unsigned long int seed = 0;
     
     /* initialize all of the PHOLD parameters */
@@ -59,7 +62,7 @@ void qhold_init(q_state *s, tw_lp *lp)
         tw_lpid dest;
         q_message *newData;
         tw_event *newEvent;
-        int nextEventDelay;
+        unsigned nextEventDelay;
         
 		/* Calculate next event time */
 		nextEventDelay = tw_rand_ulong(lp->rng, 0, UINT_MAX-1);  	// 32-bit
@@ -90,11 +93,11 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     tw_lpid dest;
     q_message *newData;
     tw_event *newEvent;
-    int nextEventDelay;
+    unsigned nextEventDelay;
     unsigned long int random;
     
     // Zero out all of our bitfields and counters
-    *(int *)bf = 0;
+    *(unsigned *)bf = 0;
     msg->RC.oldStateValue = 0;
     msg->RC.rngLoopCount = 0;
     msg->RC.lastvtime = 0;
@@ -167,7 +170,7 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 // Reverse event handler
 void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 {
-    int i;
+    unsigned i;
     
     s->lastvtime = msg->RC.lastvtime;
     
