@@ -20,10 +20,6 @@ typedef struct {
 typedef struct {
     tw_stime lastvtime;
     unsigned long int stateValue;
-    unsigned long int zeroDelays;
-    unsigned long int ties;
-    unsigned long int events;
-    unsigned long int eventsScheduled;
 } q_state;
 
 // Global variables used by both main and driver

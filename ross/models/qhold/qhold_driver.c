@@ -39,10 +39,6 @@ void qhold_init(q_state *s, tw_lp *lp)
 	// initialize self;
     s->lastvtime = 0;
     s->stateValue = 0;
-    s->zeroDelays = 0;
-    s->ties = 0;
-    s->events = 0;
-    s->eventsScheduled = 0;
 	// initialize nLPs;
     nLPs = tw_nnodes() * nlp_per_pe;
     // population is set by command-line parameters
@@ -79,7 +75,6 @@ void qhold_init(q_state *s, tw_lp *lp)
         newData->msgValue = s->stateValue;
         
         tw_event_send(newEvent);
-        s->eventsScheduled++;
         globalEventsScheduled++;
 		//scheduleEvent(time + lookAhead + nextEventDelay, dest, stateValue); //; must be no overflow in the calculation of time
 		
@@ -102,12 +97,10 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     msg->RC.rngLoopCount = 0;
     msg->RC.lastvtime = 0;
     
-    s->events++;
     globalEvents++;
     
     if (tw_now(lp) == s->lastvtime) {
         bf->c0 = 1;
-        s->ties++;
         globalTies++;
     }
     
@@ -126,7 +119,6 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 	if ( nextEventDelay == 0 ) {
         bf->c1 = 1;
         // if much more or less often that 1 in 2**32, we have a bad RNG
-        s->zeroDelays++;
         globalZeroDelays++;
     }
         
@@ -160,7 +152,6 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     newData->msgValue = s->stateValue;
     
     tw_event_send(newEvent);
-    s->eventsScheduled++;
     globalEventsScheduled++;
     
     msg->RC.lastvtime = s->lastvtime;
@@ -175,7 +166,6 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     s->lastvtime = msg->RC.lastvtime;
     
     globalEventsScheduled--;
-    s->eventsScheduled--;
     
     if (bf->c2) {
         // We have at least one RNG call
@@ -190,7 +180,6 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     
     if (bf->c1) {
         globalZeroDelays--;
-        s->zeroDelays--;
     }
     
     // 2
@@ -204,11 +193,9 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     
     if (bf->c0) {
         globalTies--;
-        s->ties--;
     }
     
     globalEvents--;
-    s->events--;
 }
 
 // Report any final statistics for this LP
