@@ -24,6 +24,17 @@ tw_rand_integer(tw_rng_stream * g, long low, long high)
 		return (low + (long)(tw_rand_unif(g) * (high + 1 - low)));
 }
 
+unsigned long
+tw_rand_ulong(tw_rng_stream * g, unsigned long low, unsigned long high)
+{
+    if (high < low) {
+        return (0);
+    }
+    else {
+        return (low + (unsigned long)(tw_rand_unif(g) * (high + 1 - low)));
+    }
+}
+
 long 
 tw_rand_binomial(tw_rng_stream * g, long N, double P)
 {

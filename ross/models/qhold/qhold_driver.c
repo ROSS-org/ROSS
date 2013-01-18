@@ -1,8 +1,8 @@
 #include "qhold.h"
 
-unsigned nlp_per_pe;
+unsigned nlp_per_pe = 16;
 unsigned long int nLPs;
-unsigned population;
+unsigned population = 16;
 unsigned long int remoteThreshold;
 unsigned long int randomSeedVariation;
 
@@ -42,9 +42,9 @@ void qhold_init(q_state *s, tw_lp *lp)
 	// lookahead = lookAheadDelay;
     
 	/* Seed initialization done mod 2**64, i.e. overflows ignored */
-	// seed = ((unsigned long int)0xA174652BC0F983DE)) XOR (((unsigned long int)( lp->gid + 1000001 ))**10) xor randomSeeedVariation;
+	// seed = ((unsigned long int)0xA174652BC0F983DE)) XOR (((unsigned long int)( lp->gid + 1000001 ))**10) xor randomSeedVariation;
     // initialize stateValue = randomUnsignedLongInt(seed);
-    s->stateValue = tw_rand_integer(lp->rng, 0, ULONG_MAX);
+    s->stateValue = tw_rand_ulong(lp->rng, 0, ULONG_MAX-1);
     globalHash += s->stateValue;
     
 	/* create initial population of events, randomly distributed among the LPs */
@@ -57,7 +57,7 @@ void qhold_init(q_state *s, tw_lp *lp)
         int nextEventDelay;
         
 		/* Calculate next event time */
-		nextEventDelay = tw_rand_integer(lp->rng, 0, UINT_MAX);  	// 32-bit
+		nextEventDelay = tw_rand_ulong(lp->rng, 0, UINT_MAX-1);  	// 32-bit
         
 		/* Calculate next event destination */
 		//dest = randomUnsignedLongInt(seed) mod nLPs; 		// 64-bit; send to all destinations uniformly
@@ -104,14 +104,17 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
     }
     
     // 1 rng
-    random = tw_rand_integer(lp->rng, 0, ULONG_MAX);
+    random = tw_rand_ulong(lp->rng, 0, ULONG_MAX-1);
+    //printf("random is %lu\n", random);
+    //printf("ULONG_MAX is %lu\n", ULONG_MAX-1);
     msg->RC.oldStateValue = s->stateValue;
     s->stateValue = (s->stateValue + msg->msgValue) ^ random;
+    //printf("s->stateValue is %lu\n", s->stateValue);
     globalHash += s->stateValue;
     
     /* Calculate next event time */
     // 2 rng
-	nextEventDelay = tw_rand_integer(lp->rng, 0, UINT_MAX);  // 32-bit
+	nextEventDelay = tw_rand_ulong(lp->rng, 0, UINT_MAX-1);  // 32-bit
 	if ( nextEventDelay == 0 ) {
         bf->c1 = 1;
         // if much more or less often that 1 in 2**32, we have a bad RNG
@@ -121,13 +124,13 @@ void qhold_event(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
         
     /* Calculate next event destination */
     // 3 rng
-	if ( tw_rand_integer(lp->rng, 0, ULONG_MAX) < remoteThreshold ) {
+	if ( tw_rand_ulong(lp->rng, 0, ULONG_MAX-1) < remoteThreshold ) {
         bf->c2 = 1;
 		/* remote destination, uniformly distributed but excluding self */
         while (1) {
             msg->RC.rngLoopCount++;
             // 4 a, b, c... rng
-            dest = tw_rand_integer(lp->rng, 0, nLPs);
+            dest = tw_rand_ulong(lp->rng, 0, nLPs);
             if (dest == lp->gid) {
                 // We don't want to send to ourselves so loop through again
                 continue;
@@ -203,43 +206,6 @@ void qhold_event_reverse(q_state *s, tw_bf *bf, q_message *msg, tw_lp *lp)
 // Report any final statistics for this LP
 void qhold_final(q_state *s, tw_lp *lp)
 {
-    if (g_tw_synchronization_protocol != SEQUENTIAL) {
-        printf("globalEventsScheduled: %ld @ rank %d\n", globalEventsScheduled, g_tw_mynode);
-        if (MPI_SUCCESS != MPI_Reduce(&globalHashR, &globalHash, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
-            printf("FOO 1\n");
-        if (MPI_SUCCESS != MPI_Reduce(&globalEventsR, &globalEvents, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
-            printf("FOO 2\n");
-        if (MPI_SUCCESS != MPI_Reduce(&globalEventsScheduledR, &globalEventsScheduled, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
-            printf("FOO 3\n");
-        if (MPI_SUCCESS != MPI_Reduce(&globalTiesR, &globalTies, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
-            printf("FOO 4\n");
-        if (MPI_SUCCESS != MPI_Reduce(&globalZeroDelaysR, &globalZeroDelays, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD))
-            printf("FOO 5\n");
-        printf("globalEventsScheduledR: %ld @ rank %d\n", globalEventsScheduledR, g_tw_mynode);
-    }
-    else {
-        globalHashR = globalHash;
-        globalEventsR = globalEvents;
-        globalEventsScheduledR = globalEventsScheduled;
-        globalTiesR = globalTies;
-        globalZeroDelaysR = globalZeroDelays;
-    }
-    
-    if (tw_ismaster()) {
-        
-        if (globalTiesR > 0) {
-            printf("*** Warning: globalTies > 0\n");
-        }
-        if (globalZeroDelaysR > 0) {
-            printf("*** Warning: globalZeroDelays > 0\n");
-        }
-        if (globalEventsR + nLPs * population != globalEventsScheduledR) {
-            printf("*** ERROR: globalEvents does not correspond to globalEventsScheduled\n");
-            printf("globalEventsR + nLPs * population (%ld, %ld, %d) = %ld\n", globalEventsR, nLPs, population,
-                   globalEventsR + nLPs * population);
-            printf("globalEventsScheduledR: %ld", globalEventsScheduledR);
-        }
-    }
 }
 
 // Given a gid, return the PE (or node) id

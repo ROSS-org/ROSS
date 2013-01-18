@@ -65,6 +65,46 @@ int qhold_main(int argc, char *argv[])
     
 	tw_run();
     
+    if (g_tw_synchronization_protocol != SEQUENTIAL) {
+        MPI_Reduce(&globalHash, &globalHashR, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalEvents, &globalEventsR, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalEventsScheduled, &globalEventsScheduledR, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalTies, &globalTiesR, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&globalZeroDelays, &globalZeroDelaysR, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+    else {
+        globalHashR = globalHash;
+        globalEventsR = globalEvents;
+        globalEventsScheduledR = globalEventsScheduled;
+        globalTiesR = globalTies;
+        globalZeroDelaysR = globalZeroDelays;
+    }
+    
+    if (tw_ismaster()) {
+        
+        /* Main output */
+		//output globalHash, globalEvents, globalEventsScheduled, globalTies, globalZeroDelays;
+        printf("\n\nStatistics:\n");
+        printf("globalHash: %ld\n", globalHashR);
+        printf("globalEvents: %ld\n", globalEventsR);
+        printf("globalEventsScheduled: %ld\n", globalEventsScheduledR);
+        printf("globalTies: %ld\n", globalTiesR);
+        printf("globalZeroDelays: %ld\n", globalZeroDelaysR);
+        
+        if (globalTiesR > 0) {
+            printf("*** Warning: globalTies > 0\n");
+        }
+        if (globalZeroDelaysR > 0) {
+            printf("*** Warning: globalZeroDelays > 0\n");
+        }
+        if (globalEventsR + nLPs * population != globalEventsScheduledR) {
+            printf("*** ERROR: globalEvents does not correspond to globalEventsScheduled\n");
+            printf("globalEventsR + nLPs * population (%ld, %ld, %d) = %ld\n", globalEventsR, nLPs, population,
+                   globalEventsR + nLPs * population);
+            printf("globalEventsScheduledR: %ld", globalEventsScheduledR);
+        }
+    }
+    
 	tw_end();
     
     return 0;
