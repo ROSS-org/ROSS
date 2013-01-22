@@ -177,36 +177,22 @@ avlInsert(AvlTree *t, tw_event *key)
                 assert(0 && "The events are identical!!!\n");
             }
             else {
+                // send_pe is different
                 avlInsert(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
                 avlRebalance(t);
             }
         }
         else {
+            // Event IDs are different
             avlInsert(&(*t)->child[key->event_id > (*t)->key->event_id], key);
-//            if (key->event_id > (*t)->key->event_id) {
-//                avlInsert(&(*t)->child[1], key);
-//            }
-//            else {
-//                avlInsert(&(*t)->child[0], key);
-//            }
             avlRebalance(t);
         }
         return;
     }
     else {
-        /* do the insert in subtree */
+        // Timestamps are different
         avlInsert(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);
-//        if (key->recv_ts > (*t)->key->recv_ts) {
-//            avlInsert(&(*t)->child[1], key);
-//        }
-//        else {
-//            avlInsert(&(*t)->child[0], key);
-//        }
-        //        avlInsert(&(*t)->child[key > (*t)->key], key);
-        
         avlRebalance(t);
-        
-        return;
     }
 }
 
@@ -260,42 +246,41 @@ avlDelete(AvlTree *t, tw_event *key)
         return target;
     }
     
-    if ((*t)->key->recv_ts == key->recv_ts) {
-        if ((*t)->key->event_id == key->event_id) {
-            // This is actually the one we want to delete
-            target = (*t)->key;
-            /* do we have a right child? */
-            if ((*t)->child[1] != AVL_EMPTY) {
-                /* give root min value in right subtree */
-                (*t)->key = avlDeleteMin(&(*t)->child[1]);
+    if (key->recv_ts == (*t)->key->recv_ts) {
+        // We have a timestamp tie, check the event ID
+        if (key->event_id == (*t)->key->event_id) {
+            // We have a event ID tie, check the send_pe
+            if (key->send_pe == (*t)->key->send_pe) {
+                // This is actually the one we want to delete
+                target = (*t)->key;
+                /* do we have a right child? */
+                if ((*t)->child[1] != AVL_EMPTY) {
+                    /* give root min value in right subtree */
+                    (*t)->key = avlDeleteMin(&(*t)->child[1]);
+                }
+                else {
+                    /* splice out root */
+                    oldroot = (*t);
+                    *t = (*t)->child[0];
+                    avl_free(oldroot);
+                }
             }
             else {
-                /* splice out root */
-                oldroot = (*t);
-                *t = (*t)->child[0];
-                avl_free(oldroot);
+                // Timestamp and event IDs are the same, but different send_pe
+                target = avlDelete(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
             }
+            
         }
         else {
-            if (key->event_id > (*t)->key->event_id) {
-                target = avlDelete(&(*t)->child[1], key);
-            }
-            else {
-                target = avlDelete(&(*t)->child[0], key);
-            }
+            // Timestamps are the same but event IDs differ
+            target = avlDelete(&(*t)->child[key->event_id > (*t)->key->event_id], key);
         }
     }
     else {
-        //target = avlDelete(&(*t)->child[key > (*t)->key], key);
-        if (key->recv_ts > (*t)->key->recv_ts) {
-            target = avlDelete(&(*t)->child[1], key);
-        }
-        else {
-            target = avlDelete(&(*t)->child[0], key);
-        }
+        // Timestamps are different
+        target = avlDelete(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);
     }
     
-    /* rebalance */
     avlRebalance(t);
     
     return target;
