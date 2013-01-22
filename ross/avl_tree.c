@@ -40,14 +40,28 @@ avlSearch(AvlTree t, tw_event *key)
     if (t == AVL_EMPTY) {
         return 0;
     }
-    else if (t->key->recv_ts == key->recv_ts) {
-        return 1;
+    
+    if (key->recv_ts == t->key->recv_ts) {
+        // Timestamp is the same
+        if (key->event_id == t->key->event_id) {
+            // Event ID is the same
+            if (key->send_pe == t->key->send_pe) {
+                // send_pe is the same
+                return 1;
+            }
+            else {
+                // send_pe is different
+                return avlSearch(t->child[key->send_pe > t->key->send_pe], key);
+            }
+        }
+        else {
+            // Event ID is different
+            return avlSearch(t->child[key->event_id > t->key->event_id], key);
+        }
     }
     else {
-        if (t->key->recv_ts > key->recv_ts) {
-            return avlSearch(t->child[0], key);
-        }
-        return avlSearch(t->child[1], key);
+        // Timestamp is different
+        return avlSearch(t->child[key->recv_ts > t->key->recv_ts], key);
     }
 }
 
