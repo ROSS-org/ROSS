@@ -11,44 +11,44 @@
 
 
 /* free a tree */
-void 
+void
 avlDestroy(AvlTree t)
 {
-  if (t != AVL_EMPTY) {
-    avlDestroy(t->child[0]);
-    avlDestroy(t->child[1]);
-    avl_free(t);
-  }
+    if (t != AVL_EMPTY) {
+        avlDestroy(t->child[0]);
+        avlDestroy(t->child[1]);
+        avl_free(t);
+    }
 }
 
 /* return height of an AVL tree */
 int
 avlGetHeight(AvlTree t)
 {
-  if (t != AVL_EMPTY) {
-    return t->height;
-  }
-  else {
-    return 0;
-  }
+    if (t != AVL_EMPTY) {
+        return t->height;
+    }
+    else {
+        return 0;
+    }
 }
 
 /* return nonzero if key is present in tree */
 int
 avlSearch(AvlTree t, tw_event *key)
 {
-  if (t == AVL_EMPTY) {
-    return 0;
-  } 
-  else if (t->key->recv_ts == key->recv_ts) {
-    return 1;
-  } 
-  else {
-    if (t->key->recv_ts > key->recv_ts) {
-      return avlSearch(t->child[0], key);
+    if (t == AVL_EMPTY) {
+        return 0;
     }
-    return avlSearch(t->child[1], key);
-  }
+    else if (t->key->recv_ts == key->recv_ts) {
+        return 1;
+    }
+    else {
+        if (t->key->recv_ts > key->recv_ts) {
+            return avlSearch(t->child[0], key);
+        }
+        return avlSearch(t->child[1], key);
+    }
 }
 
 #define Max(x,y) ((x)>(y) ? (x) : (y))
@@ -57,24 +57,24 @@ avlSearch(AvlTree t, tw_event *key)
 void
 avlSanityCheck(AvlTree root)
 {
-  int i;
-
-  if (root != AVL_EMPTY) {
-    for (i = 0; i < 2; i++) {
-      avlSanityCheck(root->child[i]);
+    int i;
+    
+    if (root != AVL_EMPTY) {
+        for (i = 0; i < 2; i++) {
+            avlSanityCheck(root->child[i]);
+        }
+        
+        assert(root->height == 1 + Max(avlGetHeight(root->child[0]), avlGetHeight(root->child[1])));
     }
-
-    assert(root->height == 1 + Max(avlGetHeight(root->child[0]), avlGetHeight(root->child[1])));
-  }
 }
 
 /* recompute height of a node */
 static void
 avlFixHeight(AvlTree t)
 {
-  assert(t != AVL_EMPTY);
-
-  t->height = 1 + Max(avlGetHeight(t->child[0]), avlGetHeight(t->child[1]));
+    assert(t != AVL_EMPTY);
+    
+    t->height = 1 + Max(avlGetHeight(t->child[0]), avlGetHeight(t->child[1]));
 }
 
 /* rotate child[d] to root */
@@ -91,21 +91,21 @@ avlFixHeight(AvlTree t)
 static void
 avlRotate(AvlTree *root, int d)
 {
-  AvlTree oldRoot;
-  AvlTree newRoot;
-  AvlTree oldMiddle;
-
-  oldRoot = *root;
-  newRoot = oldRoot->child[d];
-  oldMiddle = newRoot->child[!d];
-
-  oldRoot->child[d] = oldMiddle;
-  newRoot->child[!d] = oldRoot;
-  *root = newRoot;
-
-  /* update heights */
-  avlFixHeight((*root)->child[!d]);   /* old root */
-  avlFixHeight(*root);                /* new root */
+    AvlTree oldRoot;
+    AvlTree newRoot;
+    AvlTree oldMiddle;
+    
+    oldRoot = *root;
+    newRoot = oldRoot->child[d];
+    oldMiddle = newRoot->child[!d];
+    
+    oldRoot->child[d] = oldMiddle;
+    newRoot->child[!d] = oldRoot;
+    *root = newRoot;
+    
+    /* update heights */
+    avlFixHeight((*root)->child[!d]);   /* old root */
+    avlFixHeight(*root);                /* new root */
 }
 
 
@@ -114,32 +114,32 @@ avlRotate(AvlTree *root, int d)
 static void
 avlRebalance(AvlTree *t)
 {
-  int d;
-
-  if (*t != AVL_EMPTY) {
-    for (d = 0; d < 2; d++) {
-      /* maybe child[d] is now too tall */
-      if (avlGetHeight((*t)->child[d]) > avlGetHeight((*t)->child[!d]) + 1) {
-	/* imbalanced! */
-	/* how to fix it? */
-	/* need to look for taller grandchild of child[d] */
-	if (avlGetHeight((*t)->child[d]->child[d]) > avlGetHeight((*t)->child[d]->child[!d])) {
-	  /* same direction grandchild wins, do single rotation */
-	  avlRotate(t, d);
-	}
-	else {
-	  /* opposite direction grandchild moves up, do double rotation */
-	  avlRotate(&(*t)->child[d], !d);
-	  avlRotate(t, d);
-	}
-
-	return;   /* avlRotate called avlFixHeight */
-      }
+    int d;
+    
+    if (*t != AVL_EMPTY) {
+        for (d = 0; d < 2; d++) {
+            /* maybe child[d] is now too tall */
+            if (avlGetHeight((*t)->child[d]) > avlGetHeight((*t)->child[!d]) + 1) {
+                /* imbalanced! */
+                /* how to fix it? */
+                /* need to look for taller grandchild of child[d] */
+                if (avlGetHeight((*t)->child[d]->child[d]) > avlGetHeight((*t)->child[d]->child[!d])) {
+                    /* same direction grandchild wins, do single rotation */
+                    avlRotate(t, d);
+                }
+                else {
+                    /* opposite direction grandchild moves up, do double rotation */
+                    avlRotate(&(*t)->child[d], !d);
+                    avlRotate(t, d);
+                }
+                
+                return;   /* avlRotate called avlFixHeight */
+            }
+        }
+        
+        /* update height */
+        avlFixHeight(*t);
     }
-                  
-    /* update height */
-    avlFixHeight(*t);
-  }
 }
 
 /* insert into tree */
@@ -148,67 +148,67 @@ avlRebalance(AvlTree *t)
 void
 avlInsert(AvlTree *t, tw_event *key)
 {
-  /* insertion procedure */
-  if (*t == AVL_EMPTY) {
-    /* new t */
-    //*t = malloc(sizeof(struct avlNode));
-    *t = avl_alloc();
-    if (t == NULL) {
-      tw_error(TW_LOC, "Out of AVL tree nodes!");
+    /* insertion procedure */
+    if (*t == AVL_EMPTY) {
+        /* new t */
+        //*t = malloc(sizeof(struct avlNode));
+        *t = avl_alloc();
+        if (t == NULL) {
+            tw_error(TW_LOC, "Out of AVL tree nodes!");
+        }
+        
+        (*t)->child[0] = AVL_EMPTY;
+        (*t)->child[1] = AVL_EMPTY;
+        
+        (*t)->key = key;
+        
+        (*t)->height = 1;
+        
+        /* done */
+        return;
     }
-
-    (*t)->child[0] = AVL_EMPTY;
-    (*t)->child[1] = AVL_EMPTY;
-
-    (*t)->key = key;
-
-    (*t)->height = 1;
-
-    /* done */
-    return;
-  }
-  else if (key->recv_ts == (*t)->key->recv_ts) {
-    /* nothing to do */
-      //printf("Trying to insert duplicate events\n");
-      //printf("state.owner is [old : new] [%d : %d]\n",
-      //       (*t)->key->state.owner, key->state.owner);
-      // SOMETHING TO DO IS CHECK THE QUEUE AND EVENT ID
-      if ((*t)->key->state.owner == TW_pe_free_q) {
-          //printf("Replacing old event in AVL tree\n");
-          (*t)->key = key;
-          return;
-      }
-      
-      if (key->event_id == (*t)->key->event_id) {
-          //printf("Event IDs are the same!\n");
-      }
-      else {
-          //printf("Event IDs are different! Saving the new one as well.\n");
-          //(*t)->key = key;
-          if (key->event_id > (*t)->key->event_id) {
-              avlInsert(&(*t)->child[1], key);
-          }
-          else {
-              avlInsert(&(*t)->child[0], key);
-          }
-          avlRebalance(t);
-      }
-    return;
-  } 
-  else {
-    /* do the insert in subtree */
-    if (key->recv_ts > (*t)->key->recv_ts) {
-      avlInsert(&(*t)->child[1], key);
+    else if (key->recv_ts == (*t)->key->recv_ts) {
+        /* nothing to do */
+        //printf("Trying to insert duplicate events\n");
+        //printf("state.owner is [old : new] [%d : %d]\n",
+        //       (*t)->key->state.owner, key->state.owner);
+        // SOMETHING TO DO IS CHECK THE QUEUE AND EVENT ID
+        if ((*t)->key->state.owner == TW_pe_free_q) {
+            //printf("Replacing old event in AVL tree\n");
+            (*t)->key = key;
+            return;
+        }
+        
+        if (key->event_id == (*t)->key->event_id) {
+            //printf("Event IDs are the same!\n");
+        }
+        else {
+            //printf("Event IDs are different! Saving the new one as well.\n");
+            //(*t)->key = key;
+            if (key->event_id > (*t)->key->event_id) {
+                avlInsert(&(*t)->child[1], key);
+            }
+            else {
+                avlInsert(&(*t)->child[0], key);
+            }
+            avlRebalance(t);
+        }
+        return;
     }
     else {
-      avlInsert(&(*t)->child[0], key);
+        /* do the insert in subtree */
+        if (key->recv_ts > (*t)->key->recv_ts) {
+            avlInsert(&(*t)->child[1], key);
+        }
+        else {
+            avlInsert(&(*t)->child[0], key);
+        }
+        //        avlInsert(&(*t)->child[key > (*t)->key], key);
+        
+        avlRebalance(t);
+        
+        return;
     }
-    //        avlInsert(&(*t)->child[key > (*t)->key], key);
-
-    avlRebalance(t);
-
-    return;
-  }
 }
 
 
@@ -216,11 +216,11 @@ avlInsert(AvlTree *t, tw_event *key)
 void
 avlPrintKeys(AvlTree t)
 {
-  if (t != AVL_EMPTY) {
-    avlPrintKeys(t->child[0]);
-    //printf("%f\n", t->key->recv_ts);
-    avlPrintKeys(t->child[1]);
-  }
+    if (t != AVL_EMPTY) {
+        avlPrintKeys(t->child[0]);
+        //printf("%f\n", t->key->recv_ts);
+        avlPrintKeys(t->child[1]);
+    }
 }
 
 
@@ -228,76 +228,76 @@ avlPrintKeys(AvlTree t)
 tw_event *
 avlDeleteMin(AvlTree *t)
 {
-  AvlTree oldroot;
-  tw_event *event_with_lowest_ts = NULL;
-
-  assert(t != AVL_EMPTY);
-
-  if ((*t)->child[0] == AVL_EMPTY) {
-    /* root is min value */
-    oldroot = *t;
-    event_with_lowest_ts = oldroot->key;
-    *t = oldroot->child[1];
-    avl_free(oldroot);
-  } 
-  else {
-    /* min value is in left subtree */
-    event_with_lowest_ts = avlDeleteMin(&(*t)->child[0]);
-  }
-
-  avlRebalance(t);
-  return event_with_lowest_ts;
+    AvlTree oldroot;
+    tw_event *event_with_lowest_ts = NULL;
+    
+    assert(t != AVL_EMPTY);
+    
+    if ((*t)->child[0] == AVL_EMPTY) {
+        /* root is min value */
+        oldroot = *t;
+        event_with_lowest_ts = oldroot->key;
+        *t = oldroot->child[1];
+        avl_free(oldroot);
+    }
+    else {
+        /* min value is in left subtree */
+        event_with_lowest_ts = avlDeleteMin(&(*t)->child[0]);
+    }
+    
+    avlRebalance(t);
+    return event_with_lowest_ts;
 }
 
 /* delete the given value */
 tw_event *
 avlDelete(AvlTree *t, tw_event *key)
 {
-  tw_event *target = NULL;
-  AvlTree oldroot;
-  
-  if (*t == AVL_EMPTY) {
-    assert(0 && "We never look for non-existent events!");
-    return target;
-  } 
-  
-  if ((*t)->key->recv_ts == key->recv_ts) {
-      if ((*t)->key->event_id == key->event_id) {
-          // This is actually the one we want to delete
-          target = (*t)->key;
-          /* do we have a right child? */
-          if ((*t)->child[1] != AVL_EMPTY) {
-              /* give root min value in right subtree */
-              (*t)->key = avlDeleteMin(&(*t)->child[1]);
-          }
-          else {
-              /* splice out root */
-              oldroot = (*t);
-              *t = (*t)->child[0];
-              avl_free(oldroot);
-          }
-      }
-      else {
-          if (key->event_id > (*t)->key->event_id) {
-              target = avlDelete(&(*t)->child[1], key);
-          }
-          else {
-              target = avlDelete(&(*t)->child[0], key);
-          }
-      }
-  }
-  else {
-    //target = avlDelete(&(*t)->child[key > (*t)->key], key);
-    if (key->recv_ts > (*t)->key->recv_ts) {
-      target = avlDelete(&(*t)->child[1], key);
+    tw_event *target = NULL;
+    AvlTree oldroot;
+    
+    if (*t == AVL_EMPTY) {
+        assert(0 && "We never look for non-existent events!");
+        return target;
+    }
+    
+    if ((*t)->key->recv_ts == key->recv_ts) {
+        if ((*t)->key->event_id == key->event_id) {
+            // This is actually the one we want to delete
+            target = (*t)->key;
+            /* do we have a right child? */
+            if ((*t)->child[1] != AVL_EMPTY) {
+                /* give root min value in right subtree */
+                (*t)->key = avlDeleteMin(&(*t)->child[1]);
+            }
+            else {
+                /* splice out root */
+                oldroot = (*t);
+                *t = (*t)->child[0];
+                avl_free(oldroot);
+            }
+        }
+        else {
+            if (key->event_id > (*t)->key->event_id) {
+                target = avlDelete(&(*t)->child[1], key);
+            }
+            else {
+                target = avlDelete(&(*t)->child[0], key);
+            }
+        }
     }
     else {
-      target = avlDelete(&(*t)->child[0], key);
+        //target = avlDelete(&(*t)->child[key > (*t)->key], key);
+        if (key->recv_ts > (*t)->key->recv_ts) {
+            target = avlDelete(&(*t)->child[1], key);
+        }
+        else {
+            target = avlDelete(&(*t)->child[0], key);
+        }
     }
-  }
-  
-  /* rebalance */
-  avlRebalance(t);
-
-  return target;
+    
+    /* rebalance */
+    avlRebalance(t);
+    
+    return target;
 }
