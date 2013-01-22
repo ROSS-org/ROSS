@@ -34,6 +34,11 @@ tw_init(int *argc, char ***argv)
 	        }
 	        printf("\n\n");
 	}
+    
+    // Print our revision if we have it
+#ifdef ROSS_VERSION
+    printf("Revision: %d\n\n", ROSS_VERSION);
+#endif
 
 	tw_opt_add(kernel_options);
 	tw_opt_add(tw_gvt_setup());
