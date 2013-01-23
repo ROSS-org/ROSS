@@ -8,7 +8,7 @@
 
 /* implementation of an AVL tree with explicit heights */
 
-
+tw_pe *pe;
 
 /* free a tree */
 void
@@ -16,7 +16,9 @@ avlDestroy(AvlTree t)
 {
     if (t != AVL_EMPTY) {
         avlDestroy(t->child[0]);
+        t->child[0] = AVL_EMPTY;
         avlDestroy(t->child[1]);
+        t->child[1] = AVL_EMPTY;
         avl_free(t);
     }
 }
@@ -298,4 +300,19 @@ avlDelete(AvlTree *t, tw_event *key)
     avlRebalance(t);
     
     return target;
+}
+
+void cleaveTree(AvlTree *t, double gvt)
+{
+    AvlTree oldTree;
+    
+    while ((*t)->key->recv_ts < gvt) {
+        printf("root is older than gvt, remove left half\n");
+        
+        oldTree = *t;
+        oldTree->child[1] = AVL_EMPTY;
+        *t = (*t)->child[1];
+        
+        avlDestroy(oldTree);
+    }
 }
