@@ -37,7 +37,9 @@ tw_init(int *argc, char ***argv)
     
     // Print our revision if we have it
 #ifdef ROSS_VERSION
-    printf("Revision: %d\n\n", ROSS_VERSION);
+    if (tw_ismaster()) {
+        printf("Revision: %d\n\n", ROSS_VERSION);
+    }
 #endif
 
 	tw_opt_add(kernel_options);
