@@ -37,6 +37,10 @@ tw-timing.c
 tw-timing.h
 tw-util.c)
 
+INCLUDE (CheckFunctionExists)
+CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
+CONFIGURE_FILE(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
+
 IF(AVL_TREE)
 	SET(OPTIONS "${OPTIONS} -DUSE_AVL_TREE")
 ENDIF(AVL_TREE)

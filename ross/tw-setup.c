@@ -24,7 +24,9 @@ void
 tw_init(int *argc, char ***argv)
 {
         int i;
+#if HAVE_CTIME
         time_t raw_time;
+#endif
 
 	tw_opt_add(tw_net_init(argc, argv));
 
@@ -39,8 +41,10 @@ tw_init(int *argc, char ***argv)
     // Print our revision if we have it
 #ifdef ROSS_VERSION
     if (tw_ismaster()) {
+#if HAVE_CTIME
         time(&raw_time);
         printf("%s\n", ctime(&raw_time));
+#endif
         printf("Revision: %d\n\n", ROSS_VERSION);
     }
 #endif

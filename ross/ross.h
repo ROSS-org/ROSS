@@ -136,6 +136,8 @@
 #  define free(b) must_not_use_free
 #endif
 
+#include "config.h"
+
 /* tw_peid -- Processing Element "PE" id */
 typedef unsigned long long tw_peid;
 
