@@ -265,11 +265,8 @@ main(int argc, char **argv, char **env)
 		tw_lp_settype(i, &mylps[0]);
 
 					  //((g_tw_nlp/g_tw_nkp) * g_mem_start_events), 
-	// init the KP memory queues
-	for(i = 0; i < g_tw_nkp; i++)
-		my_fd = tw_kp_memory_init(tw_getkp(i), 
-					  g_tw_events_per_pe * nbufs,
-					  sizeof(mem_packet), 0.5);
+	// init the memory interface
+	my_fd = tw_memory_init(g_tw_events_per_pe * nbufs, sizeof(mem_packet), 0.5);
 
 	tw_run();
 
