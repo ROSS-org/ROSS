@@ -19,8 +19,7 @@ struct act_q
 #define EVENT_TAG 1
 
 #if ROSS_MEMORY
-#define BUFFER_SIZE 500
-#define EVENT_SIZE(e) BUFFER_SIZE
+#define EVENT_SIZE(e) TW_MEMORY_BUFFER_SIZE
 #else
 #define EVENT_SIZE(e) g_tw_event_msg_sz
 #endif
@@ -85,7 +84,7 @@ init_q(struct act_q *q, const char *name)
   q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
 
   for(i = 0; i < n; i++)
-    q->buffers[i] = tw_calloc(TW_LOC, "", BUFFER_SIZE, 1);
+    q->buffers[i] = tw_calloc(TW_LOC, "", TW_MEMORY_BUFFER_SIZE, 1);
 #endif
 }
 
@@ -504,7 +503,7 @@ send_begin(tw_pe *me)
 	      memory->fd = m->fd;
 	    }
 
-	  if(position + mem_size > BUFFER_SIZE)
+	  if(position + mem_size > TW_MEMORY_BUFFER_SIZE)
 	    tw_error(TW_LOC, "Out of buffer space!");
 
 	  memcpy(&buffer[position], memory, mem_size);

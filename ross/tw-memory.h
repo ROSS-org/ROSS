@@ -1,6 +1,8 @@
 #ifndef INC_tw_memory_h
 #define INC_tw_memory_h
 
+#define TW_MEMORY_BUFFER_SIZE 500
+
 /*
  * Use this function to allocate a memory buffer in model event handlers.
  */
