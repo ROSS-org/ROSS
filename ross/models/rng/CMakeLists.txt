@@ -1,0 +1,8 @@
+INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
+
+SET(rng_srcs
+rng.c)
+
+ADD_EXECUTABLE(rng ${rng_srcs})
+
+TARGET_LINK_LIBRARIES(rng ROSS m)
