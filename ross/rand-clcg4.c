@@ -23,7 +23,7 @@
 static tw_rng	*rng = NULL;
 
 // default RNG seed
-long seed[4] = { 11111111, 22222222, 33333333, 44444444 };
+int32_t seed[4] = { 11111111, 22222222, 33333333, 44444444 };
 
 /**
  * FindB 
@@ -74,7 +74,7 @@ FindB(long long a, long long k, long long m)
  */
 
 long
-MultModM(long s, long t, long M)
+MultModM(int32_t s, int32_t t, int32_t M)
 {
   long R, S0, S1, q, qh, rh, k;
 
@@ -146,7 +146,7 @@ MultModM(long s, long t, long M)
  */
 
 void
-rng_set_seed(tw_rng_stream * g, long s[4])
+rng_set_seed(tw_rng_stream * g, uint32_t s[4])
 {
 	int	j;
 
@@ -166,7 +166,7 @@ rng_write_state(tw_rng_stream * g, FILE *f)
 	int	j;
 
 	for(j = 0; j < 4; j++)
-	  fprintf( f, "%lu ", g->Cg[j]);
+	  fprintf( f, "%u ", g->Cg[j]);
 	fprintf( f, "\n");
 }
 
@@ -175,7 +175,7 @@ rng_write_state(tw_rng_stream * g, FILE *f)
  */
 
 void
-rng_get_state(tw_rng_stream * g, long s[4])
+rng_get_state(tw_rng_stream * g, uint32_t s[4])
 {
 	int	j;
 
@@ -189,7 +189,7 @@ rng_get_state(tw_rng_stream * g, long s[4])
  */
 
 void
-rng_put_state(tw_rng_stream * g, long s[4])
+rng_put_state(tw_rng_stream * g, uint32_t s[4])
 {
 	int	j;
 
@@ -232,8 +232,8 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 {
 	tw_lpid mask_bit = 1;
 
-	long Ig_t[4];
-	long avw_t[4];
+	uint32_t Ig_t[4];
+	uint32_t avw_t[4];
 
 	int i;
 	int j;
@@ -410,7 +410,7 @@ double
 rng_gen_reverse_val(tw_rng_stream * g)
 {
   long long *b = rng->b;
-  long *m = rng->m;
+  int32_t *m = rng->m;
   long long s;
   double u;
 
