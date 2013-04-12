@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "avl_tree.h"
 
-#define AVL_NODE_COUNT (1 << 18)
+//#define AVL_NODE_COUNT (1 << 18)
 
 /* AVL tree root */
 AvlTree avl_tree = NULL;
