@@ -15,32 +15,6 @@ AvlTree avl_list_head = NULL;
 
 unsigned avl_tree_size;
 
-AvlTree avl_alloc(void)
-{
-  AvlTree head = avl_list_head;
-  avl_list_head = avl_list_head->next;
-
-  if (avl_list_head == NULL) {
-    tw_error(TW_LOC, "avl_list_head is invalid!");
-  }
-
-  head->next = NULL;
-
-  return head;
-}
-
-void avl_free(AvlTree t)
-{
-  //memset(t, 0, sizeof(struct avlNode));
-  (t)->child[0] = AVL_EMPTY;
-  (t)->child[1] = AVL_EMPTY;
-  (t)->next = NULL;
-  (t)->key = NULL;
-  (t)->height = 0;
-  (t)->next = avl_list_head;
-  avl_list_head = t;
-}
-
 #endif /* USE_AVL_TREE */
 
 static void     rehash(tw_hash * hash_t, int pe);
