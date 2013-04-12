@@ -190,7 +190,7 @@ avlInsert(AvlTree *t, tw_event *key)
             // We have a event ID tie, check the send_pe
             if (key->send_pe == (*t)->key->send_pe) {
                 // This cannot happen
-                assert(0 && "The events are identical!!!\n");
+                tw_error(TW_LOC, "The events are identical!!!\n");
             }
             else {
                 // send_pe is different
@@ -258,7 +258,7 @@ avlDelete(AvlTree *t, tw_event *key)
     AvlTree oldroot;
     
     if (*t == AVL_EMPTY) {
-        assert(0 && "We never look for non-existent events!");
+        tw_error(TW_LOC, "We never look for non-existent events!");
         return target;
     }
     
@@ -300,19 +300,4 @@ avlDelete(AvlTree *t, tw_event *key)
     avlRebalance(t);
     
     return target;
-}
-
-void cleaveTree(AvlTree *t, double gvt)
-{
-    AvlTree oldTree;
-    
-    while ((*t)->key->recv_ts < gvt) {
-        printf("root is older than gvt, remove left half\n");
-        
-        oldTree = *t;
-        oldTree->child[1] = AVL_EMPTY;
-        *t = (*t)->child[1];
-        
-        avlDestroy(oldTree);
-    }
 }
