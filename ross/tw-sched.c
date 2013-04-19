@@ -480,6 +480,8 @@ tw_scheduler_optimistic_debug(tw_pe * me)
   printf("This schedule assumes the following: \n");
   printf(" 1) One 1 Processor/Core is used.\n");
   printf(" 2) One 1 KP is used.\n");
+  printf("    NOTE: use the --nkp=1 argument to the simulation to ensure that\n");
+  printf("          it only uses 1 KP.\n");
   printf(" 3) Events ARE NEVER RECLAIMED.\n");
   printf(" 4) Executes til out of memory (16 events left) and \n    injects rollback to first before primodal init event.\n");
   printf(" 5) g_tw_rollback_time = %13.12lf \n", g_tw_rollback_time);
