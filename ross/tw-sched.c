@@ -168,6 +168,8 @@ tw_sched_batch(tw_pe * me)
 		if (!(cev = tw_pq_dequeue(me->pq)))
 			break;
 		me->stats.s_pq += tw_clock_read() - start;
+                if(cev->recv_ts == tw_pq_minimum(me->pq))
+                    me->stats.s_pe_event_ties++;
 
 		clp = cev->dest_lp;
 		ckp = clp->kp;
@@ -288,6 +290,9 @@ void tw_scheduler_sequential(tw_pe * me)
       me->cur_event = cev;
       ckp->last_time = cev->recv_ts;
       
+      if(cev->recv_ts == tw_pq_minimum(me->pq))
+         me->stats.s_pe_event_ties++;
+
       gvt = cev->recv_ts;
       if(gvt / g_tw_ts_end > percent_complete &&
 	 tw_node_eq(&g_tw_mynode, &g_tw_masternode))
@@ -369,7 +374,9 @@ tw_scheduler_conservative(tw_pe * me)
 	  if (!(cev = tw_pq_dequeue(me->pq)))
 	    break;
 	  me->stats.s_pq += tw_clock_read() - start;
-	  
+          if(cev->recv_ts == tw_pq_minimum(me->pq))
+             me->stats.s_pe_event_ties++;
+
 	  clp = cev->dest_lp;
 	  ckp = clp->kp;
 	  me->cur_event = cev;

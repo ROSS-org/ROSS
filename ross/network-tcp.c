@@ -861,6 +861,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 
 			s->tw_s_nsend_net_remote += n_stats->tw_s_nsend_net_remote;
 			s->tw_s_nsend_loc_remote += n_stats->tw_s_nsend_loc_remote;
+                        s->tw_s_pe_event_ties += n_stats->tw_s_pe_event_ties;
 		}
 	}
 

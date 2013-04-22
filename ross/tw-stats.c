@@ -78,6 +78,7 @@ tw_stats(tw_pe * me)
 		s.s_pq += pe->stats.s_pq;
 		s.s_rollback += pe->stats.s_rollback;
 		s.s_cancel_q += pe->stats.s_cancel_q;
+                s.s_pe_event_ties += pe->stats.s_pe_event_ties;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -113,6 +114,7 @@ tw_stats(tw_pe * me)
 	show_lld("Total Events Processed", s.s_nevent_processed);
 	show_lld("Events Aborted (part of RBs)", s.s_nevent_abort);
 	show_lld("Events Rolled Back", s.s_e_rbs);
+	show_lld("Event Ties Detected in PE Queues", s.s_pe_event_ties);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
 	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
 

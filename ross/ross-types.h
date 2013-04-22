@@ -133,6 +133,8 @@ struct tw_statistics
   tw_stat s_ngvts;
   tw_stat s_mem_buffers_used;
 
+  tw_stat s_pe_event_ties;
+
   tw_clock s_total;
   tw_clock s_net_read;
   tw_clock s_gvt;
