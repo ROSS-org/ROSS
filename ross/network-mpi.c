@@ -698,6 +698,13 @@ tw_net_cancel(tw_event *e)
   service_queues(src_pe);
 }
 
+/**
+ * tw_net_statistics
+ * @brief Function to output the statistics
+ * @attention Notice that the MPI_Reduce "count" parameter is greater than one.
+ * We are reducing on multiple variables *simultaneously* so if you change
+ * this function or the struct tw_statistics, you must update the other.
+ **/
 tw_statistics	*
 tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
@@ -727,6 +734,15 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-
+    
+  if(MPI_Reduce(&s->s_pe_event_ties,
+        &me->stats.s_pe_event_ties,
+        1,
+        MPI_LONG_LONG,
+        MPI_SUM,
+        g_tw_masternode,
+        MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+    
   return &me->stats;
 }

@@ -109,6 +109,12 @@ struct tw_lptype
   size_t state_sz; /**< @brief Number of bytes that SV is for the LP */
 };
 
+/**
+ * tw_statistics
+ * @brief Statistics tallied over the duration of the simulation.
+ * @attention If you change the order of this struct you must ensure that
+ * tw_net_statistics() is updated!
+ **/
 struct tw_statistics
 {
   double s_max_run_time;
