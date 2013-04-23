@@ -443,21 +443,21 @@
                     tw_event_send(e);
                     break;
                 case TRAVELHOME:
-                    if(bf->c1 = (d->c.Traveling == 0)){
+                    if((bf->c1 = (d->c.Traveling == 0))){
                         d->c.Traveling=1;
-                        if(bf->c5 = (d->c.Working == 1)){
+                        if((bf->c5 = (d->c.Working == 1))){
                             d->c.Working=0;
                         }
-                        if(bf->c6 = (d->c.Leisure == 1)){
+                        if((bf->c6 = (d->c.Leisure == 1))){
                             d->c.Leisure = 0;
                         }
-                        if(bf->c7 = (d->c.Hospital == 1)){
+                        if((bf->c7 = (d->c.Hospital == 1))){
                             d->c.Hospital = 0;
                         }
                         d->c.curTravelNode = 0;
                     }
                     else{
-                        if(bf->c2 = (d->c.curTravelNode <= (d->c.homeLength - 2))){
+                        if((bf->c2 = (d->c.curTravelNode <= (d->c.homeLength - 2)))){
                             d->c.curTravelNode++;
                         }
                     }
@@ -466,8 +466,8 @@
                     ts = ts + 15 * (1 + (1-(d->c.health/100)));
                     e = tw_event_new(lp->gid, ts, lp);
                     m = (Msg_Data *)tw_event_data(e);
-                    if(bf->c3 = (d->c.curTravelNode >= (d->c.homeLength-1))){
-                        if(bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness)){
+                    if((bf->c3 = (d->c.curTravelNode >= (d->c.homeLength-1)))){
+                        if((bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness))){
                             d->c.Traveling = 0;
                             m->event_type = TRAVELEVACUATE;
                         }
@@ -481,13 +481,13 @@
                     tw_event_send(e);
                     break;
                 case TRAVELWORK:
-                    if(bf->c1 = (d->c.Traveling == 0)){
+                    if((bf->c1 = (d->c.Traveling == 0))){
                         d->c.Traveling=1;
                         d->c.Home=0;
                         d->c.curTravelNode = 0;
                     }
                     else{
-                        if(bf->c2 = (d->c.curTravelNode <= (d->c.workLength - 2))){
+                        if((bf->c2 = (d->c.curTravelNode <= (d->c.workLength - 2)))){
                             d->c.curTravelNode++;
                         }
                     }
@@ -496,8 +496,8 @@
                     ts = ts + 15 * (1 + (1-(d->c.health/100)));
                     e = tw_event_new(lp->gid, ts, lp);
                     m = (Msg_Data *)tw_event_data(e);
-                    if(bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1))){
-                        if(bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness)){
+                    if((bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1)))){
+                        if((bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness))){
                             d->c.Traveling = 0;
                             m->event_type = TRAVELHOME;
                         }
@@ -511,18 +511,18 @@
                     tw_event_send(e);
                     break;
                 case TRAVELLEISURE:
-                    if(bf->c1 = (d->c.Traveling == 0)){
+                    if((bf->c1 = (d->c.Traveling == 0))){
                         d->c.Traveling=1;
-                        if(bf->c5 = (d->c.Home == 1)){
+                        if((bf->c5 = (d->c.Home == 1))){
                             d->c.Home=0;
                         }
-                        if(bf->c6 = (d->c.Working == 1)){
+                        if((bf->c6 = (d->c.Working == 1))){
                             d->c.Working = 0;
                         }
                         d->c.curTravelNode = 0;
                     }
                     else{
-                        if(bf->c2 = (d->c.curTravelNode <= (d->c.leisureLength - 2))){
+                        if((bf->c2 = (d->c.curTravelNode <= (d->c.leisureLength - 2)))){
                             d->c.curTravelNode++;
                         }
                     }
@@ -531,8 +531,8 @@
                     ts = ts + 15 * (1 + (1-(d->c.health/100)));
                     e = tw_event_new(lp->gid, ts, lp);
                     m = (Msg_Data *)tw_event_data(e);
-                    if(bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1))){
-                        if(bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness)){
+                    if((bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1)))){
+                        if((bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness))){
                             d->c.Traveling = 0;
                             m->event_type = TRAVELHOME;
                         }
@@ -546,21 +546,21 @@
                     tw_event_send(e);
                     break;
                 case TRAVELHOSPITAL:
-                    if(bf->c1 = (d->c.Traveling == 0)){
+                    if((bf->c1 = (d->c.Traveling == 0))){
                         d->c.Traveling=1;
-                        if(bf->c5 = (d->c.Home == 1)){
+                        if((bf->c5 = (d->c.Home == 1))){
                             d->c.Home = 0;
                         }
-                        else if(bf->c6 = (d->c.Working == 1)){
+                        else if((bf->c6 = (d->c.Working == 1))){
                             d->c.Working = 0;
                         }
-                        else if (bf->c7 = (d->c.Leisure == 1)){
+                        else if ((bf->c7 = (d->c.Leisure == 1))){
                             d->c.Leisure = 0;
                         }
                         d->c.curTravelNode = 0;
                     }
                     else{
-                        if(bf->c2 = (d->c.curTravelNode <= (d->c.hospitalLength - 2))){
+                        if((bf->c2 = (d->c.curTravelNode <= (d->c.hospitalLength - 2)))){
                             d->c.curTravelNode++;
                         }
                     }
@@ -569,8 +569,8 @@
                     ts = ts + 15 * (1 + (1-(d->c.health/100)));
                     e = tw_event_new(lp->gid, ts, lp);
                     m = (Msg_Data *)tw_event_data(e);
-                    if(bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1))){
-                        if(bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness)){
+                    if((bf->c3 = (d->c.curTravelNode >= (d->c.workLength - 1)))){
+                        if((bf->c4 = (d->c.CrisisLevel > d->c.Stubbornness))){
                             d->c.Traveling = 0;
                             m->event_type = TRAVELHOME;
                         }
@@ -585,10 +585,10 @@
                     break;
                 case CRISISLEVELRISES:
                     d->c.CrisisLevel+=1;
-                    if(bf->c1 = (d->c.CrisisLevel == 1))
+                    if((bf->c1 = (d->c.CrisisLevel == 1)))
                         d->c.CrisisLevelStart = tw_now(lp);
-                    if(bf->c2 = (d->c.Stubbornness < d->c.CrisisLevel)){
-                        if(bf->c3 = (d->c.Traveling == 0)){
+                    if((bf->c2 = (d->c.Stubbornness < d->c.CrisisLevel))){
+                        if((bf->c3 = (d->c.Traveling == 0))){
                             ts = ts + 0;
                             e = tw_event_new(lp->gid, 0, lp);
                             m = (Msg_Data *)tw_event_data(e);
@@ -599,9 +599,9 @@
                     break;
                 case CRISISLEVELFALLS:
                     d->c.CrisisLevel-=1;
-                    if(bf->c1 = (d->c.CrisisLevel == 0))
+                    if((bf->c1 = (d->c.CrisisLevel == 0)))
                         d->c.TimeInCrisisLevel += tw_now(lp) - d->c.CrisisLevelStart;
-                    if(bf->c2 = (d->c.Stubbornness < d->c.CrisisLevel)){
+                    if((bf->c2 = (d->c.Stubbornness < d->c.CrisisLevel))){
                     }
                     break;
                 case CURIOUS:
@@ -620,7 +620,7 @@
                     break;
                 }
                 case TRAVELEVACUATE:
-                    if(bf->c1 = ((d->c.Working == 1) || (d->c.Leisure == 1) || d->c.Hospital == 1)){
+                    if((bf->c1 = ((d->c.Working == 1) || (d->c.Leisure == 1) || d->c.Hospital == 1))){
                         ts = ts + 0;
                         e = tw_event_new(lp->gid,ts,lp);
                         m = (Msg_Data *)tw_event_data(e);
@@ -628,13 +628,13 @@
                         tw_event_send(e);
                     }
                     else{
-                        if(bf->c2 = ((d->c.Traveling == 0) && (d->c.familySize = d->c.familyPresent))){
+                        if((bf->c2 = ((d->c.Traveling == 0) && (d->c.familySize = d->c.familyPresent)))){
                             d->c.Traveling=1;
                             d->c.Home=0;
                             d->c.curTravelNode = 0;
                         }
                         else{
-                            if(bf->c3 = (d->c.curTravelNode <= (d->c.escapeLength - 2))){
+                            if((bf->c3 = (d->c.curTravelNode <= (d->c.escapeLength - 2)))){
                                 d->c.curTravelNode++;
                             }
                         }
@@ -643,7 +643,7 @@
                         ts = ts + 15 * (1 + (1-(d->c.health/100)));
                         e = tw_event_new(lp->gid,ts,lp);
                         m = (Msg_Data *)tw_event_data(e);
-                        if(bf->c4 = (d->c.curTravelNode >= (d->c.escapeLength - 1))){
+                        if((bf->c4 = (d->c.curTravelNode >= (d->c.escapeLength - 1)))){
                             d->c.evacuated = 1;
                             m->event_type = CURIOUS;
                         }
@@ -654,7 +654,7 @@
                     }
                     break;
                 case RELEASEHOME:
-                    if(bf->c1 = (d->c.Home == 1)){
+                    if((bf->c1 = (d->c.Home == 1))){
                         e1 = tw_event_new(d->c.homeID, ts, lp);
                         m1 = (Msg_Data *)tw_event_data(e1);
                         m1->event_type = UPDATEDRAW;
@@ -672,7 +672,7 @@
                     }
                     break;
                 case RELEASEWORK:
-                    if(bf->c1 = (d->c.Working == 1)){
+                    if((bf->c1 = (d->c.Working == 1))){
                         e1 = tw_event_new(d->c.workID, ts, lp);
                         m1 = (Msg_Data *)tw_event_data(e1);
                         m1->event_type = UPDATEDRAW;
@@ -690,7 +690,7 @@
                     }
                     break;
                  case RELEASELEISURE:
-                    if(bf->c1 = (d->c.Leisure == 1)){
+                    if((bf->c1 = (d->c.Leisure == 1))){
                         e1 = tw_event_new(d->c.leisureID, ts, lp);
                         m1 = (Msg_Data *)tw_event_data(e1);
                         m1->event_type = UPDATEDRAW;
@@ -708,7 +708,7 @@
                     }
                     break;
                 case RELEASEHOSPITAL:
-                    if(bf->c1 = (d->c.Hospital== 1)){
+                    if((bf->c1 = (d->c.Hospital== 1))){
                         e1 = tw_event_new(d->c.hospitalID, ts, lp);
                         m1 = (Msg_Data *)tw_event_data(e1);
                         m1->event_type = UPDATEDRAW;
@@ -735,7 +735,7 @@
                     int update = msg->InfoBlock1;
                     msg->InfoBlock1 = d->c.familyPresent;
                     d->c.familyPresent = update;
-                    if(bf->c1 = (d->c.CrisisLevel > d->c.Stubbornness)){
+                    if((bf->c1 = (d->c.CrisisLevel > d->c.Stubbornness))){
                         e = tw_event_new(lp->gid,ts,lp);
                         m = (Msg_Data *)tw_event_data(e);
                         m->event_type = TRAVELEVACUATE;
@@ -763,8 +763,8 @@
              {
                 case UPDATEDRAW:
                 {
-                    if(bf->c1 = (d->b.health > 0.0)){
-                        if(bf->c2 = (d->b.powerlineServicing >= 0)){
+                    if((bf->c1 = (d->b.health > 0.0))){
+                        if((bf->c2 = (d->b.powerlineServicing >= 0))){
                             d->b.draw += msg->InfoBlock1;
                         printf("dark4\n");
                             e = tw_event_new(d->b.powerlineServicing, ts+0, lp);
@@ -779,20 +779,20 @@
                 }
                 case UPDATEAVAILABLE:
                 {
-                    if(bf->c1 = (d->b.health > 0.0)){
-                        if(bf->c3 = (msg->InfoBlock1 <= 0 && d->b.hasPower == 1)){
+                    if((bf->c1 = (d->b.health > 0.0))){
+                        if((bf->c3 = (msg->InfoBlock1 <= 0 && d->b.hasPower == 1))){
                             e = tw_event_new(lp->gid, ts + 0, lp);
                             m = (Msg_Data *)tw_event_data(e);
                             m->event_type = POWEROFF;
                             tw_event_send(e);
                         }
-                        else if(bf->c2 = (msg->InfoBlock1 > 0 && d->b.hasPower == 0)){
+                        else if((bf->c2 = (msg->InfoBlock1 > 0 && d->b.hasPower == 0))){
                             e2 = tw_event_new(lp->gid, ts + 0, lp);
                             m2 = (Msg_Data *)tw_event_data(e2);
                             m2->event_type = POWERON;
                             tw_event_send(e2);
                         }
-                        else if(bf->c4 = (d->b.hasPower == 1)){
+                        else if((bf->c4 = (d->b.hasPower == 1))){
                             e1 = tw_event_new(lp->gid, ts + 0, lp);
                             m1 = (Msg_Data *)tw_event_data(e1);
                             m1->event_type = UPDATEDRAW;
@@ -806,7 +806,7 @@
                 {
                     int update = msg->InfoBlock1;
                     d->b.health -= update;
-                    if(bf->c1 = (d->b.health <= 0.0)){
+                    if((bf->c1 = (d->b.health <= 0.0))){
                         e = tw_event_new(lp->gid, ts + 0, lp);
                         m = (Msg_Data *)tw_event_data(e);
                         m->event_type = POWEROFF;
@@ -827,8 +827,8 @@
                     int occupant = msg->InfoBlock1;
                     //If the person is present and telling us they are leaving, remove them
                     for(z; z < d->b.capacity; z++){
-                        if(bf->c1 = (d->b.occupantPresent[z] == 1)){
-                            if(bf->c2 = (d->b.occupants[z] == occupant)){
+                        if((bf->c1 = (d->b.occupantPresent[z] == 1))){
+                            if((bf->c2 = (d->b.occupants[z] == occupant))){
                                 msg->InfoBlock2 = z+1;
                                 d->b.occupants[z] = -1;
                                 d->b.occupantPresent[z] = 0;
@@ -857,7 +857,7 @@
                     //If the person is new and we have room, add them
                     z = 0;
                     for(z; z < d->b.capacity; z++){
-                        if(bf->c3 = (d->b.occupantPresent[z] == 0)){
+                        if((bf->c3 = (d->b.occupantPresent[z] == 0))){
                             msg->InfoBlock2 = -1*z;
                         printf("dark4\n");
                             d->b.occupants[z] = occupant;
@@ -884,7 +884,7 @@
                 }
                 case POWERON:
                 {
-                    if(bf->c1 = (!d->b.hasPower)){
+                    if((bf->c1 = (!d->b.hasPower))){
                         d->b.hasPower = 1;
                         int i = 0;
                         tw_event *stuff[d->b.occupancy];
@@ -904,7 +904,7 @@
                 }
                 case POWEROFF:
                 {
-                    if(bf->c1 = (d->b.hasPower)){
+                    if((bf->c1 = (d->b.hasPower))){
                         printf("dark4\n");
                         d->b.hasPower = 0;
                         int z = 0;
@@ -945,7 +945,7 @@
              {
                 case UPDATEDRAW:
                 {
-                    if(bf->c1 = (d->p.health > 0.0)){
+                    if((bf->c1 = (d->p.health > 0.0))){
                         
                         printf("dark3\n");
                         int update = msg->InfoBlock1;
@@ -961,7 +961,7 @@
                 }
                 case UPDATEAVAILABLE:
                 {
-                    if(bf->c1 = (d->p.health > 0.0)){
+                    if((bf->c1 = (d->p.health > 0.0))){
                         printf("dark3\n");
                         int update = msg->InfoBlock1;
                         msg->InfoBlock1 = d->p.available;
@@ -978,7 +978,7 @@
                 {
                     int update = msg->InfoBlock1;
                     d->p.health -= update;
-                    if(bf->c1 = (d->p.health <= 0.0)){
+                    if((bf->c1 = (d->p.health <= 0.0))){
                         printf("dark3\n");
                         msg->InfoBlock2 = d->p.available;
                         d->p.available = 0;
@@ -1022,12 +1022,12 @@
              {
                 case UPDATEDRAW:
                 {
-                    if(bf->c1 = (d->s.health > 0.0)){
+                    if((bf->c1 = (d->s.health > 0.0))){
                         int update = msg->InfoBlock1;
                         msg->InfoBlock1 = d->s.draw;
                         d->s.draw = update;
                         printf("dark11\n");
-                        if(bf->c4 = (d->s.draw > d->s.available)){
+                        if((bf->c4 = (d->s.draw > d->s.available))){
                             e = tw_event_new(lp->gid, ts+0, lp);
                             m = (Msg_Data *)tw_event_data(e);
                             m->event_type = DAMAGE;  
@@ -1046,7 +1046,7 @@
                 }
                 case UPDATEAVAILABLE:
                 {
-                    if(bf->c1 = (d->s.health > 0.0)){
+                    if((bf->c1 = (d->s.health > 0.0))){
                         printf("dark12\n");
                         int update = msg->InfoBlock1;
                         msg->InfoBlock1 = d->s.available;
@@ -1076,7 +1076,7 @@
                     int update = msg->InfoBlock1;
                     d->s.health -= update;
                         printf("dark13\n");
-                    if(bf->c1 = (d->s.health <= 0.0)){
+                    if((bf->c1 = (d->s.health <= 0.0))){
                         msg->InfoBlock2 = d->s.available;
                         d->s.available = 0;
                         int i = 0;
@@ -1121,13 +1121,13 @@
                 case UPDATEDRAW:
                 {
                     //printf("generatore %llu hit %d\n",lp->gid,d->dissimType); 
-                    if(bf->c1 = (d->g.health > 0.0)){
+                    if((bf->c1 = (d->g.health > 0.0))){
                         int update = msg->InfoBlock1;
                         msg->InfoBlock1 = d->g.draw;
                         d->g.draw = update;
                         printf("dark2\n");
                         //if(lp->gid == 0) printf("%d %d\n",d->g.draw,d->g.available);
-                        if(bf->c2 = (d->g.draw > d->g.available)){
+                        if((bf->c2 = (d->g.draw > d->g.available))){
                             //printf("blowout\n");
                             e = tw_event_new(lp->gid, 0 + 0, lp);
                             m = (Msg_Data *)tw_event_data(e);
@@ -1141,7 +1141,7 @@
                 case UPDATEAVAILABLE:
                 {
                     //printf("Reached Update Available - Generator %llu\n",lp->gid);
-                    if(bf->c1 = (d->g.health > 0.0)){
+                    if((bf->c1 = (d->g.health > 0.0))){
                         int update = msg->InfoBlock1;
                         msg->InfoBlock1 = d->g.available;
                         d->g.available = update;
@@ -1169,7 +1169,7 @@
                     int update = msg->InfoBlock1;
                     d->g.health -= update;
                         printf("dark2\n");
-                    if(bf->c1 = (d->g.health <= 0.0)){
+                    if((bf->c1 = (d->g.health <= 0.0))){
                         msg->InfoBlock2 = d->g.available;
                         d->g.available = 0;
                         int i = 0;
