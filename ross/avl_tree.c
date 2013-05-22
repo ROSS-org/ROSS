@@ -169,7 +169,7 @@ avlInsert(AvlTree *t, tw_event *key)
         /* new t */
         //*t = malloc(sizeof(struct avlNode));
         *t = avl_alloc();
-        if (t == NULL) {
+        if (*t == NULL) {
             tw_error(TW_LOC, "Out of AVL tree nodes!");
         }
         
