@@ -2,12 +2,8 @@
  #include <ross.h>
  
 //By Curtis Antolik
- 
- typedef struct Substation_State Substation_State;
- 
 
-
- struct Substation_State{
+typedef struct {
     double MyCoordsX;
     double MyCoordsY;
     int nextJumpIDs[4];
@@ -17,4 +13,4 @@
     int draw;
     int available;
     
-};
+} Substation_State;

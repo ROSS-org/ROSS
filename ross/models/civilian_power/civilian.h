@@ -1,7 +1,6 @@
 #include <ross.h>
  //By Curtis Antolik
  
- typedef struct Civilian_State Civilian_State;
  typedef struct node item;
  
 
@@ -12,7 +11,7 @@
 };
 
 
- struct Civilian_State{
+typedef struct {
     double HomeCoordsX;
     double HomeCoordsY;
     double MyCoordsX;
@@ -52,4 +51,4 @@
     int hospitalPowerUsage;
     int leisurePowerUsage;
     
-};
+} Civilian_State;

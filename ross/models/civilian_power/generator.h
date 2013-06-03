@@ -3,9 +3,7 @@
  
  //By Curtis Antolik
 
- typedef struct Generator_State Generator_State;
-
- struct Generator_State{
+typedef struct {
     double MyCoordsX;
     double MyCoordsY;
     int nextJumpIDs[100];
@@ -14,5 +12,5 @@
     int draw;
     int available;
     
-};
+} Generator_State;
 

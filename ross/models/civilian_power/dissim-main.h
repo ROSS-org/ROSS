@@ -4,13 +4,6 @@
  #define MEAN_DEPARTURE 30.0
  #define MEAN_LAND 10.0
  typedef enum events events;
- typedef struct Dissim_State Dissim_State;
- typedef struct Msg_Data Msg_Data;
- typedef struct Civilian_State Civilian_State;
- typedef struct Powerline_State Powerline_State;
- typedef struct Building_State Building_State;
- typedef struct Substation_State Substation_State;
- typedef struct Generator_State Generator_State;
  
 //By Curtis Antolik
 
@@ -18,13 +11,14 @@
   
 
 
-struct Msg_Data{
+typedef struct {
     enum events classToUse;
     int event_type;
     int InfoBlock1;
     int InfoBlock2;
-};
- struct Dissim_State{
+} Msg_Data;
+
+typedef struct {
     int dissimType;
     Civilian_State c;
     Powerline_State p;
@@ -32,7 +26,7 @@ struct Msg_Data{
     Substation_State s;
     Generator_State g;
     
-};
+} Dissim_State;
 
  /*struct airport_message
  {

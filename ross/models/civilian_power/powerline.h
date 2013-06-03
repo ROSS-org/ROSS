@@ -1,12 +1,9 @@
 
  #include <ross.h>
  
-//By Curtis Antolik
- typedef struct Powerline_State Powerline_State;
- 
+//By Curtis Antolik 
 
-
- struct Powerline_State{
+typedef struct {
     double MyCoordsX;
     double MyCoordsY;
     int nextJumpID;
@@ -16,5 +13,5 @@
     int available;
     int test;
     
-};
+} Powerline_State;
 

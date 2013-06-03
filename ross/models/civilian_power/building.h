@@ -2,10 +2,7 @@
  
  //By Curtis Antolik
 
- typedef struct Building_State Building_State;
- 
-
- struct Building_State{
+typedef struct {
     double MyCoordsX;
     double MyCoordsY;
     int powerlineServicing;
@@ -18,4 +15,4 @@
     int hasPower;
     int occupantPresent[4];
     
-};
+} Building_State;
