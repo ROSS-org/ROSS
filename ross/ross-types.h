@@ -141,6 +141,8 @@ struct tw_statistics
 
   tw_stat s_pe_event_ties;
 
+  tw_stime s_min_detected_offset;
+
   tw_clock s_total;
   tw_clock s_net_read;
   tw_clock s_gvt;

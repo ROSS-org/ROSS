@@ -57,6 +57,12 @@ unsigned int    g_tw_periodicity = 1;
          */
 tw_stime g_tw_lookahead=0.005;
 
+        /*
+         * Minimum detected timestamp offset used by the simulation at
+         * runtime, can be used to help tune conservative protocol runs.
+         */
+tw_stime g_tw_min_detected_offset=DBL_MAX;
+
 	/**
 	 * Number of messages to process at once out of the PQ before
 	 * returning back to handling things like GVT, message recption,

@@ -51,6 +51,13 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   send_pe = sender->pe;
   recv_ts = tw_now(sender) + offset_ts;
 
+  if(g_tw_synchronization_protocol == CONSERVATIVE)
+  {
+    /* keep track of the smallest timestamp offset we have seen */
+    if(offset_ts < g_tw_min_detected_offset)
+      g_tw_min_detected_offset = offset_ts;
+  }
+
   /* If this event will be past the end time, or there
    * are no more free events available, use abort event.
    */
