@@ -81,7 +81,7 @@
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
     OF THE POSSIBILITY OF SUCH DAMAGE.
  
-    Copyright (c) 1999-2010 Rensselaer Polytechnic Institute.
+    Copyright (c) 1999-2013 Rensselaer Polytechnic Institute.
     All rights reserved.
 */
 
@@ -121,6 +121,10 @@
 
 #include <sys/time.h>
 #include <time.h>
+
+#ifdef USE_BGPM
+#include<bgpm.h>
+#endif 
 
 #ifdef ROSS_INTERNAL
 #undef malloc

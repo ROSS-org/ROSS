@@ -47,6 +47,10 @@ IF(AVL_TREE)
 	SET(OPTIONS "${OPTIONS} -DAVL_NODE_COUNT=${x}")
 ENDIF(AVL_TREE)
 
+IF(BGPM)
+	SET(OPTIONS "${OPTIONS} -DUSE_BGPM")
+ENDIF(BGPM)
+
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
 	SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)

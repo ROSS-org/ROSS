@@ -38,7 +38,6 @@ OPTION(WITH_NETDMF "NetDMF support"             OFF)
 OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
 
 OPTION(AVL_TREE	    "Use AVL trees for tw_events?" ON)
-
 SET(AVL_TREE_SIZE 18 CACHE STRING "AVL tree contains 2^AVL_TREE_SIZE")
 
 SET(NETWORK       mpi)
@@ -89,12 +88,14 @@ ENDIF(ARCH STREQUAL bgp)
 
 IF(ARCH STREQUAL bgq)
        SET(VALID_ARCH YES)
-       #SET(CC   mpixlc)
-       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O5 -qstrict -qprefetch=aggressive -qarch=qp -qtune=qp -qmaxmem=-1 -qsimd=noauto -qreport -qhot")
+       OPTION(BGPM    "Blue Gene/Q specific Performance Counters" OFF)
+       SET(BGPM_INCLUDE    /bgsys/drivers/ppcfloor/bgpm/include/)
+       ADD_LIBRARY(imp_bgpm STATIC IMPORTED)
+       SET_PROPERTY(TARGET imp_bgpm PROPERTY IMPORTED_LOCATION /bgsys/drivers/ppcfloor/bgpm/lib/libbgpm.a)
+       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${BGPM_INCLUDE} -O5 -qstrict -qprefetch=aggressive -qarch=qp -qtune=qp -qmaxmem=-1 -qsimd=noauto -qreport -qhot")
        SET(OPTIONS "")
        SET(CLOCK   bgq)
 ENDIF(ARCH STREQUAL bgq)
-
 
 IF(ARCH STREQUAL ppc64)
        SET(VALID_ARCH YES)

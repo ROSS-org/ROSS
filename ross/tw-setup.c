@@ -291,6 +291,26 @@ late_sanity_check(void)
 	}
 }
 
+#ifdef USE_BGPM
+unsigned cacheList[] =
+      { 
+	PEVT_L2_HITS,
+	PEVT_L2_MISSES,
+	PEVT_L2_FETCH_LINE,
+	PEVT_L2_STORE_LINE,
+      };
+
+unsigned instList[] =
+      { 
+	PEVT_LSU_COMMIT_CACHEABLE_LDS,
+	PEVT_L1P_BAS_MISS,
+	PEVT_INST_XU_ALL,
+	PEVT_INST_QFPU_ALL,
+	PEVT_INST_QFPU_FPGRP1,
+	PEVT_INST_ALL,
+      };
+#endif 
+
 void
 tw_run(void)
 {
@@ -299,6 +319,27 @@ tw_run(void)
   late_sanity_check();
   
   me = setup_pes();
+
+#ifdef USE_BGPM
+  Bgpm_Init(BGPM_MODE_SWDISTRIB);
+
+  // Create event set and add events needed to calculate CPI,
+  int hEvtSet = Bgpm_CreateEventSet();
+
+  // Change the type here to get the other performance monitor sets -- defaults to instList set
+  // Sets need to be different because there are conflicts when mixing certain events.
+  Bgpm_AddEventList(hEvtSet, instList, sizeof(instList)/sizeof(unsigned) );
+
+  if( me->id == 0)
+    {
+      printf("***************************************************************************************** \n");
+      printf("* NOTICE: Build configured with Blue Gene/Q specific, BGPM performance monitoring code!!* \n");
+      printf("***************************************************************************************** \n");
+    }
+
+  Bgpm_Apply(hEvtSet);
+  Bgpm_Start(hEvtSet);
+#endif 
   
   switch(g_tw_synchronization_protocol)
     {
@@ -321,6 +362,26 @@ tw_run(void)
     default:
       tw_error(TW_LOC, "No Synchronization Protocol Specified! \n");
     }
+
+#ifdef USE_BGPM
+  Bgpm_Stop(hEvtSet);
+
+  if( me->id == 0 ) // Have only RANK 0 output stats
+    {
+      int i;
+      uint64_t cnt;
+      int numEvts = Bgpm_NumEvents(hEvtSet);
+      printf("\n \n ================================= \n");
+      printf( "Performance Counter Results:\n");
+      printf("--------------------------------- \n");      
+      for (i=0; i<numEvts; i++) 
+	{
+	  Bgpm_ReadEvent(hEvtSet, i, &cnt);
+	  printf("   %40s = %20llu\n", Bgpm_GetEventLabel(hEvtSet, i), cnt);
+      }
+      printf("================================= \n");
+    }
+#endif 
 }
 
 void
