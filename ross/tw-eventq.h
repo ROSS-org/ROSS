@@ -57,6 +57,8 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
   if(!q->tail)
     q->tail = t;
 
+  q->size += cnt;
+
   // iterate through list to collect sent events
   t = t->next;
   for(e = h; e != t; e = e->next)
@@ -80,7 +82,6 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 	  e->state.owner = TW_pe_free_q;
 	}
     }
-  q->size += cnt;
 
   tw_eventq_debug(q);
 }
