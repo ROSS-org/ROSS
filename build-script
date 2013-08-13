@@ -1,0 +1,50 @@
+#!/bin/sh
+
+export ARCH=x86_64
+export CC=mpicc
+export CXX=mpicxx
+
+usage="\
+Usage: build-script [--prefix=<path>] [--help]"
+
+PREFIX=""
+
+export ROSS_BUILD_MODELS="ross_true"
+
+while test $# -gt 0; do
+  optarg=""
+  case "$1" in
+  -*=*)
+	optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'`
+
+	;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+	PREFIX=$optarg
+
+        ;;
+    --disable-ross-models)
+        ROSS_BUILD_MODELS="ross_false"
+
+        ;;
+    --help)
+	echo "$usage"
+	exit 1	
+
+        ;;
+  esac
+  shift
+done
+
+cmake ../rossnet/trunk
+
+make -j 12
+
+if [ "$PREFIX" != "" ] ; then 
+	make install DESTDIR=$PREFIX
+fi
+
+exit
