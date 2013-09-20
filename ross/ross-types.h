@@ -271,6 +271,21 @@ enum tw_event_owner
     };
 
 /**
+ * tw_message
+ * @brief Rollback-aware output mechanism
+ *
+ * Regularly requested feature: rollback-aware output.  This will allow us to
+ * receive an output stream without messages from cancelled events.
+ */
+struct tw_message
+{
+    struct tw_message *next;
+    struct tw_message *prev;
+    /** The actual message content */
+    char message[512 - 2*sizeof(struct tw_message*)];
+};
+
+/**
  * tw_event:
  * @brief Event Stucture
  *
