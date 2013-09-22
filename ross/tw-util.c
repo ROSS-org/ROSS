@@ -13,6 +13,12 @@ tw_output(tw_event *e, const char *fmt, ...)
     //fprintf(stdout, "%s:%i: ", file, line);
 	ret = vfprintf(stdout, fmt, ap);
     ret = vsnprintf(foo.message, sizeof(foo.message), fmt, ap);
+    if (ret >= 0 && ret < sizeof(foo.message)) {
+        // Should be successful
+    }
+    else {
+        tw_printf(TW_LOC, "Message too large!");
+    }
 	//fprintf(stdout, "\n");
 	//fflush(stdout);
     va_end(ap);
