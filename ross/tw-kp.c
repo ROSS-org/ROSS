@@ -92,6 +92,22 @@ tw_kp_rollback_event(tw_event * event)
                 kp->last_time = kp->pevent_q.head->recv_ts;
 }
 
+#define NUM_OUT_MESG 1000
+static tw_out*
+init_output_messages(void)
+{
+    int i;
+    
+    tw_out *ret = tw_calloc(TW_LOC, "tw_out", sizeof(struct tw_out), NUM_OUT_MESG);
+    
+    for (i = 0; i < NUM_OUT_MESG - 1; i++) {
+        ret[i].next = &ret[i + 1];
+    }
+    ret[i].next = NULL;
+    
+    return ret;
+}
+
 void
 tw_init_kps(tw_pe * me)
 {
@@ -110,6 +126,7 @@ tw_init_kps(tw_pe * me)
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
 		prev_kp = kp;
+        kp->output = init_output_messages();
 
 #if ROSS_MEMORY
 		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",

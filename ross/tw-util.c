@@ -1,5 +1,25 @@
 #include <ross.h>
 
+int
+tw_output(tw_event *e, const char *fmt, ...)
+{
+    tw_out foo;
+    int ret = 0;
+    va_list ap;
+    
+    //e->
+    
+    va_start(ap, fmt);
+    //fprintf(stdout, "%s:%i: ", file, line);
+	ret = vfprintf(stdout, fmt, ap);
+    ret = vsnprintf(foo.message, sizeof(foo.message), fmt, ap);
+	//fprintf(stdout, "\n");
+	//fflush(stdout);
+    va_end(ap);
+    
+    return ret;
+}
+
 void
 tw_printf(const char *file, int line, const char *fmt, ...)
 {
