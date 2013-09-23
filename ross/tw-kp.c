@@ -92,7 +92,7 @@ tw_kp_rollback_event(tw_event * event)
                 kp->last_time = kp->pevent_q.head->recv_ts;
 }
 
-#define NUM_OUT_MESG 1000
+#define NUM_OUT_MESG 2000
 static tw_out*
 init_output_messages(tw_kp *kp)
 {

@@ -81,6 +81,8 @@ tw_sched_cancel_q(tw_pe * me)
 		for (; cev; cev = nev) {
 			nev = cev->cancel_next;
 
+            clean_output_messages(cev, 0);
+
 			if (!cev->state.cancel_q)
 				tw_error(TW_LOC, "No cancel_q bit on event in cancel_q");
 
