@@ -122,6 +122,7 @@ extern void	 tw_kp_onpe(tw_kpid id, tw_pe * pe);
 extern void	 kp_fossil_remote(tw_kp * kp);
 extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
 extern void	 tw_init_kps(tw_pe * me);
+extern tw_out * tw_kp_grab_output_buffer(tw_kp *kp);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);

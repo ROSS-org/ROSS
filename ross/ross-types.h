@@ -282,7 +282,7 @@ typedef struct tw_out
     struct tw_out *next;
     // struct tw_message *prev;
     /** The actual message content */
-    char message[512 - 2*sizeof(struct tw_message*)];
+    char message[256 - 2*sizeof(struct tw_message*)];
 } tw_out;
 
 /**

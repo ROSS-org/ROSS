@@ -135,6 +135,19 @@ tw_init_kps(tw_pe * me)
 	}
 }
 
+tw_out *
+tw_kp_grab_output_buffer(tw_kp *kp)
+{
+    if (kp->output) {
+        tw_out *ret = kp->output;
+        kp->output = kp->output->next;
+        ret->next = 0;
+        return ret;
+    }
+    
+    return NULL;
+}
+
 void
 tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 {

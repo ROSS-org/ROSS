@@ -1,27 +1,50 @@
 #include <ross.h>
 
+/**
+ * Rollback-aware printf, i.e. if the event gets rolled back, undo the printf.
+ * We can'd do that of course so we store the message in a buffer until GVT.
+ */
 int
-tw_output(tw_event *e, const char *fmt, ...)
+tw_output(tw_lp *lp, const char *fmt, ...)
 {
-    tw_out foo;
     int ret = 0;
     va_list ap;
+    tw_event *cev;
+    tw_out *temp;
     
-    //e->
+    tw_out *out = tw_kp_grab_output_buffer(lp->kp);
+    if (!out) {
+        tw_printf(TW_LOC, "kp (%d) has no available output buffers\n", lp->kp->id);
+        va_start(ap, fmt);
+        tw_printf(TW_LOC, fmt, ap);
+        va_end(ap);
+        return 0;
+    }
+    
+    cev = lp->pe->cur_event;
+    
+    if (cev->out_msgs == 0) {
+        cev->out_msgs = out;
+    }
+    else {
+        // Attach it to the end
+        temp = cev->out_msgs;
+        
+        while (temp->next != 0) {
+            temp = temp->next;
+        }
+        temp->next = out;
+    }
     
     va_start(ap, fmt);
-    //fprintf(stdout, "%s:%i: ", file, line);
-	ret = vfprintf(stdout, fmt, ap);
-    ret = vsnprintf(foo.message, sizeof(foo.message), fmt, ap);
-    if (ret >= 0 && ret < sizeof(foo.message)) {
+    ret = vsnprintf(out->message, sizeof(out->message), fmt, ap);
+    va_end(ap);
+    if (ret >= 0 && ret < sizeof(out->message)) {
         // Should be successful
     }
     else {
-        tw_printf(TW_LOC, "Message too large!");
+        tw_printf(TW_LOC, "Message may be too large?");
     }
-	//fprintf(stdout, "\n");
-	//fflush(stdout);
-    va_end(ap);
     
     return ret;
 }
