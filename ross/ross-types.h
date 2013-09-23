@@ -280,9 +280,9 @@ enum tw_event_owner
 typedef struct tw_out
 {
     struct tw_out *next;
-    // struct tw_message *prev;
+    tw_kp *owner;
     /** The actual message content */
-    char message[256 - 2*sizeof(struct tw_message*)];
+    char message[256 - 2*sizeof(void *)];
 } tw_out;
 
 /**

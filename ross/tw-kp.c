@@ -94,7 +94,7 @@ tw_kp_rollback_event(tw_event * event)
 
 #define NUM_OUT_MESG 1000
 static tw_out*
-init_output_messages(void)
+init_output_messages(tw_kp *kp)
 {
     int i;
     
@@ -102,8 +102,10 @@ init_output_messages(void)
     
     for (i = 0; i < NUM_OUT_MESG - 1; i++) {
         ret[i].next = &ret[i + 1];
+        ret[i].owner = kp;
     }
     ret[i].next = NULL;
+    ret[i].owner = kp;
     
     return ret;
 }
@@ -126,7 +128,9 @@ tw_init_kps(tw_pe * me)
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
 		prev_kp = kp;
-        kp->output = init_output_messages();
+        if (g_tw_synchronization_protocol == OPTIMISTIC) {
+            kp->output = init_output_messages(kp);
+        }
 
 #if ROSS_MEMORY
 		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
@@ -146,6 +150,21 @@ tw_kp_grab_output_buffer(tw_kp *kp)
     }
     
     return NULL;
+}
+
+void
+tw_kp_put_back_output_buffer(tw_out *out)
+{
+    tw_kp *kp = out->owner;
+    
+    if (kp->output) {
+        out->next = kp->output;
+        kp->output = out;
+    }
+    else {
+        kp->output = out;
+        kp->output->next = NULL;
+    }
 }
 
 void

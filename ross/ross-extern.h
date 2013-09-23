@@ -104,7 +104,8 @@ extern void		 tw_event_rollback(tw_event * event);
 /*
  * ross-inline.h
  */
-static inline void 		 tw_event_free(tw_pe *, tw_event *);
+static inline void  tw_event_free(tw_pe *, tw_event *);
+static inline void  clean_output_messages(tw_event *e, int print_message);
 
 /*
  * tw-lp.c
@@ -118,11 +119,12 @@ extern void		 tw_init_lps(tw_pe * me);
 /*
  * tw-kp.c
  */
-extern void	 tw_kp_onpe(tw_kpid id, tw_pe * pe);
-extern void	 kp_fossil_remote(tw_kp * kp);
-extern tw_kp	*tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
-extern void	 tw_init_kps(tw_pe * me);
-extern tw_out * tw_kp_grab_output_buffer(tw_kp *kp);
+extern void     tw_kp_onpe(tw_kpid id, tw_pe * pe);
+extern void     kp_fossil_remote(tw_kp * kp);
+extern tw_kp*   tw_kp_next_onpe(tw_kp * last, tw_pe * pe);
+extern void     tw_init_kps(tw_pe * me);
+extern tw_out*  tw_kp_grab_output_buffer(tw_kp *kp);
+extern void     tw_kp_put_back_output_buffer(tw_out *out);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
@@ -188,6 +190,7 @@ extern size_t	tw_memory_allocate(tw_memoryq *);
  */
 
 #define	TW_LOC	__FILE__,__LINE__
+extern int tw_output(tw_lp *lp, const char *fmt, ...);
 extern void tw_error(
 	const char *file,
 	int line,

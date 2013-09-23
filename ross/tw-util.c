@@ -12,6 +12,13 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     tw_event *cev;
     tw_out *temp;
     
+    if (g_tw_synchronization_protocol != OPTIMISTIC) {
+        va_start(ap, fmt);
+        tw_printf(TW_LOC, fmt, ap);
+        va_end(ap);
+        return 0;
+    }
+    
     tw_out *out = tw_kp_grab_output_buffer(lp->kp);
     if (!out) {
         tw_printf(TW_LOC, "kp (%d) has no available output buffers\n", lp->kp->id);
