@@ -38,7 +38,7 @@ tw_event_grab(tw_pe *pe)
 }
 
 static inline void
-clean_output_messages(tw_event *e, int print_message)
+free_output_messages(tw_event *e, int print_message)
 {
     tw_out *temp;
     while (e->out_msgs) {
@@ -84,7 +84,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   e->src_lp = sender;
   e->recv_ts = recv_ts;
 
-  clean_output_messages(e, 0);
+  free_output_messages(e, 0);
 
   return e;
 }
@@ -121,6 +121,8 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
   e->memory = NULL;
 #endif
+
+ free_output_messages(e, 0);
 
   e->state.owner = TW_pe_free_q;
 
