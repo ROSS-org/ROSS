@@ -63,7 +63,8 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
     t = t->next;
     for(e = h; e != t; e = e->next)
     {
-        clean_output_messages(e, 1);
+        free_output_messages(e, 1);
+        
         if(e->caused_by_me)
         {
             cev = next = e->caused_by_me;
@@ -73,8 +74,10 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
                 next = cev->cause_next;
                 cev->cause_next = NULL;
                 
-                if(cev->state.owner == TW_pe_sevent_q)
+                if(cev->state.owner == TW_pe_sevent_q) {
+                    //free_output_messages(cev, 1);
                     tw_event_free(cev->src_lp->pe, cev);
+                }
                 
                 cev = next;
             }
