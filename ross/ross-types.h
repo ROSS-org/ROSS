@@ -336,7 +336,6 @@ struct tw_event
   	tw_memory	*memory;
 #endif
     tw_out *out_msgs;               /**< @brief Output messages */
-    uint8_t output_count;           /**< @brief Number of above tw_outs */
 };
 
 /**
