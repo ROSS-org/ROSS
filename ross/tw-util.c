@@ -36,7 +36,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     else {
         // Attach it to the end
         temp = cev->out_msgs;
-        
+
         while (temp->next != 0) {
             temp = temp->next;
         }

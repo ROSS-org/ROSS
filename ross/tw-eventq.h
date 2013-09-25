@@ -64,7 +64,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
     for(e = h; e != t; e = e->next)
     {
         free_output_messages(e, 1);
-        
+
         if(e->caused_by_me)
         {
             cev = next = e->caused_by_me;
