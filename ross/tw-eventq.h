@@ -43,22 +43,22 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
     tw_event	*e;
     tw_event	*cev;
     tw_event	*next;
-    
+
     tw_eventq_debug(q);
-    
+
     t->next = q->head;
-    
+
     if(q->head)
         q->head->prev = t;
-    
+
     q->head = h;
     q->head->prev = NULL;
-    
+
     if(!q->tail)
         q->tail = t;
-    
+
     q->size += cnt;
-    
+
     // iterate through list to collect sent events
     t = t->next;
     for(e = h; e != t; e = e->next)
@@ -68,23 +68,23 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
         if(e->caused_by_me)
         {
             cev = next = e->caused_by_me;
-            
+
             while(cev)
             {
                 next = cev->cause_next;
                 cev->cause_next = NULL;
-                
+
                 if(cev->state.owner == TW_pe_sevent_q)
                     tw_event_free(cev->src_lp->pe, cev);
-                
+
                 cev = next;
             }
-            
+
             e->caused_by_me = NULL;
             e->state.owner = TW_pe_free_q;
         }
     }
-    
+
     tw_eventq_debug(q);
 }
 

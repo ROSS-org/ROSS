@@ -11,14 +11,14 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     va_list ap;
     tw_event *cev;
     tw_out *temp;
-    
+
     if (g_tw_synchronization_protocol != OPTIMISTIC) {
         va_start(ap, fmt);
         tw_printf(TW_LOC, fmt, ap);
         va_end(ap);
         return 0;
     }
-    
+
     tw_out *out = tw_kp_grab_output_buffer(lp->kp);
     if (!out) {
         tw_printf(TW_LOC, "kp (%d) has no available output buffers\n", lp->kp->id);
@@ -27,9 +27,9 @@ tw_output(tw_lp *lp, const char *fmt, ...)
         va_end(ap);
         return 0;
     }
-    
+
     cev = lp->pe->cur_event;
-    
+
     if (cev->out_msgs == 0) {
         cev->out_msgs = out;
     }
@@ -42,7 +42,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
         }
         temp->next = out;
     }
-    
+
     va_start(ap, fmt);
     ret = vsnprintf(out->message, sizeof(out->message), fmt, ap);
     va_end(ap);
@@ -52,7 +52,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     else {
         tw_printf(TW_LOC, "Message may be too large?");
     }
-    
+
     return ret;
 }
 

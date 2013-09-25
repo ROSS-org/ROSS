@@ -99,16 +99,16 @@ static tw_out*
 init_output_messages(tw_kp *kp)
 {
     int i;
-    
+
     tw_out *ret = tw_calloc(TW_LOC, "tw_out", sizeof(struct tw_out), NUM_OUT_MESG);
-    
+
     for (i = 0; i < NUM_OUT_MESG - 1; i++) {
         ret[i].next = &ret[i + 1];
         ret[i].owner = kp;
     }
     ret[i].next = NULL;
     ret[i].owner = kp;
-    
+
     return ret;
 }
 
@@ -150,7 +150,7 @@ tw_kp_grab_output_buffer(tw_kp *kp)
         ret->next = 0;
         return ret;
     }
-    
+
     return NULL;
 }
 
@@ -158,7 +158,7 @@ void
 tw_kp_put_back_output_buffer(tw_out *out)
 {
     tw_kp *kp = out->owner;
-    
+
     if (kp->output) {
         out->next = kp->output;
         kp->output = out;
