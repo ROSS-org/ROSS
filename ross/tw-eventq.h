@@ -74,10 +74,8 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
                 next = cev->cause_next;
                 cev->cause_next = NULL;
                 
-                if(cev->state.owner == TW_pe_sevent_q) {
-                    //free_output_messages(cev, 1);
+                if(cev->state.owner == TW_pe_sevent_q)
                     tw_event_free(cev->src_lp->pe, cev);
-                }
                 
                 cev = next;
             }
