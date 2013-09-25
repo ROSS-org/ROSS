@@ -152,7 +152,7 @@ tw_event_rollback(tw_event * event)
   tw_event	*e = event->caused_by_me;
   tw_lp		*dest_lp = event->dest_lp;
 
-  free_output_messages(event, 0);
+  tw_free_output_messages(event, 0);
 
   tw_state_rollback(dest_lp, event);
 

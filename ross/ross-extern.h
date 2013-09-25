@@ -105,7 +105,7 @@ extern void		 tw_event_rollback(tw_event * event);
  * ross-inline.h
  */
 static inline void  tw_event_free(tw_pe *, tw_event *);
-static inline void  free_output_messages(tw_event *e, int print_message);
+static inline void  tw_free_output_messages(tw_event *e, int print_message);
 
 /*
  * tw-lp.c
