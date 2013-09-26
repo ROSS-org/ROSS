@@ -14,7 +14,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
 
     if (g_tw_synchronization_protocol != OPTIMISTIC) {
         va_start(ap, fmt);
-        tw_printf(TW_LOC, fmt, ap);
+        vfprintf(stdout, fmt, ap);
         va_end(ap);
         return 0;
     }
@@ -22,8 +22,9 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     tw_out *out = tw_kp_grab_output_buffer(lp->kp);
     if (!out) {
         tw_printf(TW_LOC, "kp (%d) has no available output buffers\n", lp->kp->id);
+        tw_printf(TW_LOC, "This event may be rolled back!");
         va_start(ap, fmt);
-        tw_printf(TW_LOC, fmt, ap);
+        vfprintf(stdout, fmt, ap);
         va_end(ap);
         return 0;
     }
