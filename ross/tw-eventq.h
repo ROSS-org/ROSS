@@ -37,53 +37,55 @@ tw_eventq_debug(tw_eventq * q)
 #endif
 }
 
-static inline void 
+static inline void
 tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
-  tw_event	*e;
-  tw_event	*cev;
-  tw_event	*next;
+    tw_event	*e;
+    tw_event	*cev;
+    tw_event	*next;
 
-  tw_eventq_debug(q);
+    tw_eventq_debug(q);
 
-  t->next = q->head;
+    t->next = q->head;
 
-  if(q->head)
-    q->head->prev = t;
+    if(q->head)
+        q->head->prev = t;
 
-  q->head = h;
-  q->head->prev = NULL;
+    q->head = h;
+    q->head->prev = NULL;
 
-  if(!q->tail)
-    q->tail = t;
+    if(!q->tail)
+        q->tail = t;
 
-  q->size += cnt;
+    q->size += cnt;
 
-  // iterate through list to collect sent events
-  t = t->next;
-  for(e = h; e != t; e = e->next)
+    // iterate through list to collect sent events
+    t = t->next;
+    for(e = h; e != t; e = e->next)
     {
-      if(e->caused_by_me)
-	{
-	  cev = next = e->caused_by_me;
+        tw_free_output_messages(e, 1);
 
-	  while(cev)
-	    {
-	      next = cev->cause_next;
-	      cev->cause_next = NULL;
+        if(e->caused_by_me)
+        {
+            cev = next = e->caused_by_me;
 
-	      if(cev->state.owner == TW_pe_sevent_q)
-		tw_event_free(cev->src_lp->pe, cev);
+            while(cev)
+            {
+                next = cev->cause_next;
+                cev->cause_next = NULL;
 
-	      cev = next;
-	    }
+                if(cev->state.owner == TW_pe_sevent_q)
+                    tw_event_free(cev->src_lp->pe, cev);
 
-	  e->caused_by_me = NULL;
-	  e->state.owner = TW_pe_free_q;
-	}
+                cev = next;
+            }
+
+            e->caused_by_me = NULL;
+            e->state.owner = TW_pe_free_q;
+        }
     }
 
-  tw_eventq_debug(q);
+    tw_eventq_debug(q);
 }
 
 static inline void 

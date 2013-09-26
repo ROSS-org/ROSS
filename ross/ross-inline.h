@@ -37,6 +37,20 @@ tw_event_grab(tw_pe *pe)
   return e;
 }
 
+static inline void
+tw_free_output_messages(tw_event *e, int print_message)
+{
+    tw_out *temp;
+    while (e->out_msgs) {
+        temp = e->out_msgs;
+        if (print_message)
+            printf("%s", temp->message);
+        e->out_msgs = temp->next;
+        // Put it back
+        tw_kp_put_back_output_buffer(temp);
+    }
+}
+
 /**
  * @bug There's a bug in this function.  We put dest_gid, which is
  * a 64-bit value, into dest_lp which may be a 32-bit pointer.  
@@ -69,6 +83,8 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   e->dest_lp = (tw_lp *) dest_gid;
   e->src_lp = sender;
   e->recv_ts = recv_ts;
+
+  tw_free_output_messages(e, 0);
 
   return e;
 }
@@ -105,6 +121,8 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
   e->memory = NULL;
 #endif
+
+  tw_free_output_messages(e, 0);
 
   e->state.owner = TW_pe_free_q;
 

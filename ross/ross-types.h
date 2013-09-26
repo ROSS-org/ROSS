@@ -271,6 +271,21 @@ enum tw_event_owner
     };
 
 /**
+ * tw_out
+ * @brief Rollback-aware output mechanism
+ *
+ * Regularly requested feature: rollback-aware output.  This will allow us to
+ * create an output stream without messages from cancelled events.
+ */
+typedef struct tw_out
+{
+    struct tw_out *next;
+    tw_kp *owner;
+    /** The actual message content */
+    char message[256 - 2*sizeof(void *)];
+} tw_out;
+
+/**
  * tw_event:
  * @brief Event Stucture
  *
@@ -320,6 +335,7 @@ struct tw_event
 #ifdef ROSS_MEMORY
   	tw_memory	*memory;
 #endif
+    tw_out *out_msgs;               /**< @brief Output messages */
 };
 
 /**
@@ -360,9 +376,10 @@ struct tw_lp
  */
 struct tw_kp
 {
-  tw_kpid id; /**< @brief ID number, otherwise its not available to the app */
-  tw_pe *pe; /**< @brief PE that services this KP */
-  tw_kp *next; /**< @brief Next KP in the PE's service list */
+  tw_kpid id;     /**< @brief ID number, otherwise its not available to the app */
+  tw_pe *pe;      /**< @brief PE that services this KP */
+  tw_kp *next;    /**< @brief Next KP in the PE's service list */
+  tw_out *output; /**< @brief Output messages */
 
   tw_eventq pevent_q; /**< @brief Events processed by LPs bound to this KP */
   tw_stime last_time; /**< @brief Time of the current event being processed */

@@ -1,5 +1,62 @@
 #include <ross.h>
 
+/**
+ * Rollback-aware printf, i.e. if the event gets rolled back, undo the printf.
+ * We can'd do that of course so we store the message in a buffer until GVT.
+ */
+int
+tw_output(tw_lp *lp, const char *fmt, ...)
+{
+    int ret = 0;
+    va_list ap;
+    tw_event *cev;
+    tw_out *temp;
+
+    if (g_tw_synchronization_protocol != OPTIMISTIC) {
+        va_start(ap, fmt);
+        vfprintf(stdout, fmt, ap);
+        va_end(ap);
+        return 0;
+    }
+
+    tw_out *out = tw_kp_grab_output_buffer(lp->kp);
+    if (!out) {
+        tw_printf(TW_LOC, "kp (%d) has no available output buffers\n", lp->kp->id);
+        tw_printf(TW_LOC, "This event may be rolled back!");
+        va_start(ap, fmt);
+        vfprintf(stdout, fmt, ap);
+        va_end(ap);
+        return 0;
+    }
+
+    cev = lp->pe->cur_event;
+
+    if (cev->out_msgs == 0) {
+        cev->out_msgs = out;
+    }
+    else {
+        // Attach it to the end
+        temp = cev->out_msgs;
+
+        while (temp->next != 0) {
+            temp = temp->next;
+        }
+        temp->next = out;
+    }
+
+    va_start(ap, fmt);
+    ret = vsnprintf(out->message, sizeof(out->message), fmt, ap);
+    va_end(ap);
+    if (ret >= 0 && ret < sizeof(out->message)) {
+        // Should be successful
+    }
+    else {
+        tw_printf(TW_LOC, "Message may be too large?");
+    }
+
+    return ret;
+}
+
 void
 tw_printf(const char *file, int line, const char *fmt, ...)
 {

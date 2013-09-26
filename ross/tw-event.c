@@ -23,6 +23,10 @@ tw_event_send(tw_event * event)
     return;
   }
 
+  if (event->out_msgs) {
+    tw_error(TW_LOC, "It is an error to send an event with pre-loaded output message.");
+  }
+
   link_causality(event, send_pe->cur_event);
 
   // call LP remote mapping function to get dest_pe
@@ -147,6 +151,8 @@ tw_event_rollback(tw_event * event)
 {
   tw_event	*e = event->caused_by_me;
   tw_lp		*dest_lp = event->dest_lp;
+
+  tw_free_output_messages(event, 0);
 
   tw_state_rollback(dest_lp, event);
 
