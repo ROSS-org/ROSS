@@ -40,9 +40,8 @@ tw_event_grab(tw_pe *pe)
 static inline void
 tw_free_output_messages(tw_event *e, int print_message)
 {
-    tw_out *temp;
     while (e->out_msgs) {
-        temp = e->out_msgs;
+        tw_out *temp = e->out_msgs;
         if (print_message)
             printf("%s", temp->message);
         e->out_msgs = temp->next;
