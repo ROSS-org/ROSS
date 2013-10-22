@@ -710,7 +710,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
   if(MPI_Reduce(&(s->s_max_run_time), 
 		&me->stats.s_max_run_time,
-		16,
+		1,
 		MPI_DOUBLE,
 		MPI_MAX,
 		g_tw_masternode,
