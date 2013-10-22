@@ -79,8 +79,9 @@ tw_stats(tw_pe * me)
 		s.s_pq += pe->stats.s_pq;
 		s.s_rollback += pe->stats.s_rollback;
 		s.s_cancel_q += pe->stats.s_cancel_q;
-                s.s_pe_event_ties += pe->stats.s_pe_event_ties;
-                s.s_min_detected_offset = g_tw_min_detected_offset;
+        s.s_pe_event_ties += pe->stats.s_pe_event_ties;
+        s.s_min_detected_offset = g_tw_min_detected_offset;
+        s.s_avl += pe->stats.s_avl;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -178,6 +179,7 @@ tw_stats(tw_pe * me)
 #ifdef ROSS_timing
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at %1.4lf GHz):\n", g_tw_clock_rate / 1000000000.0);
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / g_tw_clock_rate);
+    show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);
 	show_4f("Event Abort", (double) s.s_event_abort / g_tw_clock_rate);
