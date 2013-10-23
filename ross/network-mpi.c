@@ -720,7 +720,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
   if(MPI_Reduce(&(s->s_net_events), 
 		&me->stats.s_net_events,
 		16,
-		MPI_LONG_LONG,
+		MPI_UNSIGNED_LONG_LONG,
 		MPI_SUM,
 		g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
@@ -729,7 +729,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
   if(MPI_Reduce(&s->s_total, 
 		&me->stats.s_total,
 		8,
-		MPI_LONG_LONG,
+		MPI_UNSIGNED_LONG_LONG,
 		MPI_MAX,
 		g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
@@ -738,7 +738,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
   if(MPI_Reduce(&s->s_pe_event_ties,
         &me->stats.s_pe_event_ties,
         1,
-        MPI_LONG_LONG,
+        MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
         g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
@@ -756,7 +756,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
   if(MPI_Reduce(&s->s_avl,
         &me->stats.s_avl,
         1,
-        MPI_DOUBLE,
+        MPI_UNSIGNED_LONG_LONG,
         MPI_MAX,
         g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
