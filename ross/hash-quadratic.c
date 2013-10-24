@@ -80,7 +80,7 @@ tw_hash_insert(void *h, tw_event * event, int pe)
 
   start = tw_clock_read();
   avlInsert(&event->dest_lp->kp->avl_tree, event);
-  event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
+  g_tw_pe[0]->stats.s_avl += tw_clock_read() - start;
 #else
 	tw_hash        *hash_t;
 
@@ -203,7 +203,7 @@ tw_hash_remove(void *h, tw_event * event, int pe)
 
   start = tw_clock_read();
   ret = avlDelete(&event->dest_lp->kp->avl_tree, event);
-  event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
+  g_tw_pe[0]->stats.s_avl += tw_clock_read() - start;
   return ret;
 #else
 	tw_hash        *hash_t = (tw_hash *) h;
