@@ -1,10 +1,6 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
-#ifdef USE_AVL_TREE
-extern unsigned avl_tree_size;
-#endif
-
 static tw_stime gvt_print_interval = 0.01;
 static tw_stime percent_complete = 0.0;
 
@@ -39,7 +35,7 @@ gvt_print(tw_stime gvt)
 	printf(").\n");
     
 #ifdef USE_AVL_TREE
-    printf("AVL tree size: %d\n", avl_tree_size);
+    printf("AVL tree size: %d\n", g_tw_pe[0]->avl_tree_size);
 #endif
     
 	percent_complete += gvt_print_interval;

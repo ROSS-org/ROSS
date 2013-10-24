@@ -17,6 +17,7 @@ typedef struct tw_lp tw_lp;
 typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
 typedef struct tw_log tw_log;
+typedef struct avlNode *AvlTree;
 
 #ifdef ROSS_MEMORY
 typedef struct tw_memoryq tw_memoryq;
@@ -418,6 +419,15 @@ struct tw_pe
   tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
   tw_event *cur_event; /**< @brief Current event being processed */
   tw_eventq sevent_q; /**< @brief events already sent over the network */
+
+#ifdef USE_AVL_TREE
+  /* AVL tree root */
+  AvlTree avl_tree;
+  /* AVL node free list and head pointers */
+  AvlTree avl_list;
+  AvlTree avl_list_head;
+  unsigned avl_tree_size;
+#endif
 
 #ifdef ROSS_MEMORY
   tw_memoryq *memory_q; /**< @brief array of free tw_memory buffers linked lists */

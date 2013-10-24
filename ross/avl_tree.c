@@ -302,14 +302,12 @@ avlDelete(AvlTree *t, tw_event *key)
     return target;
 }
 
-extern AvlTree avl_list_head;
-
 AvlTree avl_alloc(void)
 {
-    AvlTree head = avl_list_head;
-    avl_list_head = avl_list_head->next;
+    AvlTree head = g_tw_pe[0]->avl_list_head;
+    g_tw_pe[0]->avl_list_head = head->next;
     
-    if (avl_list_head == NULL) {
+    if (g_tw_pe[0]->avl_list_head == NULL) {
         tw_error(TW_LOC, "avl_list_head is invalid!");
     }
     
@@ -320,12 +318,11 @@ AvlTree avl_alloc(void)
 
 void avl_free(AvlTree t)
 {
-    //memset(t, 0, sizeof(struct avlNode));
     (t)->child[0] = AVL_EMPTY;
     (t)->child[1] = AVL_EMPTY;
     (t)->next = NULL;
     (t)->key = NULL;
     (t)->height = 0;
-    (t)->next = avl_list_head;
-    avl_list_head = t;
+    (t)->next = g_tw_pe[0]->avl_list_head;
+    g_tw_pe[0]->avl_list_head = t;
 }
