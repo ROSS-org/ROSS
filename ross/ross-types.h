@@ -384,6 +384,11 @@ struct tw_kp
   tw_kp *next;    /**< @brief Next KP in the PE's service list */
   tw_out *output; /**< @brief Output messages */
 
+#ifdef USE_AVL_TREE
+  /* AVL tree root */
+  AvlTree avl_tree;
+#endif
+
   tw_eventq pevent_q; /**< @brief Events processed by LPs bound to this KP */
   tw_stime last_time; /**< @brief Time of the current event being processed */
   tw_stat s_nevent_processed; /**< @brief Number of events processed */
@@ -421,8 +426,6 @@ struct tw_pe
   tw_eventq sevent_q; /**< @brief events already sent over the network */
 
 #ifdef USE_AVL_TREE
-  /* AVL tree root */
-  AvlTree avl_tree;
   /* AVL node free list and head pointers */
   AvlTree avl_list;
   AvlTree avl_list_head;

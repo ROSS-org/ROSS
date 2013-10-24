@@ -31,8 +31,6 @@ tw_hash_create()
   int i;
 
   g_tw_pe[0]->avl_tree_size = 0;
-    
-  g_tw_pe[0]->avl_tree = AVL_EMPTY;
 
   g_tw_pe[0]->avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
 
@@ -81,7 +79,7 @@ tw_hash_insert(void *h, tw_event * event, int pe)
   g_tw_pe[0]->avl_tree_size++;
 
   start = tw_clock_read();
-  avlInsert(&g_tw_pe[0]->avl_tree, event);
+  avlInsert(&event->dest_lp->kp->avl_tree, event);
   event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
 #else
 	tw_hash        *hash_t;
@@ -204,7 +202,7 @@ tw_hash_remove(void *h, tw_event * event, int pe)
   g_tw_pe[0]->avl_tree_size--;
 
   start = tw_clock_read();
-  ret = avlDelete(&g_tw_pe[0]->avl_tree, event);
+  ret = avlDelete(&event->dest_lp->kp->avl_tree, event);
   event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
   return ret;
 #else

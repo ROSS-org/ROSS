@@ -167,7 +167,6 @@ avlInsert(AvlTree *t, tw_event *key)
     /* insertion procedure */
     if (*t == AVL_EMPTY) {
         /* new t */
-        //*t = malloc(sizeof(struct avlNode));
         *t = avl_alloc();
         if (*t == NULL) {
             tw_error(TW_LOC, "Out of AVL tree nodes!");
@@ -285,7 +284,6 @@ avlDelete(AvlTree *t, tw_event *key)
                 // Timestamp and event IDs are the same, but different send_pe
                 target = avlDelete(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
             }
-            
         }
         else {
             // Timestamps are the same but event IDs differ
