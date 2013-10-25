@@ -154,6 +154,8 @@ struct tw_statistics
   tw_clock s_rollback;
 
   tw_clock s_cancel_q;
+
+  tw_clock s_avl;
 };
 
 #ifdef ROSS_MEMORY

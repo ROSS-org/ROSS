@@ -8,12 +8,6 @@ tw_event_grab(tw_pe *pe)
 
   if (e)
     {
-#ifndef ROSS_NETWORK_none
-      // have to reclaim non-cancelled remote events from hash table
-      if(e->event_id && e->state.remote)
-	tw_hash_remove(pe->hash_t, e, e->send_pe);
-#endif
-
       e->cancel_next = NULL;
       e->caused_by_me = NULL;
       e->cause_next = NULL;
@@ -40,9 +34,8 @@ tw_event_grab(tw_pe *pe)
 static inline void
 tw_free_output_messages(tw_event *e, int print_message)
 {
-    tw_out *temp;
     while (e->out_msgs) {
-        temp = e->out_msgs;
+        tw_out *temp = e->out_msgs;
         if (print_message)
             printf("%s", temp->message);
         e->out_msgs = temp->next;

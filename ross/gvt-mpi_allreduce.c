@@ -90,7 +90,7 @@ tw_gvt_step2(tw_pe *me)
 			     &local_white,
 			     &total_white,
 			     1,
-			     MPI_LONG_LONG,
+			     MPI_UNSIGNED_LONG_LONG,
 			     MPI_SUM,
 			     MPI_COMM_WORLD) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");

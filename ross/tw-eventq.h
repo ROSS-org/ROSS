@@ -40,6 +40,7 @@ tw_eventq_debug(tw_eventq * q)
 static inline void
 tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
+    tw_pe       *pe;
     tw_event	*e;
     tw_event	*cev;
     tw_event	*next;
@@ -64,6 +65,11 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
     for(e = h; e != t; e = e->next)
     {
         tw_free_output_messages(e, 1);
+
+        pe = e->dest_lp->pe;
+        // have to reclaim non-cancelled remote events from hash table
+        if(e->event_id && e->state.remote)
+            tw_hash_remove(pe->hash_t, e, e->send_pe);
 
         if(e->caused_by_me)
         {
