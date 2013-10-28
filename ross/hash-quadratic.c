@@ -1,20 +1,6 @@
 #include <ross.h>
 #ifdef USE_AVL_TREE
-
-#include <assert.h>
 #include "avl_tree.h"
-
-//#define AVL_NODE_COUNT (1 << 18)
-
-/* AVL tree root */
-AvlTree avl_tree = NULL;
-
-/* AVL node free list and head pointers */
-AvlTree avl_list = NULL;
-AvlTree avl_list_head = NULL;
-
-unsigned avl_tree_size;
-
 #endif /* USE_AVL_TREE */
 
 static void     rehash(tw_hash * hash_t, int pe);
@@ -44,18 +30,16 @@ tw_hash_create()
 #ifdef USE_AVL_TREE
   int i;
 
-  avl_tree_size = 0;
-    
-  avl_tree = AVL_EMPTY;
+  g_tw_pe[0]->avl_tree_size = 0;
 
-  avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
+  g_tw_pe[0]->avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
 
   for (i = 0; i < AVL_NODE_COUNT - 1; i++) {
-    avl_list[i].next = &avl_list[i + 1];
+    g_tw_pe[0]->avl_list[i].next = &g_tw_pe[0]->avl_list[i + 1];
   }
-  avl_list[i].next = NULL;
+  g_tw_pe[0]->avl_list[i].next = NULL;
 
-  avl_list_head = &avl_list[0];
+  g_tw_pe[0]->avl_list_head = &g_tw_pe[0]->avl_list[0];
 
   return NULL;
 #else
@@ -92,11 +76,11 @@ tw_hash_insert(void *h, tw_event * event, int pe)
 #ifdef USE_AVL_TREE
   tw_clock start;
 
-  avl_tree_size++;
+  g_tw_pe[0]->avl_tree_size++;
 
   start = tw_clock_read();
-  avlInsert(&avl_tree, event);
-  event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
+  avlInsert(&event->dest_lp->kp->avl_tree, event);
+  g_tw_pe[0]->stats.s_avl += tw_clock_read() - start;
 #else
 	tw_hash        *hash_t;
 
@@ -215,11 +199,11 @@ tw_hash_remove(void *h, tw_event * event, int pe)
   tw_event *ret;
   tw_clock start;
 
-  avl_tree_size--;
+  g_tw_pe[0]->avl_tree_size--;
 
   start = tw_clock_read();
-  ret = avlDelete(&avl_tree, event);
-  event->dest_lp->pe->stats.s_avl += tw_clock_read() - start;
+  ret = avlDelete(&event->dest_lp->kp->avl_tree, event);
+  g_tw_pe[0]->stats.s_avl += tw_clock_read() - start;
   return ret;
 #else
 	tw_hash        *hash_t = (tw_hash *) h;

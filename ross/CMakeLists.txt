@@ -2,8 +2,6 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
-avl_tree.h
-avl_tree.c
 clock-${CLOCK}.c
 clock-${CLOCK}.h
 network-${NETWORK}.c
@@ -42,6 +40,7 @@ CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
 CONFIGURE_FILE(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
 
 IF(AVL_TREE)
+	SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
 	MATH( EXPR x "1 << ${AVL_TREE_SIZE}" )
 	SET(OPTIONS "${OPTIONS} -DUSE_AVL_TREE")
 	SET(OPTIONS "${OPTIONS} -DAVL_NODE_COUNT=${x}")
