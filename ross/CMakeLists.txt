@@ -50,6 +50,10 @@ IF(BGPM)
 	SET(OPTIONS "${OPTIONS} -DUSE_BGPM")
 ENDIF(BGPM)
 
+IF(WITH_ROSS_IO)
+	ADD_SUBDIRECTORY(IO)
+ENDIF(WITH_ROSS_IO)
+
 IF(MEMORY)
 	SET(OPTIONS "${OPTIONS} -DROSS_MEMORY")
 	SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
