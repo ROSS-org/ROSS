@@ -1,0 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(syncIO)
+
+ADD_LIBRARY(syncIO rdtsc.h phastaIO.h phastaIO.cc)
+
