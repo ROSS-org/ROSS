@@ -1,0 +1,105 @@
+Default Ensa Case                                                     20/10/11 
+
+ M a i n   C o n t r o l   P a r a m e t e r s        
+
+ number of processing elements . . . . . . . (numpe )=         8
+
+ number of mesh nodes  . . . . . . . . . . . (numnp )=     11728
+
+ number of elements  . . . . . . . . . . . . (numel )=     61942
+
+ number of boundary elements . . . . . . . . (numelb)=      1602
+
+ number of element nodes . . . . . . . . . . (nen   )=         4
+
+ number of element faces . . . . . . . . . . (nfaces)=         0
+
+ number of space dimensions  . . . . . . . . (nsd   )=         3
+
+ number of boundary flux nodes . . . . . . . (numflx)=         0
+
+ frame of reference  . . . . . . . . . . . . (iALE  )=         0
+
+    eq. 0, Eulerian                                   
+    eq. 1, arbitrary Lagrangian-Eulerian              
+
+ coordinate system . . . . . . . . . . . . . (icoord)=         0
+
+    eq. 0, cartesian                                  
+    eq. 1, axisymmetric                               
+
+ equation type . . . . . . . . . . . . . . . (navier)=         1
+
+    eq. 0, Euler (inviscid)                           
+    eq. 1, Navier-Stokes (viscous)                    
+
+ restart option  . . . . . . . . . . . . . . (irs   )=         2
+
+    eq. 0, no restart nor solution written            
+    eq. 1, restart written                            
+    eq. 2, restart and solution written               
+
+ execution code  . . . . . . . . . . . . . . (iexec )=         1
+
+    eq. 0, data check only                            
+    eq. 1, execution                                  
+
+ input echo parameter  . . . . . . . . . . . (necho )=         3
+Default Ensa Case                                                     20/10/11 
+
+ S o l u t i o n   P a r a m e t e r s                
+
+ number of time sequences  . . . . . . . . . (ntseq )=         1
+
+ blocking algorithm  . . . . . . . . . . . . (imap  )=         0
+
+    eq. 0, ordered blocking                           
+    eq. 1, disjoint element blocking                  
+
+ variational formulation . . . . . . . . . . (ivart )=         2
+
+    eq. 1, Galerkin                                   
+    eq. 2, Galerkin/least-squares                     
+    eq. 3, plus discontinuity-capturing operator      
+
+ discontinuity-capturing type  . . . . . . . (iDC   )=         0
+
+    eq. 1, DC-mallet                                  
+    eq. 2, quadratic DC                               
+    eq. 3, smallest of the previous two DCs           
+
+ dimension of Krylov space . . . . . . . . . (kspace)=       200
+
+ maximum number of GMRES cycles  . . . . . . (ngmres)=         1
+Default Ensa Case                                                     20/10/11 
+
+ S o l v e r   I n f o r m a t i o n                    
+
+ Seq num    Nstep    Niter    Impl      Nupdate     Eps_Tol
+     1         2        0      10          1      0.50000E-01
+Default Ensa Case                                                     20/10/11 
+
+ S p a t i a l   a n d   T i m e   I n t e g r a t i o n
+
+ Seq num  Elem Int.  Bound Int.  Level  LCtime    Delt       CFLfld    CFLsld
+     1       2           2   0.0000E+00       0   1.0000E-03    0.0000    0.0000
+Default Ensa Case                                                     20/10/11 
+
+ O u t p u t   I n f o r m a t i o n                  
+
+ number of time steps per output . . . . . . (ntout )=         1
+
+ I/O format  . . . . . . . . . . . . . . . . (ioform)=         1
+
+    eq. 0, ASCII                                      
+    eq. 1, binary                                     
+
+ scaling factor for density  . . . . . . . . (ro    )=    1.22500E+00
+
+ scaling factor for velocity . . . . . . . . (vel   )=    1.00000E+00
+
+ scaling factor for temperature. . . . . . . (temper)=    1.00000E+00
+
+ scaling factor for pressure . . . . . . . . (press )=    1.00000E+00
+
+ scaling factor for entropy  . . . . . . . . (entrop)=    1.00000E+00

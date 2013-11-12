@@ -37,6 +37,8 @@ OPTION(WITH_NETDMF "NetDMF support"             OFF)
 
 OPTION(WITH_ROSSNET "Build ROSS.Net?"		OFF)
 
+OPTION(WITH_ROSS_IO "Build ROSS IO libraries?"  OFF)
+
 OPTION(AVL_TREE	    "Use AVL trees for tw_events?" ON)
 SET(AVL_TREE_SIZE 18 CACHE STRING "AVL tree contains 2^AVL_TREE_SIZE")
 
