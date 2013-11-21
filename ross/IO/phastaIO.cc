@@ -146,14 +146,7 @@ namespace{
 	// TODO: StringStipper("nbc value? ") returns NULL?
 	char*
     StringStripper( const char  istring[] ) {
-        
-        int length = strlen( istring );
-        
-        //char* dest = new char [ length + 1 ];
-        char* dest = (char *)malloc( length + 1 );
-        
-        strcpy( dest, istring );
-        dest[ length ] = '\0';
+        char* dest = strdup(istring);
         
         if ( char* p = strpbrk( dest, " ") )
             *p = '\0';
@@ -1077,11 +1070,7 @@ void readheader_( int* fileDescriptor,
 		char readouttag[MAX_FIELDS_NUMBER][MAX_FIELDS_NAME_LENGTH];
 		int j;
         
-		int string_length = strlen( keyphrase );
-		char* buffer = (char*) malloc ( string_length+1 );
-        
-		strcpy ( buffer, keyphrase );
-		buffer[ string_length ] = '\0';
+        char *buffer = strdup(keyphrase);
         
 		char* st2 = strtok ( buffer, "@" );
 		st2 = strtok (NULL, "@");
@@ -1378,11 +1367,7 @@ void writeheader_(  const int* fileDescriptor,
 		isBinary( iotype );
 		char mpi_tag[MAX_FIELDS_NAME_LENGTH];
         
-		int string_length = strlen( keyphrase );
-		char* buffer = (char*) malloc ( string_length+1 );
-        
-		strcpy ( buffer, keyphrase);
-		buffer[ string_length ] = '\0';
+        char *buffer = strdup(keyphrase);
         
 		char* st2 = strtok ( buffer, "@" );
 		st2 = strtok (NULL, "@");
