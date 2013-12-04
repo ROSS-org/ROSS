@@ -149,9 +149,21 @@ namespace{
         if ( !( *s1 ) || ( *s1 == '?') ) return 1;
         else return 0;
     }
+
+    inline size_t typeSize (PhastaIO_Datatypes datatype) {
+    	if (datatype == PH_DOUBLE) {
+    		return sizeof(double);
+    	} else if (datatype == PH_INTEGER) {
+    		return sizeof(int);
+    	} else {
+    		// error not needed, now caught by compiler
+    		fprintf(stderr, "ERROR: unknown datatype.\n");
+    		return 0;
+    	}
+    }
     
 	inline size_t
-    typeSize( const char typestring[] ) {
+    typeSize_deprecated( const char typestring[] ) {
         if ( cscompare( "integer", typestring ) ) {
             return sizeof(int);
         } else if ( cscompare( "double", typestring ) ) {
@@ -984,7 +996,7 @@ void readheader_( int* fileDescriptor,
 		fileObject = fileArray[ filePtr ] ;
 		Wrong_Endian = byte_order[ filePtr ];
         
-		typeSize( datatype );   //redundant call, just avoid a compiler warning.
+		typeSize_deprecated( datatype );   //redundant call, just avoid a compiler warning.
         
 		// right now we are making the assumption that we will only write integers
 		// on the header line.
@@ -1167,7 +1179,7 @@ void readdatablock_( int*  fileDescriptor,
 		fileObject = fileArray[ filePtr ];
 		Wrong_Endian = byte_order[ filePtr ];
         
-		size_t type_size = typeSize( datatype );
+		size_t type_size = typeSize_deprecated( datatype );
 		int nUnits = *nItems;
         
 		if ( iotype == PH_BINARY ) {
@@ -1189,7 +1201,7 @@ void readdatablock_( int*  fileDescriptor,
 	else {
 		// 	  printf("read data block\n");
 		MPI_Status read_data_status;
-		size_t type_size = typeSize( datatype );
+		size_t type_size = typeSize_deprecated( datatype );
 		int nUnits = *nItems;
         
 		// read datablock then
@@ -1282,7 +1294,7 @@ void writeheader_(  const int* fileDescriptor,
 		LastHeaderKey[ filePtr ] = const_cast< char* >( keyphrase );
 		DataSize = *ndataItems;
 		fileObject = fileArray[ filePtr ] ;
-		size_t type_size = typeSize( datatype );
+		size_t type_size = typeSize_deprecated( datatype );
 		header_type[ filePtr ] = type_size;
         
 		int _newline = ( *ndataItems > 0 ) ? sizeof( char ) : 0;
@@ -1298,7 +1310,7 @@ void writeheader_(  const int* fileDescriptor,
 	}
 	else { // else it's parallel I/O
 		DataSize = *ndataItems;
-		size_t type_size = typeSize( datatype );
+		size_t type_size = typeSize_deprecated( datatype );
 		char mpi_tag[MAX_FIELDS_NAME_LENGTH];
         
         char *buffer = strdup(keyphrase);
@@ -1462,7 +1474,7 @@ void writedatablock_( const int* fileDescriptor,
 		}
         
 		FILE* fileObject =  fileArray[ filePtr ] ;
-		size_t type_size=typeSize( datatype );
+		size_t type_size=typeSize_deprecated( datatype );
         
 		if ( header_type[filePtr] != (int)type_size ) {
 			fprintf(stderr,"header and datablock differ on typeof data in the block for\n");

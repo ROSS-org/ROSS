@@ -51,6 +51,10 @@ enum PhastaIO_IOTypes {
     PH_TEXT,
 };
 
+enum PhastaIO_Datatypes {
+    PH_DOUBLE,
+    PH_INTEGER,
+}
 
 #if defined (__cplusplus)
 extern "C" {
