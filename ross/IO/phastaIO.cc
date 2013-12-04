@@ -1187,10 +1187,10 @@ void readdatablock_( int*  fileDescriptor,
 			fread( &junk, sizeof(char), 1 , fileObject );
 			if ( Wrong_Endian ) SwapArrayByteOrder_( valueArray, type_size, nUnits );
 		} else {
-			if ( cscompare( "integer", datatype ) ) {
+			if ( datatype == PH_INTEGER ) {
 				for( int n=0; n < nUnits ; n++ )
 					fscanf(fileObject, "%d\n",(int*)((int*)valueArray+n) );
-			} else if ( cscompare( "double", datatype ) ) {
+			} else if ( datatype == PH_DOUBLE ) {
 				for( int n=0; n < nUnits ; n++ )
 					fscanf(fileObject, "%lf\n",(double*)((double*)valueArray+n) );
 			}
@@ -1207,7 +1207,7 @@ void readdatablock_( int*  fileDescriptor,
 		// read datablock then
 		//MR CHANGE
 		//             if ( cscompare ( datatype, "double"))
-		if ( cscompare ( "double" , datatype))
+		if ( datatype == PH_DOUBLE )
 			//MR CHANGE END
 		{
             
@@ -1224,7 +1224,7 @@ void readdatablock_( int*  fileDescriptor,
 		}
 		//MR CHANGE
 		//             else if ( cscompare ( datatype, "integer"))
-		else if ( cscompare ( "integer" , datatype))
+		else if ( datatype == PH_INTEGER )
 			//MR CHANGE END
 		{
 			MPI_File_read_at_all_begin(PhastaIOActiveFiles[i]->file_handle,
@@ -1388,7 +1388,7 @@ void writeheader_(  const int* fileDescriptor,
 		// Write datablock header ...
 		//MR CHANGE
 		// 	if ( cscompare(datatype,"double") )
-		if ( cscompare("double",datatype) )
+		if ( datatype == PH_DOUBLE )
 			//MR CHANGE END
 		{
 			free ( PhastaIOActiveFiles[i]->double_chunk );
@@ -1399,7 +1399,7 @@ void writeheader_(  const int* fileDescriptor,
 		}
 		//MR CHANGE
 		// 	if  ( cscompare(datatype,"integer") )
-		else if ( cscompare("integer",datatype) )
+		else if ( datatype == PH_INTEGER )
 			//MR CHANGE END
 		{
 			free ( PhastaIOActiveFiles[i]->int_chunk );
@@ -1500,10 +1500,10 @@ void writedatablock_( const int* fileDescriptor,
 			fwrite( valueArray, type_size, nUnits, fileObject );
 			fprintf( fileObject,"\n");
 		} else {
-			if ( cscompare( "integer", datatype ) ) {
+			if ( datatype == PH_INTEGER ) {
 				for( int n=0; n < nUnits ; n++ )
 					fprintf(fileObject,"%d\n",*((int*)((int*)valueArray+n)));
-			} else if ( cscompare( "double", datatype ) ) {
+			} else if ( datatype == PH_DOUBLE ) {
 				for( int n=0; n < nUnits ; n++ )
 					fprintf(fileObject,"%lf\n",*((double*)((double*)valueArray+n)));
 			}
@@ -1516,7 +1516,7 @@ void writedatablock_( const int* fileDescriptor,
         
 		//MR CHANGE
 		// 	if ( cscompare(datatype,"double") )
-		if ( cscompare("double",datatype) )
+		if ( datatype == PH_DOUBLE )
 			//MR CHANGE END
 		{
 			memcpy((PhastaIOActiveFiles[i]->double_chunk+DB_HEADER_SIZE/sizeof(double)), valueArray, nUnits*sizeof(double));
@@ -1533,7 +1533,7 @@ void writedatablock_( const int* fileDescriptor,
 		}
 		//MR CHANGE
 		// 	else if ( cscompare ( datatype, "integer"))
-		else if ( cscompare("integer",datatype) )
+		else if ( datatype == PH_INTEGER )
 			//MR CHANGE END
 		{
 			memcpy((PhastaIOActiveFiles[i]->int_chunk+DB_HEADER_SIZE/sizeof(int)), valueArray, nUnits*sizeof(int));
