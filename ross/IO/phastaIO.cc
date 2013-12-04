@@ -142,18 +142,6 @@ namespace{
 	phastaio_file_t *PhastaIOActiveFiles[MAX_PHASTA_FILES];
 	int PhastaIONextActiveIndex = 0; /* indicates next index to allocate */
     
-	// the caller has the responsibility to delete the returned string
-	// TODO: StringStipper("nbc value? ") returns NULL?
-	char*
-    StringStripper( const char  istring[] ) {
-        char* dest = strdup(istring);
-        
-        if ( char* p = strpbrk( dest, " ") )
-            *p = '\0';
-        
-        return dest;
-    }
-    
 	inline int
     cscompare( const char teststring[],
               const char targetstring[] ) {
@@ -178,28 +166,18 @@ namespace{
     
 	inline void
     isBinary( const char iotype[] ) {
-        
-        char* fname = StringStripper( iotype );
-        if ( cscompare( fname, "binary" ) ) binary_format = true;
+        if ( cscompare( iotype, "binary" ) ) binary_format = true;
         else binary_format = false;
-        free (fname);
-        
     }
     
 	inline size_t
     typeSize( const char typestring[] ) {
-        
-        char* ts1 = StringStripper( typestring );
-        
-        if ( cscompare( "integer", ts1 ) ) {
-            free (ts1);
+        if ( cscompare( "integer", typestring ) ) {
             return sizeof(int);
-        } else if ( cscompare( "double", ts1 ) ) {
-            free (ts1);
+        } else if ( cscompare( "double", typestring ) ) {
             return sizeof( double );
         } else {
-            fprintf(stderr,"unknown type : %s\n",ts1);
-            free (ts1);
+            fprintf(stderr,"unknown type : %s\n",typestring);
             return 0;
         }
     }
@@ -383,11 +361,10 @@ void queryphmpiio_(const char filename[],int *nfields, int *nppf)
     
 	if(irank == 0) {
 		FILE * fileHandle;
-		char* fname = StringStripper( filename );
         
-		fileHandle = fopen (fname,"rb");
+		fileHandle = fopen (filename,"rb");
 		if (fileHandle == NULL ) {
-			printf("\nError: File %s doesn't exist! Please check!\n",fname);
+			printf("\nError: File %s doesn't exist! Please check!\n",filename);
 		}
 		else {
 			SerialFile =(serial_file *)calloc( 1,  sizeof( serial_file) );
@@ -552,19 +529,17 @@ int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, const c
 	unsigned long long timer_start, timer_end;
 	startTimer(&timer_start);
     
-	char* imode = StringStripper( mode );
-    
 	// Note: if it's read, we presume query was called prior to init and
 	// MasterHeaderSize is already set to correct value from parsing header
 	// otherwise it's write then it needs some computation to be set
-	if ( cscompare( "read", imode ) ) {
+	if ( cscompare( "read", mode ) ) {
 		// do nothing
 	}
-	else if( cscompare( "write", imode ) ) {
+	else if( cscompare( "write", mode ) ) {
 		MasterHeaderSize =  computeMHSize(*nfields, *nppf, LATEST_WRITE_VERSION);
 	}
 	else {
-		printf("Error initphmpiio: can't recognize the mode %s", imode);
+		printf("Error initphmpiio: can't recognize the mode %s", mode);
         exit(1);
 	}
     
@@ -708,39 +683,33 @@ void openfile_(const char filename[],
 	{
 		FILE* file=NULL ;
 		*fileDescriptor = 0;
-		char* fname = StringStripper( filename );
-		char* imode = StringStripper( mode );
         
-		if ( cscompare( "read", imode ) ) file = fopen(fname, "rb" );
-		else if( cscompare( "write", imode ) ) file = fopen(fname, "wb" );
-		else if( cscompare( "append", imode ) ) file = fopen(fname, "ab" );
+		if ( cscompare( "read", mode ) ) file = fopen(filename, "rb" );
+		else if( cscompare( "write", mode ) ) file = fopen(filename, "wb" );
+		else if( cscompare( "append", mode ) ) file = fopen(filename, "ab" );
         
 		if ( !file ){
-			fprintf(stderr,"Error openfile: unable to open file %s",fname ) ;
+			fprintf(stderr,"Error openfile: unable to open file %s",filename ) ;
 		} else {
 			fileArray.push_back( file );
 			byte_order.push_back( false );
 			header_type.push_back( sizeof(int) );
 			*fileDescriptor = fileArray.size();
 		}
-		free (fname);
-		free (imode);
 	}
 	else // else it would be parallel I/O, opposed to posix io
 	{
-		char* fname = StringStripper( filename );
-		char* imode = StringStripper( mode );
 		int rc;
 		i = *fileDescriptor;
 		char* token;
         
-		if ( cscompare( "read", imode ) )
+		if ( cscompare( "read", mode ) )
 		{
 			//	      if (PhastaIOActiveFiles[i]->myrank == 0)
 			//                printf("\n **********\nRead open ... ... regular version\n");
             
 			rc = MPI_File_open( PhastaIOActiveFiles[i]->local_comm,
-                               fname,
+                               filename,
                                MPI_MODE_RDONLY,
                                MPI_INFO_NULL,
                                &(PhastaIOActiveFiles[i]->file_handle) );
@@ -748,7 +717,7 @@ void openfile_(const char filename[],
 			if(rc)
 			{
 				*fileDescriptor = UNABLE_TO_OPEN_FILE;
-				printf("Error openfile: Unable to open file %s! File descriptor = %d\n",fname,*fileDescriptor);
+				printf("Error openfile: Unable to open file %s! File descriptor = %d\n",filename,*fileDescriptor);
 				return;
 			}
             
@@ -834,15 +803,15 @@ void openfile_(const char filename[],
 			else //else not valid MPI file
 			{
 				*fileDescriptor = NOT_A_MPI_FILE;
-				printf("Error openfile: The file %s you opened is not in syncIO new format, please check again! File descriptor = %d, MasterHeaderSize = %d\n",fname,*fileDescriptor,MasterHeaderSize);
+				printf("Error openfile: The file %s you opened is not in syncIO new format, please check again! File descriptor = %d, MasterHeaderSize = %d\n",filename,*fileDescriptor,MasterHeaderSize);
 				//Printing MasterHeaderSize is useful to test a compiler bug on Intrepid BGP
 				return;
 			}
 		} // end of if "read"
-		else if( cscompare( "write", imode ) )
+		else if( cscompare( "write", mode ) )
 		{
 			rc = MPI_File_open( PhastaIOActiveFiles[i]->local_comm,
-                               fname,
+                               filename,
                                MPI_MODE_WRONLY | MPI_MODE_CREATE,
                                MPI_INFO_NULL,
                                &(PhastaIOActiveFiles[i]->file_handle) );
@@ -877,21 +846,17 @@ void closefile_( int* fileDescriptor,
 	checkFileDescriptor("closefile",&i);
     
 	if ( PhastaIONextActiveIndex == 0 ) {
-		char* imode = StringStripper( mode );
         
-		if( cscompare( "write", imode )
-           || cscompare( "append", imode ) ) {
+		if( cscompare( "write", mode )
+           || cscompare( "append", mode ) ) {
 			fflush( fileArray[ *fileDescriptor - 1 ] );
 		}
         
 		fclose( fileArray[ *fileDescriptor - 1 ] );
-		free (imode);
 	}
 	else {
-		char* imode = StringStripper( mode );
-        
 		//write master header here:
-		if ( cscompare( "write", imode ) ) {
+		if ( cscompare( "write", mode ) ) {
 			MasterHeaderSize = computeMHSize( PhastaIOActiveFiles[i]->nFields, PhastaIOActiveFiles[i]->nPPF, LATEST_WRITE_VERSION);
 			phprintf_0("Info closefile: myrank = %d, MasterHeaderSize = %d\n", PhastaIOActiveFiles[i]->myrank, MasterHeaderSize);
             
@@ -998,7 +963,6 @@ void closefile_( int* fileDescriptor,
         
 		//if( irank == 0 ) printf("gonna file_close(), myrank = %d\n", irank);
 		MPI_File_close( &( PhastaIOActiveFiles[i]->file_handle ) );
-		free ( imode );
 	}
     
 	endTimer(&timer_end);
@@ -1170,8 +1134,7 @@ void readheader_( int* fileDescriptor,
 	endTimer(&timer_end);
 	char extra_msg[1024];
 	memset(extra_msg, '\0', 1024);
-	char* key = StringStripper(keyphrase);
-	sprintf(extra_msg, " field is %s ", key);
+	sprintf(extra_msg, " field is %s ", keyphrase);
 	printPerf("readheader", timer_start, timer_end, -1, extra_msg);
     
 }
@@ -1233,16 +1196,13 @@ void readdatablock_( int*  fileDescriptor,
 			fread( &junk, sizeof(char), 1 , fileObject );
 			if ( Wrong_Endian ) SwapArrayByteOrder_( valueArray, type_size, nUnits );
 		} else {
-            
-			char* ts1 = StringStripper( datatype );
-			if ( cscompare( "integer", ts1 ) ) {
+			if ( cscompare( "integer", datatype ) ) {
 				for( int n=0; n < nUnits ; n++ )
 					fscanf(fileObject, "%d\n",(int*)((int*)valueArray+n) );
-			} else if ( cscompare( "double", ts1 ) ) {
+			} else if ( cscompare( "double", datatype ) ) {
 				for( int n=0; n < nUnits ; n++ )
 					fscanf(fileObject, "%lf\n",(double*)((double*)valueArray+n) );
 			}
-			free (ts1);
 		}
         
 		//return;
@@ -1257,8 +1217,7 @@ void readdatablock_( int*  fileDescriptor,
 		// read datablock then
 		//MR CHANGE
 		//             if ( cscompare ( datatype, "double"))
-		char* ts2 = StringStripper( datatype );
-		if ( cscompare ( "double" , ts2))
+		if ( cscompare ( "double" , datatype))
 			//MR CHANGE END
 		{
             
@@ -1275,7 +1234,7 @@ void readdatablock_( int*  fileDescriptor,
 		}
 		//MR CHANGE
 		//             else if ( cscompare ( datatype, "integer"))
-		else if ( cscompare ( "integer" , ts2))
+		else if ( cscompare ( "integer" , datatype))
 			//MR CHANGE END
 		{
 			MPI_File_read_at_all_begin(PhastaIOActiveFiles[i]->file_handle,
@@ -1308,8 +1267,7 @@ void readdatablock_( int*  fileDescriptor,
 	endTimer(&timer_end);
 	char extra_msg[1024];
 	memset(extra_msg, '\0', 1024);
-	char* key = StringStripper(keyphrase);
-	sprintf(extra_msg, " field is %s ", key);
+	sprintf(extra_msg, " field is %s ", keyphrase);
 	printPerf("readdatablock", timer_start, timer_end, data_size, extra_msg);
     
 }
@@ -1442,8 +1400,7 @@ void writeheader_(  const int* fileDescriptor,
 		// Write datablock header ...
 		//MR CHANGE
 		// 	if ( cscompare(datatype,"double") )
-		char* ts1 = StringStripper( datatype );
-		if ( cscompare("double",ts1) )
+		if ( cscompare("double",datatype) )
 			//MR CHANGE END
 		{
 			free ( PhastaIOActiveFiles[i]->double_chunk );
@@ -1454,7 +1411,7 @@ void writeheader_(  const int* fileDescriptor,
 		}
 		//MR CHANGE
 		// 	if  ( cscompare(datatype,"integer") )
-		else if ( cscompare("integer",ts1) )
+		else if ( cscompare("integer",datatype) )
 			//MR CHANGE END
 		{
 			free ( PhastaIOActiveFiles[i]->int_chunk );
@@ -1468,7 +1425,6 @@ void writeheader_(  const int* fileDescriptor,
 			printf("writeheader - DATA_TYPE_ILLEGAL - %s\n",datatype);
 			return;
 		}
-		free(ts1);
         
 		PhastaIOActiveFiles[i]->part_count++;
 		if ( PhastaIOActiveFiles[i]->part_count == PhastaIOActiveFiles[i]->nppp ) {
@@ -1554,21 +1510,16 @@ void writedatablock_( const int* fileDescriptor,
 		}
         
 		if ( binary_format ) {
-            
 			fwrite( valueArray, type_size, nUnits, fileObject );
 			fprintf( fileObject,"\n");
-            
 		} else {
-            
-			char* ts1 = StringStripper( datatype );
-			if ( cscompare( "integer", ts1 ) ) {
+			if ( cscompare( "integer", datatype ) ) {
 				for( int n=0; n < nUnits ; n++ )
 					fprintf(fileObject,"%d\n",*((int*)((int*)valueArray+n)));
-			} else if ( cscompare( "double", ts1 ) ) {
+			} else if ( cscompare( "double", datatype ) ) {
 				for( int n=0; n < nUnits ; n++ )
 					fprintf(fileObject,"%lf\n",*((double*)((double*)valueArray+n)));
 			}
-			free (ts1);
 		}
 		//return ;
 	}
@@ -1579,8 +1530,7 @@ void writedatablock_( const int* fileDescriptor,
         
 		//MR CHANGE
 		// 	if ( cscompare(datatype,"double") )
-		char* ts1 = StringStripper( datatype );
-		if ( cscompare("double",ts1) )
+		if ( cscompare("double",datatype) )
 			//MR CHANGE END
 		{
 			memcpy((PhastaIOActiveFiles[i]->double_chunk+DB_HEADER_SIZE/sizeof(double)), valueArray, nUnits*sizeof(double));
@@ -1597,7 +1547,7 @@ void writedatablock_( const int* fileDescriptor,
 		}
 		//MR CHANGE
 		// 	else if ( cscompare ( datatype, "integer"))
-		else if ( cscompare("integer",ts1) )
+		else if ( cscompare("integer",datatype) )
 			//MR CHANGE END
 		{
 			memcpy((PhastaIOActiveFiles[i]->int_chunk+DB_HEADER_SIZE/sizeof(int)), valueArray, nUnits*sizeof(int));
@@ -1620,8 +1570,7 @@ void writedatablock_( const int* fileDescriptor,
 	endTimer(&timer_end);
 	char extra_msg[1024];
 	memset(extra_msg, '\0', 1024);
-	char* key = StringStripper(keyphrase);
-	sprintf(extra_msg, " field is %s ", key);
+	sprintf(extra_msg, " field is %s ", keyphrase);
 	printPerf("writedatablock", timer_start, timer_end, data_size, extra_msg);
     
 }
