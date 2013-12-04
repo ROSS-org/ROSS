@@ -37,6 +37,20 @@
 #define togglestrictmode_ togglestrictmode
 #endif
 
+//Enums
+enum PhastaIO_Errors {
+    MAX_PHASTA_FILES_EXCEEDED = -1,
+    UNABLE_TO_OPEN_FILE = -2,
+    NOT_A_MPI_FILE = -3,
+    GPID_EXCEEDED = -4,
+    DATA_TYPE_ILLEGAL = -5,
+};
+
+enum PhastaIO_IOTypes {
+    BINARY,
+    TEXT,
+};
+
 
 #if defined (__cplusplus)
 extern "C" {
@@ -53,11 +67,11 @@ extern "C" {
     void openfile_( const char filename[], const char mode[], int* fileDescriptor );
     void closefile_( int* fileDescriptor, const char mode[] );
     
-    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, const char   datatype[], const char   iotype[] );
-    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  ndataItems, const char  datatype[], const char  iotype[] );
+    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, const char   datatype[], const char iotype[] );
+    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  ndataItems, const char  datatype[], const char iotype[] );
     
     void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, const char  datatype[], const char  iotype[] );
-    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, const char   datatype[], const char   iotype[]  );
+    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, const char   datatype[], const char iotype[]  );
     void writestring_( int* fileDescriptor, const char inString[] );
     
     void togglestrictmode_( );

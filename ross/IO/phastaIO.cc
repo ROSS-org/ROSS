@@ -61,15 +61,6 @@ printf(PHASTAIO_PREFIX "irank=0: " s "\n", ##arg); \
 #define phprintf_0( s, arg...)
 #endif
 
-enum PhastaIO_Errors
-{
-	MAX_PHASTA_FILES_EXCEEDED = -1,
-	UNABLE_TO_OPEN_FILE = -2,
-	NOT_A_MPI_FILE = -3,
-	GPID_EXCEEDED = -4,
-	DATA_TYPE_ILLEGAL = -5,
-};
-
 using namespace std;
 
 namespace{
@@ -143,18 +134,14 @@ namespace{
 	int PhastaIONextActiveIndex = 0; /* indicates next index to allocate */
     
 	inline int
-    cscompare( const char teststring[],
-              const char targetstring[] ) {
+    cscompare( const char teststring[], const char targetstring[] ) {
         
         char* s1 = const_cast<char*>(teststring);
         char* s2 = const_cast<char*>(targetstring);
         
         while( *s1 == ' ') s1++;
         while( *s2 == ' ') s2++;
-        while( ( *s1 )
-              && ( *s2 )
-              && ( *s2 != '?')
-              && ( tolower( *s1 )==tolower( *s2 ) ) ) {
+        while( ( *s1 ) && ( *s2 ) && ( *s2 != '?') && ( tolower( *s1 ) == tolower( *s2 ) ) ) {
             s1++;
             s2++;
             while( *s1 == ' ') s1++;
@@ -1144,7 +1131,7 @@ void readdatablock_( int*  fileDescriptor,
                     void* valueArray,
                     int*  nItems,
                     const char  datatype[],
-                    const char  iotype[] )
+                    PhastaIO_IOTypes iotype )
 {
     
 	//if(irank == 0) printf("entering readdatablock()\n");
