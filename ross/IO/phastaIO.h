@@ -47,8 +47,8 @@ enum PhastaIO_Errors {
 };
 
 enum PhastaIO_IOTypes {
-    BINARY,
-    TEXT,
+    PH_BINARY,
+    PH_TEXT,
 };
 
 
@@ -67,11 +67,11 @@ extern "C" {
     void openfile_( const char filename[], const char mode[], int* fileDescriptor );
     void closefile_( int* fileDescriptor, const char mode[] );
     
-    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, const char   datatype[], const char iotype[] );
-    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  ndataItems, const char  datatype[], const char iotype[] );
+    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, const char   datatype[], PhastaIO_IOTypes iotype );
+    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  ndataItems, const char  datatype[], PhastaIO_IOTypes iotype );
     
-    void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, const char  datatype[], const char  iotype[] );
-    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, const char   datatype[], const char iotype[]  );
+    void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, const char  datatype[], PhastaIO_IOTypes iotype );
+    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, const char   datatype[], PhastaIO_IOTypes iotype );
     void writestring_( int* fileDescriptor, const char inString[] );
     
     void togglestrictmode_( );
@@ -99,12 +99,12 @@ struct PhastaIO_traits<double> {
 
 
 template<class T>
-void write_data_block( const int fileDescriptor, const std::string keyphrase, const T* const valueArray, const int nItems, const bool inBinary = false) {
-    writedatablock_(&fileDescriptor, keyphrase.c_str(), reinterpret_cast<const void*>(valueArray), &nItems, PhastaIO_traits<T>::type_string, inBinary ? "binary" : "text");
+void write_data_block( const int fileDescriptor, const std::string keyphrase, const T* const valueArray, const int nItems, PhastaIO_IOTypes iotype = PH_TEXT ) {
+    writedatablock_( &fileDescriptor, keyphrase.c_str(), reinterpret_cast<const void*>(valueArray), &nItems, PhastaIO_traits<T>::type_string, iotype );
 }
 template<class T>
-void write_header( const int fileDescriptor, const std::string& keyphrase, const T* valueArray, const int nItems, const int nDataItems, const bool inBinary = false) {
-    writeheader_(&fileDescriptor, keyphrase.c_str(), reinterpret_cast<const void*>(valueArray), &nItems, &nDataItems, PhastaIO_traits<T>::type_string, inBinary ? "binary" : "text");
+void write_header( const int fileDescriptor, const std::string& keyphrase, const T* valueArray, const int nItems, const int nDataItems, PhastaIO_IOTypes iotype = PH_TEXT ) {
+    writeheader_( &fileDescriptor, keyphrase.c_str(), reinterpret_cast<const void*>(valueArray), &nItems, &nDataItems, PhastaIO_traits<T>::type_string, iotype );
 }
 
 

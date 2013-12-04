@@ -73,7 +73,6 @@ namespace{
 	bool LastHeaderNotFound = false;
 	bool Wrong_Endian = false ;
 	bool Strict_Error = false ;
-	bool binary_format = true;
     
 	/***********************************************************************/
 	/***************** NEW PHASTA IO CODE STARTS HERE **********************/
@@ -151,12 +150,6 @@ namespace{
         else return 0;
     }
     
-	inline void
-    isBinary( const char iotype[] ) {
-        if ( cscompare( iotype, "binary" ) ) binary_format = true;
-        else binary_format = false;
-    }
-    
 	inline size_t
     typeSize( const char typestring[] ) {
         if ( cscompare( "integer", typestring ) ) {
@@ -173,7 +166,8 @@ namespace{
     readHeader( FILE*       fileObject,
                const char  phrase[],
                int*        params,
-               int         expect ) {
+               int         expect,
+               bool binary_format) {
         
         char* text_header;
         char* token;
@@ -961,7 +955,7 @@ void readheader_( int* fileDescriptor,
                  void* valueArray,
                  int*  nItems,
                  const char  datatype[],
-                 const char  iotype[] )
+                 PhastaIO_IOTypes iotype )
 {
 	unsigned long long timer_start, timer_end;
 	//MPI_Comm_rank(MPI_COMM_WORLD, &irank); //This should not be required if irank is indeed a global variable. irank should be initialized by either query and/or init
@@ -990,7 +984,6 @@ void readheader_( int* fileDescriptor,
 		fileObject = fileArray[ filePtr ] ;
 		Wrong_Endian = byte_order[ filePtr ];
         
-		isBinary( iotype );
 		typeSize( datatype );   //redundant call, just avoid a compiler warning.
         
 		// right now we are making the assumption that we will only write integers
@@ -1000,7 +993,8 @@ void readheader_( int* fileDescriptor,
 		int ierr = readHeader( fileObject ,
                               keyphrase,
                               valueListInt,
-                              *nItems ) ;
+                              *nItems,
+                              iotype == PH_BINARY) ;
         
 		byte_order[ filePtr ] = Wrong_Endian ;
         
@@ -1014,7 +1008,6 @@ void readheader_( int* fileDescriptor,
 		valueListInt = static_cast <int*>(valueArray);
 		char* token;
 		bool FOUND = false ;
-		isBinary( iotype );
         
 		MPI_Status read_offset_status;
 		char read_out_tag[MAX_FIELDS_NAME_LENGTH];
@@ -1176,9 +1169,8 @@ void readdatablock_( int*  fileDescriptor,
         
 		size_t type_size = typeSize( datatype );
 		int nUnits = *nItems;
-		isBinary( iotype );
         
-		if ( binary_format ) {
+		if ( iotype == PH_BINARY ) {
 			fread( valueArray, type_size, nUnits, fileObject );
 			fread( &junk, sizeof(char), 1 , fileObject );
 			if ( Wrong_Endian ) SwapArrayByteOrder_( valueArray, type_size, nUnits );
@@ -1199,7 +1191,6 @@ void readdatablock_( int*  fileDescriptor,
 		MPI_Status read_data_status;
 		size_t type_size = typeSize( datatype );
 		int nUnits = *nItems;
-		isBinary( iotype );
         
 		// read datablock then
 		//MR CHANGE
@@ -1265,7 +1256,7 @@ void writeheader_(  const int* fileDescriptor,
                   const int* nItems,
                   const int* ndataItems,
                   const char datatype[],
-                  const char iotype[])
+                  PhastaIO_IOTypes iotype)
 {
     
 	//if(irank == 0) printf("entering writeheader()\n");
@@ -1292,12 +1283,11 @@ void writeheader_(  const int* fileDescriptor,
 		DataSize = *ndataItems;
 		fileObject = fileArray[ filePtr ] ;
 		size_t type_size = typeSize( datatype );
-		isBinary( iotype );
 		header_type[ filePtr ] = type_size;
         
 		int _newline = ( *ndataItems > 0 ) ? sizeof( char ) : 0;
 		int size_of_nextblock =
-        ( binary_format ) ? type_size*( *ndataItems )+ _newline : *ndataItems ;
+        ( iotype == PH_BINARY ) ? type_size*( *ndataItems )+ _newline : *ndataItems ;
         
 		fprintf( fileObject, "%s : < %d > ", keyphrase, size_of_nextblock );
 		for( int i = 0; i < *nItems; i++ )
@@ -1309,7 +1299,6 @@ void writeheader_(  const int* fileDescriptor,
 	else { // else it's parallel I/O
 		DataSize = *ndataItems;
 		size_t type_size = typeSize( datatype );
-		isBinary( iotype );
 		char mpi_tag[MAX_FIELDS_NAME_LENGTH];
         
         char *buffer = strdup(keyphrase);
@@ -1438,7 +1427,7 @@ void writedatablock_( const int* fileDescriptor,
                      const void* valueArray,
                      const int* nItems,
                      const char datatype[],
-                     const char iotype[] )
+                     PhastaIO_IOTypes iotype )
 {
 	//if(irank == 0) printf("entering writedatablock()\n");
     
@@ -1474,7 +1463,6 @@ void writedatablock_( const int* fileDescriptor,
         
 		FILE* fileObject =  fileArray[ filePtr ] ;
 		size_t type_size=typeSize( datatype );
-		isBinary( iotype );
         
 		if ( header_type[filePtr] != (int)type_size ) {
 			fprintf(stderr,"header and datablock differ on typeof data in the block for\n");
@@ -1496,7 +1484,7 @@ void writedatablock_( const int* fileDescriptor,
 			}
 		}
         
-		if ( binary_format ) {
+		if ( iotype == PH_BINARY ) {
 			fwrite( valueArray, type_size, nUnits, fileObject );
 			fprintf( fileObject,"\n");
 		} else {
@@ -1512,7 +1500,6 @@ void writedatablock_( const int* fileDescriptor,
 	}
 	else {  // syncIO case
 		MPI_Status write_data_status;
-		isBinary( iotype );
 		int nUnits = *nItems;
         
 		//MR CHANGE
