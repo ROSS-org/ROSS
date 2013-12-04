@@ -71,11 +71,11 @@ extern "C" {
     void openfile_( const char filename[], const char mode[], int* fileDescriptor );
     void closefile_( int* fileDescriptor, const char mode[] );
     
-    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, const char   datatype[], PhastaIO_IOTypes iotype );
-    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  ndataItems, const char  datatype[], PhastaIO_IOTypes iotype );
+    void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
+    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
     
-    void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, const char  datatype[], PhastaIO_IOTypes iotype );
-    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, const char   datatype[], PhastaIO_IOTypes iotype );
+    void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
+    void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
     void writestring_( int* fileDescriptor, const char inString[] );
     
     void togglestrictmode_( );

@@ -966,7 +966,7 @@ void readheader_( int* fileDescriptor,
                  const  char keyphrase[],
                  void* valueArray,
                  int*  nItems,
-                 const char  datatype[],
+                 PhastaIO_Datatypes datatype,
                  PhastaIO_IOTypes iotype )
 {
 	unsigned long long timer_start, timer_end;
@@ -996,7 +996,7 @@ void readheader_( int* fileDescriptor,
 		fileObject = fileArray[ filePtr ] ;
 		Wrong_Endian = byte_order[ filePtr ];
         
-		typeSize_deprecated( datatype );   //redundant call, just avoid a compiler warning.
+		//typeSize( datatype );   //redundant call, just avoid a compiler warning.
         
 		// right now we are making the assumption that we will only write integers
 		// on the header line.
@@ -1135,7 +1135,7 @@ void readdatablock_( int*  fileDescriptor,
                     const char keyphrase[],
                     void* valueArray,
                     int*  nItems,
-                    const char  datatype[],
+                    PhastaIO_Datatypes datatype,
                     PhastaIO_IOTypes iotype )
 {
     
@@ -1179,7 +1179,7 @@ void readdatablock_( int*  fileDescriptor,
 		fileObject = fileArray[ filePtr ];
 		Wrong_Endian = byte_order[ filePtr ];
         
-		size_t type_size = typeSize_deprecated( datatype );
+		size_t type_size = typeSize( datatype );
 		int nUnits = *nItems;
         
 		if ( iotype == PH_BINARY ) {
@@ -1201,7 +1201,7 @@ void readdatablock_( int*  fileDescriptor,
 	else {
 		// 	  printf("read data block\n");
 		MPI_Status read_data_status;
-		size_t type_size = typeSize_deprecated( datatype );
+		size_t type_size = typeSize( datatype );
 		int nUnits = *nItems;
         
 		// read datablock then
@@ -1267,7 +1267,7 @@ void writeheader_(  const int* fileDescriptor,
                   const void* valueArray,
                   const int* nItems,
                   const int* ndataItems,
-                  const char datatype[],
+                  PhastaIO_Datatypes datatype,
                   PhastaIO_IOTypes iotype)
 {
     
@@ -1294,7 +1294,7 @@ void writeheader_(  const int* fileDescriptor,
 		LastHeaderKey[ filePtr ] = const_cast< char* >( keyphrase );
 		DataSize = *ndataItems;
 		fileObject = fileArray[ filePtr ] ;
-		size_t type_size = typeSize_deprecated( datatype );
+		size_t type_size = typeSize( datatype );
 		header_type[ filePtr ] = type_size;
         
 		int _newline = ( *ndataItems > 0 ) ? sizeof( char ) : 0;
@@ -1310,7 +1310,7 @@ void writeheader_(  const int* fileDescriptor,
 	}
 	else { // else it's parallel I/O
 		DataSize = *ndataItems;
-		size_t type_size = typeSize_deprecated( datatype );
+		size_t type_size = typeSize( datatype );
 		char mpi_tag[MAX_FIELDS_NAME_LENGTH];
         
         char *buffer = strdup(keyphrase);
@@ -1438,7 +1438,7 @@ void writedatablock_( const int* fileDescriptor,
                      const char keyphrase[],
                      const void* valueArray,
                      const int* nItems,
-                     const char datatype[],
+                     PhastaIO_Datatypes datatype,
                      PhastaIO_IOTypes iotype )
 {
 	//if(irank == 0) printf("entering writedatablock()\n");
@@ -1474,7 +1474,7 @@ void writedatablock_( const int* fileDescriptor,
 		}
         
 		FILE* fileObject =  fileArray[ filePtr ] ;
-		size_t type_size=typeSize_deprecated( datatype );
+		size_t type_size=typeSize( datatype );
         
 		if ( header_type[filePtr] != (int)type_size ) {
 			fprintf(stderr,"header and datablock differ on typeof data in the block for\n");
