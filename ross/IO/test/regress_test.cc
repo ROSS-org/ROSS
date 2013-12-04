@@ -48,8 +48,7 @@ int main(int argc, char *argv[]) {
 	int ithree=3;
 	int nchar = 255;
 	char inrfname[255], outrfname[255], fprefix[255], fieldtag_s[255], hdata[255], path[255];
-	char iotype[16];
-	strcpy(iotype,"binary");
+	PhastaIO_IOTypes iotype = PH_BINARY;
 	int magic_number = 362436;
 	int* mptr = &magic_number;
     
@@ -87,13 +86,13 @@ int main(int argc, char *argv[]) {
         // this is how to time openfile ..
 		MPI_Barrier(MPI_COMM_WORLD);
 		read_serial_timer[0] = rdtsc( );
-		openfile_(inrfname, "read", &irstin);
+		openfile_(inrfname, PH_READ, &irstin);
 		MPI_Barrier(MPI_COMM_WORLD);
 		read_serial_timer[1] = rdtsc( );
         
 		// Read first field data ...
 		iarray[0]=-1;
-		readheader_(&irstin,fieldtag_s,(void*)iarray,&ithree,"double",iotype);
+		readheader_(&irstin,fieldtag_s,(void*)iarray,&ithree,PH_DOUBLE,iotype);
 		nshg_s[i]=iarray[0];
 		nv_s[i]=iarray[1];
 		sn_s[i]=iarray[2];
@@ -107,11 +106,11 @@ int main(int argc, char *argv[]) {
 		solution_field[i] = new double[isize];
 		// solution_field[i]=(double *) malloc( sizeof( double ) * isize );
 		// Now read the array ...
-		readdatablock_(&irstin,fieldtag_s,(void*)solution_field[i],&isize,"double",iotype);
+		readdatablock_(&irstin,fieldtag_s,(void*)solution_field[i],&isize,PH_DOUBLE,iotype);
         
 		MPI_Barrier(MPI_COMM_WORLD);
 		read_serial_timer[2] = rdtsc( );
-		closefile_(&irstin, "read");
+		closefile_(&irstin, PH_READ);
 		MPI_Barrier(MPI_COMM_WORLD);
 		read_serial_timer[3] = rdtsc( );
 	}
@@ -129,7 +128,7 @@ int main(int argc, char *argv[]) {
         
 		MPI_Barrier(MPI_COMM_WORLD);
 		write_serial_timer[0] = rdtsc( );
-		openfile_(outrfname, "write", &irstout);
+		openfile_(outrfname, PH_WRITE, &irstout);
 		MPI_Barrier(MPI_COMM_WORLD);
 		write_serial_timer[1] = rdtsc( );
         
@@ -145,10 +144,10 @@ int main(int argc, char *argv[]) {
 		nitems = 1;
 		iarray[0] = 1;
 		writeheader_( &irstout, "byteorder magic number ",
-                     (void*)iarray, &nitems, &isize, "integer", iotype );
+                     (void*)iarray, &nitems, &isize, PH_INTEGER, iotype );
         
 		writedatablock_( &irstout, "byteorder magic number ",
-                        (void*)mptr, &nitems, "integer", iotype );
+                        (void*)mptr, &nitems, PH_INTEGER, iotype );
         
 		bzero( (void*)hdata, 255 );
 		sprintf(hdata,"number of modes : < 0 > %d\n", nshg_s[i]);
@@ -165,16 +164,16 @@ int main(int argc, char *argv[]) {
 		iarray[2] = sn_s[i];
         
 		writeheader_( &irstout, fieldtag_s,
-                     (void*)iarray, &nitems, &isize, "double", iotype);
+                     (void*)iarray, &nitems, &isize, PH_DOUBLE, iotype);
         
 		nitems = isize;
         
 		writedatablock_( &irstout, fieldtag_s,
-                        (void*)(solution_field[i]), &nitems, "double", iotype );
+                        (void*)(solution_field[i]), &nitems, PH_DOUBLE, iotype );
         
 		MPI_Barrier(MPI_COMM_WORLD);
 		write_serial_timer[2] = rdtsc( );
-		closefile_(&irstout, "write");
+		closefile_(&irstout, PH_WRITE);
 		MPI_Barrier(MPI_COMM_WORLD);
 		write_serial_timer[3] = rdtsc( );
 	}
@@ -211,11 +210,11 @@ int main(int argc, char *argv[]) {
 	sprintf(filename,"%s/regress_test_syncio_data.%d.%d",path, lstep, (int)(myrank/(numprocs/nfiles)));
     
     // parallel lib need to call init first
-	initphmpiio_(&nfields, &nppf, &nfiles,&descriptor, "write");
+	initphmpiio_(&nfields, &nppf, &nfiles,&descriptor, PH_WRITE);
     
 	MPI_Barrier(MPI_COMM_WORLD);
 	write_parallel_timer[0] = rdtsc( );
-	openfile_(filename, "write", &descriptor);
+	openfile_(filename, PH_WRITE, &descriptor);
 	MPI_Barrier(MPI_COMM_WORLD);
 	write_parallel_timer[1] = rdtsc( );
     
@@ -231,16 +230,16 @@ int main(int argc, char *argv[]) {
 		iarray[1] = nv_s[i];
 		iarray[2] = sn_s[i];
         
-		writeheader_( &descriptor, fieldtag_s,(void*)iarray, &ithree, &isize, "double", iotype);
+		writeheader_( &descriptor, fieldtag_s,(void*)iarray, &ithree, &isize, PH_DOUBLE, iotype);
 		MPI_Barrier(MPI_COMM_WORLD);
 		write_parallel_timer[4] = rdtsc( );
         
-		writedatablock_( &descriptor, fieldtag_s, (void*)(solution_field[i]), &isize, "double", iotype );
+		writedatablock_( &descriptor, fieldtag_s, (void*)(solution_field[i]), &isize, PH_DOUBLE, iotype );
         
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
 	write_parallel_timer[2] = rdtsc( );
-	closefile_(&descriptor, "write");
+	closefile_(&descriptor, PH_WRITE);
 	MPI_Barrier(MPI_COMM_WORLD);
 	write_parallel_timer[3] = rdtsc( );
     
@@ -261,11 +260,11 @@ int main(int argc, char *argv[]) {
     
     queryphmpiio_(filename4, &nfields, &nppf);
     
-	initphmpiio_(&nfields, &nppf, &nfiles,&descriptor2, "read");
+	initphmpiio_(&nfields, &nppf, &nfiles,&descriptor2, PH_READ);
     
 	MPI_Barrier(MPI_COMM_WORLD);
 	read_parallel_timer[0] = rdtsc( );
-	openfile_(filename4, "read", &descriptor2);
+	openfile_(filename4, PH_READ, &descriptor2);
 	MPI_Barrier(MPI_COMM_WORLD);
 	read_parallel_timer[1] = rdtsc( );
     
@@ -275,21 +274,21 @@ int main(int argc, char *argv[]) {
 		GPID = startpart + i;
 		sprintf( fieldtag_s, "solution@%d", GPID );
         
-		readheader_( &descriptor2, fieldtag_s, (void*)new_iarray, &ithree, "double", iotype );
+		readheader_( &descriptor2, fieldtag_s, (void*)new_iarray, &ithree, PH_DOUBLE, iotype );
 		nshg_s[i]=new_iarray[0];
 		nv_s[i]=new_iarray[1];
 		sn_s[i]=new_iarray[2];
 		isize=nshg_s[i]*nv_s[i];
 		new_solution_field[i]=new double[isize];
         
-		readdatablock_( &descriptor2, fieldtag_s, (void*)(new_solution_field[i]), &isize, "double", iotype );
+		readdatablock_( &descriptor2, fieldtag_s, (void*)(new_solution_field[i]), &isize, PH_DOUBLE, iotype );
 	}
     
 	// Specify which part you want to read using GPID ...
 	// Always remember part id is bigger than proc id differs by 1 ...
 	MPI_Barrier(MPI_COMM_WORLD);
 	read_parallel_timer[2] = rdtsc( );
-	closefile_(&descriptor2, "read");
+	closefile_(&descriptor2, PH_READ);
 	MPI_Barrier(MPI_COMM_WORLD);
 	read_parallel_timer[3] = rdtsc( );
     
@@ -319,8 +318,8 @@ int main(int argc, char *argv[]) {
 	sprintf(filename4,"%s/regress_test_syncio_data_verify.%d.%d",path, lstep, (int)(myrank/(numprocs/nfiles)));
     
 	int des;
-	initphmpiio_(&nfields, &nppf, &nfiles,&des, "write");
-	openfile_(filename4, "write", &des);
+	initphmpiio_(&nfields, &nppf, &nfiles,&des, PH_WRITE);
+	openfile_(filename4, PH_WRITE, &des);
     //*/
     
 	for (  i = 0; i < nppp; i++  )
@@ -335,11 +334,11 @@ int main(int argc, char *argv[]) {
 		iarray[1] = nv_s[i];
 		iarray[2] = sn_s[i];
         
-		writeheader_( &des, fieldtag_s,(void*)iarray, &ithree, &isize, "double", iotype);
-		writedatablock_( &des, fieldtag_s, (void*)(solution_field[i]), &isize, "double", iotype );
+		writeheader_( &des, fieldtag_s,(void*)iarray, &ithree, &isize, PH_DOUBLE, iotype);
+		writedatablock_( &des, fieldtag_s, (void*)(solution_field[i]), &isize, PH_DOUBLE, iotype );
         
 	}
-	closefile_(&des, "write");
+	closefile_(&des, PH_WRITE);
 	finalizephmpiio_(&des);
     
     if(myrank ==0) cout << "********************\nParallel write verify finished..\n********************\n\n";

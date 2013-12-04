@@ -78,7 +78,7 @@ extern "C" {
     void closefile_( int* fileDescriptor, PhastaIO_Filetypes mode );
     
     void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
-    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
+    void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int* ndataItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
     
     void readdatablock_( int*  fileDescriptor, const char keyphrase[], void* valueArray, int*  nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
     void writedatablock_( const int*   fileDescriptor, const char  keyphrase[], const void*  valueArray, const int*   nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
