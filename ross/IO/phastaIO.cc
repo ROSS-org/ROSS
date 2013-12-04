@@ -511,7 +511,7 @@ void checkFileDescriptor(const char fctname[],
  * Note: this function is only called when we are using new format. Old POSIX
  * format should skip this routine and call openfile() directly instead.
  */
-int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, const char mode[])
+int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, PhastaIO_Filetypes mode )
 {
 	// we init irank again in case query not called (e.g. syncIO write case)
 	MPI_Comm_rank(MPI_COMM_WORLD, &irank);
@@ -525,14 +525,15 @@ int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, const c
 	// Note: if it's read, we presume query was called prior to init and
 	// MasterHeaderSize is already set to correct value from parsing header
 	// otherwise it's write then it needs some computation to be set
-	if ( cscompare( "read", mode ) ) {
+	if ( mode == PH_READ ) {
 		// do nothing
 	}
-	else if( cscompare( "write", mode ) ) {
+	else if( mode == PH_WRITE ) {
 		MasterHeaderSize =  computeMHSize(*nfields, *nppf, LATEST_WRITE_VERSION);
 	}
 	else {
-		printf("Error initphmpiio: can't recognize the mode %s", mode);
+		// should now be caught by compiler
+		printf("Error initphmpiio: can't recognize the mode");
         exit(1);
 	}
     
@@ -661,7 +662,7 @@ void finalizephmpiio_( int *fileDescriptor )
  * in "write" mode, it opens the file with MPI-IO open routine.
  */
 void openfile_(const char filename[],
-               const char mode[],
+               PhastaIO_Filetypes mode,
                int*  fileDescriptor )
 {
 	phprintf_0("Info: entering openfile");
@@ -677,9 +678,9 @@ void openfile_(const char filename[],
 		FILE* file=NULL ;
 		*fileDescriptor = 0;
         
-		if ( cscompare( "read", mode ) ) file = fopen(filename, "rb" );
-		else if( cscompare( "write", mode ) ) file = fopen(filename, "wb" );
-		else if( cscompare( "append", mode ) ) file = fopen(filename, "ab" );
+		if ( mode == PH_READ ) file = fopen(filename, "rb" );
+		else if( mode == PH_WRITE ) file = fopen(filename, "wb" );
+		else if( mode == PH_APPEND ) file = fopen(filename, "ab" );
         
 		if ( !file ){
 			fprintf(stderr,"Error openfile: unable to open file %s",filename ) ;
@@ -696,7 +697,7 @@ void openfile_(const char filename[],
 		i = *fileDescriptor;
 		char* token;
         
-		if ( cscompare( "read", mode ) )
+		if ( mode == PH_READ )
 		{
 			//	      if (PhastaIOActiveFiles[i]->myrank == 0)
 			//                printf("\n **********\nRead open ... ... regular version\n");
@@ -801,7 +802,7 @@ void openfile_(const char filename[],
 				return;
 			}
 		} // end of if "read"
-		else if( cscompare( "write", mode ) )
+		else if( mode == PH_WRITE )
 		{
 			rc = MPI_File_open( PhastaIOActiveFiles[i]->local_comm,
                                filename,
@@ -830,7 +831,7 @@ void openfile_(const char filename[],
  * offset table and write to the beginning of file, then close the file.
  */
 void closefile_( int* fileDescriptor,
-                const char mode[] )
+                PhastaIO_Filetypes mode )
 {
 	unsigned long long timer_start, timer_end;
 	startTimer(&timer_start);
@@ -840,8 +841,8 @@ void closefile_( int* fileDescriptor,
     
 	if ( PhastaIONextActiveIndex == 0 ) {
         
-		if( cscompare( "write", mode )
-           || cscompare( "append", mode ) ) {
+		if( mode == PH_WRITE
+           || mode == PH_APPEND ) {
 			fflush( fileArray[ *fileDescriptor - 1 ] );
 		}
         
@@ -849,7 +850,7 @@ void closefile_( int* fileDescriptor,
 	}
 	else {
 		//write master header here:
-		if ( cscompare( "write", mode ) ) {
+		if ( mode == PH_WRITE ) {
 			MasterHeaderSize = computeMHSize( PhastaIOActiveFiles[i]->nFields, PhastaIOActiveFiles[i]->nPPF, LATEST_WRITE_VERSION);
 			phprintf_0("Info closefile: myrank = %d, MasterHeaderSize = %d\n", PhastaIOActiveFiles[i]->myrank, MasterHeaderSize);
             

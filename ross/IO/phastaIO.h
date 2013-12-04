@@ -54,7 +54,13 @@ enum PhastaIO_IOTypes {
 enum PhastaIO_Datatypes {
     PH_DOUBLE,
     PH_INTEGER,
-}
+};
+
+enum PhastaIO_Filetypes {
+    PH_READ,
+    PH_WRITE,
+    PH_APPEND,
+};
 
 #if defined (__cplusplus)
 extern "C" {
@@ -63,13 +69,13 @@ extern "C" {
     void mem_alloc( void* p, char* type, int size );
 
     void queryphmpiio_( const char filename[], int *nfields, int *nppf );
-    int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, const char mode[] );
+    int initphmpiio_( int *nfields, int *nppf, int *nfiles, int *filehandle, PhastaIO_Filetypes mode );
     void finalizephmpiio_( int *fileDescriptor );
 
     void SwapArrayByteOrder_( void* array, int nbytes, int nItems ) ;
     
-    void openfile_( const char filename[], const char mode[], int* fileDescriptor );
-    void closefile_( int* fileDescriptor, const char mode[] );
+    void openfile_( const char filename[], PhastaIO_Filetypes mode, int* fileDescriptor );
+    void closefile_( int* fileDescriptor, PhastaIO_Filetypes mode );
     
     void readheader_( int*   fileDescriptor, const char  keyphrase[], void*  valueArray, int*   nItems, PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
     void writeheader_( const int*  fileDescriptor, const char keyphrase[], const void* valueArray, const int*  nItems, const int*  PhastaIO_Datatypes datatype, PhastaIO_IOTypes iotype );
