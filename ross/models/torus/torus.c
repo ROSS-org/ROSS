@@ -1115,6 +1115,7 @@ main(int argc, char **argv, char **env)
 	    num_packets++;
          }
 
+	injection_limit = INJECTION_INTERVAL / MEAN_INTERVAL;
 	g_tw_mapping=CUSTOM;
      	g_tw_custom_initial_mapping=&torus_mapping;
         g_tw_custom_lp_global_to_local_map=&torus_mapping_to_lp;

@@ -36,6 +36,7 @@ BG/Q are more than the BG/P, so I have adjusted the overheads for BG/Q according
   #define PACKET_SIZE 512
   #define VC_SIZE 16384 /*Each VC has a specific number of tokens and each token is of 32 bytes */
   #define NUM_BUF_SLOTS VC_SIZE/TOKEN_SIZE
+  #define INJECTION_INTERVAL 2000.0
 /*  static int       dim_length[] = {8,4,4,4,4,4,2}; // 7-D torus */
     static int dim_length[] = {4,4,4,4,2};//512 node case
 //    static dim_length_sim[] = {8,4,4,4,2};
@@ -233,7 +234,7 @@ static int num_mpi_msgs = 50;
 static int mem_factor = 16;
 static double MEAN_INTERVAL=200.0;
 static int TRAFFIC = UNIFORM_RANDOM;
-static int injection_limit = 10;
+static int injection_limit = 0;
 
 /* number of packets in a message and number of chunks/flits in a packet */
 int num_packets;
