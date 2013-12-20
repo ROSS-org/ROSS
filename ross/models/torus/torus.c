@@ -1076,10 +1076,7 @@ main(int argc, char **argv, char **env)
 	   printf("\n Incorrect traffic pattern specified, using %s as default ", traffic_str );
 
 	/* for automatically reducing the channel link bandwidth of a 7-D or a 9-D torus */
-	if(N_dims == 7 || N_dims == 9)
-	{
-		link_bandwidth = (link_bandwidth * 10) / (2 * N_dims);
-	}
+	link_bandwidth = (link_bandwidth * 10) / (2 * N_dims);
 
         injection_limit = injection_interval / MEAN_INTERVAL;
 

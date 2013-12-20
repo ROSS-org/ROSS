@@ -19,4 +19,6 @@ mpirun -np 8 ./torus --sync=3 --end=20000 --arrive_rate=50.0 --traffic=uniform -
  * ROSS related errors: If the simulation stops by saying 'avl_head is null' it means the simulation has exceede the ROSS default AVL tree size.  
    Solution: Increase the AVL tree size by doing ccmake ROSS/. Usually a size of 2^19 or 2^20 should work.
 
- 
+4- Default torus bandwidth configuration:
+   By default, the link bandwidth is set relative to a 5-D torus. If the torus dimension is greater than a 5-D, the link bandwidth is automatically adjusted for
+these configurations. 

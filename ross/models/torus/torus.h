@@ -11,14 +11,15 @@
 #define REPORT_BANDWIDTH 0
 #define MEAN_PROCESS 1.0
 #define N_dims 5
-#define N_dims_sim 7
+#define N_dims_sim 5
 
 // Total available tokens on a VC = VC buffer size / token size
 #define PACKET_SIZE 512
 #define NUM_VC 1
 /*  static int       dim_length[] = {8,4,4,4,4,4,2}; // 7-D torus */
-    static int dim_length[] = {4,4,4,4,2};//512 node case
-    static int dim_length_sim[] = {4, 4, 2, 2, 2, 2, 2}; /* same as original dimension length */
+    static int dim_length_sim[] = {4,4,4,4,2};//512 node case
+    static int dim_length[] = {4,4,4,4,2};
+//    static int dim_length[] = {4, 4, 2, 2, 2, 2, 2}; /* same as original dimension length */
 /*  static int dim_length[] = {16, 8, 8, 8, 2};
     static int dim_length[] = {10, 10, 10, 8, 4, 4, 2}; // 256K 7D
     static int dim_length[] = {20, 20, 16, 10, 4}; // 256K 5D
