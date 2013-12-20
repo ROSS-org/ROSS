@@ -682,7 +682,11 @@ void mpi_msg_send(mpi_process * p,
                     bf->c3 = 1;
 
 		    final_dst = tw_rand_integer( lp->rng, N_nodes, 2 * N_nodes - 1);
-	
+
+		    /* if the random final destination generated is the same as current LP ID then it is possible
+		       that the next randomly generated destination is also the same.
+			Therefore if randomly generated destination is the same as source, we use the following
+			calculation to make sure that the source and destinations are different */	
 		    if( final_dst == lp->gid )
 		      {
                         final_dst = N_nodes + (lp->gid + N_nodes/2) % N_nodes;
@@ -690,12 +694,19 @@ void mpi_msg_send(mpi_process * p,
 		}
 	  break;
 
+       /* The nearest neighbor traffic works in a round-robin fashion. The first message is sent to the first nearest neighbor
+	of the node, second message is sent to second nearest neighbor and so on. Thats why we use the message counter number
+	to calculate the destination neighbor number (Its between 1 to neighbor-1). In the packet_generate function, we calculate
+	the torus coordinates of the destination neighbor. */
        case NEAREST_NEIGHBOR:
          {
            final_dst = p->message_counter% (2*N_dims_sim);
          }
         break;
 
+	/* The diagonal traffic pattern sends message to the mirror torus coordinates of the current torus node LP. The
+        torus coordinates are not available at the MPI process LP level thats why we calculate destination for this pattern
+	in the packet_generate function. */
 	case DIAGONAL:
 	  {
 	    final_dst = -1;
