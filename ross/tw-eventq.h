@@ -38,7 +38,7 @@ tw_eventq_debug(tw_eventq * q)
 }
 
 static inline void
-tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
+tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 {
     tw_pe       *pe;
     tw_event	*e;
