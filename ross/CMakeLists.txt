@@ -2,6 +2,7 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
+ross-extern.h
 ross-types.h
 clock-${CLOCK}.c
 clock-${CLOCK}.h
