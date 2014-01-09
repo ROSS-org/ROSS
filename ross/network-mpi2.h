@@ -1,7 +1,7 @@
 #ifndef INC_network_mpi2_h
 #define INC_network_mpi2_h
 
-static int id_tmp;
+static long id_tmp;
 
 static inline tw_node * 
 tw_net_onnode(tw_peid gid)

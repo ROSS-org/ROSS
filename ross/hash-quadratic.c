@@ -71,7 +71,7 @@ tw_hash_create()
 }
 
 void
-tw_hash_insert(void *h, tw_event * event, int pe)
+tw_hash_insert(void *h, tw_event * event, long pe)
 {
 #ifdef USE_AVL_TREE
   tw_clock start;
@@ -193,7 +193,7 @@ allocate_table(int hash_size)
 }
 
 tw_event       *
-tw_hash_remove(void *h, tw_event * event, int pe)
+tw_hash_remove(void *h, tw_event * event, long pe)
 {
 #if USE_AVL_TREE
   tw_event *ret;
@@ -285,7 +285,7 @@ hash_search(tw_event ** hash_t, tw_event *evt, int size)
 			empty++;
 	}
 
-	printf("%d: HASH has %d empty cells. \n", g_tw_mynode, empty);
+	printf("%ld: HASH has %d empty cells. \n", g_tw_mynode, empty);
 
 	return NULL;
 }

@@ -284,7 +284,7 @@ recv_begin(tw_pe *me)
 #else
 	if(!flag || 
 	   MPI_Irecv(e,
-		     EVENT_SIZE(e),
+		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
 		     MPI_ANY_SOURCE,
 		     EVENT_TAG,
@@ -529,9 +529,9 @@ send_begin(tw_pe *me)
       }
 #else
       if (MPI_Isend(e,
-		    EVENT_SIZE(e),
+		    (int)EVENT_SIZE(e),
 		    MPI_BYTE,
-		    *dest_node,
+		    (int)*dest_node,
 		    EVENT_TAG,
 		    MPI_COMM_WORLD,
 		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
@@ -713,7 +713,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		1,
 		MPI_DOUBLE,
 		MPI_MAX,
-		g_tw_masternode,
+		(int)g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
@@ -722,7 +722,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		16,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_SUM,
-		g_tw_masternode,
+		(int)g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
@@ -731,7 +731,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		8,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_MAX,
-		g_tw_masternode,
+		(int)g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
     
@@ -740,7 +740,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         1,
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
-        g_tw_masternode,
+        (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
      
@@ -749,7 +749,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         1,
         MPI_DOUBLE,
         MPI_MIN,
-        g_tw_masternode,
+        (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
     
@@ -758,7 +758,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         1,
         MPI_UNSIGNED_LONG_LONG,
         MPI_MAX,
-        g_tw_masternode,
+        (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 

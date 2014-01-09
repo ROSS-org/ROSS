@@ -131,7 +131,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include "config.h" -- moved to individual files that need them -- e.g., tw-setup.c
 
 /* tw_peid -- Processing Element "PE" id */
-typedef unsigned long long tw_peid;
+typedef unsigned long tw_peid;
 
 /* tw_stime -- Simulation time value for sim clock (NOT wall!) */
 typedef double tw_stime;

@@ -76,7 +76,7 @@ tw_error(const char *file, int line, const char *fmt, ...)
 	va_list	ap;
 
 	va_start(ap, fmt);
-	fprintf(stdout, "node: %d: error: %s:%i: ", g_tw_mynode, file, line);
+	fprintf(stdout, "node: %ld: error: %s:%i: ", g_tw_mynode, file, line);
 	vfprintf(stdout, fmt, ap);
 	fprintf(stdout, "\n");
 	fflush(stdout);

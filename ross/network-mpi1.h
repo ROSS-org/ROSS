@@ -3,6 +3,6 @@
 
 //typedef tw_lpid tw_eventid;
 typedef unsigned int tw_eventid;
-typedef int tw_node;
+typedef long tw_node;
 
 #endif
