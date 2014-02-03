@@ -13,5 +13,5 @@ FILE(COPY ${CMAKE_SOURCE_DIR}/ross/IO/test/8-procs_case DESTINATION
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/ross/IO/test/writeOutData)
 
-ADD_TEST(syncIO_test mpiexec -np 8 ${CMAKE_CURRENT_BINARY_DIR}/regress_test 0 8 4)
-ADD_TEST(syncIO_test2 mpiexec -np 16 ${CMAKE_CURRENT_BINARY_DIR}/regress_test 50400 16 4)
+ADD_TEST(syncIO_test mpiexec -np 8 ${CMAKE_CURRENT_BINARY_DIR}/regress_test 0 8 4 > test1.out)
+ADD_TEST(syncIO_test2 mpiexec -np 16 ${CMAKE_CURRENT_BINARY_DIR}/regress_test 50400 16 4 > test2.out)
