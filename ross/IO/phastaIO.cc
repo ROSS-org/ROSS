@@ -132,12 +132,16 @@ namespace{
 	phastaio_file_t *PhastaIOActiveFiles[MAX_PHASTA_FILES];
 	int PhastaIONextActiveIndex = 0; /* indicates next index to allocate */
     
+	inline int cscompare (const char teststring[], const char targetstring[]) {
+		return 0;
+	}
+
 	inline int
-    cscompare( const char teststring[], const char targetstring[] ) {
+    cscompare_deprecated( const char teststring[], const char targetstring[] ) {
         
         char* s1 = const_cast<char*>(teststring);
         char* s2 = const_cast<char*>(targetstring);
-        
+
         while( *s1 == ' ') s1++;
         while( *s2 == ' ') s2++;
         while( ( *s1 ) && ( *s2 ) && ( *s2 != '?') && ( tolower( *s1 ) == tolower( *s2 ) ) ) {
@@ -146,8 +150,11 @@ namespace{
             while( *s1 == ' ') s1++;
             while( *s2 == ' ') s2++;
         }
-        if ( !( *s1 ) || ( *s1 == '?') ) return 1;
-        else return 0;
+        int ret;
+        if ( !( *s1 ) || ( *s1 == '?') ) ret = 1;
+        else ret = 0;
+        printf("s1 = \"%s\"\ns2 = \"%s\"\n\tcscompare: %d, strcmp: %d\n\n", teststring, targetstring, ret, strcmp(teststring, targetstring));
+        return ret;
     }
 
     inline size_t typeSize (PhastaIO_Datatypes datatype) {
@@ -164,9 +171,9 @@ namespace{
     
 	inline size_t
     typeSize_deprecated( const char typestring[] ) {
-        if ( cscompare( "integer", typestring ) ) {
+        if ( cscompare_deprecated( "integer", typestring ) ) {
             return sizeof(int);
-        } else if ( cscompare( "double", typestring ) ) {
+        } else if ( cscompare_deprecated( "double", typestring ) ) {
             return sizeof( double );
         } else {
             fprintf(stderr,"unknown type : %s\n",typestring);
@@ -174,12 +181,7 @@ namespace{
         }
     }
     
-	int
-    readHeader( FILE*       fileObject,
-               const char  phrase[],
-               int*        params,
-               int         expect,
-               bool binary_format) {
+	int readHeader( FILE* fileObject, const char phrase[], int* params, int expect, bool binary_format) {
         
         char* text_header;
         char* token;
@@ -204,7 +206,7 @@ namespace{
                 strncpy( text_header, Line, real_length );
                 text_header[ real_length ] =static_cast<char>(NULL);
                 token = strtok ( text_header, ":" );
-                if( cscompare( phrase , token ) ) {
+                if( cscompare_deprecated( phrase , token ) ) {
                     FOUND = true ;
                     token = strtok( NULL, " ,;<>" );
                     skip_size = atoi( token );
@@ -215,7 +217,7 @@ namespace{
                     if ( i < expect ) {
                         fprintf(stderr,"Aloha Expected # of ints not found for: %s\n",phrase );
                     }
-                } else if ( cscompare(token,"byteorder magic number") ) {
+                } else if ( cscompare_deprecated(token,"byteorder magic number") ) {
                     if ( binary_format ) {
                         fread((void*)&integer_value,sizeof(int),1,fileObject);
                         fread( &junk, sizeof(char), 1 , fileObject );
@@ -376,7 +378,7 @@ void queryphmpiio_(const char filename[],int *nfields, int *nppf)
                    SerialFile->masterHeader,
                    MAX_FIELDS_NAME_LENGTH-1 );
             
-			if ( cscompare ("MPI_IO_Tag",read_out_tag) ) {
+			if ( cscompare_deprecated ("MPI_IO_Tag",read_out_tag) ) {
 				// Test endianess ...
 				memcpy (&magic_number,
 						SerialFile->masterHeader + sizeof("MPI_IO_Tag : ")-1, //-1 sizeof returns the size of the string+1 for "\0"
@@ -393,7 +395,7 @@ void queryphmpiio_(const char filename[],int *nfields, int *nppf)
                        SerialFile->masterHeader + MAX_FIELDS_NAME_LENGTH/2,
                        MAX_FIELDS_NAME_LENGTH/4 - 1); //TODO: why -1?
                 
-				if( cscompare ("version",version) ) {
+				if( cscompare_deprecated ("version",version) ) {
 					// if there is "version" tag in the file, then it is newer format
 					// read master header size from here, otherwise use default
 					// Note: if version is "1", we know mhsize is at 3/4 place...
@@ -496,8 +498,7 @@ int computeColor( int myrank, int numprocs, int nfiles) {
 /**
  * Check the file descriptor.
  */
-void checkFileDescriptor(const char fctname[],
-                         int*  fileDescriptor ) {
+void checkFileDescriptor(const char fctname[], int* fileDescriptor ) {
 	if ( *fileDescriptor < 0 ) {
 		printf("Error: File descriptor = %d in %s\n",*fileDescriptor,fctname);
 		exit(1);
@@ -739,7 +740,7 @@ void openfile_(const char filename[],
                    PhastaIOActiveFiles[i]->master_header,
                    MAX_FIELDS_NAME_LENGTH-1 );
             
-			if ( cscompare ("MPI_IO_Tag",read_out_tag) )
+			if ( cscompare_deprecated ("MPI_IO_Tag",read_out_tag) )
 			{
 				// Test endianess ...
 				memcpy ( &magic_number,
@@ -1003,11 +1004,7 @@ void readheader_( int* fileDescriptor,
 		// on the header line.
         
 		valueListInt = static_cast< int* >( valueArray );
-		int ierr = readHeader( fileObject ,
-                              keyphrase,
-                              valueListInt,
-                              *nItems,
-                              iotype == PH_BINARY) ;
+		int ierr = readHeader( fileObject, keyphrase, valueListInt, *nItems, iotype == PH_BINARY ) ;
         
 		byte_order[ filePtr ] = Wrong_Endian ;
         
@@ -1061,7 +1058,7 @@ void readheader_( int* fileDescriptor,
 		{
 			token = strtok ( readouttag[j], ":" );
             
-			if ( cscompare( token , buffer ) && cscompare( buffer, token ) )
+			if ( cscompare_deprecated( token , buffer ) && cscompare_deprecated( buffer, token ) )
                 // This double comparison is required for the field "number of nodes" and all the other fields that start with "number of nodes" (i.g. number of nodes in the mesh").
                 // Would be safer to rename "number of nodes" by "number of nodes in the part" so that the name are completely unique. But much more work to do that (Nspre, phParAdapt, etc).
                 // Since the field name are unique in SyncIO (as it includes part ID), this should be safe and there should be no issue with the "?" trailing character.
@@ -1101,7 +1098,7 @@ void readheader_( int* fileDescriptor,
         
 		// 	  printf("&&&&Rank %d read_out_tag is %s\n",PhastaIOActiveFiles[i]->myrank,read_out_tag);
         
-		if( cscompare( keyphrase , token ) ) //No need to compare also token with keyphrase like above. We should already have the right one. Otherwise there is a problem.
+		if( cscompare_deprecated( keyphrase , token ) ) //No need to compare also token with keyphrase like above. We should already have the right one. Otherwise there is a problem.
 		{
 			FOUND = true ;
 			token = strtok( NULL, " ,;<>" );
@@ -1164,7 +1161,7 @@ void readdatablock_( int*  fileDescriptor,
 		// since we require that a consistant header always preceed the data block
 		// let us check to see that it is actually the case.
         
-		if ( ! cscompare( LastHeaderKey[ filePtr ], keyphrase ) ) {
+		if ( ! cscompare_deprecated( LastHeaderKey[ filePtr ], keyphrase ) ) {
 			fprintf(stderr, "Header not consistant with data block\n");
 			fprintf(stderr, "Header: %s\n", LastHeaderKey[ filePtr ] );
 			fprintf(stderr, "DataBlock: %s\n ", keyphrase );
@@ -1463,7 +1460,7 @@ void writedatablock_( const int* fileDescriptor,
 		// since we require that a consistant header always preceed the data block
 		// let us check to see that it is actually the case.
         
-		if ( ! cscompare( LastHeaderKey[ filePtr ], keyphrase ) ) {
+		if ( ! cscompare_deprecated( LastHeaderKey[ filePtr ], keyphrase ) ) {
 			fprintf(stderr, "Header not consistant with data block\n");
 			fprintf(stderr, "Header: %s\n", LastHeaderKey[ filePtr ] );
 			fprintf(stderr, "DataBlock: %s\n ", keyphrase );
