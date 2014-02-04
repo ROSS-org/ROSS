@@ -1,7 +1,7 @@
 #ifndef INC_clcg4_h
 #define INC_clcg4_h
 
-typedef long * tw_seed;
+typedef int32_t * tw_seed;
 
 typedef enum SeedType SeedType;
 

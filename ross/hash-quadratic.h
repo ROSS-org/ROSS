@@ -19,7 +19,7 @@ struct tw_hash
  * hash-quadratic.c
  */
 extern void    *tw_hash_create();
-extern void     tw_hash_insert(void *h, tw_event * event, int pe);
-extern tw_event *tw_hash_remove(void *h, tw_event * event, int pe);
+extern void     tw_hash_insert(void *h, tw_event * event, long pe);
+extern tw_event *tw_hash_remove(void *h, tw_event * event, long pe);
 
 #endif

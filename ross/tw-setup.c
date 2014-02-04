@@ -111,7 +111,7 @@ map_linear(void)
 	int	 j;
 
 	// may end up wasting last KP, but guaranteed each KP has == nLPs
-	nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
+	nlp_per_kp = (int)ceil((double) g_tw_nlp / (double) g_tw_nkp);
 
 	if(!nlp_per_kp)
 		tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
@@ -195,8 +195,8 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 {
 	int	 i;
 
-	1 == tw_nnodes() ? g_tw_nlp = nlp * g_tw_npe : (g_tw_nlp = nlp);
-
+	g_tw_nlp = nlp;
+	
 #ifdef ROSS_MEMORY
 	g_tw_memory_sz = sizeof(tw_memory);
 #endif
@@ -428,14 +428,14 @@ setup_pes(void)
 		printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
 		fprintf(g_tw_csv, "%u,", tw_nnodes());
 
-		printf("\t%-50s [Nodes (%u) x PE_per_Node (%llu)] %llu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
-		fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe));
+		printf("\t%-50s [Nodes (%u) x PE_per_Node (%lu)] %lu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
+		fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
 
-		printf("\t%-50s [Nodes (%u) x KPs (%llu)] %llu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
-		fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_nkp));
+		printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
+		fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-		printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-		fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+		printf("\t%-50s %11lu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+		fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
 
 		printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
 		fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);

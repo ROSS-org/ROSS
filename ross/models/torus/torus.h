@@ -8,37 +8,18 @@
  assume 374MB/s bandwidth for BG/P, it takes 64 ns to transfer 32Byte
  1.8 GB/s for BG/Q (2.0 GB/s is available but 1.8 GB/s is available
  to the user */
-//ARCH is set to 1 for BG/P and 2 for BG/Q
-//#define ARCH 2
-#define TOKEN_SIZE 32
 #define REPORT_BANDWIDTH 0
+#define MEAN_PROCESS 1.0
+#define N_dims 5
+#define N_dims_sim 5
 
-//#if ARCH == 1
-//  #define MEAN_PROCESS 750.0
-//  #define OVERHEADS 2000.0 /*MPI software overheads*/
-/* Total available tokens on a VC = VC buffer size / token size */
-//  #define VC_SIZE 1024 /*Each VC has a specific number of tokens and each token is of 32 bytes */
-//  #define NUM_BUF_SLOTS VC_SIZE/TOKEN_SIZE
-//  #define BANDWIDTH 0.425 /*Link bandwidth*/
-//  #define N_dims 3
-//  #define PACKET_SIZE 256 /* maximum size of packet in bytes */
-//  static int       dim_length[] = {8,8,8};
-//#else
-/*somehow small message size on BG/Q takes more time than BG/P
-The only thing I can suspect its because of the PAMI or MPI overheads on 
-BG/Q are more than the BG/P, so I have adjusted the overheads for BG/Q accordingly*/
-//  #define OVERHEADS 4100.0 /*MPI software overheads*/
-  #define MEAN_PROCESS 1.0
-  #define N_dims 5
-//  #define N_dims_sim 5
 // Total available tokens on a VC = VC buffer size / token size
-  #define BANDWIDTH 1.85 /*Link bandwidth on BG/Q, Slightly increased to counter noise*/
-  #define PACKET_SIZE 512
-  #define VC_SIZE 16384 /*Each VC has a specific number of tokens and each token is of 32 bytes */
-  #define NUM_BUF_SLOTS VC_SIZE/TOKEN_SIZE
+#define PACKET_SIZE 512
+#define NUM_VC 1
 /*  static int       dim_length[] = {8,4,4,4,4,4,2}; // 7-D torus */
-    static int dim_length[] = {4,4,4,4,2};//512 node case
-//    static dim_length_sim[] = {8,4,4,4,2};
+    static int dim_length_sim[] = {4,4,4,4,2};//512 node case
+    static int dim_length[] = {4,4,4,4,2};
+//    static int dim_length[] = {4, 4, 2, 2, 2, 2, 2}; /* same as original dimension length */
 /*  static int dim_length[] = {16, 8, 8, 8, 2};
     static int dim_length[] = {10, 10, 10, 8, 4, 4, 2}; // 256K 7D
     static int dim_length[] = {20, 20, 16, 10, 4}; // 256K 5D
@@ -46,19 +27,11 @@ BG/Q are more than the BG/P, so I have adjusted the overheads for BG/Q according
     static int dim_length[] = {10, 8, 8, 8, 4, 4, 4, 2, 2}; // 1.3 million 9D      
     static int dim_length[] = {10, 8, 8, 8, 4, 4, 4, 2, 2}; // 1.3 million 9D      
     static int dim_length_sim[] = {32, 32, 32, 20, 2}; //1.3 million 5D */
-//#endif
-
-//#define PING_PONG 0 /*Set 1 for a ping pong test, 0 for a bisection test */
-//#define MPI_MESSAGE_LIMIT 50 /*Number of messages to be injected by each node */
-
-#define NUM_VC 1
-#define CHUNK_SIZE 32
 
 /* For reporting statistics, one can configure the number of sample points during
  * which the stats will be reported in the simulation */
-#define TRACK 79120076
 #define N_COLLECT_POINTS 100
-#define TRACK_LP 0
+#define TRACK_LP -1
 #define DEBUG 1
 
 /* For packets waiting to be injected in the network when the buffers are already full. 
@@ -71,9 +44,6 @@ typedef struct nodes_state nodes_state;
 typedef struct mpi_process mpi_process;
 typedef struct nodes_message nodes_message;
 typedef struct waiting_packet waiting_packet;
-
-// Test RC code in serial mode
-//int g_test_rc = 0;
 
 // Total number of nodes in torus, calculate in main
 static int N_nodes = 1;
@@ -94,9 +64,8 @@ enum nodes_event_t
 enum traffic
 {
   UNIFORM_RANDOM=1,
-  TRANSPOSE,
   NEAREST_NEIGHBOR,
-  DIAGNOL
+  DIAGONAL
 };
 
 struct mpi_process
@@ -121,7 +90,7 @@ struct nodes_state
   /* torus dimension coordinates of this node */
   int dim_position[N_dims];
   /* torus dimension coordinates of the simulated torus dimension by this node (For TOPC paper)*/
-//  int dim_position_sim[N_dims_sim];
+  int dim_position_sim[N_dims_sim];
   /* torus neighbor coordinates for this node */ 
   int neighbour_minus_lpID[N_dims];
   /* torus plus neighbor coordinates for this node */
@@ -130,8 +99,8 @@ struct nodes_state
   // For simulation purposes: Making the same nearest neighbor traffic
   // across all torus dimensions
   /* neighbors of the simulated torus dimension for this node */
-//  int neighbour_minus_lpID_sim[N_dims_sim];
-//  int neighbour_plus_lpID_sim[N_dims_sim];   
+  int neighbour_minus_lpID_sim[N_dims_sim];
+  int neighbour_plus_lpID_sim[N_dims_sim];   
 
   int source_dim;
   int direction;
@@ -219,7 +188,7 @@ static unsigned long long       total_hops = 0;
 /* for calculating torus dimensions of real and simulated torus coordinates of
  * a node*/
 static int       half_length[N_dims];
-//static int	 half_length_sim[N_dims_sim];
+static int	 half_length_sim[N_dims_sim];
 
 /* ROSS simulation statistics */
 static int	 nlp_nodes_per_pe;
@@ -234,11 +203,17 @@ static int mem_factor = 16;
 static double MEAN_INTERVAL=200.0;
 static int TRAFFIC = UNIFORM_RANDOM;
 static int injection_limit = 10;
+static double injection_interval = 20000;
+static int vc_size = 16384;
+static double link_bandwidth = 2.0;
+static char traffic_str[512] = "uniform";
 
 /* number of packets in a message and number of chunks/flits in a packet */
 int num_packets;
 int num_chunks;
 int packet_offset = 0;
+const int chunk_size = 32;
+int num_buf_slots;
 
 /* for ROSS mapping purposes */
 int node_rem = 0;
@@ -246,7 +221,7 @@ int node_rem = 0;
 int num_rows, num_cols;
 /* for calculating torus dimensions */
 int factor[N_dims];
-//int factor_sim[N_dims_sim];
+int factor_sim[N_dims_sim];
 
 /* calculating delays using the link bandwidth */
 float head_delay=0.0;

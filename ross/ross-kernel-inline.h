@@ -10,7 +10,7 @@
 static inline tw_lp * 
      tw_getlocal_lp(tw_lpid gid)
 {
-  int id;
+  long id;
 
   if( g_tw_custom_lp_global_to_local_map )
     return( g_tw_custom_lp_global_to_local_map( gid ) );

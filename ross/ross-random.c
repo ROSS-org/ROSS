@@ -4,7 +4,7 @@
  * tw_rand_init
  */
 tw_rng	*
-tw_rand_init(uint64_t v, uint64_t w)
+tw_rand_init(uint32_t v, uint32_t w)
 {
 	return rng_init(v, w);
 }

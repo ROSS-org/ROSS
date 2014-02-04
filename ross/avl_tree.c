@@ -188,14 +188,11 @@ avlInsert(AvlTree *t, tw_event *key)
         if (key->event_id == (*t)->key->event_id) {
             // We have a event ID tie, check the send_pe
             if (key->send_pe == (*t)->key->send_pe) {
-                // This cannot happen
-                tw_error(TW_LOC, "The events are identical!!!\n");
+                // This shouldn't happen but we'll allow it
+                tw_printf(TW_LOC, "The events are identical!!!\n");
             }
-            else {
-                // send_pe is different
-                avlInsert(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
-                avlRebalance(t);
-            }
+            avlInsert(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
+            avlRebalance(t);
         }
         else {
             // Event IDs are different

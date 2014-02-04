@@ -73,10 +73,10 @@ FindB(long long a, long long k, long long m)
  * Returns(s*t) MOD M.  Assumes that -M < s < M and -M < t < M.    
  */
 
-long
+int32_t
 MultModM(int32_t s, int32_t t, int32_t M)
 {
-  long R, S0, S1, q, qh, rh, k;
+  int32_t R, S0, S1, q, qh, rh, k;
 
   if(s < 0)
     s += M;
@@ -352,7 +352,7 @@ rng_init(int v, int w)
 double
 rng_gen_val(tw_rng_stream * g)
 {
-  long k, s;
+  int32_t k, s;
   double u;
 
   u = 0.0;
@@ -411,7 +411,7 @@ rng_gen_reverse_val(tw_rng_stream * g)
 {
   long long *b = rng->b;
   int32_t *m = rng->m;
-  long long s;
+  int32_t s;
   double u;
 
   u = 0.0;
