@@ -1,0 +1,6 @@
+# ignoring generated files
+ross/config.h
+
+# ignore models that aren't already in tree
+# (must manually add models to override this)
+ross/models/*
