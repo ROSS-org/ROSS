@@ -396,7 +396,7 @@ tw_end(void)
 	tw_net_stop();
 }
 
-static tw_pe *
+tw_pe *
 setup_pes(void)
 {
 	tw_pe	*pe;
