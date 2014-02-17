@@ -10,7 +10,7 @@
 
 #define VERIFY_MAPPING 0
 
-static tw_pe *setup_pes(void);
+tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
 
 static const tw_optdef kernel_options[] = {
