@@ -156,7 +156,7 @@ tw_sched_batch(tw_pe * me)
 		if (me->free_q.size <= g_tw_gvt_threshold) {
             /* Suggested by Adam Crume */
 			if(++no_free_event_buffers > 10 && !warned_no_free_event_buffers) {
-				printf("WARNING: No free event buffers.  Try increasing memory.\n");
+				printf("WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n");
 				warned_no_free_event_buffers = 1;
 			}
 			tw_gvt_force_update(me);

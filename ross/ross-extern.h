@@ -59,7 +59,8 @@ extern tw_stime         g_tw_min_detected_offset;
 
 extern tw_peid  g_tw_npe;
 extern tw_pe **g_tw_pe;
-extern int      g_tw_events_per_pe;
+extern unsigned int      g_tw_events_per_pe;
+extern unsigned int      g_tw_events_per_pe_extra;
 
 extern unsigned int	    g_tw_gvt_threshold;
 extern unsigned int	    g_tw_gvt_done;

@@ -80,8 +80,10 @@ tw_stime     g_tw_ts_end = 100000.0;
 	 */
 tw_peid		g_tw_npe = 1;
 tw_pe		**g_tw_pe;
-int             g_tw_events_per_pe = 2048;
+unsigned int    g_tw_events_per_pe = 2048;
 unsigned int	g_tw_master = 0;
+/** Number of extra events allocated per PE.  Command-line customizable. */
+unsigned int    g_tw_events_per_pe_extra = 0;
 
 unsigned int	g_tw_gvt_threshold = 1000;
 unsigned int	g_tw_gvt_done = 0;
