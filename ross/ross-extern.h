@@ -165,10 +165,6 @@ extern void     tw_sigsegv(int sig);
 extern void     tw_sigterm(int sig);
 
 /*
- * tw-state.c
- */
-
-/*
  * tw-timing.c
  */
 extern   void     tw_wall_now(tw_wtime * t);
