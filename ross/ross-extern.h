@@ -169,7 +169,6 @@ extern void     tw_sigterm(int sig);
  * tw-state.c
  */
 extern void tw_state_rollback(tw_lp * lp, tw_event * revent);
-extern void tw_state_alloc(tw_lp * lp, int nvect);
 
 /*
  * tw-timing.c
