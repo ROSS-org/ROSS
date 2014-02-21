@@ -35,7 +35,6 @@ extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
 extern tw_lp	**g_tw_lp;
 extern tw_kp	**g_tw_kp;
-extern int      g_tw_sv_growcnt;
 extern int      g_tw_fossil_attempts;
 extern unsigned int	g_tw_nRNG_per_lp;
 extern tw_lpid		g_tw_rng_default;
@@ -59,7 +58,8 @@ extern tw_stime         g_tw_min_detected_offset;
 
 extern tw_peid  g_tw_npe;
 extern tw_pe **g_tw_pe;
-extern int      g_tw_events_per_pe;
+extern unsigned int      g_tw_events_per_pe;
+extern unsigned int      g_tw_events_per_pe_extra;
 
 extern unsigned int	    g_tw_gvt_threshold;
 extern unsigned int	    g_tw_gvt_done;
@@ -163,13 +163,6 @@ extern void tw_scheduler_optimistic_debug(tw_pe * me);
  */
 extern void     tw_sigsegv(int sig);
 extern void     tw_sigterm(int sig);
-
-/*
- * tw-state.c
- */
-extern void tw_state_save(tw_lp * lp, tw_event * cevent);
-extern void tw_state_rollback(tw_lp * lp, tw_event * revent);
-extern void tw_state_alloc(tw_lp * lp, int nvect);
 
 /*
  * tw-timing.c

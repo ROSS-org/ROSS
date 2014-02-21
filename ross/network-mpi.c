@@ -395,7 +395,15 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     }
 #endif
 
-  if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts) {
+  /* NOTE: the final check in the if conditional below was added to make sure
+   * that we do not execute the fast case unless the cancellation queue is
+   * empty on the destination PE.  Otherwise we need to invoke the normal
+   * scheduling routines to make sure that a forward event doesn't bypass a
+   * cancellation event with an earlier timestamp.  This is helpful for
+   * stateful models that produce incorrect results when presented with
+   * duplicate messages with no rollback between them.
+   */
+  if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts && !dest_pe->cancel_q) {
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */

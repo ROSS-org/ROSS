@@ -20,6 +20,8 @@ static const tw_optdef kernel_options[] = {
 	TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
 	TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
 	TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
+    TWOPT_UINT("extramem", g_tw_events_per_pe_extra,
+               "Number of extra events allocated per PE."),
 	TWOPT_END()
 };
 
@@ -403,6 +405,9 @@ setup_pes(void)
 	tw_pe	*master;
 
 	int	 i;
+    unsigned int num_events_per_pe;
+
+    num_events_per_pe = 1 + g_tw_events_per_pe + g_tw_events_per_pe_extra;
 
 	master = g_tw_pe[0];
 
@@ -418,7 +423,7 @@ setup_pes(void)
 		pe = g_tw_pe[i];
 		pe->pq = tw_pq_create();
 
-		tw_eventq_alloc(&pe->free_q, 1 + g_tw_events_per_pe);
+		tw_eventq_alloc(&pe->free_q, num_events_per_pe);
 		pe->abort_event = tw_eventq_shift(&pe->free_q);
 	}
 

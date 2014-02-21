@@ -10,7 +10,6 @@ typedef struct tw_pq tw_pq;
 typedef struct tw_lptype tw_lptype;
 typedef struct tw_petype tw_petype;
 typedef struct tw_bf tw_bf;
-typedef struct tw_lp_state tw_lp_state;
 typedef struct tw_eventq tw_eventq;
 typedef struct tw_event tw_event;
 typedef struct tw_lp tw_lp;
@@ -244,22 +243,6 @@ struct tw_bf
   unsigned int    c31:1;
 };
 
-/**
- * tw_lp_state
- * @brief List of LP state vectors
- *
- * Used to make a list of LP state vectors.  The entire state
- * is usually going to always be larger than this object, but
- * the minimum size is this object.  When the state is a
- * tw_lp_state it does NOT hold any application data, so we
- * can overwrite it with our own safely.
- */
-struct tw_lp_state
-{
-  tw_lp_state    *next;
-};
-
-
 enum tw_event_owner
 {
   TW_pe_event_q = 1,	    /**< @brief In a tw_pe.event_q list */
@@ -366,7 +349,6 @@ struct tw_lp
   tw_kp         *kp; /**< @brief kp -- Kernel process that we belong to (must match pe). */
 
   void		*cur_state; /**< @brief Current application LP data */
-  tw_lp_state	*state_qh; /**< @brief Head of [free] state queue (for state saving) */
   tw_lptype	 type; /**< @brief Type of this LP, including service callbacks */
   tw_rng_stream	*rng; /**< @brief  RNG stream array for this LP */
 };
