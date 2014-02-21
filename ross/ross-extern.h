@@ -35,7 +35,6 @@ extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
 extern tw_lp	**g_tw_lp;
 extern tw_kp	**g_tw_kp;
-extern int      g_tw_sv_growcnt;
 extern int      g_tw_fossil_attempts;
 extern unsigned int	g_tw_nRNG_per_lp;
 extern tw_lpid		g_tw_rng_default;
