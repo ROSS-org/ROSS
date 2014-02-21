@@ -10,7 +10,6 @@ typedef struct tw_pq tw_pq;
 typedef struct tw_lptype tw_lptype;
 typedef struct tw_petype tw_petype;
 typedef struct tw_bf tw_bf;
-typedef struct tw_lp_state tw_lp_state;
 typedef struct tw_eventq tw_eventq;
 typedef struct tw_event tw_event;
 typedef struct tw_lp tw_lp;
@@ -243,22 +242,6 @@ struct tw_bf
   unsigned int    c30:1;
   unsigned int    c31:1;
 };
-
-/**
- * tw_lp_state
- * @brief List of LP state vectors
- *
- * Used to make a list of LP state vectors.  The entire state
- * is usually going to always be larger than this object, but
- * the minimum size is this object.  When the state is a
- * tw_lp_state it does NOT hold any application data, so we
- * can overwrite it with our own safely.
- */
-struct tw_lp_state
-{
-  tw_lp_state    *next;
-};
-
 
 enum tw_event_owner
 {
