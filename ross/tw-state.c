@@ -1,32 +1,6 @@
 #include <ross.h>
 
 void
-tw_state_save(tw_lp *lp, tw_event *cevent)
-{
-#if 0
-  tw_lp_state	*n;
-  tw_lp_state	*o;
-
-  o = (tw_lp_state *) lp->cur_state;
-  n = lp->state_qh;
-  if (!n)
-    {
-      tw_state_alloc(lp, g_tw_sv_growcnt);
-      n = lp->state_qh;
-    }
-  lp->state_qh = n->next;
-
-  cevent->lp_state = o;
-  lp->cur_state = n;
-
-  if (lp->type.statecp)
-    (*lp->type.statecp)(n, o);
-  else
-    memcpy(n, o, lp->type.state_sz);
-#endif
-}
-
-void
 tw_state_rollback(tw_lp *lp, tw_event *revent)
 {
 #if 0
