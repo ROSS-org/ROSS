@@ -62,15 +62,10 @@ tw_init_lps(tw_pe * me)
 		if (lp->pe != me)
 			continue;
 
-		/*
-		 * Allocate initial state vectors for this LP, and
-		 * steal one of them for the initial state to be
-		 * handed to the init function.
-		 */
-		if (lp->type.revent)
-			tw_state_alloc(lp, 1);
-		else
-			tw_state_alloc(lp, g_tw_sv_growcnt + 1);
+		// Allocate initial state vector for this LP
+                if(!lp->cur_state) {
+                    lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type.state_sz, 1);
+                }
 
 		if (lp->type.init)
 		{
