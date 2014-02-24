@@ -154,7 +154,11 @@ tw_event_rollback(tw_event * event)
 
   tw_free_output_messages(event, 0);
 
-  tw_state_rollback(dest_lp, event);
+  // tw_state_rollback(dest_lp, event);
+  dest_lp->pe->cur_event = event;
+  dest_lp->kp->last_time = event->recv_ts;
+  (*dest_lp->type.revent)(dest_lp->cur_state, &event->cv, tw_event_data(event),	dest_lp);
+
 
   if (e)
     {
