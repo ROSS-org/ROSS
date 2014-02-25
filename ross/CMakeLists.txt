@@ -17,8 +17,8 @@ rand-${RAND}.h
 ross-global.c
 signal-sigaction.c
 tw-event.c
-gvt-${GVT}.c
-gvt-${GVT}.h
+gvt/${GVT}.c
+gvt/${GVT}.h
 tw-kp.c
 tw-lp.c
 tw-opts.c
@@ -94,7 +94,7 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi1.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi2.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/hash-quadratic.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/rand-${RAND}.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/gvt-${GVT}.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/gvt/${GVT}.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-opts.h DESTINATION include) 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-eventq.h DESTINATION include) 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memory.h DESTINATION include) 
