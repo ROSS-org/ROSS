@@ -4,8 +4,8 @@ INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 SET(ross_srcs
 ross-extern.h
 ross-types.h
-clock-${CLOCK}.c
-clock-${CLOCK}.h
+clock/${CLOCK}.c
+clock/${CLOCK}.h
 network-${NETWORK}.c
 network-${NETWORK}1.h
 network-${NETWORK}2.h
@@ -93,7 +93,7 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-inline.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-kernel-inline.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-network.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-types.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/clock-${CLOCK}.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/clock/${CLOCK}.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-${NETWORK}1.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-${NETWORK}2.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/hash-quadratic.h DESTINATION include)
