@@ -35,7 +35,6 @@ SET(NETWORK       mpi)
 
 SET(GVT           mpi_allreduce)
 #SET(GVT          7oclock)
-#SET(GVT          none)
 
 SET(VALID_ARCH NO)
 SET(ARCH $ENV{ARCH} CACHE STRING "Target architecture")

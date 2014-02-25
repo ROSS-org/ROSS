@@ -155,32 +155,27 @@ typedef uintptr_t tw_lpid;
 #endif
 
 #ifdef ROSS_CLOCK_i386
-#  include "clock-i386.h"
+#  include "clock/i386.h"
 #endif
 #ifdef ROSS_CLOCK_amd64
-#  include "clock-amd64.h"
+#  include "clock/amd64.h"
 #endif
 #ifdef ROSS_CLOCK_ia64
-#  include "clock-ia64.h"
+#  include "clock/ia64.h"
 #endif
 #ifdef ROSS_CLOCK_ppc
-#  include "clock-ppc.h"
+#  include "clock/ppc.h"
 #endif
 #ifdef ROSS_CLOCK_bgl
-#  include "clock-bgl.h"
+#  include "clock/bgl.h"
 #endif
 #ifdef ROSS_CLOCK_bgq
-#  include "clock-bgq.h"
-#endif
-#ifdef ROSS_CLOCK_none
-#  include "clock-none.h"
+#  include "clock/bgq.h"
 #endif
 
-#ifdef ROSS_NETWORK_none
-#  include "network-none1.h"
-#endif
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi1.h"
+#  include "network-mpi2.h"
 #endif
 
 #include "tw-timing.h"
@@ -193,16 +188,6 @@ typedef uintptr_t tw_lpid;
 #include "ross-kernel-inline.h"
 #include "hash-quadratic.h"
 
-#ifdef ROSS_NETWORK_none
-#  include "network-none2.h"
-#endif
-#ifdef ROSS_NETWORK_mpi
-#  include "network-mpi2.h"
-#endif
-
-#ifdef ROSS_GVT_none
-#  include "gvt-none.h"
-#endif
 #ifdef ROSS_GVT_7oclock
 #  include "gvt-7oclock.h"
 #endif
