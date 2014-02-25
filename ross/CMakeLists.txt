@@ -1,5 +1,6 @@
 PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
+MESSAGE("ROSS_SOURCE_DIR=${ROSS_SOURCE_DIR}")
 
 SET(ross_srcs
 ross-extern.h
@@ -36,9 +37,18 @@ tw-timing.c
 tw-timing.h
 tw-util.c)
 
+
+# ROSS VERSION INFORMATION
+## Print Date and Time at top of ROSS output
 INCLUDE (CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
 CONFIGURE_FILE(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
+## Print ROSS Git Hash
+## From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+INCLUDE(GetGitRevisionDescription)
+GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
+ADD_DEFINITIONS(-DROSS_VERSION="${GIT_SHA1}")
 
 IF(AVL_TREE)
 	SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
@@ -65,12 +75,6 @@ IF(TIMING)
 ENDIF(TIMING)
 
 SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_mpi -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
-
-# From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-INCLUDE(GetGitRevisionDescription)
-GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
-ADD_DEFINITIONS(-DROSS_VERSION="${GIT_SHA1}")
 
 ADD_DEFINITIONS(${OPTIONS})
 
