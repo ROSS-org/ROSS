@@ -11,7 +11,7 @@ network-mpi1.h
 network-mpi2.h
 hash-quadratic.c
 hash-quadratic.h
-queue-${QUEUE}.c
+queue/${QUEUE}.c
 rand-${RAND}.c
 rand-${RAND}.h
 ross-global.c
