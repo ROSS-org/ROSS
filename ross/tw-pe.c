@@ -95,9 +95,6 @@ tw_pe_fossil_collect(tw_pe * me)
 #endif
 	}
 
-#ifdef ROSS_NETWORK_tcp
-	tw_eventq_fossil_collect(&me->sevent_q, me);
-#endif
 }
 
 #ifdef ROSS_MEMORY

@@ -182,9 +182,6 @@ typedef uintptr_t tw_lpid;
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi1.h"
 #endif
-#ifdef ROSS_NETWORK_tcp
-#  include "network-tcp1.h"
-#endif
 
 #include "tw-timing.h"
 #include "ross-types.h"
@@ -201,11 +198,6 @@ typedef uintptr_t tw_lpid;
 #endif
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi2.h"
-#endif
-#ifdef ROSS_NETWORK_tcp
-#  include "network-tcp2.h"
-#  include "socket-tcp.h"
-#  include "hash-quadratic.h"
 #endif
 
 #ifdef ROSS_GVT_none

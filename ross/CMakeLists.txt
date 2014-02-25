@@ -6,9 +6,9 @@ ross-extern.h
 ross-types.h
 clock/${CLOCK}.c
 clock/${CLOCK}.h
-network-${NETWORK}.c
-network-${NETWORK}1.h
-network-${NETWORK}2.h
+network-mpi.c
+network-mpi1.h
+network-mpi2.h
 hash-quadratic.c
 hash-quadratic.h
 queue-${QUEUE}.c
@@ -64,11 +64,7 @@ IF(TIMING)
 	SET(OPTIONS "${OPTIONS} -DROSS_timing")
 ENDIF(TIMING)
 
-IF(NETWORK STREQUAL tcp)
-	   SET(ross_srcs ${ross_srcs} socket-tcp.c socket-tcp.h)
-ENDIF(NETWORK STREQUAL tcp)
-
-SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_${NETWORK} -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
+SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_mpi -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
 
 # From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -94,8 +90,8 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-kernel-inline.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-network.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-types.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/clock/${CLOCK}.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-${NETWORK}1.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-${NETWORK}2.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi1.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi2.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/hash-quadratic.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/rand-${RAND}.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/gvt-${GVT}.h DESTINATION include)
