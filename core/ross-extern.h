@@ -20,10 +20,6 @@ extern unsigned int tw_pq_get_size(tw_pq *);
 extern unsigned int tw_pq_max_size(tw_pq *);
 
 /*
- * tw-timer.c
- */
-
-/*
  * ross-global.c
  */
 extern tw_synch g_tw_synchronization_protocol;

@@ -176,7 +176,6 @@ typedef uintptr_t tw_lpid;
 
 #include "tw-timing.h"
 #include "ross-types.h"
-#include "tw-timer.h"
 #include "tw-opts.h"
 #include "ross-network.h"
 #include "ross-gvt.h"

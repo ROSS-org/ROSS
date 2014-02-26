@@ -48,8 +48,6 @@ tw-lp.c
 
 tw-timing.h
 tw-timing.c
-tw-timer.h
-tw-timer.c
 
 tw-sched.c
 tw-setup.c
