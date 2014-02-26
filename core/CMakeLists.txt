@@ -84,15 +84,21 @@ IF(BGPM)
   ADD_DEFINITIONS(-DUSE_BGPM)
 ENDIF(BGPM)
 
+# MEMORY is either on or off depending on whether or not we desire
+# memory buffers.  If it's not set to YES, it defaults to NO
+OPTION(MEMORY "ROSS Memory Buffers (membufs)" OFF)
 IF(MEMORY)
   ADD_DEFINITIONS(-DROSS_MEMORY)
   SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
 ENDIF(MEMORY)
 
+OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 IF(RAND_NORMAL)
   ADD_DEFINITIONS(-DRAND_NORMAL)
 ENDIF(RAND_NORMAL)
 
+# Show timing data at end of run
+OPTION(TIMING "Perform ROSS timings" ON)
 IF(TIMING)
   ADD_DEFINITIONS(-DROSS_timing)
 ENDIF(TIMING)

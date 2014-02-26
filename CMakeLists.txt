@@ -21,14 +21,6 @@ SET(QUEUE       splay) #Splay Tree
 
 # Random Library
 SET(RAND           clcg4)
-OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
-
-# MEMORY is either on or off depending on whether or not we desire
-# memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
-
-# Show timing data at end of run
-OPTION(TIMING	   "Perform ROSS timings"	ON)
 
 # Network option
 # tcp option removed
