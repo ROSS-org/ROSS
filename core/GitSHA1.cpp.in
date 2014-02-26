@@ -1,0 +1,2 @@
+#define GIT_SHA1 "@GIT_SHA1@"
+const char ROSS_VERSION[] = GIT_SHA1;

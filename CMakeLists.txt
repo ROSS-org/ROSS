@@ -103,4 +103,4 @@ IF(NOT VALID_ARCH)
 		"Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT VALID_ARCH)
 
-ADD_SUBDIRECTORY(ross)
+ADD_SUBDIRECTORY(core)
