@@ -3,38 +3,64 @@ INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 MESSAGE("ROSS_SOURCE_DIR=${ROSS_SOURCE_DIR}")
 
 SET(ross_srcs
-ross-extern.h
-ross-types.h
-clock/${CLOCK}.c
+
+queue/${QUEUE}.c
+
+ross-random.h
+ross-random.c
+rand-${RAND}.h
+rand-${RAND}.c
+
 clock/${CLOCK}.h
-network-mpi.c
+clock/${CLOCK}.c
+
+ross-gvt.h
+gvt/${GVT}.h
+gvt/${GVT}.c
+
+ross-netwok.h
 network-mpi1.h
 network-mpi2.h
-hash-quadratic.c
+network-mpi.c
+
 hash-quadratic.h
-queue/${QUEUE}.c
-rand-${RAND}.c
-rand-${RAND}.h
+hash-quadratic.c
+
+
+ross-extern.h
 ross-global.c
+
+ross-inline.h
+ross-kernel-inline.h
+ross.h
+ross-types.h
+
+
 signal-sigaction.c
+
+tw-eventq.h
 tw-event.c
-gvt/${GVT}.c
-gvt/${GVT}.h
+
+tw-memory.h
+tw-memory.c
+tw-memoryq.h
+
+tw-opts.h
+tw-opts.c
+
+tw-pe.c
 tw-kp.c
 tw-lp.c
-tw-opts.c
-tw-opts.h
-tw-pe.c
-tw-timer.c
+
+tw-timing.h
+tw-timing.c
 tw-timer.h
-ross-random.c
-ross-random.h
+tw-timer.c
+
 tw-sched.c
 tw-setup.c
 tw-signal.c
 tw-stats.c
-tw-timing.c
-tw-timing.h
 tw-util.c)
 
 
@@ -85,24 +111,24 @@ ADD_LIBRARY(ROSS ${ross_srcs})
 #
 # install libROSS.a and the header files required to build a model
 #
-INSTALL(FILES ${CMAKE_BINARY_DIR}/ross/libROSS.a DESTINATION lib)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-extern.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-gvt.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-inline.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-kernel-inline.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-network.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-types.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/clock/${CLOCK}.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi1.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi2.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/hash-quadratic.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/rand-${RAND}.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/gvt/${GVT}.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-opts.h DESTINATION include) 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-eventq.h DESTINATION include) 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memory.h DESTINATION include) 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memoryq.h DESTINATION include) 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timer.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-random.h DESTINATION include)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timing.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_BINARY_DIR}/ross/libROSS.a DESTINATION lib)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-extern.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-gvt.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-inline.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-kernel-inline.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-network.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-types.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/clock/${CLOCK}.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi1.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/network-mpi2.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/hash-quadratic.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/rand-${RAND}.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/gvt/${GVT}.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-opts.h DESTINATION include) 
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-eventq.h DESTINATION include) 
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memory.h DESTINATION include) 
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memoryq.h DESTINATION include) 
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timer.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-random.h DESTINATION include)
+# INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timing.h DESTINATION include)
