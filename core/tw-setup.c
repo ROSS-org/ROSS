@@ -1,8 +1,5 @@
 #include <ross.h>
 
-// needed for CTIME
-#include "config.h"
-
 /**
  * @file tw-setup.c
  * @brief tw_define_lps is defined here!

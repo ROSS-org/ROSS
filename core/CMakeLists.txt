@@ -62,7 +62,7 @@ tw-util.c)
 ## Print Date and Time at top of ROSS output
 INCLUDE (CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
-CONFIGURE_FILE(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
+ADD_DEFINITIONS(-DHAVE_CTIME=${HAVE_CTIME})
 ## Print ROSS Git Hash
 ## From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
