@@ -18,7 +18,7 @@ ross-gvt.h
 gvt/${GVT}.h
 gvt/${GVT}.c
 
-ross-netwok.h
+ross-network.h
 network-mpi1.h
 network-mpi2.h
 network-mpi.c
