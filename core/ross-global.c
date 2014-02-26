@@ -43,13 +43,6 @@ size_t		g_tw_memory_sz = 0;
 size_t		g_tw_event_msg_sz = 0;
 
         /*
-         * Number of iterations in scheduler (invoked from tw_run)
-         * before calling application callout.  Default is to call
-         * callout for each iteration.
-         */
-unsigned int    g_tw_periodicity = 1;
-
-        /*
          * Minimum lookahead for a model -- model defined when
          * using the Simple Synchronization Protocol (conservative)
          */

@@ -60,7 +60,6 @@ typedef unsigned long long tw_stat;
 typedef void (*pe_init_f) (tw_pe * pe);
 typedef void (*pe_gvt_f) (tw_pe * pe);
 typedef void (*pe_final_f) (tw_pe * pe);
-typedef void (*pe_periodic_f) (tw_pe * pe);
 
 /** tw_petype @brief Virtual Functions for per PE ops
  *
@@ -73,7 +72,6 @@ struct tw_petype
   pe_init_f post_lp_init;  /**< @brief PE initialization routine, after LP init */
   pe_gvt_f gvt;  /**< @brief PE per GVT routine */
   pe_final_f final;  /**< @brief PE finilization routine */
-  pe_periodic_f periodic; /**< @brief Callout made for K loops of tw scheduler */
 };
 
 /*

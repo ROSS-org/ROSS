@@ -17,7 +17,6 @@ tw_pe_settype(tw_pe * pe, const tw_petype * type)
 	copy_pef(post_lp_init, dummy_pe_f);
 	copy_pef(gvt, dummy_pe_f);
 	copy_pef(final, dummy_pe_f);
-        copy_pef(periodic, dummy_pe_f);
 
 #undef copy_pef
 }
