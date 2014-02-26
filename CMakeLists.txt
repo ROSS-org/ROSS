@@ -12,34 +12,43 @@ CHECK_TYPE_SIZE("long long"     SIZEOF_LONG_LONG   )
 CHECK_TYPE_SIZE("uint"          SIZEOF_UINT        )
 CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
 
+# ROSS Configuration Options
+
+# Data Structure for Unprocessed Event List
+SET(QUEUE       splay) #Splay Tree
 #SET(QUEUE      calendar) #Calendar Queue
 #SET(QUEUE      heap) #Push/Down Heap
-SET(QUEUE       splay) #Splay Tree
 
+# Random Library
 SET(RAND           clcg4)
 OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
-#MEMORY is either on or off depending on whether or not we desire
-#memory buffers.  If it's not set to YES, it defaults to NO
+# MEMORY is either on or off depending on whether or not we desire
+# memory buffers.  If it's not set to YES, it defaults to NO
 OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
-#SET(MEMORY        YES)
 
+# Show timing data at end of run
 OPTION(TIMING	   "Perform ROSS timings"	ON)
 
+# Data Structure for remote events
+# If AVL_TREE is off, it reverts to hashing approach 
 OPTION(AVL_TREE	    "Use AVL trees for tw_events?" ON)
 SET(AVL_TREE_SIZE 18 CACHE STRING "AVL tree contains 2^AVL_TREE_SIZE")
 
+# Network option
+# tcp option removed
 SET(NETWORK       mpi)
 
+# GVT algorithm option
 SET(GVT           mpi_allreduce)
 #SET(GVT          7oclock)
 
+# Architecture setting and management
 SET(VALID_ARCH NO)
 SET(ARCH $ENV{ARCH} CACHE STRING "Target architecture")
 MARK_AS_ADVANCED(ARCH)
 IF(NOT ARCH)
-	MESSAGE(FATAL_ERROR
-		"ARCH not defined!\n"
+	MESSAGE(FATAL_ERROR "ARCH not defined!\n"
 		"Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT ARCH)
 
@@ -103,4 +112,11 @@ IF(NOT VALID_ARCH)
 		"Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT VALID_ARCH)
 
+# ROSS Core code
 ADD_SUBDIRECTORY(core)
+
+# ROSS Models directory
+OPTION(ROSS_BUILD_MODELS "Build ROSS models?" OFF)
+IF(ROSS_BUILD_MODELS)
+  ADD_SUBDIRECTORY(models)
+ENDIF(ROSS_BUILD_MODELS)
