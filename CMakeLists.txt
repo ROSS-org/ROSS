@@ -30,11 +30,6 @@ OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
 # Show timing data at end of run
 OPTION(TIMING	   "Perform ROSS timings"	ON)
 
-# Data Structure for remote events
-# If AVL_TREE is off, it reverts to hashing approach 
-OPTION(AVL_TREE	    "Use AVL trees for tw_events?" ON)
-SET(AVL_TREE_SIZE 18 CACHE STRING "AVL tree contains 2^AVL_TREE_SIZE")
-
 # Network option
 # tcp option removed
 SET(NETWORK       mpi)
