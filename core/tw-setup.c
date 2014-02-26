@@ -65,8 +65,6 @@ tw_init(int *argc, char ***argv)
 
 	tw_net_start();
 	tw_gvt_start();
-
-	//tw_register_signals();
 }
 
 static void

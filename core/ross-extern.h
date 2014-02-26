@@ -85,11 +85,6 @@ extern tw_clock tw_clock_read();
 extern tw_stime g_tw_clock_rate;
 
 /*
- * signal-*.c
- */
-extern void     tw_register_signals(void);
-
-/*
  * tw-event.c
  */
 extern void		 tw_event_send(tw_event * event);

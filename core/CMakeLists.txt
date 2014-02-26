@@ -34,8 +34,6 @@ ross-kernel-inline.h
 ross.h
 ross-types.h
 
-signal-sigaction.c
-
 tw-eventq.h
 tw-event.c
 
