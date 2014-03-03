@@ -19,8 +19,7 @@ gvt/${GVT}.h
 gvt/${GVT}.c
 
 ross-network.h
-network-mpi1.h
-network-mpi2.h
+network-mpi.h
 network-mpi.c
 
 hash-quadratic.h

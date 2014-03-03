@@ -1,7 +1,9 @@
-#ifndef INC_network_mpi2_h
-#define INC_network_mpi2_h
+#ifndef INC_network_mpi_h
+#define INC_network_mpi_h
 
 static long id_tmp;
+typedef unsigned int tw_eventid;
+typedef long tw_node;
 
 static inline tw_node * 
 tw_net_onnode(tw_peid gid)

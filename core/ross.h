@@ -170,8 +170,7 @@ typedef uintptr_t tw_lpid;
 #endif
 
 #ifdef ROSS_NETWORK_mpi
-#  include "network-mpi1.h"
-#  include "network-mpi2.h"
+#  include "network-mpi.h"
 #endif
 
 #include "tw-timing.h"
