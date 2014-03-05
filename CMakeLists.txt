@@ -15,20 +15,24 @@ CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
 # ROSS Configuration Options
 
 # Data Structure for Unprocessed Event List
-SET(QUEUE       splay) #Splay Tree
-#SET(QUEUE      calendar) #Calendar Queue
-#SET(QUEUE      heap) #Push/Down Heap
+#SET(QUEUE calendar) #Calendar Queue
+#SET(QUEUE heap) #Push/Down Heap
+SET(QUEUE splay) #Splay Tree
+ADD_DEFINITIONS(-DROSS_QUEUE_${QUEUE})
 
 # Random Library
-SET(RAND           clcg4)
+SET(RAND clcg4)
+ADD_DEFINITIONS(-DROSS_RAND_${RAND})
 
 # Network option
 # tcp option removed
-SET(NETWORK       mpi)
+SET(NETWORK mpi)
+ADD_DEFINITIONS(-DROSS_NETWORK_${NETWORK})
 
 # GVT algorithm option
-SET(GVT           mpi_allreduce)
-#SET(GVT          7oclock)
+#SET(GVT 7oclock)
+SET(GVT mpi_allreduce)
+ADD_DEFINITIONS(-DROSS_GVT_${GVT})
 
 # Architecture setting and management
 SET(VALID_ARCH NO)
@@ -94,6 +98,8 @@ IF(NOT VALID_ARCH)
   MESSAGE(FATAL_ERROR "ARCH not valid!\n"
     "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT VALID_ARCH)
+
+ADD_DEFINITIONS(-DROSS_CLOCK_${CLOCK} -DARCH_${ARCH})
 
 # ROSS Core code
 ADD_SUBDIRECTORY(core)
