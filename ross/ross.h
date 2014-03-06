@@ -73,6 +73,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
 #endif
@@ -222,5 +226,9 @@ typedef uintptr_t tw_lpid;
 
 #include "tw-eventq.h"
 #include "ross-inline.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
