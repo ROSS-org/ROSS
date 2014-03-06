@@ -53,7 +53,7 @@ typedef tw_pq splay_tree;
 tw_pq *
 tw_pq_create(void)
 {
-	splay_tree     *st = tw_calloc(
+  splay_tree     *st = (splay_tree *)tw_calloc(
 		TW_LOC,
 		"splay tree queue",
 		sizeof(splay_tree),

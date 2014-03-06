@@ -289,7 +289,7 @@ apply_opt(const tw_optdef *def, const char *value)
 			need_argument(def);
 
 		//*((char **)def->value) = tw_calloc(TW_LOC, "string arg", strlen(value) + 1, 1);
-		strcpy(def->value, value);
+		strcpy((char*)def->value, value);
 		break;
 	}
 
