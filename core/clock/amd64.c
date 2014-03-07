@@ -3,7 +3,7 @@
 #ifndef __GNUC__
 #  error gcc asm extensions required
 #endif
-#ifndef __amd64__
+#if ! (defined(__amd64__) || defined(__x86_64__))
 #  error only amd64 platform supported
 #endif
 
