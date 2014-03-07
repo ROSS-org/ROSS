@@ -215,12 +215,12 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 	  g_tw_nkp = nkp_per_pe * g_tw_npe;
 	// else assume the application overloaded and has BRAINS to set its own g_tw_nkp
 
-	g_tw_kp = tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
+	g_tw_kp = (tw_kp **)tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
 	/*
 	 * Construct the LP array.
 	 */
-	g_tw_lp = tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
+	g_tw_lp = (tw_lp **)tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
 
 	switch(g_tw_mapping)
 	  {

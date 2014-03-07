@@ -139,7 +139,7 @@ pool_alloc(size_t len)
 			goto ret;
 		}
 
-		p = my_malloc(pool_size + 32);
+		p = (struct mem_pool *)my_malloc(pool_size + 32);
 		if (!p) {
 			r = NULL;
 			goto ret;
