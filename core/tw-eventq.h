@@ -185,7 +185,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   g_tw_events_per_pe += g_tw_gvt_threshold;
   cnt += g_tw_gvt_threshold;
 
-  q->head = event = tw_calloc(TW_LOC, "events", event_len, cnt);
+  q->head = event = (tw_event *) tw_calloc(TW_LOC, "events", event_len, cnt);
   q->size = cnt;
 
   while (--cnt) {

@@ -35,7 +35,7 @@ void
 tw_pe_create(tw_peid id)
 {
 	g_tw_npe = id;
-	g_tw_pe = tw_calloc(TW_LOC, "PE Array", sizeof(*g_tw_pe), id);
+	g_tw_pe = (tw_pe **) tw_calloc(TW_LOC, "PE Array", sizeof(*g_tw_pe), id);
 }
 
 /*
@@ -47,7 +47,7 @@ tw_pe_create(tw_peid id)
 void
 tw_pe_init(tw_peid id, tw_peid gid)
 {
-	tw_pe *pe = tw_calloc(TW_LOC, "Local PE", sizeof(*pe), 1);
+        tw_pe *pe = (tw_pe *) tw_calloc(TW_LOC, "Local PE", sizeof(*pe), 1);
 	tw_petype no_type;
 	
 	memset(&no_type, 0, sizeof(no_type));

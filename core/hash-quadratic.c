@@ -32,7 +32,7 @@ tw_hash_create()
 
   g_tw_pe[0]->avl_tree_size = 0;
 
-  g_tw_pe[0]->avl_list = tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
+  g_tw_pe[0]->avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
 
   for (i = 0; i < AVL_NODE_COUNT - 1; i++) {
     g_tw_pe[0]->avl_list[i].next = &g_tw_pe[0]->avl_list[i + 1];

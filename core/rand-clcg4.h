@@ -3,8 +3,6 @@
 
 typedef int32_t * tw_seed;
 
-typedef enum SeedType SeedType;
-
 struct tw_rng
 {
 	/*
@@ -28,6 +26,8 @@ enum SeedType
 {
 	InitialSeed, LastSeed, NewSeed
 };
+
+typedef enum SeedType SeedType;
 
 struct tw_rng_stream
 {

@@ -24,9 +24,6 @@ typedef struct tw_memoryq tw_memoryq;
 typedef struct tw_memory tw_memory;
 #endif
 
-typedef enum tw_event_owner tw_event_owner;
-typedef enum tw_lp_map tw_lp_map;
-
 /**
  * Synchronization protocol used
  */ 
@@ -47,7 +44,7 @@ enum tw_lp_map
   ROUND_ROBIN,
   CUSTOM
 };
-
+typedef enum tw_lp_map tw_lp_map;
 
 /** tw_kpid -- Kernel Process (KP) id*/
 typedef tw_peid tw_kpid;
@@ -269,7 +266,8 @@ enum tw_event_owner
     TW_net_acancel = 7,     /**< @brief Network transmission in progress */
     TW_pe_sevent_q = 8,     /**< @brief In tw_pe.sevent_q */
     TW_pe_free_q = 9        /**< @brief In tw_pe.free_q */
-    };
+};
+typedef enum tw_event_owner tw_event_owner;
 
 /**
  * tw_out

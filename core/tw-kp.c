@@ -9,7 +9,7 @@ tw_kp_onpe(tw_kpid id, tw_pe * pe)
 	if(g_tw_kp[id])
 		tw_error(TW_LOC, "KP already allocated: %lld\n", id);
 
-	g_tw_kp[id] = tw_calloc(TW_LOC, "Local KP", sizeof(tw_kp), 1);
+	g_tw_kp[id] = (tw_kp *) tw_calloc(TW_LOC, "Local KP", sizeof(tw_kp), 1);
 
 	g_tw_kp[id]->id = id;
 	g_tw_kp[id]->pe = pe;
@@ -100,7 +100,7 @@ init_output_messages(tw_kp *kp)
 {
     int i;
 
-    tw_out *ret = tw_calloc(TW_LOC, "tw_out", sizeof(struct tw_out), NUM_OUT_MESG);
+    tw_out *ret = (tw_out *) tw_calloc(TW_LOC, "tw_out", sizeof(struct tw_out), NUM_OUT_MESG);
 
     for (i = 0; i < NUM_OUT_MESG - 1; i++) {
         ret[i].next = &ret[i + 1];

@@ -34,7 +34,7 @@ tw_lp_onpe(tw_lpid id, tw_pe * pe, tw_lpid gid)
 	if(g_tw_lp[id])
 		tw_error(TW_LOC, "LP already allocated: %lld\n", id);
 
-	g_tw_lp[id] = tw_calloc(TW_LOC, "Local LP", sizeof(tw_lp), 1);
+	g_tw_lp[id] = (tw_lp *) tw_calloc(TW_LOC, "Local LP", sizeof(tw_lp), 1);
 
 	g_tw_lp[id]->gid = gid;
 	g_tw_lp[id]->id = id;

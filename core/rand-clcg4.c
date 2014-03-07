@@ -281,16 +281,15 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 void
 tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 {
-	int	 i;
+	int i;
 
-	lp->rng = tw_calloc(TW_LOC, "LP RNG Streams", sizeof(*lp->rng), nstreams);
+	lp->rng = (tw_rng_stream *) tw_calloc(TW_LOC, "LP RNG Streams", sizeof(*lp->rng), nstreams);
 
 	if(nstreams > g_tw_rng_max)
-		tw_error(TW_LOC, "RNG max streams exceeded: %d > %d\n",
-			 nstreams, g_tw_rng_max);
+            tw_error(TW_LOC, "RNG max streams exceeded: %d > %d\n", nstreams, g_tw_rng_max);
 
 	for(i = 0; i < nstreams; i++)
-		tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_rng_max) + i);
+            tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_rng_max) + i);
 }
 
 /*
@@ -302,7 +301,7 @@ rng_init(int v, int w)
 	int	 i;
 	int	 j;
 
-	rng = tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
+	rng = (tw_rng *) tw_calloc(TW_LOC, "RNG", sizeof(*rng), 1);
 
 	rng->m[0] = 2147483647;
 	rng->m[1] = 2147483543;
