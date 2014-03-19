@@ -80,8 +80,6 @@ unsigned int	g_tw_gvt_done = 0;
 
 	/*
 	 * Network variables:
-	 *
-	 * g_tw_net_barrier_flag -- when set, PEs should stop in next barrier encountered
 	 * g_tw_masternode -- pointer to GVT net node, for GVT comp
 	 */
 unsigned int	g_tw_net_device_size = 0;
