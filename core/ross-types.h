@@ -85,10 +85,6 @@ typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
 typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
-/*
- *  statecp     -- LP SV copy routine.
- */
-
 /**
  * tw_lptype
  * @brief Function Pointers for ROSS Event Handlers 
