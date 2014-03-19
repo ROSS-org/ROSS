@@ -172,29 +172,11 @@ extern size_t	tw_memory_allocate(tw_memoryq *);
 
 #define	TW_LOC	__FILE__,__LINE__
 extern int tw_output(tw_lp *lp, const char *fmt, ...);
-extern void tw_error(
-	const char *file,
-	int line,
-	const char *fmt,
-	...) NORETURN;
-extern void tw_printf(
-	const char *file,
-	int line,
-	const char *fmt,
-	...);
+extern void tw_error(const char *file, int line, const char *fmt, ...) NORETURN;
+extern void tw_printf(const char *file, int line, const char *fmt, ...);
 extern void tw_exit(int rv);
 extern void tw_calloc_stats(size_t *alloc, size_t *waste);
-extern void* tw_calloc(
-	const char *file,
-	int line,
-	const char *for_who,
-	size_t e_sz,
-	size_t n);
-extern void* tw_unsafe_realloc(
-	const char *file,
-	int line,
-	const char *for_who,
-	void *addr,
-	size_t len);
+extern void* tw_calloc(const char *file, int line, const char *for_who, size_t e_sz, size_t n);
+extern void* tw_unsafe_realloc(const char *file, int line, const char *for_who, void *addr, size_t len);
 
 #endif
