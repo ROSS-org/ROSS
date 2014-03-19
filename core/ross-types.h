@@ -444,5 +444,4 @@ struct tw_pe
   tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
 };
 
-#define TW_MHZ 1000000
 #endif

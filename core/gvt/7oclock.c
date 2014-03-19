@@ -7,6 +7,7 @@
 #define TW_GVT_WAIT		 2
 #define TW_GVT_COMPUTE		 3
 #define TW_GVT_WAIT_REMOTE	 4
+#define TW_MHZ 1000000
 
 	/*
 	 * GVT computation variables:
