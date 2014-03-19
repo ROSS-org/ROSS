@@ -15,7 +15,6 @@ typedef struct tw_event tw_event;
 typedef struct tw_lp tw_lp;
 typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
-typedef struct tw_log tw_log;
 typedef struct avlNode *AvlTree;
 
 #ifdef ROSS_MEMORY
