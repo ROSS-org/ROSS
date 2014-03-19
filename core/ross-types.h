@@ -445,32 +445,5 @@ struct tw_pe
   tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
 };
 
-struct tw_log
-{
-  struct {
-    unsigned int
-      rollback_primary:1,
-      rollback_secondary:1,
-      rollback_abort:1,
-      send_event:1,
-      recv_event:1,
-      eventq_delete:1,
-      send_cancel:1,
-      recv_cancel:1,
-      pq_enq:1,
-      pq_deq:1,
-      pq_delete:1,
-      freeq_enq:1,
-      freeq_deq:1,
-      processed_enq:1,
-      processed_deq:1;
-  } state;
-
-  tw_event           event;
-  tw_event          *e;
-  tw_log            *next;
-  unsigned long long log_sz;
-};
-
 #define TW_MHZ 1000000
 #endif
