@@ -40,7 +40,6 @@ extern unsigned int	g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
 extern tw_stime		g_tw_ts_end;
 extern unsigned int	g_tw_sim_started;
-extern unsigned int	g_tw_master;
 extern size_t		g_tw_msg_sz;
 extern size_t		g_tw_event_msg_sz;
 
