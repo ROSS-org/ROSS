@@ -57,46 +57,32 @@ tw-util.c)
 ## Print Date and Time at top of ROSS output
 INCLUDE (CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
-ADD_DEFINITIONS(-DHAVE_CTIME=${HAVE_CTIME})
 ## Print ROSS Git Hash
 ## From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 INCLUDE(GetGitRevisionDescription)
 GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
-ADD_DEFINITIONS(-DROSS_VERSION="${GIT_SHA1}")
 
 # Data Structure for remote Events
-# If AVL_TREE is OFF, ROSS reverts to hashing
-OPTION(AVL_TREE "Use AVL trees for tw_events?" ON)
+# If USE_AVL_TREE is OFF, ROSS reverts to hashing
+OPTION(USE_AVL_TREE "Use AVL trees for tw_events?" ON)
 SET(AVL_TREE_SIZE 18 CACHE STRING "AVL Treet contians 2^AVL_TREE_SIZE nodes")
-IF(AVL_TREE)
+IF(USE_AVL_TREE)
   SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
-  MATH( EXPR x "1 << ${AVL_TREE_SIZE}" )
-  ADD_DEFINITIONS(-DUSE_AVL_TREE -DAVL_NODE_COUNT=${x})
-ENDIF(AVL_TREE)
+  MATH( EXPR AVL_NODE_COUNT "1 << ${AVL_TREE_SIZE}" )
+ENDIF(USE_AVL_TREE)
 
-IF(BGPM)
-  ADD_DEFINITIONS(-DUSE_BGPM)
-ENDIF(BGPM)
-
-# MEMORY is either on or off depending on whether or not we desire
+# ROSS_MEMORY is either on or off depending on whether or not we desire
 # memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY "ROSS Memory Buffers (membufs)" OFF)
-IF(MEMORY)
-  ADD_DEFINITIONS(-DROSS_MEMORY)
+OPTION(ROSS_MEMORY "ROSS Memory Buffers (membufs)" OFF)
+IF(ROSS_MEMORY)
   SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
-ENDIF(MEMORY)
+ENDIF(ROSS_MEMORY)
 
 OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
-IF(RAND_NORMAL)
-  ADD_DEFINITIONS(-DRAND_NORMAL)
-ENDIF(RAND_NORMAL)
 
 # Show timing data at end of run
-OPTION(TIMING "Perform ROSS timings" ON)
-IF(TIMING)
-  ADD_DEFINITIONS(-DROSS_timing)
-ENDIF(TIMING)
+OPTION(ROSS_TIMING "Perform ROSS timings" ON)
 
 # Set all options
 #SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_mpi -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
