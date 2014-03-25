@@ -3,7 +3,7 @@
 #define ROSS_RAND_${RAND}
 #define ROSS_NETWORK_${NETWORK}
 #define ROSS_GVT_${GVT}
-#define ROSS_CLOCK${CLOCK}
+#define ROSS_CLOCK_${CLOCK}
 #define ARCH_${ARCH}
 
 // ROSS Core
