@@ -1,0 +1,17 @@
+// ROSS Configuration Options
+#define ROSS_QUEUE_${QUEUE}
+#define ROSS_RAND_${RAND}
+#define ROSS_NETWORK_${NETWORK}
+#define ROSS_GVT_${GVT}
+#define ROSS_CLOCK${CLOCK}
+#define ARCH_${ARCH}
+
+// ROSS Core
+#cmakedefine HAVE_CTIME 1
+#define ROSS_VERSION ${GIT_SHA1}
+#cmakedefine AVL_TREE USE_AVL_TREE
+#define AVL_NODE_COUNT ${x}
+#cmakedefine BGPM USE_BGPM
+#cmakedefine ROSS_MEMROY
+#cmakedefine RAND_NORMAL
+#cmakedefine TIMING

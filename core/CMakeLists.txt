@@ -105,3 +105,6 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
 ADD_LIBRARY(ROSS ${ross_srcs})
+
+# Build Specific Config Header
+CONFIGURE_FILE(config.h.in config.h)
