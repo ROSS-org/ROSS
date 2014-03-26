@@ -94,3 +94,4 @@ ADD_LIBRARY(ROSS ${ross_srcs})
 
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
+CONFIGURE_FILE(config.h.in ${ROSS_SOURCE_DIR}/config.h)

@@ -73,6 +73,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include "config.h"
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
 #endif

@@ -8,8 +8,8 @@
 
 // ROSS Core
 #cmakedefine HAVE_CTIME 1
-#define ROSS_VERSION ${GIT_SHA1}
-#cmakedefine USE_AVL_TREE
+#define ROSS_VERSION "${GIT_SHA1}"
+#cmakedefine USE_AVL_TREE 1
 #define AVL_NODE_COUNT ${AVL_NODE_COUNT}
 #cmakedefine USE_BGPM
 #cmakedefine ROSS_MEMROY
