@@ -296,13 +296,6 @@ struct tw_event
 
   	tw_bf		 cv; 				/**< @brief Used by app during reverse computation. */
 
-	tw_lp		*dest_lp_ptr; 		/**< @brief Destination LP Pointer */
-	tw_lp		*src_lp_ptr; 		/**< @brief Sending LP Pointer */
-	
-/*  tw_lpid		 dest_lp;			What we want eventually...
- *	tw_lpid		 src_lp;
-*/	
-	
 	tw_lp		*dest_lp; 			/**< @brief Destination LP ID */
   	tw_lp		*src_lp; 			/**< @brief Sending LP ID */
   	tw_stime	 recv_ts; 			/**< @brief Actual time to be received */
