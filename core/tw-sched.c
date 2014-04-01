@@ -164,12 +164,12 @@ static void tw_sched_batch(tw_pe * me) {
         ckp->last_time = cev->recv_ts;
 
         /* Save state if no reverse computation is available */
-        if (!clp->type.revent) {
+        if (!clp->type->revent) {
             tw_error(TW_LOC, "Reverse Computation must be implemented!");
         }
 
         start = tw_clock_read();
-        (*clp->type.event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         ckp->s_nevent_processed++;
         me->stats.s_event_process += tw_clock_read() - start;
 
@@ -277,7 +277,7 @@ void tw_scheduler_sequential(tw_pe * me) {
             gvt_print(gvt);
         }
 
-        (*clp->type.event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
@@ -358,7 +358,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp->last_time = cev->recv_ts;
 
             start = tw_clock_read();
-            (*clp->type.event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
             ckp->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
@@ -464,7 +464,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         ckp->last_time = cev->recv_ts;
 
         /* don't update GVT */
-        (*clp->type.event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         ckp->s_nevent_processed++;
 

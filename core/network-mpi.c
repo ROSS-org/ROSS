@@ -466,7 +466,7 @@ send_begin(tw_pe *me)
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
 
-      dest_node = tw_net_onnode((*e->src_lp->type.map)
+      dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
       if(!e->state.cancel_q)

@@ -30,7 +30,7 @@ tw_event_send(tw_event * event)
   link_causality(event, send_pe->cur_event);
 
   // call LP remote mapping function to get dest_pe
-  dest_peid = (*src_lp->type.map) ((tw_lpid) event->dest_lp);
+  dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
 
   if(tw_node_eq(tw_net_onnode(dest_peid), &g_tw_mynode))
     {
@@ -156,7 +156,7 @@ tw_event_rollback(tw_event * event)
 
   dest_lp->pe->cur_event = event;
   dest_lp->kp->last_time = event->recv_ts;
-  (*dest_lp->type.revent)(dest_lp->cur_state, &event->cv, tw_event_data(event),	dest_lp);
+  (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event),	dest_lp);
 
 
   if (e)

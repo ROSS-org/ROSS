@@ -22,7 +22,8 @@ tw_lp_settype(tw_lpid id, const tw_lptype * type)
 	if(!lp || !lp->pe)
 		tw_error(TW_LOC, "LP %u has no PE assigned.", lp->gid);
 
-	memcpy(&lp->type, type, sizeof(*type));
+	// memcpy(&lp->type, type, sizeof(*type));
+	lp->type = type;
 }
 
 void
@@ -64,15 +65,15 @@ tw_init_lps(tw_pe * me)
 
 		// Allocate initial state vector for this LP
                 if(!lp->cur_state) {
-                    lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type.state_sz, 1);
+                    lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type->state_sz, 1);
                 }
 
-		if (lp->type.init)
+		if (lp->type->init)
 		{
 			me->cur_event = me->abort_event;
 			me->cur_event->caused_by_me = NULL;
 
-			(*(init_f)lp->type.init) (lp->cur_state, lp);
+			(*(init_f)lp->type->init) (lp->cur_state, lp);
 
 			if (me->cev_abort)
 				tw_error(TW_LOC, "ran out of events during init");
