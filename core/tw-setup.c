@@ -88,11 +88,6 @@ early_sanity_check(void)
 	}
 }
 
-void
-map_none(void)
-{
-}
-
 /*
  * map: map LPs->KPs->PEs linearly
  */
