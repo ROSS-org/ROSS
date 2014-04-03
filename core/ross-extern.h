@@ -141,6 +141,7 @@ extern void tw_end(void);
 /*
  * tw-sched.c
  */
+extern void tw_sched_init(tw_pe * me);
 extern void tw_scheduler_sequential(tw_pe * me);
 extern void tw_scheduler_conservative(tw_pe * me);
 extern void tw_scheduler_optimistic(tw_pe * me);

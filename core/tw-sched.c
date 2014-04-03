@@ -201,7 +201,7 @@ static void tw_sched_batch(tw_pe * me) {
     }
 }
 
-static void tw_sched_init(tw_pe * me) {
+void tw_sched_init(tw_pe * me) {
     (*me->type.pre_lp_init)(me);
     tw_init_kps(me);
     tw_init_lps(me);
@@ -227,7 +227,7 @@ static void tw_sched_init(tw_pe * me) {
         // force the setting of SEQUENTIAL protocol
         if(g_tw_synchronization_protocol != SEQUENTIAL && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG) {
             g_tw_synchronization_protocol = SEQUENTIAL;
-            printf("Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n")
+            printf("Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
         }
     }
 
