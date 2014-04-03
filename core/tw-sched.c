@@ -216,9 +216,6 @@ static void tw_sched_init(tw_pe * me) {
     if (tw_nnodes() > 1) {
         tw_net_read(me);
         tw_net_barrier(me);
-    }
-
-    if (tw_nnodes() > 1) {
         tw_clock_init(me);
     }
 
@@ -226,18 +223,12 @@ static void tw_sched_init(tw_pe * me) {
     * the scheduler loop, and to print out the stats before
     * finishing if someone should type CTRL-c
     */
-    if((tw_nnodes() > 1 || g_tw_npe > 1) && tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
-        if(g_tw_synchronization_protocol == CONSERVATIVE) {
-            printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
-        } else if(g_tw_synchronization_protocol == OPTIMISTIC) {
-            printf("*** START PARALLEL OPTIMISTIC SIMULATION ***\n\n");
-        }
-    } else if(tw_nnodes() == 1 && g_tw_npe == 1) {
+    if(tw_nnodes() == 1 && g_tw_npe == 1) {
         // force the setting of SEQUENTIAL protocol
-        if(g_tw_synchronization_protocol != SEQUENTIAL) {
+        if(g_tw_synchronization_protocol != SEQUENTIAL && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG) {
             g_tw_synchronization_protocol = SEQUENTIAL;
+            printf("Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n")
         }
-        printf("*** START SEQUENTIAL SIMULATION ***\n\n");
     }
 
     if (me->local_master) {
@@ -258,7 +249,8 @@ void tw_scheduler_sequential(tw_pe * me) {
 
     tw_event *cev;
 
-    tw_sched_init(me);
+    printf("*** START SEQUENTIAL SIMULATION ***\n\n");
+
     tw_wall_now(&me->start_time);
 
     while ((cev = tw_pq_dequeue(me->pq))) {
@@ -299,7 +291,10 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
     unsigned int msg_i;
 
-    tw_sched_init(me);
+    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+        printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
+    }
+
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
 
@@ -374,7 +369,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if((tw_nnodes() > 1 || g_tw_npe > 1) && tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -389,7 +384,9 @@ void tw_scheduler_conservative(tw_pe * me) {
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
-    tw_sched_init(me);
+    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+        printf("*** START PARALLEL OPTIMISTIC SIMULATION ***\n\n");
+    }
 
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
@@ -416,7 +413,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if((tw_nnodes() > 1 || g_tw_npe > 1) && tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -453,7 +450,6 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         tw_error(TW_LOC, "Number of KPs is greater than 1.");
     }
 
-    tw_sched_init(me);
     tw_wall_now(&me->start_time);
 
     while ((cev = tw_pq_dequeue(me->pq))) {

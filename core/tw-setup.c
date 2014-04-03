@@ -315,7 +315,9 @@ void tw_run(void) {
 
     Bgpm_Apply(hEvtSet);
     Bgpm_Start(hEvtSet);
-#endif 
+#endif
+
+    tw_sched_init(me);
 
     switch(g_tw_synchronization_protocol) {
         case SEQUENTIAL:    // case 1
