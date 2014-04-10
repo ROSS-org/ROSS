@@ -31,9 +31,6 @@ extern void tw_net_cancel(tw_event *);
 /* Determine the identification of the node a pe is running on. */
 static inline tw_node *  tw_net_onnode(tw_peid gid);
 
-/* Global PE id -> local PE id mapping function. */
-static inline tw_peid  tw_net_pemap(tw_peid gid);
-
 /* Determine if two nodes are the same (0 == no, 1 == yes). */
 static inline int  tw_node_eq(tw_node *a, tw_node *b);
 
