@@ -29,10 +29,10 @@ extern void tw_net_send(tw_event *);
 extern void tw_net_cancel(tw_event *);
 
 /* Determine the identification of the node a pe is running on. */
-static inline tw_node *  tw_net_onnode(tw_peid gid);
+tw_node * tw_net_onnode(tw_peid gid);
 
 /* Determine if two nodes are the same (0 == no, 1 == yes). */
-static inline int  tw_node_eq(tw_node *a, tw_node *b);
+int tw_node_eq(tw_node *a, tw_node *b);
 
 /* Obtain the total number of nodes executing the simulation. */
 extern unsigned tw_nnodes(void);
