@@ -53,7 +53,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	memset(&no_type, 0, sizeof(no_type));
 
 	pe->id = gid;
-	memcpy(&pe->node, &g_tw_mynode, sizeof(tw_node));
+	pe->node = g_tw_mynode;
 	tw_pe_settype(pe, &no_type);
 
 	pe->trans_msg_ts = DBL_MAX;
