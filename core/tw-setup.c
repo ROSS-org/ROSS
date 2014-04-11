@@ -383,7 +383,7 @@ static tw_pe * setup_pes(void) {
         tw_error(TW_LOC, "No PE configured on this node.");
     }
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode)) {
+    if (g_tw_mynode == g_tw_masternode) {
         master->master = 1;
     }
     master->local_master = 1;
@@ -396,7 +396,7 @@ static tw_pe * setup_pes(void) {
         pe->abort_event = tw_eventq_shift(&pe->free_q);
     }
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode)) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("\nROSS Core Configuration: \n");
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
         fprintf(g_tw_csv, "%u,", tw_nnodes());

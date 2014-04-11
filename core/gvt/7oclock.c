@@ -125,8 +125,9 @@ tw_gvt_compute(tw_pe * pe)
 #endif
 
 	/* Send LVT to master node on network */
-	if (!tw_node_eq(&pe->node, &g_tw_masternode))
+	if (pe->node != g_tw_masternode) {
 		tw_net_send_lvt(pe, node_lvt);
+	}
 
 	pe->gvt_status = TW_GVT_WAIT_REMOTE;
 	pe->trans_msg_ts = DBL_MAX;

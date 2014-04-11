@@ -420,7 +420,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     return;
   }
 
-  if(tw_node_eq(&me->node, &dest_pe->node)) {
+  if (me->node == dest_pe->node) {
     /* Slower, but still local send, so put into top
      * of dest_pe->event_q. 
      */

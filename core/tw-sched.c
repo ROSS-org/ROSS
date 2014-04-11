@@ -265,7 +265,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         }
 
         gvt = cev->recv_ts;
-        if(gvt / g_tw_ts_end > percent_complete && tw_node_eq(&g_tw_mynode, &g_tw_masternode)) {
+        if(gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
             gvt_print(gvt);
         }
 
@@ -291,7 +291,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
     unsigned int msg_i;
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
     }
 
@@ -369,7 +369,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -384,7 +384,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION ***\n\n");
     }
 
@@ -413,7 +413,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if(tw_node_eq(&g_tw_mynode, &g_tw_masternode) && me->local_master) {
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 

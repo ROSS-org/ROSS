@@ -142,9 +142,7 @@ tw_gvt_step2(tw_pe *me)
 				me->id, me->GVT, gvt);
 	}
 
-	if(gvt / g_tw_ts_end > percent_complete &&
-		tw_node_eq(&g_tw_mynode, &g_tw_masternode))
-	{
+	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
 		gvt_print(gvt);
 	}
 

@@ -32,8 +32,7 @@ tw_event_send(tw_event * event)
   // call LP remote mapping function to get dest_pe
   dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
 
-  if(tw_node_eq(tw_net_onnode(dest_peid), &g_tw_mynode))
-    {
+  if (dest_peid == g_tw_mynode) {
       event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
       dest_pe = event->dest_lp->pe;
 
@@ -132,7 +131,7 @@ event_cancel(tw_event * event)
 		 "unknown fast local cancel owner %d",
 		 event->state.owner);
       }
-    } else if (tw_node_eq(&send_pe->node, tw_net_onnode(dest_peid))) {
+    } else if (send_pe->node == dest_peid) {
     /* Slower, but still a local cancel, so put into
      * top of dest_pe->cancel_q for final deletion.
      */

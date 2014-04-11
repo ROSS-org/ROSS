@@ -79,7 +79,7 @@ static inline tw_memoryq *
 static inline int 
      tw_ismaster(void)
 {
-  return tw_node_eq(&g_tw_mynode, &g_tw_masternode);
+  return (g_tw_mynode == g_tw_masternode);
 }
 
 static inline void * 
