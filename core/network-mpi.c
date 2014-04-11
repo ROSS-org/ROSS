@@ -93,10 +93,6 @@ tw_node * tw_net_onnode(tw_peid gid) {
   return &id_tmp;
 }
 
-int tw_node_eq(tw_node *a, tw_node *b) {
-  return *a == *b;
-}
-
 unsigned int
 tw_nnodes(void)
 {
