@@ -125,7 +125,7 @@ tw_gvt_compute(tw_pe * pe)
 #endif
 
 	/* Send LVT to master node on network */
-	if (pe->node != g_tw_masternode) {
+	if (g_tw_mynode != g_tw_masternode) {
 		tw_net_send_lvt(pe, node_lvt);
 	}
 
