@@ -363,8 +363,6 @@ struct tw_kp
   long s_rb_total; /**< @brief Number of total rollbacks by this LP */
   long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
 
-  long long test;
-
 #ifdef ROSS_MEMORY
   tw_memoryq	*pmemory_q; /**< @brief TW processed memory buffer queues */
 #endif
