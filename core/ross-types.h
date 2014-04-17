@@ -375,7 +375,7 @@ struct tw_pe {
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
 #ifdef USE_AVL_TREE
-    /* AVL node free list and head pointers */
+    /* AVL node head pointer and size */
     AvlTree avl_list_head;
     unsigned avl_tree_size;
 #endif
