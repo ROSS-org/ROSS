@@ -376,7 +376,6 @@ struct tw_pe {
 
 #ifdef USE_AVL_TREE
     /* AVL node free list and head pointers */
-    AvlTree avl_list;
     AvlTree avl_list_head;
     unsigned avl_tree_size;
 #endif

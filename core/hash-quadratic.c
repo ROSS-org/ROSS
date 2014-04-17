@@ -29,17 +29,18 @@ tw_hash_create()
 {
 #ifdef USE_AVL_TREE
   int i;
+  AvlTree avl_list;
 
   g_tw_pe[0]->avl_tree_size = 0;
 
-  g_tw_pe[0]->avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
+  avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
 
   for (i = 0; i < AVL_NODE_COUNT - 1; i++) {
-    g_tw_pe[0]->avl_list[i].next = &g_tw_pe[0]->avl_list[i + 1];
+    avl_list[i].next = &avl_list[i + 1];
   }
-  g_tw_pe[0]->avl_list[i].next = NULL;
+  avl_list[i].next = NULL;
 
-  g_tw_pe[0]->avl_list_head = &g_tw_pe[0]->avl_list[0];
+  g_tw_pe[0]->avl_list_head = &avl_list[0];
 
   return NULL;
 #else
