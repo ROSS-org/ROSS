@@ -1,8 +1,0 @@
-1. Create a directory external to the rossnet directory and cd into it.
-
-2. Type "export CC=mpicc'' This will tell CMake to use mpicc in place of gcc.
-
-3. Run "cmake ../rossnet/trunk'' This will run some scripts to determine project
-dependencies.
-
-4. Type "make'' Everything should build correctly.
