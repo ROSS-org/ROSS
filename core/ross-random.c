@@ -15,30 +15,37 @@ tw_rand_init(uint32_t v, uint32_t w)
  * For LP # gen, return a uniform rn from low to high 
  */
 /**
- * @bug Be careful not to pass LONG_MAX into the high variable for the
- * function below.  high + 1 will cause it to overflow.
+ * NOTE: Don't pass negative values to low!
  */
 long 
 tw_rand_integer(tw_rng_stream * g, long low, long high)
 {
-	if (high < low)
+	long safe_high = high;
+
+	if (safe_high != LONG_MAX) {
+		safe_high += 1;
+	}
+
+	if (safe_high <= low) {
 		return (0);
-	else
-		return (low + (long)(tw_rand_unif(g) * (high + 1 - low)));
+	} else {
+		return (low + (long)(tw_rand_unif(g) * (safe_high - low)));
+	}
 }
 
-/**
- * @bug Be careful not to pass ULONG_MAX into the high variable for the
- * function below.  high + 1 will cause it to overflow.
- */
 unsigned long
 tw_rand_ulong(tw_rng_stream * g, unsigned long low, unsigned long high)
 {
-    if (high < low) {
+	unsigned long safe_high = high;
+
+	if (safe_high != ULONG_MAX) {
+		safe_high += 1;
+	}
+
+    if (safe_high < low) {
         return (0);
-    }
-    else {
-        return (low + (unsigned long)(tw_rand_unif(g) * (high + 1 - low)));
+    } else {
+        return (low + (unsigned long)(tw_rand_unif(g) * (safe_high - low)));
     }
 }
 
