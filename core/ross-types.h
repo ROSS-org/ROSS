@@ -398,8 +398,8 @@ struct tw_pe {
     tw_stime LVT; /**< @brief Local (to PE) Virtual Time */
 
 #ifdef ROSS_GVT_mpi_allreduce
-    tw_stat s_nwhite_sent;
-    tw_stat s_nwhite_recv;
+    long long s_nwhite_sent;
+    long long s_nwhite_recv;
 #endif
 
     tw_wtime start_time; /**< @brief When this PE first started execution */

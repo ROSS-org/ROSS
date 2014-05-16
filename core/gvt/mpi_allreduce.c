@@ -65,8 +65,8 @@ tw_gvt_step1(tw_pe *me)
 void
 tw_gvt_step2(tw_pe *me)
 {
-	tw_stat local_white = 0;
-	tw_stat total_white = 0;
+	long long local_white = 0;
+	long long total_white = 0;
 
 	tw_stime pq_min = DBL_MAX;
 	tw_stime net_min = DBL_MAX;
@@ -90,7 +90,7 @@ tw_gvt_step2(tw_pe *me)
 			     &local_white,
 			     &total_white,
 			     1,
-			     MPI_UNSIGNED_LONG_LONG,
+			     MPI_LONG_LONG,
 			     MPI_SUM,
 			     MPI_COMM_WORLD) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
