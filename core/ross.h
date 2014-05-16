@@ -73,7 +73,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "config.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
@@ -93,6 +95,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * Include ``standard'' headers that most of ROSS will require.
  *
  ********************************************************************/
+
+#include "config.h"
 
 #include <errno.h>
 #include <sys/types.h>
@@ -199,5 +203,9 @@ typedef uintptr_t tw_lpid;
 
 #include "tw-eventq.h"
 #include "ross-inline.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
