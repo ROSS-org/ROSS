@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <assert.h>
 
 static inline void link_causality (tw_event *nev, tw_event *cev) {
     nev->cause_next = cev->caused_by_me;
@@ -18,6 +19,12 @@ void tw_event_send(tw_event * event) {
             send_pe->cev_abort = 1;
         }
         return;
+    }
+
+    //Trap lookahead violations in debug mode
+    //Note that compiling with the -DNDEBUG flag will turn this off!
+    if (g_tw_synchronization_protocol == CONSERVATIVE) {
+        assert(recv_ts - tw_now(src_lp) >= g_tw_lookahead && "Lookahead violation: try decreasing the lookahead value");
     }
 
     if (event->out_msgs) {
