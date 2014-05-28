@@ -1,4 +1,4 @@
-# Senior: Simplified ROSS
+# Señior: Simplified ROSS
 
 This is a simplified version of Rensselaer's Optimistic Simulation System.
 
