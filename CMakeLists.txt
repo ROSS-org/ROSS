@@ -17,7 +17,8 @@ CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
 # Data Structure for Unprocessed Event List
 #SET(QUEUE calendar) #Calendar Queue
 #SET(QUEUE heap) #Push/Down Heap
-SET(QUEUE splay) #Splay Tree
+#SET(QUEUE splay) #Splay Tree
+SET(QUEUE kp_splay) #Splay Tree in KPs
 
 # Random Library
 SET(RAND clcg4)
