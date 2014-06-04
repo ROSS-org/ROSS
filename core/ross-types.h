@@ -261,7 +261,7 @@ typedef struct tw_out {
 struct tw_event {
     tw_event *next;
     tw_event *prev;
-#ifdef ROSS_QUEUE_splay
+#ifdef ROSS_QUEUE_splay || ROSS_QUEUE_kp_splay
     tw_event *up;                   /**< @brief Up pointer for storing membufs in splay tree */
 #endif
 #ifdef ROSS_QUEUE_heap
@@ -335,6 +335,13 @@ struct tw_kp {
     tw_pe *pe;      /**< @brief PE that services this KP */
     tw_kp *next;    /**< @brief Next KP in the PE's service list */
     tw_out *output; /**< @brief Output messages */
+
+#ifdef ROSS_QUEUE_kp_splay
+    tw_pq *pq;
+
+    tw_kp *prev;
+    tw_kp *up;
+#endif
 
 #ifdef USE_AVL_TREE
     /* AVL tree root */
