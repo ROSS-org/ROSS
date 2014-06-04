@@ -32,15 +32,23 @@
 #define LEFT(t)		((t)->next)
 #define RIGHT(t)	((t)->prev)
 #define KEY(t)          ((t)->recv_ts)
+#define KPKEY(t) ((t)->something) // TODO: fix this, what is kp's key?
 
-struct tw_pq
+struct tw_pq {
+	tw_kp *root;
+	tw_kp *least;
+	unsigned int nitems;
+	unsigned int max_size;
+}
+
+struct tw_eventpq
 {
 	tw_event       *root;
 	tw_event       *least;
 	unsigned int    nitems;
 	unsigned int    max_size;
 };
-typedef tw_pq splay_tree;
+typedef tw_eventpq splay_tree;
 
 #define ROTATE_R(n,p,g) \
   if((LEFT(p) = RIGHT(n))) UP(RIGHT(n)) = p;  RIGHT(n) = p; \
@@ -50,8 +58,8 @@ typedef tw_pq splay_tree;
   if((RIGHT(p) = LEFT(n))) UP(LEFT(n)) = p;  LEFT(n) = p; \
   UP(n) = g;  UP(p) = n;
 
-tw_pq *
-tw_pq_create(void)
+tw_eventpq *
+tw_eventpq_create(void)
 {
     splay_tree *st = (splay_tree *) tw_calloc(TW_LOC, "splay tree queue", sizeof(splay_tree), 1);
 
@@ -60,6 +68,11 @@ tw_pq_create(void)
     st->nitems = 0;
 
     return st;
+}
+
+// KP Version
+tw_pq * tw_pq_create (void) {
+	tw_pq *st = (tw_pq *) tw_calloc(TW_LOC, "KP splay tree queue", sizeof(tw_pq), 1);
 }
 
 static void
@@ -160,8 +173,105 @@ splay(tw_event * node)
 	}
 }
 
+//KP Version 
+static void kp_spaly (tw_kp *node) {
+	register tw_kp *n = node, *g, *p;
+	register tw_kp *x, *z;
+
+	for (; (p = UP(n));)
+	{
+		if (n == LEFT(p))
+		{
+			if (!((g = UPUP(n))))
+			{
+				ROTATE_R(n, p, g);
+			} else if (p == LEFT(g))
+			{
+				if ((z = UP(g)))
+				{
+					if (g == LEFT(z))
+						LEFT(z) = n;
+					else
+						RIGHT(z) = n;
+				}
+				UP(n) = z;
+				if ((x = LEFT(p) = RIGHT(n)))
+					UP(x) = p;
+				RIGHT(n) = p;
+				UP(p) = n;
+				if ((x = LEFT(g) = RIGHT(p)))
+					UP(x) = g;
+				RIGHT(p) = g;
+				UP(g) = p;
+			} else
+			{
+				if ((z = UP(g)))
+				{
+					if (g == LEFT(z))
+						LEFT(z) = n;
+					else
+						RIGHT(z) = n;
+				}
+				UP(n) = z;
+				if ((x = LEFT(p) = RIGHT(n)))
+					RIGHT(n) = UP(x) = p;
+				else
+					RIGHT(n) = p;
+				if ((x = RIGHT(g) = LEFT(n)))
+					LEFT(n) = UP(x) = g;
+				else
+					LEFT(n) = g;
+				UP(g) = UP(p) = n;
+			}
+		} else
+		{
+			if (!((g = UPUP(n))))
+			{
+				ROTATE_L(n, p, g);
+			} else if (p == RIGHT(g))
+			{
+				if ((z = UP(g)))
+				{
+					if (g == RIGHT(z))
+						RIGHT(z) = n;
+					else
+						LEFT(z) = n;
+				}
+				UP(n) = z;
+				if ((x = RIGHT(p) = LEFT(n)))
+					UP(x) = p;
+				LEFT(n) = p;
+				UP(p) = n;
+				if ((x = RIGHT(g) = LEFT(p)))
+					UP(x) = g;
+				LEFT(p) = g;
+				UP(g) = p;
+			} else
+			{
+				if ((z = UP(g)))
+				{
+					if (g == RIGHT(z))
+						RIGHT(z) = n;
+					else
+						LEFT(z) = n;
+				}
+				UP(n) = z;
+				if ((x = RIGHT(p) = LEFT(n)))
+					LEFT(n) = UP(x) = p;
+				else
+					LEFT(n) = p;
+				if ((x = LEFT(g) = RIGHT(n)))
+					RIGHT(n) = UP(x) = g;
+				else
+					RIGHT(n) = g;
+				UP(g) = UP(p) = n;
+			}
+		}
+	}
+}
+
 void
-tw_pq_enqueue(splay_tree *st, tw_event * e)
+tw_eventpq_enqueue(splay_tree *st, tw_event * e)
 {
 	tw_event       *n = st->root;
 
@@ -209,8 +319,57 @@ tw_pq_enqueue(splay_tree *st, tw_event * e)
 	}
 }
 
+void tw_pq_enqueue (tw_pq *st, tw_kp *e) {
+	tw_kp *n = st->root;
+
+	st->nitems++;
+	if (st->nitems > st->max_size) {
+		st->max_size = st->nitems;
+	}
+
+	// e->state.owner = TW_pe_pq; //TODO: needed for kp??
+
+	RIGHT(e) = LEFT(e) = 0;
+	if (n)
+	{
+		for (;;)
+		{
+			if (KPKEY(n) <= KPKEY(e))
+			{
+				if (RIGHT(n))
+					n = RIGHT(n);
+				else
+				{
+					RIGHT(n) = e;
+					UP(e) = n;
+					break;
+				}
+			} else
+			{
+				if (LEFT(n))
+					n = LEFT(n);
+				else
+				{
+					if (st->least == n)
+						st->least = e;
+					LEFT(n) = e;
+					UP(e) = n;
+					break;
+				}
+			}
+		}
+		splay(e);
+		st->root = e;
+	} else
+	{
+		st->root = st->least = e;
+		UP(e) = 0;
+	}
+
+}
+
 tw_event       *
-tw_pq_dequeue(splay_tree *st)
+tw_eventpq_dequeue(splay_tree *st)
 {
 	tw_event       *r = st->least;
 	tw_event       *tmp, *p;
@@ -252,8 +411,50 @@ tw_pq_dequeue(splay_tree *st)
 	return r;
 }
 
+tw_kp * tw_pq_dequeue (tw_pq *st) {
+	tw_kp *r = st->least;
+	tw_kp *tmp, *p;
+
+	if (st->nitems == 0) {
+		return (tw_kp *) NULL;
+	}
+
+	st->nitems--;
+
+	if ((p = UP(st->least)))
+	{
+		if ((tmp = RIGHT(st->least)))
+		{
+			LEFT(p) = tmp;
+			UP(tmp) = p;
+			for (; LEFT(tmp); tmp = LEFT(tmp));
+			st->least = tmp;
+		} else
+		{
+			st->least = UP(st->least);
+			LEFT(st->least) = 0;
+		}
+	} else
+	{
+		if ((st->root = RIGHT(st->least)))
+		{
+			UP(st->root) = 0;
+			for (tmp = st->root; LEFT(tmp); tmp = LEFT(tmp));
+			st->least = tmp;
+		} else
+			st->least = 0;
+	}
+
+	LEFT(r) = NULL;
+	RIGHT(r) = NULL;
+	UP(r) = NULL;
+	// r->state.owner = 0; //TODO: needed for kp??
+
+	return r;
+}
+
 void
-tw_pq_delete_any(splay_tree *st, tw_event * r)
+tw_eventpq_delete_any(splay_tree *st, tw_event * r)
 {
 	tw_event       *n, *p;
 	tw_event       *tmp;
@@ -269,7 +470,61 @@ tw_pq_delete_any(splay_tree *st, tw_event * r)
 	if (st->nitems == 0)
 	{
 		tw_error(TW_LOC,
-				 "tw_pq_delete_any: attempt to delete from empty queue \n");
+				 "tw_eventpq_delete_any: attempt to delete from empty queue \n");
+	}
+
+	st->nitems--;
+
+	if ((n = LEFT(r)))
+	{
+		if ((tmp = RIGHT(r)))
+		{
+			UP(n) = 0;
+			for (; RIGHT(n); n = RIGHT(n));
+			splay(n);
+			RIGHT(n) = tmp;
+			UP(tmp) = n;
+		}
+		UP(n) = UP(r);
+	} else if ((n = RIGHT(r)))
+	{
+		UP(n) = UP(r);
+	}
+
+	if ((p = UP(r)))
+	{
+		if (r == LEFT(p))
+			LEFT(p) = n;
+		else
+			RIGHT(p) = n;
+		if (n)
+		{
+			splay(p);
+			st->root = p;
+		}
+	} else
+		st->root = n;
+
+	LEFT(r) = NULL;
+	RIGHT(r) = NULL;
+	UP(r) = NULL;
+}
+
+void tw_pq_delete_any (tw_pq *st, tw_kp *r) {
+	tw_kp *n, *p;
+	tw_kp *tmp;
+
+	// r->state.owner = 0; //TODO: needed for kp??
+
+	if (r == st->least)
+	{
+		tw_pq_dequeue(st);
+		return;
+	}
+
+	if (st->nitems == 0)
+	{
+		tw_error(TW_LOC, "tw_pq_delete_any: attempt to delete from empty queue \n");
 	}
 
 	st->nitems--;
@@ -310,19 +565,32 @@ tw_pq_delete_any(splay_tree *st, tw_event * r)
 }
 
 double
-tw_pq_minimum(splay_tree *pq)
+tw_eventpq_minimum(splay_tree *pq)
 {
 	return ((pq->least ? pq->least->recv_ts : DBL_MAX));
 }
 
+double tw_pq_minimum (tw_pq *pq) {
+	return ((pq->least ? KPKEY(pq->least) : DBL_MAX)); //TODO: whattttt?? 
+}
+
 unsigned int
-tw_pq_get_size(splay_tree *st)
+tw_eventpq_get_size(splay_tree *st)
 {
 	return (st->nitems);
 }
 
+unsigned int tw_pq_get_size(tw_pq *st) {
+	return (st->nitems);
+}
+
+
 unsigned int
-tw_pq_max_size(splay_tree *pq)
+tw_eventpq_max_size(splay_tree *pq)
 {
+	return (pq->max_size);
+}
+
+unsigned int tw_pq_max_size(tw_pq *pq) {
 	return (pq->max_size);
 }
