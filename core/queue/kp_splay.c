@@ -471,7 +471,7 @@ tw_eventpq_delete_any(splay_tree *st, tw_event * r)
 
 	if (r == st->least)
 	{
-		tw_pq_dequeue(st);
+		tw_eventpq_dequeue(st);
 		return;
 	}
 
@@ -527,7 +527,7 @@ void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 
 	if (r == st->least)
 	{
-		tw_pq_dequeue(st);
+		tw_kp_pq_dequeue(st);
 		return;
 	}
 
