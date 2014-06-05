@@ -340,7 +340,7 @@ struct tw_kp {
     tw_out *output; /**< @brief Output messages */
 
 #ifdef ROSS_QUEUE_kp_splay
-    tw_pq *pq;
+    tw_eventpq *pq;
 
     tw_kp *prev;
     tw_kp *up;
