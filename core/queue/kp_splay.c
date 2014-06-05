@@ -383,6 +383,7 @@ void tw_pq_enqueue (tw_pq *st, tw_event *e) {
 	tw_eventpq_enqueue(kp->pq, e);
 	
 	// remove this kp and re-enqueue it
+	tw_kp_pq_delete_any(st, kp);
 	tw_kp_pq_enqueue(st, kp);
 }
 
@@ -475,7 +476,15 @@ tw_kp * tw_kp_pq_dequeue (tw_pq *st) {
 // API Version
 tw_event * tw_pq_dequeue (tw_pq *st) {
 	// find the correct KP to dequeue from
-	// return tw_kp_pq_dequeue (kp->pq);
+	tw_kp *kp = tw_kp_pq_dequeue(st);
+
+	// dequeue the event
+	tw_event *e = tw_eventpq_dequeue(kp->pq);
+
+	// re-enqueue the kp
+	tw_kp_pq_enqueue(st, kp);
+
+	return e;
 }
 
 void
@@ -592,8 +601,11 @@ void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 
 // API Version
 void tw_pq_delete_any (tw_pq *st, tw_event *r) {
-	// find all(?) correct KPs
-	// tw_kp_pq_delete_any (kp->pq, r);
+	tw_kp *kp = r->dest_lp->kp;
+
+	tw_kp_pq_delete_any(st, kp);
+	tw_eventpq_delete_any(kp->pq, r);
+	tw_kp_pq_enqueue(st, kp);
 }
 
 double
