@@ -598,7 +598,7 @@ tw_eventpq_minimum(splay_tree *pq)
 }
 
 double tw_pq_minimum (tw_pq *pq) {
-	return ((pq->least ? KPKEY(pq->least) : DBL_MAX)); //TODO: whattttt?? 
+	return ((pq->least ? KPKEY(pq->least) : DBL_MAX));
 }
 
 unsigned int
