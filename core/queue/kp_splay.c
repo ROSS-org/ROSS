@@ -377,8 +377,13 @@ void tw_kp_pq_enqueue (tw_pq *st, tw_kp *e) {
 
 // API Version
 void tw_pq_enqueue (tw_pq *st, tw_event *e) {
-	// find the KP where the evevnt should go
-	// tw_kp_pq_enqueue (kp->pq, kp);
+	tw_kp *kp = e->dest_lp->kp;
+
+	// put the event in the kp's pq
+	tw_eventpq_enqueue(kp->pq, e);
+	
+	// remove this kp and re-enqueue it
+	tw_kp_pq_enqueue(st, kp);
 }
 
 tw_event       *
