@@ -580,7 +580,7 @@ tw_eventpq_minimum(splay_tree *pq)
 }
 
 double tw_pq_minimum (tw_pq *pq) {
-	return ((pq->least ? KPKEY(pq->least) : DBL_MAX));
+	return ((pq->least->pq->root ? KEY(pq->least->pq->root) : DBL_MAX));
 }
 
 unsigned int
