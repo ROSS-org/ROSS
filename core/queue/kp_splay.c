@@ -612,7 +612,9 @@ void tw_pq_enqueue (tw_pq *st, tw_event *e) {
 	tw_eventpq_enqueue(kp->pq, e);
 	
 	// remove this kp and re-enqueue it
-	tw_kp_pq_delete_any(st, kp);
+	if (st->nitems > 0) {
+		tw_kp_pq_delete_any(st, kp);
+	}
 	tw_kp_pq_enqueue(st, kp);
 }
 
@@ -634,7 +636,9 @@ tw_event * tw_pq_dequeue (tw_pq *st) {
 void tw_pq_delete_any (tw_pq *st, tw_event *r) {
 	tw_kp *kp = r->dest_lp->kp;
 
-	tw_kp_pq_delete_any(st, kp);
+	if (st->nitems > 0) {
+		tw_kp_pq_delete_any(st, kp);
+	}
 	tw_eventpq_delete_any(kp->pq, r);
 	tw_kp_pq_enqueue(st, kp);
 }
