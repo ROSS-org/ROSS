@@ -39,7 +39,7 @@ struct tw_pq {
 	tw_kp *least;
 	unsigned int nitems;
 	unsigned int max_size;
-}
+};
 
 struct tw_eventpq
 {
@@ -73,6 +73,12 @@ tw_eventpq_create(void)
 // KP Version
 tw_pq * tw_pq_create (void) {
 	tw_pq *st = (tw_pq *) tw_calloc(TW_LOC, "KP splay tree queue", sizeof(tw_pq), 1);
+
+	st->root = 0;
+	st->least = 0;
+	st->nitems = 0;
+
+	return st;
 }
 
 static void

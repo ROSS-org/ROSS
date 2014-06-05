@@ -7,6 +7,9 @@
 
 typedef struct tw_statistics tw_statistics;
 typedef struct tw_pq tw_pq;
+#ifdef ROSS_QUEUE_kp_splay
+typedef struct tw_eventpq tw_eventpq;
+#endif
 typedef struct tw_lptype tw_lptype;
 typedef struct tw_petype tw_petype;
 typedef struct tw_bf tw_bf;
@@ -261,7 +264,7 @@ typedef struct tw_out {
 struct tw_event {
     tw_event *next;
     tw_event *prev;
-#ifdef ROSS_QUEUE_splay || ROSS_QUEUE_kp_splay
+#if defined(ROSS_QUEUE_splay) || defined(ROSS_QUEUE_kp_splay)
     tw_event *up;                   /**< @brief Up pointer for storing membufs in splay tree */
 #endif
 #ifdef ROSS_QUEUE_heap
