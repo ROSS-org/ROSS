@@ -32,7 +32,7 @@
 #define LEFT(t)		((t)->next)
 #define RIGHT(t)	((t)->prev)
 #define KEY(t)          ((t)->recv_ts)
-#define KPKEY(t) ((t)->something) // TODO: fix this, what is kp's key?
+#define KPKEY(t) (((tw_event *)(t)->pq->root)->recv_ts)
 
 struct tw_pq {
 	tw_kp *root;
