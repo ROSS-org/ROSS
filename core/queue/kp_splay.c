@@ -579,7 +579,7 @@ tw_eventpq_minimum(splay_tree *pq)
 	return ((pq->least ? pq->least->recv_ts : DBL_MAX));
 }
 
-double tw_pq_minimum (tw_pq *pq) {
+double tw_kp_pq_minimum (tw_pq *pq) {
 	return ((pq->least ? KPKEY(pq->least) : DBL_MAX));
 }
 
@@ -589,7 +589,7 @@ tw_eventpq_get_size(splay_tree *st)
 	return (st->nitems);
 }
 
-unsigned int tw_pq_get_size(tw_pq *st) {
+unsigned int tw_kp_pq_get_size(tw_pq *st) {
 	return (st->nitems);
 }
 
@@ -600,7 +600,7 @@ tw_eventpq_max_size(splay_tree *pq)
 	return (pq->max_size);
 }
 
-unsigned int tw_pq_max_size(tw_pq *pq) {
+unsigned int tw_kp_pq_max_size(tw_pq *pq) {
 	return (pq->max_size);
 }
 
