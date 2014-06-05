@@ -375,18 +375,6 @@ void tw_kp_pq_enqueue (tw_pq *st, tw_kp *e) {
 
 }
 
-// API Version
-void tw_pq_enqueue (tw_pq *st, tw_event *e) {
-	tw_kp *kp = e->dest_lp->kp;
-
-	// put the event in the kp's pq
-	tw_eventpq_enqueue(kp->pq, e);
-	
-	// remove this kp and re-enqueue it
-	tw_kp_pq_delete_any(st, kp);
-	tw_kp_pq_enqueue(st, kp);
-}
-
 tw_event       *
 tw_eventpq_dequeue(splay_tree *st)
 {
@@ -471,20 +459,6 @@ tw_kp * tw_kp_pq_dequeue (tw_pq *st) {
 	// r->state.owner = 0; //TODO: needed for kp??
 
 	return r;
-}
-
-// API Version
-tw_event * tw_pq_dequeue (tw_pq *st) {
-	// find the correct KP to dequeue from
-	tw_kp *kp = tw_kp_pq_dequeue(st);
-
-	// dequeue the event
-	tw_event *e = tw_eventpq_dequeue(kp->pq);
-
-	// re-enqueue the kp
-	tw_kp_pq_enqueue(st, kp);
-
-	return e;
 }
 
 void
@@ -599,15 +573,6 @@ void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 	UP(r) = NULL;
 }
 
-// API Version
-void tw_pq_delete_any (tw_pq *st, tw_event *r) {
-	tw_kp *kp = r->dest_lp->kp;
-
-	tw_kp_pq_delete_any(st, kp);
-	tw_eventpq_delete_any(kp->pq, r);
-	tw_kp_pq_enqueue(st, kp);
-}
-
 double
 tw_eventpq_minimum(splay_tree *pq)
 {
@@ -637,4 +602,39 @@ tw_eventpq_max_size(splay_tree *pq)
 
 unsigned int tw_pq_max_size(tw_pq *pq) {
 	return (pq->max_size);
+}
+
+// API Version
+void tw_pq_enqueue (tw_pq *st, tw_event *e) {
+	tw_kp *kp = e->dest_lp->kp;
+
+	// put the event in the kp's pq
+	tw_eventpq_enqueue(kp->pq, e);
+	
+	// remove this kp and re-enqueue it
+	tw_kp_pq_delete_any(st, kp);
+	tw_kp_pq_enqueue(st, kp);
+}
+
+// API Version
+tw_event * tw_pq_dequeue (tw_pq *st) {
+	// find the correct KP to dequeue from
+	tw_kp *kp = tw_kp_pq_dequeue(st);
+
+	// dequeue the event
+	tw_event *e = tw_eventpq_dequeue(kp->pq);
+
+	// re-enqueue the kp
+	tw_kp_pq_enqueue(st, kp);
+
+	return e;
+}
+
+// API Version
+void tw_pq_delete_any (tw_pq *st, tw_event *r) {
+	tw_kp *kp = r->dest_lp->kp;
+
+	tw_kp_pq_delete_any(st, kp);
+	tw_eventpq_delete_any(kp->pq, r);
+	tw_kp_pq_enqueue(st, kp);
 }
