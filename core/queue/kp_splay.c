@@ -325,7 +325,14 @@ tw_eventpq_enqueue(splay_tree *st, tw_event * e)
 	}
 }
 
-void tw_pq_enqueue (tw_pq *st, tw_kp *e) {
+// API Version
+void tw_pq_enqueue (tw_pq *st, tw_event *e) {
+	// find the KP where the evevnt should go
+	// tw_kp_pq_enqueue (kp->pq, kp);
+}
+
+// KP Version
+void tw_kp_pq_enqueue (tw_pq *st, tw_kp *e) {
 	tw_kp *n = st->root;
 
 	st->nitems++;
@@ -417,7 +424,14 @@ tw_eventpq_dequeue(splay_tree *st)
 	return r;
 }
 
-tw_kp * tw_pq_dequeue (tw_pq *st) {
+// API Version
+tw_event * tw_pq_dequeue (tw_pq *st) {
+	// find the correct KP to dequeue from
+	// return tw_kp_pq_dequeue (kp->pq);
+}
+
+// KP Version
+tw_kp * tw_kp_pq_dequeue (tw_pq *st) {
 	tw_kp *r = st->least;
 	tw_kp *tmp, *p;
 
@@ -516,7 +530,14 @@ tw_eventpq_delete_any(splay_tree *st, tw_event * r)
 	UP(r) = NULL;
 }
 
-void tw_pq_delete_any (tw_pq *st, tw_kp *r) {
+// API Version
+void tw_pq_delete_any (tw_pq *st, tw_event *r) {
+	// find all(?) correct KPs
+	// tw_kp_pq_delete_any (kp->pq, r);
+}
+
+// KP Version
+void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 	tw_kp *n, *p;
 	tw_kp *tmp;
 
