@@ -32,7 +32,7 @@
 #define LEFT(t)		((t)->next)
 #define RIGHT(t)	((t)->prev)
 #define KEY(t)          ((t)->recv_ts)
-#define KPKEY(t) (((tw_event *)(t)->pq->root)->recv_ts)
+#define KPKEY(t) (((tw_event *)(t)->pq->least)->recv_ts)
 
 struct tw_pq {
 	tw_kp *root;
@@ -580,8 +580,11 @@ tw_eventpq_minimum(splay_tree *pq)
 }
 
 double tw_pq_minimum (tw_pq *pq) {
-	return ((pq->least->pq->root ? KEY(pq->least->pq->root) : DBL_MAX));
-}
+	if (pq->least) {
+		return ((pq->least->pq->least ? pq->least->pq->least->recv_ts : DBL_MAX));
+	}
+	return DBL_MAX;
+}	
 
 unsigned int
 tw_eventpq_get_size(splay_tree *st)
@@ -607,14 +610,14 @@ unsigned int tw_pq_max_size(tw_pq *pq) {
 // API Version
 void tw_pq_enqueue (tw_pq *st, tw_event *e) {
 	tw_kp *kp = e->dest_lp->kp;
-
-	// put the event in the kp's pq
-	tw_eventpq_enqueue(kp->pq, e);
 	
-	// remove this kp and re-enqueue it
-	if (st->nitems > 0) {
+	// remove kp from pe->pq if it is there
+	if (kp->pq->nitems > 0) {
 		tw_kp_pq_delete_any(st, kp);
 	}
+
+	// enqueue event, then kp
+	tw_eventpq_enqueue(kp->pq, e);
 	tw_kp_pq_enqueue(st, kp);
 }
 
@@ -627,18 +630,19 @@ tw_event * tw_pq_dequeue (tw_pq *st) {
 	tw_event *e = tw_eventpq_dequeue(kp->pq);
 
 	// re-enqueue the kp
-	tw_kp_pq_enqueue(st, kp);
+	if (kp->pq->nitems > 0) {
+		tw_kp_pq_enqueue(st, kp);
+	}
 
 	return e;
 }
 
 // API Version
+// NOTE: delete_any assumes that event is in the pq
 void tw_pq_delete_any (tw_pq *st, tw_event *r) {
 	tw_kp *kp = r->dest_lp->kp;
 
-	if (st->nitems > 0) {
-		tw_kp_pq_delete_any(st, kp);
-	}
+	tw_kp_pq_delete_any(st, kp);
 	tw_eventpq_delete_any(kp->pq, r);
 	tw_kp_pq_enqueue(st, kp);
 }
