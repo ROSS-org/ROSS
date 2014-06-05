@@ -82,7 +82,7 @@ tw_pq * tw_pq_create (void) {
 }
 
 static void
-splay(tw_event * node)
+event_splay(tw_event * node)
 {
 	register tw_event *n = node, *g, *p;
 	register tw_event *x, *z;
@@ -316,7 +316,7 @@ tw_eventpq_enqueue(splay_tree *st, tw_event * e)
 				}
 			}
 		}
-		splay(e);
+		event_splay(e);
 		st->root = e;
 	} else
 	{
@@ -371,7 +371,7 @@ void tw_kp_pq_enqueue (tw_pq *st, tw_kp *e) {
 				}
 			}
 		}
-		splay(e);
+		kp_splay(e);
 		st->root = e;
 	} else
 	{
@@ -501,7 +501,7 @@ tw_eventpq_delete_any(splay_tree *st, tw_event * r)
 		{
 			UP(n) = 0;
 			for (; RIGHT(n); n = RIGHT(n));
-			splay(n);
+			event_splay(n);
 			RIGHT(n) = tmp;
 			UP(tmp) = n;
 		}
@@ -519,7 +519,7 @@ tw_eventpq_delete_any(splay_tree *st, tw_event * r)
 			RIGHT(p) = n;
 		if (n)
 		{
-			splay(p);
+			event_splay(p);
 			st->root = p;
 		}
 	} else
@@ -562,7 +562,7 @@ void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 		{
 			UP(n) = 0;
 			for (; RIGHT(n); n = RIGHT(n));
-			splay(n);
+			kp_splay(n);
 			RIGHT(n) = tmp;
 			UP(tmp) = n;
 		}
@@ -580,7 +580,7 @@ void tw_kp_pq_delete_any (tw_pq *st, tw_kp *r) {
 			RIGHT(p) = n;
 		if (n)
 		{
-			splay(p);
+			kp_splay(p);
 			st->root = p;
 		}
 	} else
