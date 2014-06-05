@@ -180,7 +180,7 @@ event_splay(tw_event * node)
 }
 
 //KP Version 
-static void kp_spaly (tw_kp *node) {
+static void kp_splay (tw_kp *node) {
 	register tw_kp *n = node, *g, *p;
 	register tw_kp *x, *z;
 
