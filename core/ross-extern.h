@@ -18,6 +18,9 @@ extern tw_stime tw_pq_minimum(tw_pq *);
 extern void tw_pq_delete_any(tw_pq *, tw_event *);
 extern unsigned int tw_pq_get_size(tw_pq *);
 extern unsigned int tw_pq_max_size(tw_pq *);
+#ifdef ROSS_QUEUE_kp_splay
+extern tw_eventpq * tw_eventpq_create(void);
+#endif
 
 /*
  * ross-global.c
