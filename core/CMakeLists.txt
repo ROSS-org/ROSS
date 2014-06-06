@@ -82,7 +82,7 @@ ENDIF(ROSS_MEMORY)
 OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
 # Show timing data at end of run
-OPTION(ROSS_TIMING "Perform ROSS timings" ON)
+OPTION(ROSS_timing "Perform ROSS timings" ON)
 
 # Set all options
 #SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_mpi -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")

@@ -14,4 +14,4 @@
 #cmakedefine USE_BGPM
 #cmakedefine ROSS_MEMROY
 #cmakedefine RAND_NORMAL
-#cmakedefine ROSS_TIMING
+#cmakedefine ROSS_timing
