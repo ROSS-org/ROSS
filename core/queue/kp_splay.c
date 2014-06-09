@@ -650,5 +650,7 @@ void tw_pq_delete_any (tw_pq *st, tw_event *r) {
 
 	tw_kp_pq_delete_any(st, kp);
 	tw_eventpq_delete_any(kp->pq, r);
-	tw_kp_pq_enqueue(st, kp);
+	if (kp->pq->nitems > 0) {
+		tw_kp_pq_enqueue(st, kp);
+	}
 }
