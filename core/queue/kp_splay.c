@@ -623,6 +623,12 @@ void tw_pq_enqueue (tw_pq *st, tw_event *e) {
 
 // API Version
 tw_event * tw_pq_dequeue (tw_pq *st) {
+
+	// Base case
+	if (st->nitems == 0) {
+		return (tw_event *) NULL;
+	}
+
 	// find the correct KP to dequeue from
 	tw_kp *kp = tw_kp_pq_dequeue(st);
 
