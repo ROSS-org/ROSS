@@ -16,7 +16,7 @@ tw_clock
 tw_clock_read(void)
 {
 	tw_clock	result = 0;
-#if ROSS_timing
+#ifdef ROSS_timing
         result = GetTimeBase();
 #endif
 	return(result);

@@ -6,7 +6,7 @@ typedef uint64_t tw_clock;
 static inline tw_clock  tw_clock_read(void)
 {
 	tw_clock result=0;
-#if ROSS_timing
+#ifdef ROSS_timing
 	unsigned a, d; 
 
 	do {
