@@ -73,6 +73,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+/*******************************************************************
+ * The location of this include is important, as it is outside of  *
+ * the __cplusplus check.  This is required as the mpi header will *
+ * mess up and complain if we force it into an extern "C" context. *
+ *******************************************************************/
+#include <mpi.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -215,7 +222,6 @@ typedef uintptr_t tw_lpid;
 #  include "gvt-7oclock.h"
 #endif
 #ifdef ROSS_GVT_mpi_allreduce
-#  include "mpi.h"
 #  include "gvt-mpi_allreduce.h"
 #endif
 
