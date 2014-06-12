@@ -58,8 +58,6 @@ tw-util.c)
 INCLUDE (CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
 ## Print ROSS Git Hash
-## From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 INCLUDE(GetGitRevisionDescription)
 GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
 

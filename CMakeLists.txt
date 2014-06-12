@@ -1,3 +1,6 @@
+## From https://github.com/rpavlik/cmake-modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules")
+
 PROJECT(ROSS_TOP)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
