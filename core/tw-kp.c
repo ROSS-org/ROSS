@@ -13,6 +13,10 @@ tw_kp_onpe(tw_kpid id, tw_pe * pe)
 
 	g_tw_kp[id]->id = id;
 	g_tw_kp[id]->pe = pe;
+
+#ifdef ROSS_QUEUE_kp_splay
+	g_tw_kp[id]->pq = tw_eventpq_create();
+#endif
 }
 
 void
