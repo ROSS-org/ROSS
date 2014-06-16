@@ -40,6 +40,11 @@ tw_event_send(tw_event * event)
   // call LP remote mapping function to get dest_pe
   dest_peid = (*src_lp->type.map) ((tw_lpid) event->dest_lp);
 
+  if( dest_peid >= (g_tw_nlp * tw_nnodes()) )
+    {
+      tw_error( TW_LOC, "Attempting to send to out of range LP id. Check your model code!! \n");
+    }
+
   if(tw_node_eq(tw_net_onnode(dest_peid), &g_tw_mynode))
     {
       event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
