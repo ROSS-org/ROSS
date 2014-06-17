@@ -84,6 +84,9 @@ OPTION(ROSS_timing "Perform ROSS timings" ON)
 
 # Used by ross-kernel-inline.h
 OPTION(ROSS_runtime_checks "Perform ID checks" OFF)
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+	SET(ROSS_runtime_checks ON CACHE BOOL "Perform ID checks" FORCE)
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # Set all options
 #SET(OPTIONS "${OPTIONS} -DROSS_QUEUE_${QUEUE} -DROSS_RAND_${RAND} -DROSS_NETWORK_mpi -DROSS_CLOCK_${CLOCK} -DROSS_GVT_${GVT} -DARCH_${ARCH}")
