@@ -12,7 +12,7 @@
 #cmakedefine USE_AVL_TREE 1
 #define AVL_NODE_COUNT ${AVL_NODE_COUNT}
 #cmakedefine USE_BGPM
-#cmakedefine ROSS_MEMROY
+#cmakedefine ROSS_MEMORY
 #cmakedefine RAND_NORMAL
 #cmakedefine ROSS_timing
 #cmakedefine ROSS_runtime_checks
