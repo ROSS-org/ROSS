@@ -448,4 +448,8 @@ static tw_pe * setup_pes(void) {
     return master;
 }
 
-
+// This is the default lp type mapping function
+// valid ONLY if there is one lp type
+tw_lpid map_onetype (tw_lpid gid) {
+    return 0;
+}

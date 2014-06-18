@@ -144,6 +144,7 @@ extern void tw_init(int *argc, char ***argv);
 extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed);
 extern void tw_run(void);
 extern void tw_end(void);
+extern tw_lpid map_onetype (tw_lpid gid);
 
 /*
  * tw-sched.c
