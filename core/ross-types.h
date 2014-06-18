@@ -98,6 +98,9 @@ struct tw_lptype {
     size_t state_sz; /**< @brief Number of bytes that SV is for the LP */
 };
 
+// Type mapping function: gid -> type index
+typedef tw_lpid (*tw_typemap_f) (tw_lpid gid);
+
 /**
  * tw_statistics
  * @brief Statistics tallied over the duration of the simulation.

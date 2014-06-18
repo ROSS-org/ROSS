@@ -66,6 +66,9 @@ extern tw_node g_tw_masternode;
 
 extern FILE		*g_tw_csv;
 
+tw_lptype * g_tw_lp_types;
+tw_typemap_f g_tw_lp_typemap;
+
         /*
 	 * Cycle Counter variables
 	 */
@@ -106,6 +109,7 @@ extern void		 tw_lp_settype(tw_lpid lp, const tw_lptype * type);
 extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
 extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
 extern void		 tw_init_lps(tw_pe * me);
+extern void tw_lp_setup_types();
 
 /*
  * tw-kp.c

@@ -5,6 +5,25 @@
  * @brief tw_lp_settype is defined here!
  */
 
+// IMPORTANT: this function replaces tw_lp_settype
+// g_tw_lp_types must be defined
+// g_tw_lp_typemap must be defined
+void tw_lp_setup_types () {
+	if ( !g_tw_lp_types ) {
+		tw_error(TW_LOC, "No LP types are defined");
+	}
+
+	if ( !g_tw_lp_typemap ) {
+		tw_error(TW_LOC, "No LP type mapping is defined");
+	}
+
+	int i;
+	for (i = 0; i < g_tw_nlp; i++) {
+		tw_lp *lp = g_tw_lp[i];
+		lp->type = &g_tw_lp_types[g_tw_lp_typemap(lp->gid)];
+	}
+}
+
 /**
  * IMPORTANT: This function should be called after tw_define_lps.  It
  * copies the function pointers which define the LP to the appropriate
