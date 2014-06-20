@@ -4,6 +4,7 @@ MESSAGE("ROSS_SOURCE_DIR=${ROSS_SOURCE_DIR}")
 
 SET(ross_srcs
 
+queue/tw-queue.h
 queue/${QUEUE}.c
 
 ross-random.h

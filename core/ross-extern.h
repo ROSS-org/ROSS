@@ -9,20 +9,6 @@ extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
 extern void tw_stats(tw_pe * me);
 
 /*
- * queue-*.c
- */
-extern tw_pq *tw_pq_create(void);
-extern void tw_pq_enqueue(tw_pq *, tw_event *);
-extern tw_event *tw_pq_dequeue(tw_pq *);
-extern tw_stime tw_pq_minimum(tw_pq *);
-extern void tw_pq_delete_any(tw_pq *, tw_event *);
-extern unsigned int tw_pq_get_size(tw_pq *);
-extern unsigned int tw_pq_max_size(tw_pq *);
-#ifdef ROSS_QUEUE_kp_splay
-extern tw_eventpq * tw_eventpq_create(void);
-#endif
-
-/*
  * ross-global.c
  */
 extern tw_synch g_tw_synchronization_protocol;

@@ -188,6 +188,8 @@ typedef uintptr_t tw_lpid;
 #include "ross-kernel-inline.h"
 #include "hash-quadratic.h"
 
+#include "queue/tw-queue.h"
+
 #ifdef ROSS_GVT_7oclock
 #  include "gvt/7oclock.h"
 #endif
