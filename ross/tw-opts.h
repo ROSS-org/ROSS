@@ -34,4 +34,6 @@ extern void tw_opt_parse(int *argc, char ***argv);
 extern void tw_opt_add(const tw_optdef *options);
 extern void tw_opt_print(void);
 
+extern void des_print_model_name(void);
+
 #endif

@@ -52,6 +52,9 @@ tw_event_send(tw_event * event)
 	   * no rollback caused by this send.  We cannot have any
 	   * transient messages on local sends so we can return.
 	   */
+	  // capture event data for desTraceFile
+	  fprintf(desTraceFile, "{ \"source_object\" : \"%llu\", \"send_time\" : \"%g\",  \"destination_object\" : \"%llu\",  \"receive_time\" : \"%g\", }\n", src_lp->gid, tw_now(src_lp), event->dest_lp->gid, recv_ts);
+
 	  tw_pq_enqueue(send_pe->pq, event);
 	  return;
 	} else

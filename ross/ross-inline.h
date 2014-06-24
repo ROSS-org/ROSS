@@ -70,8 +70,11 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
    */
   if (recv_ts >= g_tw_ts_end)
     e = send_pe->abort_event;
-  else 
+  else {
+    // capture event data for desTraceFile (moving to tw_event_send function)
+    //    fprintf(desTraceFile, "{ \"source_object\" : \"%llu\", \"send_time\" : \"%g\",  \"destination_object\" : \"%llu\",  \"receive_time\" : \"%g\", }\n", sender->gid, tw_now(sender), dest_gid, recv_ts);
     e = tw_event_grab(send_pe);
+  }
 
   e->dest_lp = (tw_lp *) dest_gid;
   e->src_lp = sender;

@@ -33,16 +33,40 @@ tw_init(int *argc, char ***argv)
         time_t raw_time;
 #endif
 
+	// setup trace file and print header information */
+	desTraceFile = fopen("desTraceFile.json", "w+");
+	
+	fprintf(desTraceFile, "{\n\"simulator_name\" : \"ROSS Revision: %s\n", ROSS_VERSION);
+        fprintf(desTraceFile, "(github version, forked on on June 21, 2014)\",\n");
+	
+	fprintf(desTraceFile, "\"model_name\" : \"");
+	des_print_model_name();
+	fprintf(desTraceFile, "\",\n");
+	
+	// capture the current date/timestamp
+	time_t current_time;
+	time(&current_time);
+        char *ascii_time = ctime(&current_time);
+	fprintf(desTraceFile, "\"capture_date\" : \"%.*s\",\n", strlen(ascii_time)-1, ascii_time);
+
 	tw_opt_add(tw_net_init(argc, argv));
+
+	// capture command line arguments
+	fprintf(desTraceFile, "\"command\_line\_arguments\" : \"");
 
         // Print out the command-line so we know what we passed in
 	if (tw_ismaster()) {
 	        for (i = 0; i < *argc; i++) {
 	                printf("%s ", (*argv)[i]);
+			// record command line arguments in desTraceFile
+	                fprintf(desTraceFile, " %s ", (*argv)[i]);
 	        }
 	        printf("\n\n");
 	}
     
+	// setup entry for capturing events exchanged in the simulation.
+	fprintf(desTraceFile,"\",\n\n\"events\" : [\n");
+
     // Print our revision if we have it
 #ifdef ROSS_VERSION
     if (tw_ismaster()) {
@@ -396,6 +420,10 @@ tw_end(void)
 	}
 
 	tw_net_stop();
+
+	// print end event array marker and end json file marker 
+	fputs("]\n}\n", desTraceFile);
+	fclose(desTraceFile);
 }
 
 static tw_pe *

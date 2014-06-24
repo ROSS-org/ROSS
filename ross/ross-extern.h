@@ -217,4 +217,6 @@ extern void* tw_unsafe_realloc(
 	void *addr,
 	size_t len);
 
+extern FILE *desTraceFile;
+
 #endif

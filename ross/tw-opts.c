@@ -399,3 +399,9 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 	*argc_p = argc;
 	*argv_p = argv;
 }
+
+void des_print_model_name(void) {
+  if (opt_groups != NULL && opt_groups[0] != NULL) {
+    fprintf(desTraceFile, "%s", opt_groups[0]->help);
+  }
+}
