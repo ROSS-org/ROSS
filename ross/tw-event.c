@@ -56,7 +56,7 @@ tw_event_send(tw_event * event)
 	  //	  fprintf(desTraceFile, "{ \"source_object\" : \"%llu\", \"send_time\" : \"%g\",  \"destination_object\" : \"%llu\",  \"receive_time\" : \"%g\", }\n", src_lp->gid, tw_now(src_lp), event->dest_lp->gid, recv_ts);
 	  // reducing the text to compact the resulting filesizes
 	  // replace structure with array of send_lp, send_time, dest_lp, receive_time
-	  fprintf(desTraceFile, "[ \"%llu\",  %g, \"%llu\", %g ]\n", src_lp->gid, tw_now(src_lp), event->dest_lp->gid, recv_ts);
+	  fprintf(desTraceFile, "[\"%llu\",%g,\"%llu\",%g],\n", src_lp->gid, tw_now(src_lp), event->dest_lp->gid, recv_ts);
 	  tw_pq_enqueue(send_pe->pq, event);
 	  return;
 	} else
