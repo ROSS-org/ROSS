@@ -10,7 +10,7 @@
 
 #define VERIFY_MAPPING 0
 
-static tw_pe *setup_pes(void);
+tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
 
 static const tw_optdef kernel_options[] = {
@@ -72,7 +72,7 @@ tw_init(int *argc, char ***argv)
 	//tw_register_signals();
 }
 
-static void
+void
 early_sanity_check(void)
 {
 #if ROSS_MEMORY
@@ -253,7 +253,7 @@ tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed)
 			tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
 }
 
-static void
+void
 late_sanity_check(void)
 {
 	tw_kpid	 i;
@@ -398,7 +398,7 @@ tw_end(void)
 	tw_net_stop();
 }
 
-static tw_pe *
+tw_pe *
 setup_pes(void)
 {
 	tw_pe	*pe;
