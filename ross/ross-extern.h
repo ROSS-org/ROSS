@@ -114,11 +114,12 @@ static inline void  tw_free_output_messages(tw_event *e, int print_message);
 /*
  * tw-lp.c
  */
-extern tw_lp		*tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
+extern tw_lp	*tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
 extern void		 tw_lp_settype(tw_lpid lp, const tw_lptype * type);
 extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
 extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
 extern void		 tw_init_lps(tw_pe * me);
+extern void      tw_pre_run_lps(tw_pe * me);
 
 /*
  * tw-kp.c
