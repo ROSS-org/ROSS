@@ -202,11 +202,16 @@ static void tw_sched_batch(tw_pe * me) {
 }
 
 void tw_sched_init(tw_pe * me) {
+    /* First Stage Init */
     (*me->type.pre_lp_init)(me);
     tw_init_kps(me);
     tw_init_lps(me);
     (*me->type.post_lp_init)(me);
 
+    tw_net_barrier(me);
+
+    /* Second Stage Init -- all LPs are created and have proper mappings */
+    tw_pre_run_lps(me);
     tw_net_barrier(me);
 
     /*

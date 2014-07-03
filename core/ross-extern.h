@@ -95,6 +95,7 @@ extern void		 tw_lp_settype(tw_lpid lp, const tw_lptype * type);
 extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
 extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
 extern void		 tw_init_lps(tw_pe * me);
+extern void tw_pre_run_lps(tw_pe * me);
 extern void tw_lp_setup_types();
 
 /*
