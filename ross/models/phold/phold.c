@@ -35,6 +35,25 @@ phold_init(phold_state * s, tw_lp * lp)
 }
 
 void
+phold_pre_run(phold_state * s, tw_lp * lp)
+{
+    tw_lpid	 dest;
+
+	if(tw_rand_unif(lp->rng) <= percent_remote)
+	{
+		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
+	} else
+	{
+		dest = lp->gid;
+	}
+
+	if(dest < 0 || dest >= (g_tw_nlp * tw_nnodes()))
+		tw_error(TW_LOC, "bad dest");
+
+	tw_event_send(tw_event_new(dest, tw_rand_exponential(lp->rng, mean) + lookahead, lp));
+}
+
+void
 phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
 	tw_lpid	 dest;
@@ -76,6 +95,7 @@ phold_finish(phold_state * s, tw_lp * lp)
 
 tw_lptype       mylps[] = {
 	{(init_f) phold_init,
+     /* (pre_run_f) phold_pre_run, */
      (pre_run_f) NULL,
 	 (event_f) phold_event_handler,
 	 (revent_f) phold_event_handler_rc,
