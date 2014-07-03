@@ -105,7 +105,7 @@ tw_pre_run_lps(tw_pe * me)
 			(*(pre_run_f)lp->type.pre_run) (lp->cur_state, lp);
 
 			if (me->cev_abort)
-				tw_error(TW_LOC, "ran out of events during init");
+				tw_error(TW_LOC, "ran out of events during tw_pre_run_lps");
 		}
 	}
 }
