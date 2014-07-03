@@ -15,12 +15,14 @@ void disksim_finish(disksim_state * s, tw_lp * lp);
 tw_lptype       mylps[] = 
   {
     {(init_f) disksim_ras_init,
+     (pre_run_f) NULL,
      (event_f) disksim_ras_event_handler,
      (revent_f) disksim_ras_event_handler_rc,
      (final_f) disksim_ras_finish,
      (map_f) disksim_map,
      sizeof(disksim_ras_state)},
     {(init_f) disksim_init,
+     (pre_run_f) NULL,
      (event_f) disksim_event_handler,
      (revent_f) disksim_event_handler_rc,
      (final_f) disksim_finish,

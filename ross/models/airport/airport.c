@@ -160,6 +160,7 @@ tw_lptype airport_lps[] =
 {
 	{
 		(init_f) init,
+        (pre_run_f) NULL,
 		(event_f) event_handler,
 		(revent_f) rc_event_handler,
 		(final_f) final,

@@ -249,6 +249,7 @@ tw_peid netdmf_srw_map(tw_lpid gid)
 tw_lptype srw_lps[] = {
   {
     (init_f)   srw_init,
+    (pre_run_f) NULL,
     (event_f)  srw_event,
     (revent_f) srw_revent,
     (final_f)  srw_final,
@@ -261,6 +262,7 @@ tw_lptype srw_lps[] = {
 tw_lptype netdmf_srw_lps[] = {
   {
     (init_f)   netdmf_srw_init,
+    (pre_run_f) NULL,
     (event_f)  netdmf_srw_event,
     (revent_f) netdmf_srw_revent,
     (final_f)  netdmf_srw_final,
@@ -288,6 +290,7 @@ void rn_netdmf_init();
 tw_petype srw_pes[] = {
   {
     (pe_init_f)  0,
+    (pre_run_f) NULL,
     (pe_init_f)  rn_netdmf_init,
     (pe_gvt_f)   0,
     (pe_final_f) 0,

@@ -1010,6 +1010,7 @@ tw_lptype nodes_lps[] =
 {
 	{
 		(init_f) torus_init,
+        (pre_run_f) NULL,
 		(event_f) event_handler,
 		(revent_f) node_rc_handler,
 		(final_f) final,
@@ -1017,7 +1018,8 @@ tw_lptype nodes_lps[] =
 		sizeof(nodes_state),
 	},
 	{
-               (init_f) mpi_init,
+           (init_f) mpi_init,
+           (pre_run_f) NULL,
 	       (event_f) mpi_event_handler,
 	       (revent_f) mpi_event_rc_handler,
 	       (final_f) final,

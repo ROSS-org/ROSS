@@ -24,6 +24,7 @@ tw_lptype mylps[] =
     // IO LP
     {
         (init_f) raid_io_init,
+        (pre_run_f) NULL,
         (event_f) raid_io_eventhandler,
         (revent_f) raid_io_eventhandler_rc,
         (final_f) raid_io_finish,
@@ -33,6 +34,7 @@ tw_lptype mylps[] =
     // File Server LP
     {
         (init_f) raid_server_init,
+        (pre_run_f) NULL,
         (event_f) raid_server_eventhandler,
         (revent_f) raid_server_eventhandler_rc,
         (final_f) raid_server_finish,
@@ -42,6 +44,7 @@ tw_lptype mylps[] =
     // RAID Controller LP
     {
         (init_f) raid_controller_init,
+        (pre_run_f) NULL,
         (event_f) raid_controller_eventhandler,
         (revent_f) raid_controller_eventhandler_rc,
         (final_f) raid_controller_finish,
@@ -51,6 +54,7 @@ tw_lptype mylps[] =
     // Hard Disk LP
     {
         (init_f) raid_disk_init,
+        (pre_run_f) NULL,
         (event_f) raid_disk_eventhandler,
         (revent_f) raid_disk_eventhandler_rc,
         (final_f) raid_disk_finish,

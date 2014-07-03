@@ -32,6 +32,7 @@ void olsr_region_finish(olsr_region_state * s, tw_lp * lp);
 tw_lptype mylps[] = 
   {
     {	(init_f) olsr_region_init,
+        (pre_run_f) NULL,
         (event_f) olsr_region_event_handler,
         (revent_f) olsr_region_event_handler_rc,
         (final_f) olsr_region_finish,

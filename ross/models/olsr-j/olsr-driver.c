@@ -2038,6 +2038,7 @@ tw_lptype olsr_lps[] = {
     // Our OLSR node handling functions
     {
         (init_f) olsr_init,
+        (pre_run_f) NULL,
         (event_f) olsr_event,
         (revent_f) olsr_event_reverse,
         (final_f) olsr_final,
@@ -2047,6 +2048,7 @@ tw_lptype olsr_lps[] = {
     // Our SA aggregator handling functions
     {
         (init_f) sa_master_init,
+        (pre_run_f) NULL,
         (event_f) sa_master_event,
         (revent_f) sa_master_event_reverse,
         (final_f) null,

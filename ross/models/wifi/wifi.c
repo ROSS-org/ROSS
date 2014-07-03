@@ -17,6 +17,7 @@ void wifi_access_point_finish(wifi_access_point_state * s, tw_lp * lp);
 tw_lptype mylps[] = 
 {
     {	(init_f) wifi_access_point_init,
+        (pre_run_f) NULL,
         (event_f) wifi_access_point_event_handler,
         (revent_f) wifi_access_point_event_handler_rc,
         (final_f) wifi_access_point_finish,

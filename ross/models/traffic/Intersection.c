@@ -166,7 +166,8 @@ tw_lpid CellMapping_to_local_index(tw_lpid lpid)
 
 tw_lptype mylps[] = {
 	{
-		(init_f) Intersection_StartUp,
+            (init_f) Intersection_StartUp,
+            (pre_run_f) NULL,
 			(event_f) Intersection_EventHandler,
 			(revent_f) Intersection_RC_EventHandler,
 			(final_f) Intersection_Statistics_CollectStats,
