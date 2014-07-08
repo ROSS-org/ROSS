@@ -86,13 +86,6 @@ tw_error(const char *file, int line, const char *fmt, ...)
 	tw_net_abort();
 }
 
-void
-tw_exit(int rv)
-{
-	tw_net_stop();
-	exit(rv);
-}
-
 struct mem_pool
 {
 	struct mem_pool *next_pool;
