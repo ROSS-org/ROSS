@@ -109,11 +109,11 @@ void tw_pre_run_lps (tw_pe * me) {
 		if (lp->pe != me)
 			continue;
 
-		if (lp->type.pre_run) {
+		if (lp->type->pre_run) {
 			me->cur_event = me->abort_event;
 			me->cur_event->caused_by_me = NULL;
 
-			(*(pre_run_f)lp->type.pre_run) (lp->cur_state, lp);
+			(*(pre_run_f)lp->type->pre_run) (lp->cur_state, lp);
 
 			if (me->cev_abort)
 				tw_error(TW_LOC, "ran out of events during pre_run");
