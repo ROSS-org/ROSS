@@ -202,22 +202,3 @@ my_malloc(size_t len)
 }
 
 #undef realloc
-void*
-tw_unsafe_realloc(
-	const char *file,
-	int line,
-	const char *for_who,
-	void *addr,
-	size_t len)
-{
-	malloc_calls++;
-	total_allocated += len;
-	addr = realloc(addr, len);
-	if (!addr)
-		tw_error(
-			file, line,
-			"Cannot allocate %lu bytes for %s",
-			(unsigned long)len,
-			for_who);
-	return addr;
-}
