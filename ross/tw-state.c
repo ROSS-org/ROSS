@@ -43,6 +43,20 @@ tw_state_rollback(tw_lp *lp, tw_event *revent)
 		&revent->cv,
 		tw_event_data(revent),
 		lp);
+    /* post-reverse - reset the bitfield so that a potential re-running of the
+     * event is presented with a consistent bitfield state
+     * NOTE: the size checks are to better support the experimental reverse
+     * computation compiler, which can use a larger bitfield. */
+    if (sizeof(revent->cv) == sizeof(uint32_t)){
+        *(uint32_t*)&revent->cv = 0;
+    }
+    else if (sizeof(revent->cv) == sizeof(uint64_t)){
+        *(uint64_t*)&revent->cv = 0;
+    }
+    else{
+        memset(&revent->cv, 0, sizeof(revent->cv));
+    }
+
 #if 0
     } else
       {
