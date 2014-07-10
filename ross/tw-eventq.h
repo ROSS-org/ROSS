@@ -149,6 +149,9 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   tw_event *event;
   size_t event_len;
   size_t align;
+#ifdef ROSS_ALLOC_DEBUG
+  tw_event *event_prev = NULL;
+#endif
 
   /* Construct a linked list of free events.  We allocate
    * the events such that they look like this in memory:
@@ -185,18 +188,32 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   g_tw_events_per_pe += g_tw_gvt_threshold;
   cnt += g_tw_gvt_threshold;
 
-  q->head = event = (tw_event *)tw_calloc(TW_LOC, "events", event_len, cnt);
   q->size = cnt;
-
+  /* allocate one at a time so tools like valgrind can detect buffer 
+   * overflows */
+#ifdef ROSS_ALLOC_DEBUG
+  q->head = event = (tw_event *)tw_calloc(TW_LOC, "events", event_len, 1);
+  while (--cnt) {
+    event->state.owner = TW_pe_free_q;
+    event->prev = event_prev;
+    event_prev = event;
+    event->next = (tw_event *) tw_calloc(TW_LOC, "events", event_len, 1);
+    event = event->next;
+  }
+  event->prev = event_prev;
+#else
+  /* alloc in one large block for performance/locality */
+  q->head = event = (tw_event *)tw_calloc(TW_LOC, "events", event_len, cnt);
   while (--cnt) {
     event->state.owner = TW_pe_free_q;
     event->prev = (tw_event *) (((char *)event) - event_len);
     event->next = (tw_event *) (((char *)event) + event_len);
     event = event->next;
   }
+  event->prev = (tw_event *) (((char *)event) - event_len);
+#endif
 
   event->state.owner = TW_pe_free_q;
-  event->prev = (tw_event *) (((char *)event) - event_len);
   q->head->prev = event->next = NULL;
   q->tail = event;
 }

@@ -123,6 +123,32 @@ tw_calloc_stats(
 		*bytes_wasted += p->end_free - p->next_free;
 }
 
+/* debug version - don't use pool allocator so tools like valgrind can
+ * detect memory bugs */
+#ifdef ROSS_ALLOC_DEBUG
+
+void*
+tw_calloc(
+	const char *file,
+	int line,
+	const char *for_who,
+	size_t e_sz,
+	size_t n)
+{
+    void *r = calloc(e_sz, n);
+    if (!r){
+		tw_error(
+			file, line,
+			"Cannot allocate %lu bytes for %u %s",
+			(unsigned long)e_sz,
+			n,
+			for_who);
+    }
+    return r;
+}
+
+#else
+
 static void*
 pool_alloc(size_t len)
 {
@@ -199,6 +225,8 @@ tw_calloc(
 	memset(r, 0, e_sz);
 	return r;
 }
+
+#endif
 
 #undef malloc
 static void*
