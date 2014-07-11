@@ -361,6 +361,14 @@ tw_run(void)
       tw_scheduler_optimistic_debug(me);
       break;
 
+    case SEQUENTIAL_OMNET:  // case 5
+      tw_scheduler_sequential_omnet(me);
+      break;
+
+    case CONSERVATIVE_OMNET:  // case 6
+      tw_scheduler_conservative_omnet(me);
+      break;
+
     default:
       tw_error(TW_LOC, "No Synchronization Protocol Specified! \n");
     }

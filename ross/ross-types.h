@@ -35,6 +35,8 @@ enum tw_synch_e
     CONSERVATIVE,
     OPTIMISTIC,
     OPTIMISTIC_DEBUG,
+    SEQUENTIAL_OMNET,
+    CONSERVATIVE_OMNET,
   };
 
 typedef enum tw_synch_e tw_synch;

@@ -328,6 +328,62 @@ void tw_scheduler_sequential(tw_pe * me)
   (*me->type.final)(me);
 }
 
+void tw_scheduler_sequential_omnet(tw_pe * me) 
+{
+  tw_stime gvt = 0.0;
+
+  printf("NOTE: Simulation using OMNET Sequential Scheduler. \n");
+  printf("      Enables direct re-used of events within the model\n");
+  printf("      ONLY USE WITH OMENT or IBM VENUS MODELS!!\n");
+  
+  if(tw_nnodes() > 1) 
+    tw_error(TW_LOC, "Sequential OMNET Scheduler used for world size greater than 1.");
+  
+  tw_event *cev;
+  
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  
+  while ((cev = tw_pq_dequeue(me->pq))) 
+    {
+      tw_lp *clp = cev->dest_lp;
+      tw_kp *ckp = clp->kp;
+      
+      me->cur_event = cev;
+      ckp->last_time = cev->recv_ts;
+      
+      if(cev->recv_ts == tw_pq_minimum(me->pq))
+         me->stats.s_pe_event_ties++;
+
+      gvt = cev->recv_ts;
+      if(gvt / g_tw_ts_end > percent_complete &&
+	 tw_node_eq(&g_tw_mynode, &g_tw_masternode))
+	{
+	  gvt_print(gvt);
+	}
+      
+      (*clp->type.event)(
+			 clp->cur_state,
+			 &cev->cv,
+			 tw_event_data(cev),
+			 clp);
+      
+      
+      if (me->cev_abort)
+	tw_error(TW_LOC, "insufficient event memory");
+      
+      ckp->s_nevent_processed++;
+      // tw_event_free(me, cev); <== Don't free event, allow model to directly re-use it
+    }
+  tw_wall_now(&me->end_time);
+  
+  printf("*** END OMNET/VENUS SEQUENTIAL SIMULATION ***\n\n");
+  
+  tw_stats(me);
+  
+  (*me->type.final)(me);
+}
+
 void
 tw_scheduler_conservative(tw_pe * me)
 {
@@ -423,6 +479,119 @@ tw_scheduler_conservative(tw_pe * me)
      tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
      me->local_master)
     printf("*** END SIMULATION ***\n\n");
+  
+  tw_net_barrier(me);
+  
+  // call the model PE finalize function
+  (*me->type.final)(me);
+  
+  tw_stats(me);
+}
+
+void
+tw_scheduler_conservative_omnet(tw_pe * me)
+{
+  tw_clock start;
+  unsigned int msg_i;
+  unsigned int round = 0;
+
+  if((tw_nnodes() > 1 || g_tw_npe > 1) &&
+     tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
+     me->local_master)
+    {  
+      printf("NOTE: Simulation using OMNET Conservative/Parallel Scheduler. \n");
+      printf("      Enables direct re-used of events within the model\n");
+      printf("      ONLY USE WITH OMENT or IBM VENUS MODELS!!\n");
+    }
+
+  tw_sched_init(me);
+  tw_wall_now(&me->start_time);
+  me->stats.s_total = tw_clock_read();
+  
+  for (;;)
+    {
+      if (tw_nnodes() > 1)
+	{
+	  start = tw_clock_read();
+	  tw_net_read(me);
+	  me->stats.s_net_read += tw_clock_read() - start;
+	}
+      
+      tw_gvt_step1(me);
+      tw_sched_event_q(me);
+      tw_gvt_step2(me);
+      
+      if (me->GVT > g_tw_ts_end)
+	break;
+      
+      // put "batch" loop directly here
+      /* Process g_tw_mblock events, or until the PQ is empty
+       * (whichever comes first). 
+       */
+      for (msg_i = g_tw_mblock; msg_i; msg_i--) 
+	{
+	  tw_event *cev;
+	  tw_lp *clp;
+	  tw_kp *ckp;
+	  
+	  /* OUT OF FREE EVENT BUFFERS.  BAD.
+	   * Go do fossil collect immediately.
+	   */
+	  if (me->free_q.size <= g_tw_gvt_threshold) {
+	    tw_gvt_force_update(me);
+	    break;
+	  }
+	  
+	  if(tw_pq_minimum(me->pq) >= me->GVT + g_tw_lookahead)
+	    break;
+	  
+	  start = tw_clock_read();
+	  if (!(cev = tw_pq_dequeue(me->pq)))
+	    break;
+	  me->stats.s_pq += tw_clock_read() - start;
+          if(cev->recv_ts == tw_pq_minimum(me->pq))
+             me->stats.s_pe_event_ties++;
+
+	  clp = cev->dest_lp;
+	  ckp = clp->kp;
+	  me->cur_event = cev;
+	  if( ckp->last_time > cev->recv_ts )
+	    {
+	      tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d", 
+		       ckp->last_time, cev->recv_ts, clp->gid );
+	    }
+	  ckp->last_time = cev->recv_ts;
+	  
+	  start = tw_clock_read();
+	  (*clp->type.event)(
+			     clp->cur_state,
+			     &cev->cv,
+			     tw_event_data(cev),
+			     clp);
+
+	  ckp->s_nevent_processed++;
+	  me->stats.s_event_process += tw_clock_read() - start;
+	  
+	  if (me->cev_abort)
+	    tw_error(TW_LOC, "insufficient event memory");
+	  
+	  // tw_event_free(me, cev); <== Don't free event - assume OMNET model will do this
+	}
+
+        if(me->type.periodic && (++round % g_tw_periodicity))
+        {
+            (*me->type.periodic)(me);
+        }
+    }
+
+  
+  tw_wall_now(&me->end_time);
+  me->stats.s_total = tw_clock_read() - me->stats.s_total;
+  
+  if((tw_nnodes() > 1 || g_tw_npe > 1) &&
+     tw_node_eq(&g_tw_mynode, &g_tw_masternode) && 
+     me->local_master)
+    printf("*** END OMNET/VENUS CONSERVATIVE/PARALLEL SIMULATION ***\n\n");
   
   tw_net_barrier(me);
   
