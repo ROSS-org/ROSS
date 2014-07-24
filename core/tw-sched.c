@@ -1,5 +1,26 @@
 #include <ross.h>
 
+/**
+ * \brief Reset the event bitfield prior to entering the event handler
+ *  post-reverse - reset the bitfield so that a potential re-running of the
+ *  event is presented with a consistent bitfield state
+ *  NOTE: the size checks are to better support the experimental reverse
+ *  computation compiler, which can use a larger bitfield.
+ *  Courtesy of John P Jenkins
+ */
+static inline void reset_bitfields(tw_event *revent)
+{
+    if (sizeof(revent->cv) == sizeof(uint32_t)){
+        *(uint32_t*)&revent->cv = 0;
+    }
+    else if (sizeof(revent->cv) == sizeof(uint64_t)){
+        *(uint64_t*)&revent->cv = 0;
+    }
+    else{
+        memset(&revent->cv, 0, sizeof(revent->cv));
+    }
+}
+
 /* 
  * Get all events out of my event queue and spin them out into
  * the priority queue so they can be processed in time stamp
@@ -169,6 +190,7 @@ static void tw_sched_batch(tw_pe * me) {
         }
 
         start = tw_clock_read();
+        reset_bitfields(cev);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         ckp->s_nevent_processed++;
         me->stats.s_event_process += tw_clock_read() - start;
@@ -274,6 +296,7 @@ void tw_scheduler_sequential(tw_pe * me) {
             gvt_print(gvt);
         }
 
+        reset_bitfields(cev);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         if (me->cev_abort){
@@ -358,6 +381,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp->last_time = cev->recv_ts;
 
             start = tw_clock_read();
+            reset_bitfields(cev);
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
             ckp->s_nevent_processed++;
@@ -465,6 +489,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         ckp->last_time = cev->recv_ts;
 
         /* don't update GVT */
+        reset_bitfields(cev);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         ckp->s_nevent_processed++;
