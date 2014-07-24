@@ -303,7 +303,7 @@ two groups which is why this traffic is called worst-case traffic */
   { 
     msg->saved_available_time = s->available_time;
 
-    s->available_time = max(tw_now(lp), s->available_time);
+    s->available_time = ROSS_MAX(tw_now(lp), s->available_time);
 
     ts = 0.1 + tw_rand_exponential(lp->rng, MEAN_INTERVAL/100);
 
@@ -402,7 +402,7 @@ void router_credit_send(router_state * s, tw_bf * bf, terminal_message * msg, tw
 
      int output_port = msg->saved_vc / NUM_VC;
      msg->saved_available_time = s->next_credit_available_time[output_port];
-     s->next_credit_available_time[output_port] = max(tw_now(lp), s->next_credit_available_time[output_port]);
+     s->next_credit_available_time[output_port] = ROSS_MAX(tw_now(lp), s->next_credit_available_time[output_port]);
      ts = credit_delay + tw_rand_exponential(lp->rng, (double)credit_delay/1000);
 	
     s->next_credit_available_time[output_port]+=ts;
@@ -501,7 +501,7 @@ void packet_send(terminal_state * s, tw_bf * bf, terminal_message * msg, tw_lp *
    head_delay = (1/NODE_BANDWIDTH) * CHUNK_SIZE;
    ts = head_delay + tw_rand_exponential(lp->rng, (double)head_delay/200);
    
-   s->terminal_available_time = max(s->terminal_available_time, tw_now(lp));
+   s->terminal_available_time = ROSS_MAX(s->terminal_available_time, tw_now(lp));
    s->terminal_available_time += ts;
    //fprintf(dragonfly_event_log, " router id %d ", s->router_id);
    e = tw_event_new(s->router_id, s->terminal_available_time - tw_now(lp), lp);
@@ -580,7 +580,7 @@ if( msg->packet_ID == TRACK && msg->chunk_id == num_chunks-1)
   ts = credit_delay + tw_rand_exponential(lp->rng, credit_delay/1000);
   
   msg->saved_available_time = s->next_credit_available_time;
-  s->next_credit_available_time = max(s->next_credit_available_time, tw_now(lp));
+  s->next_credit_available_time = ROSS_MAX(s->next_credit_available_time, tw_now(lp));
   s->next_credit_available_time += ts;
 
   buf_e = tw_event_new(s->router_id, s->next_credit_available_time - tw_now(lp), lp);
@@ -983,7 +983,7 @@ if( msg->packet_ID == TRACK && next_stop != msg->dest_terminal_id && msg->chunk_
   msg->saved_available_time = s->next_output_available_time[output_port];
   ts = ((1/bandwidth) * CHUNK_SIZE) + tw_rand_exponential(lp->rng, (double)CHUNK_SIZE/200);
 
-  s->next_output_available_time[output_port] = max(s->next_output_available_time[output_port], tw_now(lp));
+  s->next_output_available_time[output_port] = ROSS_MAX(s->next_output_available_time[output_port], tw_now(lp));
   s->next_output_available_time[output_port] += ts;
   e = tw_event_new(next_stop, s->next_output_available_time[output_port] - tw_now(lp), lp);
 

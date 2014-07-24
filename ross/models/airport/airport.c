@@ -55,7 +55,7 @@ event_handler(airport_state * s, tw_bf * bf, airport_message * msg, tw_lp * lp)
       {
 	// Schedule a landing in the future
 	msg->saved_furthest_flight_landing = s->furthest_flight_landing;
-	s->furthest_flight_landing = max(s->furthest_flight_landing, tw_now(lp));
+	s->furthest_flight_landing = ROSS_MAX(s->furthest_flight_landing, tw_now(lp));
 	ts = tw_rand_exponential(lp->rng, MEAN_LAND);
 	e = tw_event_new(lp->gid, ts + s->furthest_flight_landing - tw_now(lp), lp);
 	m = tw_event_data(e);

@@ -181,7 +181,7 @@ Cell_StartUp(struct State *SV, tw_lp * lp)
 	  break;
 
 	case NEXTCALL:
-	  ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	  ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	  CurEvent = tw_event_new(lp->gid, ts, lp);
 	  TWMsg = (struct Msg_Data *) tw_event_data(CurEvent);
 	  TWMsg->CompletionCallTS = TMsg.CompletionCallTS;
@@ -204,7 +204,7 @@ Cell_StartUp(struct State *SV, tw_lp * lp)
 	      TMsg.MoveCallTS += result;
 	    }
 
-	  ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	  ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	  CurEvent = tw_event_new(currentcell, ts, lp); 
 	  TWMsg = tw_event_data(CurEvent);
 	  TWMsg->CompletionCallTS = TMsg.CompletionCallTS;
@@ -250,7 +250,7 @@ Cell_NextCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	  break;
 
 	case NEXTCALL:
-	  ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	  ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	  CurEvent = tw_event_new(lp->gid, ts, lp);
 	  TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 	  TWMsg->MethodName = TMsg.MethodName;
@@ -274,7 +274,7 @@ Cell_NextCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	      TMsg.MoveCallTS += result;
 	    }
 
-	  ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	  ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	  CurEvent = tw_event_new((currentcell), ts, lp);
 	  TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 	  TWMsg->MethodName = TMsg.MethodName;
@@ -301,7 +301,7 @@ Cell_NextCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	  switch (Cell_MinTS(&TMsg))
 	    {
 	    case COMPLETECALL:
-	      ts = max(0.0, TMsg.CompletionCallTS - tw_now(lp));
+	      ts = ROSS_MAX(0.0, TMsg.CompletionCallTS - tw_now(lp));
 	      CurEvent = tw_event_new(lp->gid, ts, lp);
 	      TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 	      TWMsg->MethodName = TMsg.MethodName;
@@ -324,7 +324,7 @@ Cell_NextCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	      break;
 
 	    case MOVECALL:
-	      ts = max(0.0, TMsg.MoveCallTS - tw_now(lp));
+	      ts = ROSS_MAX(0.0, TMsg.MoveCallTS - tw_now(lp));
 	      CurEvent = tw_event_new(lp->gid, ts, lp);
 	      TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 	      TWMsg->MethodName = TMsg.MethodName;
@@ -389,7 +389,7 @@ Cell_CompletionCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp
       break;
 
     case NEXTCALL:
-      ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+      ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
       CurEvent = tw_event_new(lp->gid, ts, lp);
       TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 
@@ -415,7 +415,7 @@ Cell_CompletionCall(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp
 	  result = tw_rand_exponential(lp->rng, MOVE_CALL_MEAN);
 	  TMsg.MoveCallTS += result;
 	}
-      ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+      ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
       CurEvent = tw_event_new((currentcell), ts, lp); 
       TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
       TWMsg->MethodName = TMsg.MethodName;
@@ -463,7 +463,7 @@ Cell_MoveCallIn(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	      break;
 
 	    case NEXTCALL:
-	      ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	      ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	      CurEvent = tw_event_new(lp->gid, ts, lp);
 	      TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 
@@ -488,7 +488,7 @@ Cell_MoveCallIn(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 		  result = tw_rand_exponential(lp->rng, MOVE_CALL_MEAN);
 		  TMsg.MoveCallTS += result;
 		}
-	      ts = max(0.0, TMsg.NextCallTS - tw_now(lp));
+	      ts = ROSS_MAX(0.0, TMsg.NextCallTS - tw_now(lp));
 	      CurEvent = tw_event_new((currentcell), ts, lp);
 	      TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 	      TWMsg->MethodName = TMsg.MethodName;
@@ -517,7 +517,7 @@ Cell_MoveCallIn(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 	      switch (Cell_MinTS(&TMsg))
 		{
 		case COMPLETECALL:
-		  ts = max(0.0, TMsg.CompletionCallTS - tw_now(lp));
+		  ts = ROSS_MAX(0.0, TMsg.CompletionCallTS - tw_now(lp));
 		  CurEvent = tw_event_new(lp->gid, ts, lp);
 		  TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 
@@ -541,7 +541,7 @@ Cell_MoveCallIn(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
 		  break;
 
 		case MOVECALL:
-		  ts = max(0.0, TMsg.MoveCallTS - tw_now(lp));
+		  ts = ROSS_MAX(0.0, TMsg.MoveCallTS - tw_now(lp));
 		  CurEvent = tw_event_new(lp->gid, ts, lp);
 		  TWMsg = (struct Msg_Data *)tw_event_data(CurEvent);
 
@@ -604,7 +604,7 @@ Cell_MoveCallOut(struct State *SV, tw_bf * CV, struct Msg_Data *M, tw_lp * lp)
       tw_exit(1);
     }
 
-  ts = max(0.0, TMsg.MoveCallTS - tw_now(lp));
+  ts = ROSS_MAX(0.0, TMsg.MoveCallTS - tw_now(lp));
   TMsg.MethodName = MOVECALLIN_METHOD;
   dest_index = tw_rand_integer(lp->rng, 0, 3);
   newcell = Cell_ComputeMove( lp->gid, dest_index ); //Neighbors[lp->id][dest_index];

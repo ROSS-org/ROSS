@@ -333,7 +333,7 @@ void olsr_station_to_mpr(olsr_region_state * s, tw_bf * bf, olsr_message * m, tw
 	}
       else
 	{
-	  cw = min(2* m->contention_window, WIFI_CW_MIN);
+	  cw = ROSS_MIN(2* m->contention_window, WIFI_CW_MIN);
 	}
 
       backoff_time = cw * WIFI_SLOT_TIME + tw_rand_unif(lp->rng);

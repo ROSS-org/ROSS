@@ -414,7 +414,7 @@ credit_send( nodes_state * s,
     int src_dim = msg->source_dim;
 
     msg->saved_available_time = s->next_credit_available_time[(2 * src_dim) + src_dir][0];
-    s->next_credit_available_time[(2 * src_dim) + src_dir][0] = max(s->next_credit_available_time[(2 * src_dim) + src_dir][0], tw_now(lp));
+    s->next_credit_available_time[(2 * src_dim) + src_dir][0] = ROSS_MAX(s->next_credit_available_time[(2 * src_dim) + src_dir][0], tw_now(lp));
     ts =  credit_delay + tw_rand_exponential(lp->rng, credit_delay/1000);
     s->next_credit_available_time[(2 * src_dim) + src_dir][0] += ts;
 
@@ -529,7 +529,7 @@ packet_send( nodes_state * s,
 //    For reverse computation 
       msg->saved_available_time = s->next_link_available_time[tmp_dir + ( tmp_dim * 2 )][0];
 
-      s->next_link_available_time[tmp_dir + ( tmp_dim * 2 )][0] = max( s->next_link_available_time[ tmp_dir + ( tmp_dim * 2 )][0], tw_now(lp) );
+      s->next_link_available_time[tmp_dir + ( tmp_dim * 2 )][0] = ROSS_MAX( s->next_link_available_time[ tmp_dir + ( tmp_dim * 2 )][0], tw_now(lp) );
       s->next_link_available_time[tmp_dir + ( tmp_dim * 2 )][0] += ts;
     
       e = tw_event_new( dst_lp, s->next_link_available_time[tmp_dir + ( tmp_dim * 2 )][0] - tw_now(lp), lp );
@@ -719,7 +719,7 @@ void mpi_msg_send(mpi_process * p,
 	      // Send the packet out
 	     ts = 0.1 + tw_rand_exponential(lp->rng, MEAN_INTERVAL/200); 
              msg->saved_available_time = p->available_time;
-	     p->available_time = max( p->available_time, tw_now(lp) );
+	     p->available_time = ROSS_MAX( p->available_time, tw_now(lp) );
 	     p->available_time += ts;
 
 	     e = tw_event_new( getProcID(lp->gid), p->available_time - tw_now(lp), lp );
