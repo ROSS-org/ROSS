@@ -2,6 +2,8 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
+ross-kernel-inline.h
+tw-eventq.h
 ross-inline.h
 ross-extern.h
 ross-types.h
