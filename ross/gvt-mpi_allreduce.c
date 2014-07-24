@@ -118,7 +118,7 @@ tw_gvt_step2(tw_pe *me)
 			MPI_COMM_WORLD) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
-	gvt = min(gvt, me->GVT_prev);
+	gvt = ROSS_MIN(gvt, me->GVT_prev);
 
 	if(gvt != me->GVT_prev)
 	{

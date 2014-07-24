@@ -104,7 +104,7 @@ static struct mem_pool *main_pool;
 
 //static const size_t pool_size = 512 * 1024 - sizeof(struct mem_pool);
 static const size_t pool_size = (512 * 1024) - 32;
-static const size_t pool_align = max(sizeof(double),sizeof(void*));
+static const size_t pool_align = ROSS_MAX(sizeof(double),sizeof(void*));
 static size_t total_allocated;
 static unsigned malloc_calls;
 static void* my_malloc(size_t len);
