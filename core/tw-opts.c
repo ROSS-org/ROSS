@@ -21,38 +21,6 @@ tw_opt_add(const tw_optdef *options)
 	opt_groups[opt_index] = NULL;
 }
 
-#if 0
-static void
-print_options(FILE * f)
-{
-	const char *s = ross_options;
-	int first = 1;
-
-	while (s) {
-		const char *hd = strstr(s, "-DROSS_");
-		const char *u;
-		if (!hd)
-			break;
-		hd += strlen("-DROSS_");
-
-		if (first)
-			first = 0;
-
-		s = hd;
-		while (*s && isupper(*s))
-			s++;
-		u = *s == '_' ? ++s : NULL;
-		while (*s && !isspace(*s))
-			s++;
-
-		if (u)
-			fprintf(f, "%s,", u);
-		else
-			fprintf(stderr, "%s,", hd);
-	}
-}
-#endif
-
 static void
 show_options(void)
 {
