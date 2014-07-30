@@ -1,7 +1,6 @@
 #include <ctype.h>
 #include <ross.h>
 
-static const char ross_options[] = ROSS_OPTION_LIST;
 static const char *program;
 static const tw_optdef *all_groups[10];
 
@@ -19,40 +18,6 @@ tw_opt_add(const tw_optdef *options)
 
 	opt_groups[opt_index++] = options;
 	opt_groups[opt_index] = NULL;
-}
-
-static void
-show_options(void)
-{
-	const char *s = ross_options;
-	int first = 1;
-
-	while (s) {
-		const char *hd = strstr(s, "-DROSS_");
-		const char *u;
-		if (!hd)
-			break;
-		hd += strlen("-DROSS_");
-
-		if (first) {
-			fprintf(stderr, "\nROSS Kernel Build Options:\n");
-			first = 0;
-		}
-
-		s = hd;
-		while (*s && isupper(*s))
-			s++;
-		u = *s == '_' ? ++s : NULL;
-		while (*s && !isspace(*s))
-			s++;
-
-		fputs("  ", stderr);
-		if (u)
-			fprintf(stderr, "%.*s=%.*s", (int) (u - hd - 1), hd, (int) (s - u), u);
-		else
-			fprintf(stderr, "%.*s", (int) (s - hd), hd);
-		fputc('\n', stderr);
-	}
 }
 
 static void
@@ -143,8 +108,10 @@ show_help(void)
 			cnt++;
 		}
 	}
-
-	show_options();
+        
+        // CMake used to pass options by command line flags
+	fprintf(stderr, "ROSS CMake Configuration Options:\n");
+        fprintf(stderr, "  (See build-dir/core/config.h)\n");
 }
 
 void
