@@ -22,12 +22,12 @@ struct tw_optdef
 	void *value;
 };
 
-#define TWOPT_GROUP(h)     { TWOPTTYPE_GROUP, NULL, (h), NULL }
-#define TWOPT_ULONG(n,v,h) { TWOPTTYPE_ULONG, (n), (h), &(v) }
-#define TWOPT_UINT(n,v,h)  { TWOPTTYPE_UINT,  (n), (h), &(v) }
-#define TWOPT_STIME(n,v,h) { TWOPTTYPE_STIME, (n), (h), &(v) }
-#define TWOPT_CHAR(n,v,h)  { TWOPTTYPE_CHAR,  (n), (h), &(v) }
-#define TWOPT_END()          (tw_opttype)0
+#define TWOPT_GROUP(h)     { TWOPTTYPE_GROUP, NULL, (h),  NULL }
+#define TWOPT_ULONG(n,v,h) { TWOPTTYPE_ULONG, (n),  (h),  &(v) }
+#define TWOPT_UINT(n,v,h)  { TWOPTTYPE_UINT,  (n),  (h),  &(v) }
+#define TWOPT_STIME(n,v,h) { TWOPTTYPE_STIME, (n),  (h),  &(v) }
+#define TWOPT_CHAR(n,v,h)  { TWOPTTYPE_CHAR,  (n),  (h),  &(v) }
+#define TWOPT_END()        { 0,               NULL, NULL, NULL }
 
 /** Remove options from the command line arguments. */
 extern void tw_opt_parse(int *argc, char ***argv);
