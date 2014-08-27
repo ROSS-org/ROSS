@@ -861,6 +861,7 @@ tw_lptype       mylps[] =
   {
     {
       (init_f) Cell_StartUp,
+      (pre_run_f) NULL,
       (event_f) Cell_EventHandler,
       (revent_f) RC_Cell_EventHandler,
       (final_f) CellStatistics_CollectStats,

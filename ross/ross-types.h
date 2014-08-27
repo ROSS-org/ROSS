@@ -35,6 +35,8 @@ enum tw_synch_e
     CONSERVATIVE,
     OPTIMISTIC,
     OPTIMISTIC_DEBUG,
+    SEQUENTIAL_OMNET,
+    CONSERVATIVE_OMNET,
   };
 
 typedef enum tw_synch_e tw_synch;
@@ -85,6 +87,7 @@ typedef void (*init_f) (void *sv, tw_lp * me);
 typedef tw_peid (*map_f) (tw_lpid);
 typedef tw_lp * (*map_local_f) (tw_lpid);
 typedef void (*map_custom_f) (void);
+typedef void (*pre_run_f) (void *sv, tw_lp * me);
 typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
@@ -102,6 +105,7 @@ typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 struct tw_lptype
 {
   init_f init; /**< @brief LP setup routine */
+  pre_run_f pre_run; /**< @brief Second stage LP initialization */
   event_f event; /**< @brief LP event handler routine */
   revent_f revent;  /**< @brief LP Reverse event handler routine */
   final_f final; /**< @brief Final handler routine */

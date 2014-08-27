@@ -40,6 +40,7 @@ tw_peid rngt_map(tw_lpid gid)
 tw_lptype rng_lps[] = {
     {
         (init_f) rngt_init,
+        (pre_run_f) NULL,
         (event_f) rngt_event,
         (revent_f) 0, // model_event_reverse,
         (final_f) rngt_final,

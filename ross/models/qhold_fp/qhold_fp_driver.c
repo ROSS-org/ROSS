@@ -220,6 +220,7 @@ tw_peid qhold_map(tw_lpid gid)
 tw_lptype qhold_lps[] = {
     {
         (init_f) qhold_init,
+        (pre_run_f) NULL,
         (event_f) qhold_event,
         (revent_f) qhold_event_reverse,
         (final_f) qhold_final,

@@ -1491,6 +1491,7 @@ tw_lptype dragonfly_lps[] =
    // Terminal handling functions
    {
     (init_f)terminal_init,
+    (pre_run_f) NULL,
     (event_f) terminal_event,
     (revent_f) terminal_rc_event_handler,
     (final_f) final,
@@ -1499,6 +1500,7 @@ tw_lptype dragonfly_lps[] =
     },
    {
      (init_f) router_setup,
+     (pre_run_f) NULL,
      (event_f) router_event,
      (revent_f) router_rc_event_handler,
      (final_f) final,
@@ -1507,6 +1509,7 @@ tw_lptype dragonfly_lps[] =
    },
    {
      (init_f) mpi_init,
+     (pre_run_f) NULL,
      (event_f) mpi_event,
      (revent_f) mpi_rc_event_handler,
      (final_f) final,

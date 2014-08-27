@@ -84,3 +84,28 @@ tw_init_lps(tw_pe * me)
 		}
 	}
 }
+
+void
+tw_pre_run_lps(tw_pe * me)
+{
+	tw_lpid i;
+
+	for(i = 0; i < g_tw_nlp; i++)
+	{
+		tw_lp * lp = g_tw_lp[i];
+
+		if (lp->pe != me)
+			continue;
+
+		if (lp->type.pre_run)
+		{
+			me->cur_event = me->abort_event;
+			me->cur_event->caused_by_me = NULL;
+
+			(*(pre_run_f)lp->type.pre_run) (lp->cur_state, lp);
+
+			if (me->cev_abort)
+				tw_error(TW_LOC, "ran out of events during tw_pre_run_lps");
+		}
+	}
+}
