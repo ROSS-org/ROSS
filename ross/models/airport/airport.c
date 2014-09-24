@@ -173,6 +173,7 @@ tw_lptype airport_lps[] =
 const tw_optdef app_opt [] =
 {
 	TWOPT_GROUP("Airport Model"),
+    TWOPT_STIME("lookahead", lookahead, "lookahead for events"),
 	//TWOPT_UINT("nairports", nlp_per_pe, "initial # of airports(LPs)"),
 	TWOPT_UINT("nplanes", planes_per_airport, "initial # of planes per airport(events)"),
 	TWOPT_STIME("mean", mean_flight_time, "mean flight time for planes"),
@@ -190,6 +191,8 @@ main(int argc, char **argv, char **env)
 
 	nlp_per_pe /= (tw_nnodes() * g_tw_npe);
 	g_tw_events_per_pe =(planes_per_airport * nlp_per_pe / g_tw_npe) + opt_mem;
+
+    g_tw_lookahead = lookahead;
 
 	tw_define_lps(nlp_per_pe, sizeof(airport_message), 0);
 

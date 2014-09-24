@@ -35,6 +35,7 @@ struct airport_message
 	tw_stime	 saved_furthest_flight_landing;
 };
 
+static tw_stime lookahead = 0.00000001;
 static tw_lpid	 nlp_per_pe = 1024;
 static tw_stime	 mean_flight_time = 1;
 static int	 opt_mem = 1000;
