@@ -5,7 +5,7 @@ ROSS_CXX="@ROSS_CXX@"
 ROSS_LD="@ROSS_CC@"
 
 prefix=`(cd $(dirname $0);pwd) | sed -e 's/\/bin//'`
-CFLAGS_OPTS='-D_GNU_SOURCE -g -Wall -DROSS_OPTION_LIST="@ROSS_CFLAGS@" @ROSS_CFLAGS@'
+CFLAGS_OPTS='-D_GNU_SOURCE -DROSS_OPTION_LIST="@ROSS_CFLAGS@" @ROSS_CFLAGS@'
 usage="\
 Usage: ross-config [--cflags] [--ldflags] [--libs] [--cc] [--cxx] [--ld]"
 
