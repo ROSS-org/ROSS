@@ -15,7 +15,7 @@ double            *d;
 
 #include "tcp.h"
 
-tcp_init_model()
+void tcp_init_model()
 {
 
 }

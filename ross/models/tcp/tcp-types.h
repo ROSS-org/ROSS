@@ -28,7 +28,7 @@ typedef struct Router_State Router_State;
 typedef struct Host_State Host_State;
 typedef struct RC RC;
 typedef struct Msg_Data Msg_Data;
-typedef struct tcpStatistics tcpStatistics;
+typedef struct Tcp_Statistics tcpStatistics;
 
 struct Router_Link
 {
@@ -125,20 +125,33 @@ struct Msg_Data
 
 struct Tcp_Statistics
 {
-  int sent_packets;
-  int timedout_packets;
-  int received_packets;
-  int dropped_packets;
+  long sent_packets;
+  long timedout_packets;
+  long received_packets;
+  long dropped_packets;
   double throughput;
 };
 
+struct rocket_fuel_link
+{
+    int node_id;
+    int bandwidth;
+};
+
+struct rocket_fuel_node
+{
+    int used;
+    int level; int is_bb; int num_in_level;
+    int num_links;
+    int kp;
+    int pe;
+    struct rocket_fuel_link link_list[128];
+};
+
+struct Routing_Table
+{
+    int connected;
+    int link;
+};
+
 #endif
-
-
-
-
-
-
-
-
-

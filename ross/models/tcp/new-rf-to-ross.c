@@ -49,7 +49,7 @@ void map_nodes_to_ross();
 /***************************************************************************/
 
 //struct rocket_fuel_node g_node_list[MAX_NODES];
-rocket_fuel_node *g_node_list;
+struct rocket_fuel_node *g_node_list;
 unsigned long g_node_count=0;
 FILE *g_rocketfuel_file = NULL;
 unsigned long g_max_links =  0;
@@ -65,7 +65,7 @@ int g_kp_count[MAX_KPS];
 void init_node_list()
 {
   int i;
-  g_node_list = malloc(sizeof(rocket_fuel_node) *32000);
+  g_node_list = malloc(sizeof(struct rocket_fuel_node) *32000);
 
   for( i = 0; i < MAX_NODES; i++ )
     {
@@ -263,74 +263,74 @@ char *get_rocketfuel_item( char *item, char *buffer)
 
 void color_topology( int levels )
 {
-  int i, j, k;
-  int max_levels;
-
-  /* first pass establish level 0, super core */
-
-  g_level_count[0] = 0;
-  for( i = 0; i < g_node_count; i++)
+    int i, j, k;
+    int max_levels = 0;
+    
+    /* first pass establish level 0, super core */
+    
+    g_level_count[0] = 0;
+    for( i = 0; i < g_node_count; i++)
     {
-      if( g_node_list[i].is_bb )
-	{
-	  g_node_list[i].level = 0;
-	  g_level_count[0]++;
-	}
+        if( g_node_list[i].is_bb )
+        {
+            g_node_list[i].level = 0;
+            g_level_count[0]++;
+        }
     }
-
-  for( i = 1; i < levels; i++ )
+    
+    for( i = 1; i < levels; i++ )
     {
-      g_level_count[i] = 0;
-
-      for( j = 0; j < g_node_count; j++ )
-	{
-	  if( g_node_list[j].level < 0 )
-	    {
-	      for( k = 0; k < g_node_list[j].num_links; k++)
-		{
-		  if( g_node_list[g_node_list[j].link_list[k].node_id].level == i - 1 )
-		    {
-		      g_node_list[j].level = i;
-		      g_node_list[j].num_in_level = g_level_count[i];
-		      g_level_count[i]++;
-		      
-		      break; 
-		    }
-		}
-	    }
-	}
-      if( g_level_count[i] == 0 )
-	{
-	  printf("MAX levels is %d \n", i);
-	  max_levels = i;
-	  break;
-	}
+        g_level_count[i] = 0;
+        
+        for( j = 0; j < g_node_count; j++ )
+        {
+            if( g_node_list[j].level < 0 )
+            {
+                for( k = 0; k < g_node_list[j].num_links; k++)
+                {
+                    if( g_node_list[g_node_list[j].link_list[k].node_id].level == i - 1 )
+                    {
+                        g_node_list[j].level = i;
+                        g_node_list[j].num_in_level = g_level_count[i];
+                        g_level_count[i]++;
+                        
+                        break;
+                    }
+                }
+            }
+        }
+        if( g_level_count[i] == 0 )
+        {
+            printf("MAX levels is %d \n", i);
+            max_levels = i;
+            break;
+        }
     }
-  
-  if( max_levels == levels -1)
+    
+    if( max_levels == levels -1)
     {
-      printf("WARNING: max levels of topology may not have been reached!! \n");
-      printf("         re-run again with higher level input to color function\n");
-      exit(-1);
+        printf("WARNING: max levels of topology may not have been reached!! \n");
+        printf("         re-run again with higher level input to color function\n");
+        exit(-1);
     }
-
-  for( i = 0; i < levels; i++)
-    printf("Level %d has %d Nodes \n", i, g_level_count[i] );
-
-  printf("Nodes not reached from BB include...\n");
-  printf("   note: nodes with No links have only external AS links\n");
-  printf("         which are pruned \n");
-
-  /*for( i = 0; i < g_node_count; i++)
-    {
-    if( (g_node_list[i].used) && (g_node_list[i].level == -1) )
-    {
-    printf("Node %d: ", i );
-    for( j = 0; j < g_node_list[i].num_links; j++ )
-    printf("<%d> ", g_node_list[i].link_list[j].node_id );
-    printf("\n");
-    }
-    } */
+    
+    for( i = 0; i < levels; i++)
+        printf("Level %d has %d Nodes \n", i, g_level_count[i] );
+    
+    printf("Nodes not reached from BB include...\n");
+    printf("   note: nodes with No links have only external AS links\n");
+    printf("         which are pruned \n");
+    
+    /*for( i = 0; i < g_node_count; i++)
+     {
+     if( (g_node_list[i].used) && (g_node_list[i].level == -1) )
+     {
+     printf("Node %d: ", i );
+     for( j = 0; j < g_node_list[i].num_links; j++ )
+     printf("<%d> ", g_node_list[i].link_list[j].node_id );
+     printf("\n");
+     }
+     } */
 }
 /* Start: map_nodes_to_kps *************************************************/
 void map_nodes_to_ross()

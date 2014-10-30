@@ -29,7 +29,7 @@ tcp_router_forward(Router_State *SV,  tw_bf * CV,Msg_Data *M, tw_lp * lp)
   int         dest = (int) M->dest;
   int         packet_sz;
   double      sendtime;
-  double      offset = tw_rand_unif(lp->id) / 1000.0;
+  double      offset = tw_rand_unif(lp->rng) / 1000.0;
 
   if(offset > .002)
     printf("wrong random\n");
@@ -136,6 +136,8 @@ tcp_router_EventHandler(Router_State *SV, tw_bf * CV, Msg_Data *M, tw_lp * lp)
 /*********************************************************************
 	            Collects the Statistic for a Router
 *********************************************************************/
+
+extern tcpStatistics TWAppStats;
 
 void 
 tcp_router_Statistics_CollectStats(Router_State *SV, tw_lp * lp)

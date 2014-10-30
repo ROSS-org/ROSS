@@ -6,6 +6,7 @@
 #define TCP_EXTERN_H
 
 #include "tcp.h"
+#include "tcp-types.h"
 
 /* tcp-main.c */
 extern void  tcp_finalize(tcpStatistics *Stat);
@@ -18,28 +19,29 @@ extern void  tcp_host_process_data(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp
 extern void  tcp_host_update_cwnd(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 extern void  tcp_host_update_rtt(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 extern void  tcp_host_timeout(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
-extern void  tcp_host_eventhandler(Host_State *SV, tw_bf *CV,Msg_Data *M, tw_lp *lp);
-extern void  tcp_host_statistics_collectStats(Host_State *SV, tw_lp *lp);
+extern void  tcp_host_EventHandler(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
+//extern void  tcp_host_eventhandler(Host_State *SV, tw_bf *CV,Msg_Data *M, tw_lp *lp);
+extern void  tcp_host_Statistics_CollectStats(Host_State *SV, tw_lp *lp);
 
 /* tcp-router.c */
-extern void  tcp_router_startUp(Router_State *SV, tw_lp *lp);
+extern void  tcp_router_StartUp(Router_State *SV, tw_lp *lp);
 extern void  tcp_router_forward(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
-extern void  tcp_router_eventhandler(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
-extern void  tcp_router_statistics_collectStats(Router_State *SV, tw_lp *lp);
+extern void  tcp_router_EventHandler(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
+extern void  tcp_router_Statistics_CollectStats(Router_State *SV, tw_lp *lp);
 
 /* tcp-host-rc.c */
 extern void  tcp_host_process_rc(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 extern void  tcp_host_process_ack_rc(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 extern void  tcp_host_process_data_rc(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 extern void  tcp_host_timeout_rc(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
-extern void  tcp_host_rc_eventhandler(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
+extern void  tcp_host_rc_EventHandler(Host_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 
 /* tcp-router-rc.c */
 extern void  tcp_router_forward_rc(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
-extern void  tcp_router_rc_eventhandler(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
+extern void  tcp_router_rc_EventHandler(Router_State *SV, tw_bf *CV, Msg_Data *M, tw_lp *lp);
 
 /* tcp-util.c */
-extern tw_lpid tcp_util_nexthop(tw_lp *lp, int dest);
+extern tw_lp *tcp_util_nexthop(tw_lp *lp, int dest);
 extern int    tcp_util_nexthop_link(tw_lp *lp, int dest);
 extern void   tcp_util_event(tw_lp *lp, int type, int source, int dest, int seq_num, int ack, double ts);
 
@@ -52,7 +54,7 @@ extern void init_node_list();
 extern int read_rocketfuel_file( char *filename );
 extern void color_topology( int levels );
 
-extern Tcp_Statistics g_tcp_stats;
+static struct Tcp_Statistics g_tcp_stats;
 extern int g_hosts;
 extern int g_routers;
 extern int g_npe;
@@ -66,15 +68,29 @@ extern int g_type;
 extern int g_num_links;
 
 extern char          **g_new_routing_table;
-extern Routing_Table **g_routing_table;
+extern struct Routing_Table **g_routing_table;
 extern Router_Link   **g_routers_links;
 extern int            *g_routers_info;
 extern Host_Link      *g_hosts_links;
 extern Host_Info      *g_hosts_info;
 
+static double percent_remote;
+static unsigned nlp_per_model;
+static double mean;
+static tw_stime lookahead = 1.0;
+static tw_stime mult = 1.4;
+static double optimistic_memory;
+static double run_id;
+static unsigned int offset_lpid = 0;
+static unsigned int nlp_per_pe = 8;
+static unsigned int ttl_lps = 0;
+static int g_phold_start_events = 1;
+
+typedef struct tcp_phold_message tcp_phold_message;
+
+struct tcp_phold_message
+{
+    long int	 dummy_data;
+};
 
 #endif
-
-
-
-

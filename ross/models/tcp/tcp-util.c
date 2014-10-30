@@ -100,7 +100,7 @@ tcp_util_event(tw_lp * lp, int type, int source, int dest, int seq_num, int ack,
   //	   tw_now(lp), tw_now(lp) + ts, source, dest, ts,
   //	   seq_num, ack, type,tcp_util_nexthop(lp,dest)->id );
 
-  CurEvent = tw_event_new(tcp_util_nexthop(lp,dest), ts, lp); 
+  CurEvent = tw_event_new(tcp_util_nexthop(lp,dest)->gid, ts, lp);
  
   TWMsg = (Msg_Data *)tw_event_data(CurEvent);
   TWMsg->MethodName = type;

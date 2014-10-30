@@ -16,7 +16,7 @@ int g_type;
 int g_num_links;
 
 char          **g_new_routing_table;
-Routing_Table **g_routing_table;
+struct Routing_Table **g_routing_table;
 Router_Link   **g_routers_links;
 int            *g_routers_info;
 Host_Link      *g_hosts_links;

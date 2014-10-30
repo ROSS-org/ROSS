@@ -13,6 +13,7 @@ void
 tcp_host_startup(Host_State *SV, tw_lp * lp)
 {
   int    i;
+  int    id = lp->id;
   int    id_offset = lp->id - g_routers;
   double  ts; 
   
@@ -173,7 +174,7 @@ tcp_host_process_ack(Host_State *SV,  tw_bf * CV, Msg_Data *M, tw_lp * lp)
       ts += g_hosts_links[id_offset].delay;
       while( SV->seq_num < SV->len  &&
 	     (SV->seq_num + g_mss)  <= 
-	     (SV->unack + min(SV->cwnd,g_recv_wnd) * g_mss) )
+	     (SV->unack + ROSS_MIN(SV->cwnd,g_recv_wnd) * g_mss) )
 	{ 
 	  M->seq_num++;
 	  SV->lastsent +=  TCP_TRANSFER_SIZE / g_hosts_links[id_offset].link_speed;
@@ -202,7 +203,7 @@ tcp_host_process_ack(Host_State *SV,  tw_bf * CV, Msg_Data *M, tw_lp * lp)
 	    {
 	      
 	      M->dest = SV->ssthresh;
-	      SV->ssthresh = (min(((int) SV->cwnd + 1),g_recv_wnd) / 2) * g_mss; 
+	      SV->ssthresh = (ROSS_MIN(((int) SV->cwnd + 1),g_recv_wnd) / 2) * g_mss;
 	      //CHANGED
 	      M->RC.cwnd = SV->cwnd;
 	      SV->cwnd = 1;
@@ -338,7 +339,7 @@ tcp_host_process_data(Host_State *SV,  tw_bf * CV,Msg_Data *M, tw_lp * lp)
 	}
 	if((CV->c3 = (M->seq_num > SV->seq_num)))
 	  {
-	    if(CV->c4 = (M->seq_num > (SV->seq_num + (g_recv_wnd * g_mss)- g_mss))) 
+	    if((CV->c4 = (M->seq_num > (SV->seq_num + (g_recv_wnd * g_mss)- g_mss))))
 	      {  
 	    // look up need rc code  CHANGE
 	    printf("The revc_wnd buffer over flow %d %d\n",
@@ -526,7 +527,7 @@ tcp_host_timeout(Host_State *SV, tw_bf * CV,Msg_Data *M, tw_lp * lp)
 
       M->dest = SV->cwnd;
       M->RC.cwnd = SV->ssthresh;
-      SV->ssthresh = (min(((int) SV->cwnd + 1),g_recv_wnd) / 2) * g_mss; 
+      SV->ssthresh = (ROSS_MIN(((int) SV->cwnd + 1),g_recv_wnd) / 2) * g_mss;
       //CHANGED
       SV->cwnd = 1;
       
@@ -622,6 +623,8 @@ tcp_host_EventHandler(Host_State *SV, tw_bf * CV,Msg_Data *M, tw_lp * lp)
 /*********************************************************************
      Collects Statistic for a Host when the simulation is over 
 *********************************************************************/
+
+extern tcpStatistics TWAppStats;
 
 void 
 tcp_host_Statistics_CollectStats(Host_State *SV, tw_lp * lp)

@@ -13,7 +13,7 @@ void
 tcp_router_forward_rc(Router_State *SV,  tw_bf *CV, Msg_Data *M, tw_lp * lp)
 {  
   int nexthop_link = tcp_util_nexthop_link(lp,M->dest);
-  tw_rand_reverse_unif(lp->id);
+  tw_rand_reverse_unif(lp->rng);
 
   if(CV->c1 || CV->c2)
     SV->lastsent[nexthop_link] = M->RC.rtt_time;
