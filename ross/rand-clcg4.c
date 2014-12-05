@@ -278,34 +278,16 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 	//rng_write_state(g);
 }
 
-
-#define MAX_RNG_ERRORS 100
-static void
-check_init_streams_warn(tw_lp * lp, unsigned int nstreams) {
-    static int num_errors = 0;
-    if (nstreams > g_tw_nRNG_per_lp) {
-        if (num_errors < MAX_RNG_ERRORS) {
-            fprintf(stderr,
-                    "WARNING: LP %lu asking for more RNG streams (%d) "
-                    "than g_tw_nRNG_per_lp (%d) - "
-                    "seeds may be shared between LPs\n",
-                    lp->gid, nstreams, g_tw_nRNG_per_lp);
-        }
-        else if (num_errors == MAX_RNG_ERRORS) {
-            fprintf(stderr,
-                    "WARNING: too many RNG stream errors, "
-                    "no longer reporting\n");
-        }
-        num_errors++;
-    }
-}
-
 void
 tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 {
 	int	 i;
 
-    check_init_streams_warn(lp, nstreams);
+    if (nstreams > g_tw_nRNG_per_lp)
+        tw_error(TW_LOC,
+                "LP %lu asked for more RNG streams (%d) "
+                "than the global maximum (g_tw_nRNG_per_lp:%d)",
+                lp->gid, nstreams, g_tw_nRNG_per_lp);
 
 	lp->rng = (tw_rng_stream *)tw_calloc(TW_LOC, "LP RNG Streams", sizeof(*lp->rng), nstreams);
 
