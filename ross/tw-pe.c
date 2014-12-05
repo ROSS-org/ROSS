@@ -70,9 +70,6 @@ tw_pe_init(tw_peid id, tw_peid gid)
 
 	g_tw_pe[id] = pe;
 
-	if(g_tw_rng_default == TW_TRUE)
-		g_tw_rng_max = g_tw_nRNG_per_lp;
-
 	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 }
 
