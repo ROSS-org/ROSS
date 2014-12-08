@@ -430,6 +430,8 @@ struct tw_pe
   tw_event *cur_event; /**< @brief Current event being processed */
   tw_eventq sevent_q; /**< @brief events already sent over the network */
 
+  unsigned char **delta_buffer; /**< @brief buffers used for delta encoding */
+
 #ifdef USE_AVL_TREE
   /* AVL node free list and head pointers */
   AvlTree avl_list;

@@ -406,6 +406,20 @@ tw_end(void)
 	tw_net_stop();
 }
 
+int LZ4_compressBound(int isize);
+
+/**
+ * By the time this function gets called, g_tw_delta_sz should be as large
+ * as it will ever get.
+ */
+static void
+tw_delta_alloc(tw_pe *pe)
+{
+    g_tw_delta_sz = LZ4_compressBound(g_tw_delta_sz);
+
+    pe->delta_buffer = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 2);
+}
+
 tw_pe *
 setup_pes(void)
 {
