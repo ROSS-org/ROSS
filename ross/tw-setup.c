@@ -443,6 +443,7 @@ setup_pes(void)
 	for(i = 0; i < g_tw_npe; i++)
 	{
 		pe = g_tw_pe[i];
+        tw_delta_alloc(pe);
 		pe->pq = tw_pq_create();
 
 		tw_eventq_alloc(&pe->free_q, num_events_per_pe);
