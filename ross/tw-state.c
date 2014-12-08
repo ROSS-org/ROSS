@@ -1,5 +1,42 @@
 #include <ross.h>
 
+int LZ4_decompress_safe(const char* source,
+                        char* dest,
+                        int compressedSize,
+                        int maxDecompressedSize);
+
+/**
+ * Make a snapshot of the LP state and store it into the delta buffer
+ */
+void
+tw_snapshot(tw_lp *lp, size_t state_sz)
+{
+    memcpy(lp->pe->delta_buffer[0], lp->cur_state, state_sz);
+}
+
+/**
+ * Create the delta from the current state and the snapshot.
+ * Compress it.
+ */
+long
+tw_snapshot_delta(tw_lp *lp, size_t state_sz)
+{
+    long i;
+    unsigned char *current_state = lp->cur_state;
+    unsigned char *snapshot = lp->pe->delta_buffer[0];
+
+    for (i = 0; i < state_sz; i++) {
+        snapshot[i] = current_state[i] - snapshot[i];
+    }
+
+    i = LZ4_decompress_safe((char*)snapshot, (char*)lp->pe->delta_buffer[1], g_tw_delta_sz, state_sz);
+    if (i < 0) {
+        tw_error(TW_LOC, "LZ4_decompress_safe error");
+    }
+
+    return i;
+}
+
 void
 tw_state_save(tw_lp *lp, tw_event *cevent)
 {
