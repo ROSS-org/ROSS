@@ -38,7 +38,9 @@ tw-state.c
 tw-stats.c
 tw-timing.c
 tw-timing.h
-tw-util.c)
+tw-util.c
+lz4.h
+lz4.c)
 
 INCLUDE (CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
