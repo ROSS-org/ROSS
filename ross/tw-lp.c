@@ -23,6 +23,10 @@ tw_lp_settype(tw_lpid id, const tw_lptype * type)
 		tw_error(TW_LOC, "LP %u has no PE assigned.", lp->gid);
 
 	memcpy(&lp->type, type, sizeof(*type));
+
+    if (type->state_sz > g_tw_delta_sz) {
+        g_tw_delta_sz = type->state_sz;
+    }
 }
 
 void

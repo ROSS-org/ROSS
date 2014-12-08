@@ -33,6 +33,7 @@ tw_lpid         g_tw_rng_default = TW_TRUE;
 tw_seed        *g_tw_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
+size_t g_tw_delta_sz = 0;
 
 #if ROSS_MEMORY
 unsigned int	g_tw_memory_nqueues = 64;

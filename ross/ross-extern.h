@@ -50,6 +50,7 @@ extern unsigned int	g_tw_sim_started;
 extern unsigned int	g_tw_master;
 extern size_t		g_tw_msg_sz;
 extern size_t		g_tw_event_msg_sz;
+extern size_t       g_tw_delta_sz;
 
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
