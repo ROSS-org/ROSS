@@ -30,7 +30,6 @@ int             g_tw_sv_growcnt = 10;
 int             g_tw_fossil_attempts = 0;
 unsigned int    g_tw_nRNG_per_lp = 1;
 tw_lpid         g_tw_rng_default = TW_TRUE;
-size_t          g_tw_rng_max = 1;
 tw_seed        *g_tw_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
