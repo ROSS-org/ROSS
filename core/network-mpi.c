@@ -1,6 +1,8 @@
 #include <ross.h>
 #include <mpi.h>
 
+static long id_tmp;
+
 struct act_q
 {
   const char	 *name;
