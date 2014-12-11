@@ -16,3 +16,9 @@ Be sure you initialize the submodules before you try to build, otherwise you'll 
 git submodule init
 git submodule update
 ```
+
+## Usage
+
+There has been little change in how SR is used.
+The most obvious is that models and ROSS core functionality code are now in their own directories on the same level (SR/models/ and SR/core/ respectively).
+Other than the top level directory name, everything retains the name "ROSS". 
