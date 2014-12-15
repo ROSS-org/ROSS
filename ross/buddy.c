@@ -1,5 +1,6 @@
 #include "buddy.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define BUDDY_BLOCK_ORDER 5 /**< @brief Minimum block order */
 
@@ -7,24 +8,42 @@
  * Pass in the power of two e.g., passing 5 will yield 2^5 = 32
  * The smallest order we'll create will be 32 so this would yield one list
  */
-buddy_list_t * create_buddy_table(unsigned int power_of_two)
+buddy_list_head_t * create_buddy_table(unsigned int power_of_two)
 {
     int i;
     int list_count;
-    buddy_list_t *bsystem;
-    
+    buddy_list_head_t *bsystem;
+
     if (power_of_two < BUDDY_BLOCK_ORDER) {
         power_of_two = BUDDY_BLOCK_ORDER;
     }
-    
+
     list_count = power_of_two - 5 + 1;
-    
-    bsystem = calloc(list_count, sizeof(buddy_list_t));
-    
+
+    bsystem = calloc(list_count, sizeof(buddy_list_head_t));
+
     for (i = 0; i < list_count; i++) {
         bsystem[i].order = i + BUDDY_BLOCK_ORDER;
     }
-    
+
+    // Allocate the memory
+    int size = 1 << power_of_two;
+    printf("Allocating %d bytes\n", size);
+    void *memory = calloc(1, size);
+    printf("memory is %p\n", memory);
+
+    // Allocate memory metadata
+    // We can guarantee it is divisible by BUDDY_BLOCK_ORDER
+    size /= BUDDY_BLOCK_ORDER;
+    buddy_list_t *metadata = calloc(size, sizeof(buddy_list_t));
+
+    for (i = 0; i < size - 1; i++) {
+        metadata[i].next_free = &metadata[i + 1];
+        metadata[i].use = FREE;
+    }
+    metadata[i].next_free = NULL;
+    metadata[i].use = FREE;
+
     return bsystem;
 }
 
