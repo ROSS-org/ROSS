@@ -4,26 +4,45 @@
 
 #define BUDDY_BLOCK_ORDER 5 /**< @brief Minimum block order */
 
+static buddy_list_t *buddy_list_head = 0;
+
+buddy_list_t *buddy_alloc(void)
+{
+    buddy_list_t *head = buddy_list_head;
+    buddy_list_head = head->next_free;
+
+    if (buddy_list_head == NULL) {
+        printf("buddy_list_head is invalid!");
+        exit(-1);
+    }
+
+    head->next_free = NULL;
+
+    return head;
+}
+
 /**
  * Pass in the power of two e.g., passing 5 will yield 2^5 = 32
  * The smallest order we'll create will be 32 so this would yield one list
  */
-buddy_list_head_t * create_buddy_table(unsigned int power_of_two)
+buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 {
     int i;
     int list_count;
-    buddy_list_head_t *bsystem;
+    buddy_list_bucket_t *bsystem;
 
     if (power_of_two < BUDDY_BLOCK_ORDER) {
         power_of_two = BUDDY_BLOCK_ORDER;
     }
 
-    list_count = power_of_two - 5 + 1;
+    list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
-    bsystem = calloc(list_count, sizeof(buddy_list_head_t));
+    bsystem = calloc(list_count, sizeof(buddy_list_bucket_t));
 
     for (i = 0; i < list_count; i++) {
+        bsystem[i].count = 0;
         bsystem[i].order = i + BUDDY_BLOCK_ORDER;
+        bsystem[i].ptr   = NULL;
     }
 
     // Allocate the memory
@@ -33,16 +52,25 @@ buddy_list_head_t * create_buddy_table(unsigned int power_of_two)
     printf("memory is %p\n", memory);
 
     // Allocate memory metadata
-    // We can guarantee it is divisible by BUDDY_BLOCK_ORDER
-    size /= BUDDY_BLOCK_ORDER;
-    buddy_list_t *metadata = calloc(size, sizeof(buddy_list_t));
+    // We can guarantee it is divisible by 2^BUDDY_BLOCK_ORDER
+    size /= (1 << BUDDY_BLOCK_ORDER);
+    buddy_list_head = calloc(size, sizeof(buddy_list_t));
 
     for (i = 0; i < size - 1; i++) {
-        metadata[i].next_free = &metadata[i + 1];
-        metadata[i].use = FREE;
+        buddy_list_head[i].next_free = &buddy_list_head[i + 1];
+        buddy_list_head[i].use = FREE;
     }
-    metadata[i].next_free = NULL;
-    metadata[i].use = FREE;
+    buddy_list_head[i].next_free = NULL;
+    buddy_list_head[i].use = FREE;
+
+    // Set up the primordial buddy block (2^power_of_two)
+    buddy_list_t *primordial = buddy_alloc();
+    primordial->use       = FREE;
+    primordial->next_free = memory;
+    primordial->size      = (1 << power_of_two);
+
+    bsystem[list_count - 1].count = 1;
+    bsystem[list_count - 1].ptr   = primordial;
 
     return bsystem;
 }
