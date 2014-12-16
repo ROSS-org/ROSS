@@ -82,9 +82,9 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 unsigned int
 next_power2(unsigned int v)
 {
-    // We're not allocating chunks smaller than BUDDY_MIN_SZ bytes
-    if (v < (2 << BUDDY_BLOCK_ORDER)) {
-        return (2 << BUDDY_BLOCK_ORDER);
+    // We're not allocating chunks smaller than 2^BUDDY_BLOCK_ORDER bytes
+    if (v < (1 << BUDDY_BLOCK_ORDER)) {
+        return (1 << BUDDY_BLOCK_ORDER);
     }
 
     v--;
