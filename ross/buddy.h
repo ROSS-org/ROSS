@@ -9,8 +9,8 @@ typedef enum purpose { FREE, SPLIT, USED } purpose_t;
 typedef struct buddy_list
 {
     purpose_t use;
+    unsigned int size;
     struct buddy_list *next_free;
-    unsigned size;
 } buddy_list_t;
 
 /**
@@ -23,7 +23,10 @@ typedef struct buddy_list_bucket
     unsigned int order;
 } buddy_list_bucket_t;
 
+extern buddy_list_bucket_t *buddy_master;
+
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two);
 unsigned int next_power2(unsigned int v);
+void *request_buddy_block(unsigned size);
 
 #endif /* BUDDY_H */

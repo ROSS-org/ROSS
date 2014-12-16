@@ -1,11 +1,16 @@
-#include "buddy.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include "buddy.h"
 
 #define BUDDY_BLOCK_ORDER 5 /**< @brief Minimum block order */
 
 static buddy_list_t *buddy_list_head = 0;
+buddy_list_bucket_t *buddy_master = 0;
 
+/**
+ * Request a valid buddy_list_t (BLT) from our list of available BLTs
+ */
 buddy_list_t *buddy_alloc(void)
 {
     buddy_list_t *head = buddy_list_head;
@@ -19,6 +24,74 @@ buddy_list_t *buddy_alloc(void)
     head->next_free = NULL;
 
     return head;
+}
+
+/**
+ * This function assumes that a block of the specified order exists
+ */
+int buddy_split(buddy_list_bucket_t *bucket)
+{
+    assert(bucket->count && "Bucket contains no entries!");
+
+    // Remove an entry from this bucket and adjust the count
+    buddy_list_t *blt = bucket->ptr;
+    bucket->count--;
+    bucket->ptr = bucket->ptr->next_free;
+    blt->next_free = NULL;
+
+    // Add two to the lower order bucket
+    bucket--;
+    bucket->count += 2;
+
+    // Update the BLTs
+    blt->size /= 2;
+    blt->use = FREE;
+    buddy_list_t *new_buddy = buddy_alloc();
+    new_buddy->next_free = (void *)blt->next_free + blt->size;
+    new_buddy->size = blt->size;
+    new_buddy->use = FREE;
+
+    return 0;
+}
+
+/**
+ * Find the smallest block that will contain size and return it.
+ * This may involve breaking up larger blocks
+ */
+void *request_buddy_block(unsigned size)
+{
+    void *ret = 0; // Return value
+
+    // We'll prepend a BLT before each allocation so add that now
+    size += sizeof(buddy_list_t);
+    size = next_power2(size);
+
+    // Find the bucket we need
+    buddy_list_bucket_t *blbt = buddy_master;
+    while (size > (1 << blbt->order)) {
+        printf("%d > %d\n", size, 1 << blbt->order);
+        blbt++;
+    }
+
+    printf("target: %d-sized block\n", 1 << blbt->order);
+
+    if (blbt->count) {
+        buddy_list_t *blt = blbt->ptr;
+        // There's one available.  Grab it
+        blbt->count--;
+        blbt->ptr = blbt->ptr->next_free;
+        blt->next_free = NULL;
+        ret = blt;
+        ret += sizeof(buddy_list_t);
+        return ret;
+    }
+
+    // If there are none, keep moving up to larger sizes
+    while (!blbt->count) {
+        blbt++;
+    }
+
+    return ret;
 }
 
 /**
