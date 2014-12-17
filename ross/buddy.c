@@ -3,33 +3,15 @@
 #include <assert.h>
 #include "buddy.h"
 
-#define BUDDY_BLOCK_ORDER 5 /**< @brief Minimum block order */
+#define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
-static buddy_list_t *buddy_list_head = 0;
+//static buddy_list_t *buddy_list_head = 0;
 buddy_list_bucket_t *buddy_master = 0;
-
-/**
- * Request a valid buddy_list_t (BLT) from our list of available BLTs
- */
-buddy_list_t *buddy_alloc(void)
-{
-    buddy_list_t *head = buddy_list_head;
-    buddy_list_head = head->next_freelist;
-
-    if (buddy_list_head == NULL) {
-        printf("buddy_list_head is invalid!");
-        exit(-1);
-    }
-
-    head->next_freelist = NULL;
-
-    return head;
-}
 
 /**
  * This function assumes that a block of the specified order exists
  */
-int buddy_split(buddy_list_bucket_t *bucket)
+void buddy_split(buddy_list_bucket_t *bucket)
 {
     assert(bucket->count && "Bucket contains no entries!");
 
@@ -44,23 +26,30 @@ int buddy_split(buddy_list_bucket_t *bucket)
     bucket->count += 2;
 
     // Update the BLTs
-    blt->size /= 2;
     blt->use = FREE;
-    buddy_list_t *new_buddy = buddy_alloc();
-    new_buddy->next_freelist = (void *)blt->next_freelist + blt->size;
-    new_buddy->size = blt->size;
-    new_buddy->use = FREE;
+    blt->size = (1 << bucket->order) - sizeof(buddy_list_t);
 
-    return 0;
+    void *address = ((char *)blt) + (1 << bucket->order);
+    buddy_list_t *new_blt = address;
+    printf("address of new_blt is %p\n", new_blt);
+
+    new_blt->next_freelist = NULL;
+    new_blt->use = FREE;
+    new_blt->size = (1 << bucket->order) - sizeof(buddy_list_t);
+
+    blt->next_freelist = new_blt;
+
+    bucket->ptr = blt;
 }
 
 /**
  * Find the smallest block that will contain size and return it.
+ * Note this returns the memory allocated and usable, not the entire buffer
  * This may involve breaking up larger blocks
  */
 void *request_buddy_block(unsigned size)
 {
-    void *ret = 0; // Return value
+    char *ret = 0; // Return value
 
     // We'll prepend a BLT before each allocation so add that now
     size += sizeof(buddy_list_t);
@@ -75,22 +64,26 @@ void *request_buddy_block(unsigned size)
 
     printf("target: %d-sized block\n", 1 << blbt->order);
 
-    if (blbt->count) {
-        buddy_list_t *blt = blbt->ptr;
-        // There's one available.  Grab it
-        blbt->count--;
-        blbt->ptr = blbt->ptr->next_freelist;
-        blt->next_freelist = NULL;
-        ret = blt;
-        ret += sizeof(buddy_list_t);
-        return ret;
+    if (blbt->count == 0) {
+        unsigned split_count = 0;
+
+        // If there are none, keep moving up to larger sizes
+        while (!blbt->count) {
+            blbt++;
+            split_count++;
+        }
+
+        while (split_count--) {
+            buddy_split(blbt--);
+        }
     }
 
-    // If there are none, keep moving up to larger sizes
-    while (!blbt->count) {
-        blbt++;
-    }
-
+    buddy_list_t *blt = blbt->ptr;
+    blbt->count--;
+    blbt->ptr = blbt->ptr->next_freelist;
+    blt->next_freelist = NULL;
+    ret = (char *)blt;
+    ret += sizeof(buddy_list_t);
     return ret;
 }
 
@@ -101,7 +94,9 @@ void *request_buddy_block(unsigned size)
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 {
     int i;
+    int size;
     int list_count;
+    void *memory;
     buddy_list_bucket_t *bsystem;
 
     if (power_of_two < BUDDY_BLOCK_ORDER) {
@@ -119,28 +114,16 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     }
 
     // Allocate the memory
-    int size = 1 << power_of_two;
+    size = 1 << power_of_two;
     printf("Allocating %d bytes\n", size);
-    void *memory = calloc(1, size);
+    memory = calloc(1, size);
     printf("memory is %p\n", memory);
 
-    // Allocate memory metadata
-    // We can guarantee it is divisible by 2^BUDDY_BLOCK_ORDER
-    size /= (1 << BUDDY_BLOCK_ORDER);
-    buddy_list_head = calloc(size, sizeof(buddy_list_t));
-
-    for (i = 0; i < size - 1; i++) {
-        buddy_list_head[i].next_freelist = &buddy_list_head[i + 1];
-        buddy_list_head[i].use = FREE;
-    }
-    buddy_list_head[i].next_freelist = NULL;
-    buddy_list_head[i].use = FREE;
-
     // Set up the primordial buddy block (2^power_of_two)
-    buddy_list_t *primordial = buddy_alloc();
+    buddy_list_t *primordial = memory;
     primordial->use       = FREE;
-    primordial->next_freelist = memory;
-    primordial->size      = (1 << power_of_two);
+    primordial->next_freelist = NULL;
+    primordial->size      = (1 << power_of_two) - sizeof(buddy_list_t);
 
     bsystem[list_count - 1].count = 1;
     bsystem[list_count - 1].ptr   = primordial;

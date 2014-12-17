@@ -1,6 +1,11 @@
 #ifndef BUDDY_H
 #define BUDDY_H
 
+/**
+ * @file buddy.h
+ * @brief Buddy-system memory allocator
+ */
+
 typedef enum purpose { FREE, SPLIT, USED } purpose_t;
 
 /**
