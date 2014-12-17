@@ -9,7 +9,7 @@
 buddy_list_bucket_t *buddy_master = 0;
 
 /**
- * This function assumes that a block of the specified order exists
+ * This function assumes that a block of the specified order exists.
  */
 void buddy_split(buddy_list_bucket_t *bucket)
 {
@@ -44,8 +44,8 @@ void buddy_split(buddy_list_bucket_t *bucket)
 
 /**
  * Find the smallest block that will contain size and return it.
- * Note this returns the memory allocated and usable, not the entire buffer
- * This may involve breaking up larger blocks
+ * Note this returns the memory allocated and usable, not the entire buffer.
+ * This may involve breaking up larger blocks.
  */
 void *request_buddy_block(unsigned size)
 {
@@ -88,8 +88,8 @@ void *request_buddy_block(unsigned size)
 }
 
 /**
- * Pass in the power of two e.g., passing 5 will yield 2^5 = 32
- * The smallest order we'll create will be 32 so this would yield one list
+ * Pass in the power of two e.g., passing 5 will yield 2^5 = 32.
+ * The smallest order we'll create will be 32 so this would yield one list.
  */
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 {
@@ -132,8 +132,8 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 }
 
 /**
+ * Finds the next power of 2 or, if v is a power of 2, return that.
  * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
- * Finds the next power of 2 or, if v is a power of 2, return that
  */
 unsigned int
 next_power2(unsigned int v)
