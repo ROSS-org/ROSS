@@ -14,14 +14,14 @@ buddy_list_bucket_t *buddy_master = 0;
 buddy_list_t *buddy_alloc(void)
 {
     buddy_list_t *head = buddy_list_head;
-    buddy_list_head = head->next_free;
+    buddy_list_head = head->next_freelist;
 
     if (buddy_list_head == NULL) {
         printf("buddy_list_head is invalid!");
         exit(-1);
     }
 
-    head->next_free = NULL;
+    head->next_freelist = NULL;
 
     return head;
 }
@@ -36,8 +36,8 @@ int buddy_split(buddy_list_bucket_t *bucket)
     // Remove an entry from this bucket and adjust the count
     buddy_list_t *blt = bucket->ptr;
     bucket->count--;
-    bucket->ptr = bucket->ptr->next_free;
-    blt->next_free = NULL;
+    bucket->ptr = bucket->ptr->next_freelist;
+    blt->next_freelist = NULL;
 
     // Add two to the lower order bucket
     bucket--;
@@ -47,7 +47,7 @@ int buddy_split(buddy_list_bucket_t *bucket)
     blt->size /= 2;
     blt->use = FREE;
     buddy_list_t *new_buddy = buddy_alloc();
-    new_buddy->next_free = (void *)blt->next_free + blt->size;
+    new_buddy->next_freelist = (void *)blt->next_freelist + blt->size;
     new_buddy->size = blt->size;
     new_buddy->use = FREE;
 
@@ -79,8 +79,8 @@ void *request_buddy_block(unsigned size)
         buddy_list_t *blt = blbt->ptr;
         // There's one available.  Grab it
         blbt->count--;
-        blbt->ptr = blbt->ptr->next_free;
-        blt->next_free = NULL;
+        blbt->ptr = blbt->ptr->next_freelist;
+        blt->next_freelist = NULL;
         ret = blt;
         ret += sizeof(buddy_list_t);
         return ret;
@@ -130,16 +130,16 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     buddy_list_head = calloc(size, sizeof(buddy_list_t));
 
     for (i = 0; i < size - 1; i++) {
-        buddy_list_head[i].next_free = &buddy_list_head[i + 1];
+        buddy_list_head[i].next_freelist = &buddy_list_head[i + 1];
         buddy_list_head[i].use = FREE;
     }
-    buddy_list_head[i].next_free = NULL;
+    buddy_list_head[i].next_freelist = NULL;
     buddy_list_head[i].use = FREE;
 
     // Set up the primordial buddy block (2^power_of_two)
     buddy_list_t *primordial = buddy_alloc();
     primordial->use       = FREE;
-    primordial->next_free = memory;
+    primordial->next_freelist = memory;
     primordial->size      = (1 << power_of_two);
 
     bsystem[list_count - 1].count = 1;

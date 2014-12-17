@@ -10,7 +10,7 @@ typedef struct buddy_list
 {
     purpose_t use;
     unsigned int size;
-    struct buddy_list *next_free;
+    struct buddy_list *next_freelist;
 } buddy_list_t;
 
 /**
