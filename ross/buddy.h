@@ -32,6 +32,6 @@ extern buddy_list_bucket_t *buddy_master;
 
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two);
 unsigned int next_power2(unsigned int v);
-void *request_buddy_block(unsigned size);
+void *buddy_alloc(unsigned size);
 
 #endif /* BUDDY_H */

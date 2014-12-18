@@ -47,7 +47,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
  * Note this returns the memory allocated and usable, not the entire buffer.
  * This may involve breaking up larger blocks.
  */
-void *request_buddy_block(unsigned size)
+void *buddy_alloc(unsigned size)
 {
     char *ret = 0; // Return value
 
