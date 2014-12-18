@@ -31,7 +31,7 @@ typedef struct buddy_list_bucket
 extern buddy_list_bucket_t *buddy_master;
 
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two);
-unsigned int next_power2(unsigned int v);
 void *buddy_alloc(unsigned size);
+void buddy_free(void *ptr);
 
 #endif /* BUDDY_H */

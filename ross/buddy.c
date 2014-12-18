@@ -5,8 +5,22 @@
 
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
-//static buddy_list_t *buddy_list_head = 0;
 buddy_list_bucket_t *buddy_master = 0;
+
+/**
+ */
+void buddy_free(void *ptr)
+{
+    buddy_list_t *blt = ptr;
+    blt--;
+
+    // Now blt is is pointing to the correct address
+    printf("BLT:\n");
+    printf("size: %d\t\tnext_freelist: %p\n", blt->size, blt->next_freelist);
+
+    unsigned int size = blt->size + sizeof(buddy_list_t);
+
+}
 
 /**
  * This function assumes that a block of the specified order exists.
@@ -40,6 +54,29 @@ void buddy_split(buddy_list_bucket_t *bucket)
     blt->next_freelist = new_blt;
 
     bucket->ptr = blt;
+}
+
+/**
+ * Finds the next power of 2 or, if v is a power of 2, return that.
+ * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+ */
+unsigned int
+next_power2(unsigned int v)
+{
+    // We're not allocating chunks smaller than 2^BUDDY_BLOCK_ORDER bytes
+    if (v < (1 << BUDDY_BLOCK_ORDER)) {
+        return (1 << BUDDY_BLOCK_ORDER);
+    }
+
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+
+    return v;
 }
 
 /**
@@ -129,27 +166,4 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     bsystem[list_count - 1].ptr   = primordial;
 
     return bsystem;
-}
-
-/**
- * Finds the next power of 2 or, if v is a power of 2, return that.
- * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
- */
-unsigned int
-next_power2(unsigned int v)
-{
-    // We're not allocating chunks smaller than 2^BUDDY_BLOCK_ORDER bytes
-    if (v < (1 << BUDDY_BLOCK_ORDER)) {
-        return (1 << BUDDY_BLOCK_ORDER);
-    }
-
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-
-    return v;
 }
