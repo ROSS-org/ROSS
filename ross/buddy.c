@@ -15,11 +15,7 @@ void buddy_free(void *ptr)
     blt--;
 
     // Now blt is is pointing to the correct address
-    printf("BLT:\n");
-    printf("size: %d\t\tnext_freelist: %p\n", blt->size, blt->next_freelist);
-
     unsigned int size = blt->size + sizeof(buddy_list_t);
-
 }
 
 /**
@@ -30,10 +26,9 @@ void buddy_split(buddy_list_bucket_t *bucket)
     assert(bucket->count && "Bucket contains no entries!");
 
     // Remove an entry from this bucket and adjust the count
-    buddy_list_t *blt = bucket->ptr;
+    buddy_list_t *blt = LIST_FIRST(&bucket->ptr);
     bucket->count--;
-    bucket->ptr = bucket->ptr->next_freelist;
-    blt->next_freelist = NULL;
+    LIST_REMOVE(blt, next_freelist);
 
     // Add two to the lower order bucket
     bucket--;
@@ -47,13 +42,12 @@ void buddy_split(buddy_list_bucket_t *bucket)
     buddy_list_t *new_blt = address;
     printf("address of new_blt is %p\n", new_blt);
 
-    new_blt->next_freelist = NULL;
+    // new_blt->next_freelist = NULL;
     new_blt->use = FREE;
     new_blt->size = (1 << bucket->order) - sizeof(buddy_list_t);
 
-    blt->next_freelist = new_blt;
-
-    bucket->ptr = blt;
+    LIST_INSERT_HEAD(&bucket->ptr, new_blt, next_freelist);
+    LIST_INSERT_HEAD(&bucket->ptr, blt, next_freelist);
 }
 
 /**
@@ -115,10 +109,9 @@ void *buddy_alloc(unsigned size)
         }
     }
 
-    buddy_list_t *blt = blbt->ptr;
+    buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
+    LIST_REMOVE(blt, next_freelist);
     blbt->count--;
-    blbt->ptr = blbt->ptr->next_freelist;
-    blt->next_freelist = NULL;
     ret = (char *)blt;
     ret += sizeof(buddy_list_t);
     return ret;
@@ -147,7 +140,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     for (i = 0; i < list_count; i++) {
         bsystem[i].count = 0;
         bsystem[i].order = i + BUDDY_BLOCK_ORDER;
-        bsystem[i].ptr   = NULL;
+        LIST_INIT(&(bsystem[i].ptr));
     }
 
     // Allocate the memory
@@ -159,11 +152,10 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     // Set up the primordial buddy block (2^power_of_two)
     buddy_list_t *primordial = memory;
     primordial->use       = FREE;
-    primordial->next_freelist = NULL;
     primordial->size      = (1 << power_of_two) - sizeof(buddy_list_t);
 
     bsystem[list_count - 1].count = 1;
-    bsystem[list_count - 1].ptr   = primordial;
+    LIST_INSERT_HEAD(&bsystem[list_count - 1].ptr, primordial, next_freelist);
 
     return bsystem;
 }

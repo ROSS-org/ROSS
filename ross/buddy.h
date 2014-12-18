@@ -1,6 +1,8 @@
 #ifndef BUDDY_H
 #define BUDDY_H
 
+#include <sys/queue.h>
+
 /**
  * @file buddy.h
  * @brief Buddy-system memory allocator
@@ -15,7 +17,7 @@ typedef struct buddy_list
 {
     purpose_t use;
     unsigned int size;
-    struct buddy_list *next_freelist;
+    LIST_ENTRY(buddy_list) next_freelist;
 } buddy_list_t;
 
 /**
@@ -23,7 +25,7 @@ typedef struct buddy_list
  */
 typedef struct buddy_list_bucket
 {
-    buddy_list_t *ptr;
+    LIST_HEAD(buddy_list_head, buddy_list) ptr;
     unsigned int count;
     unsigned int order;
 } buddy_list_bucket_t;
