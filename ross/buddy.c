@@ -13,7 +13,7 @@
 
 buddy_list_bucket_t *buddy_master = 0;
 
-static void *memory = 0;
+static void *buddy_base_address = 0;
 
 /**
  * Free the given pointer (and coalesce it with its buddy if possible).
@@ -45,12 +45,11 @@ void buddy_free(void *ptr)
 
     assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
     unsigned long pointer_as_long = (unsigned long)blt;
+    // We need to normalize for the "buddy formula" to work
+    pointer_as_long -= (unsigned long)buddy_base_address;
     pointer_as_long ^= size;
+    pointer_as_long += (unsigned long)buddy_base_address;
     printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
-
-    unsigned long new_blt = (unsigned long)blt;
-    new_blt -= (unsigned long)memory;
-    pointer_as_long -= (unsigned long)memory;
 
     // Our buddy has to meet some criteria
     buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
@@ -209,11 +208,11 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     // Allocate the memory
     size = 1 << power_of_two;
     printf("Allocating %d bytes\n", size);
-    memory = calloc(1, size);
-    printf("memory is %p\n", memory);
+    buddy_base_address = calloc(1, size);
+    printf("memory is %p\n", buddy_base_address);
 
     // Set up the primordial buddy block (2^power_of_two)
-    buddy_list_t *primordial = memory;
+    buddy_list_t *primordial = buddy_base_address;
     primordial->use       = FREE;
     primordial->size      = (1 << power_of_two) - sizeof(buddy_list_t);
 
