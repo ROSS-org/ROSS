@@ -11,6 +11,8 @@
 typedef enum purpose { FREE, USED } purpose_t;
 
 /**
+ * Metadata about this particular block
+ * (and stored at the beginning of this block).
  * One per allocated block of memory
  */
 typedef struct buddy_list
@@ -21,7 +23,7 @@ typedef struct buddy_list
 } buddy_list_t;
 
 /**
- * One bucket of 2^order sized free memory blocks
+ * Bucket of 2^order sized free memory blocks.
  */
 typedef struct buddy_list_bucket
 {

@@ -1,13 +1,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include "buddy.h"
+
+/**
+ * @file buddy.c
+ * @brief Buddy-system memory allocator implementation
+ */
 
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
 buddy_list_bucket_t *buddy_master = 0;
 
+static void *memory = 0;
+
 /**
+ * Free the given pointer (and coalesce it with its buddy if possible).
+ * @param ptr The pointer to free.
  */
 void buddy_free(void *ptr)
 {
@@ -16,10 +26,59 @@ void buddy_free(void *ptr)
 
     // Now blt is is pointing to the correct address
     unsigned int size = blt->size + sizeof(buddy_list_t);
+
+    // Find the bucket we need
+    buddy_list_bucket_t *blbt = buddy_master;
+    while (size > (1 << blbt->order)) {
+        printf("%d > %d\n", size, 1 << blbt->order);
+        blbt++;
+    }
+
+    // If there are no entries here, we can't have a buddy
+    if (!blbt->count) {
+        LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+        memset(blt, 0, size);
+        blt->size = size;
+        blt->use = FREE;
+        return;
+    }
+
+    assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
+    unsigned long pointer_as_long = (unsigned long)blt;
+    pointer_as_long ^= size;
+    printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
+
+    unsigned long new_blt = (unsigned long)blt;
+    new_blt -= (unsigned long)memory;
+    pointer_as_long -= (unsigned long)memory;
+
+    // Our buddy has to meet some criteria
+    buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
+    if (possible_buddy->use == FREE &&
+        possible_buddy->size == (size - sizeof(buddy_list_t))) {
+        blbt->count--;
+        LIST_REMOVE(possible_buddy, next_freelist);
+        blbt++;
+        blbt->count++;
+        buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
+        printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
+        LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
+        memset(smallest_address, 0, 2 * size);
+        smallest_address->size = 2 * size;
+        smallest_address->use = FREE;
+        return;
+    }
+
+    // Otherwise, just add it
+    LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+    memset(blt, 0, size);
+    blt->size = size;
+    blt->use = FREE;
 }
 
 /**
  * This function assumes that a block of the specified order exists.
+ * @param bucket The bucket containing a block we intend to split.
  */
 void buddy_split(buddy_list_bucket_t *bucket)
 {
@@ -53,6 +112,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
 /**
  * Finds the next power of 2 or, if v is a power of 2, return that.
  * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+ * @param v Find a power of 2 >= v.
  */
 unsigned int
 next_power2(unsigned int v)
@@ -77,6 +137,7 @@ next_power2(unsigned int v)
  * Find the smallest block that will contain size and return it.
  * Note this returns the memory allocated and usable, not the entire buffer.
  * This may involve breaking up larger blocks.
+ * @param size The size of the data this allocation must be able to hold.
  */
 void *buddy_alloc(unsigned size)
 {
@@ -120,14 +181,15 @@ void *buddy_alloc(unsigned size)
 
 /**
  * Pass in the power of two e.g., passing 5 will yield 2^5 = 32.
- * The smallest order we'll create will be 32 so this would yield one list.
+ * The smallest order we'll create will be 2^BUDDY_BLOCK_ORDER.
+ * @param power_of_two The largest "order" this table will support.
  */
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 {
     int i;
     int size;
     int list_count;
-    void *memory;
+    // void *memory;
     buddy_list_bucket_t *bsystem;
 
     if (power_of_two < BUDDY_BLOCK_ORDER) {
