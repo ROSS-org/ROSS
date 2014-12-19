@@ -111,6 +111,7 @@ void *buddy_alloc(unsigned size)
 
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     LIST_REMOVE(blt, next_freelist);
+    blt->use = USED;
     blbt->count--;
     ret = (char *)blt;
     ret += sizeof(buddy_list_t);

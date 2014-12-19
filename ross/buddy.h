@@ -8,7 +8,7 @@
  * @brief Buddy-system memory allocator
  */
 
-typedef enum purpose { FREE, SPLIT, USED } purpose_t;
+typedef enum purpose { FREE, USED } purpose_t;
 
 /**
  * One per allocated block of memory
