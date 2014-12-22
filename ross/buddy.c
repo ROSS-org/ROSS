@@ -169,6 +169,10 @@ void *buddy_alloc(unsigned size)
         }
     }
 
+    if (LIST_EMPTY(&blbt->ptr)) {
+        // This is bad -- they should have allocated more memory
+        return ret;
+    }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     LIST_REMOVE(blt, next_freelist);
     blt->use = USED;
