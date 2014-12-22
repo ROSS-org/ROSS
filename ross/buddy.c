@@ -75,6 +75,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
  * This function assumes that a block of the specified order exists.
  * @param bucket The bucket containing a block we intend to split.
  */
+static
 void buddy_split(buddy_list_bucket_t *bucket)
 {
     assert(bucket->count && "Bucket contains no entries!");
@@ -147,6 +148,10 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
     while (size > (1 << blbt->order)) {
         printf("%d > %d\n", size, 1 << blbt->order);
         blbt++;
+        if (blbt->is_valid == INVALID) {
+            // Error: we're out of bound for valid BLBTs
+            return NULL;
+        }
     }
 
     printf("target: %d-sized block\n", 1 << blbt->order);
@@ -159,7 +164,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
             blbt++;
             if (blbt->is_valid == INVALID) {
                 // Error: we're out of bound for valid BLBTs
-                return 0;
+                return NULL;
             }
             split_count++;
         }
@@ -171,7 +176,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
 
     if (LIST_EMPTY(&blbt->ptr)) {
         // This is bad -- they should have allocated more memory
-        return ret;
+        return NULL;
     }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     LIST_REMOVE(blt, next_freelist);
@@ -184,7 +189,6 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
 
 /**
  * Pass in the power of two e.g., passing 5 will yield 2^5 = 32.
- * The smallest order we'll create will be 2^BUDDY_BLOCK_ORDER.
  * @param power_of_two The largest "order" this table will support.
  */
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
@@ -195,6 +199,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     // void *memory;
     buddy_list_bucket_t *bsystem;
 
+    // Don't create anything smaller than this
     if (power_of_two < BUDDY_BLOCK_ORDER) {
         power_of_two = BUDDY_BLOCK_ORDER;
     }
@@ -202,6 +207,9 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
     bsystem = calloc(list_count + 1, sizeof(buddy_list_bucket_t));
+    if (bsystem == NULL) {
+        return NULL;
+    }
 
     for (i = 0; i < list_count; i++) {
         bsystem[i].count = 0;
@@ -215,6 +223,10 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     size = 1 << power_of_two;
     printf("Allocating %d bytes\n", size);
     void *buddy_base_address = calloc(1, size);
+    if (buddy_base_address == NULL) {
+        free(bsystem);
+        return NULL;
+    }
     printf("memory is %p\n", buddy_base_address);
 
     // Set up the primordial buddy block (2^power_of_two)
