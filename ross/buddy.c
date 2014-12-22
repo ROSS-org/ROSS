@@ -157,6 +157,10 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
         // If there are none, keep moving up to larger sizes
         while (!blbt->count) {
             blbt++;
+            if (blbt->is_valid == INVALID) {
+                // Error: we're out of bound for valid BLBTs
+                return 0;
+            }
             split_count++;
         }
 
@@ -197,13 +201,15 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
-    bsystem = calloc(list_count, sizeof(buddy_list_bucket_t));
+    bsystem = calloc(list_count + 1, sizeof(buddy_list_bucket_t));
 
     for (i = 0; i < list_count; i++) {
         bsystem[i].count = 0;
         bsystem[i].order = i + BUDDY_BLOCK_ORDER;
+        bsystem[i].is_valid = VALID;
         LIST_INIT(&(bsystem[i].ptr));
     }
+    bsystem[i].is_valid = INVALID;
 
     // Allocate the memory
     size = 1 << power_of_two;
