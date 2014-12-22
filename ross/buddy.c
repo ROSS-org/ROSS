@@ -11,15 +11,11 @@
 
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
-buddy_list_bucket_t *buddy_master = 0;
-
-static void *buddy_base_address = 0;
-
 /**
  * Free the given pointer (and coalesce it with its buddy if possible).
  * @param ptr The pointer to free.
  */
-void buddy_free(void *ptr)
+void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
 {
     buddy_list_t *blt = ptr;
     blt--;
@@ -46,9 +42,9 @@ void buddy_free(void *ptr)
     assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
     unsigned long pointer_as_long = (unsigned long)blt;
     // We need to normalize for the "buddy formula" to work
-    pointer_as_long -= (unsigned long)buddy_base_address;
+    pointer_as_long -= (unsigned long)buddy_master;
     pointer_as_long ^= size;
-    pointer_as_long += (unsigned long)buddy_base_address;
+    pointer_as_long += (unsigned long)buddy_master;
     printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
 
     // Our buddy has to meet some criteria
@@ -68,7 +64,7 @@ void buddy_free(void *ptr)
         return;
     }
 
-    // Otherwise, just add it
+    // Otherwise, just add it to the list
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
     memset(blt, 0, size);
     blt->size = size;
@@ -138,7 +134,7 @@ next_power2(unsigned int v)
  * This may involve breaking up larger blocks.
  * @param size The size of the data this allocation must be able to hold.
  */
-void *buddy_alloc(unsigned size)
+void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
 {
     char *ret = 0; // Return value
 
@@ -212,7 +208,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     // Allocate the memory
     size = 1 << power_of_two;
     printf("Allocating %d bytes\n", size);
-    buddy_base_address = calloc(1, size);
+    void *buddy_base_address = calloc(1, size);
     printf("memory is %p\n", buddy_base_address);
 
     // Set up the primordial buddy block (2^power_of_two)

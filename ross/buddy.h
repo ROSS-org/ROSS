@@ -32,10 +32,8 @@ typedef struct buddy_list_bucket
     unsigned int order;
 } buddy_list_bucket_t;
 
-extern buddy_list_bucket_t *buddy_master;
-
 buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two);
-void *buddy_alloc(unsigned size);
-void buddy_free(void *ptr);
+void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master);
+void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master);
 
 #endif /* BUDDY_H */
