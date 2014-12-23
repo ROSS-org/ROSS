@@ -12,6 +12,55 @@
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
 /**
+ * See if we can merge.  If we can, see if we can merge again.
+ */
+int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
+{
+    int merge_count = 0;
+
+    assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
+
+    while (1) {
+        unsigned long pointer_as_long = (unsigned long)blt;
+        unsigned int size = blt->size + sizeof(buddy_list_t);
+        buddy_list_bucket_t *blbt = buddy_master;
+        // Find the bucket we need
+        while (size > (1 << blbt->order)) {
+            printf("%d > %d\n", size, 1 << blbt->order);
+            blbt++;
+        }
+        // We need to normalize for the "buddy formula" to work
+        pointer_as_long -= (unsigned long)buddy_master;
+        pointer_as_long ^= size;
+        pointer_as_long += (unsigned long)buddy_master;
+        printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
+
+        // Our buddy has to meet some criteria
+        buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
+        if (possible_buddy->use == FREE &&
+            possible_buddy->size == (size - sizeof(buddy_list_t))) {
+            blbt->count--;
+            LIST_REMOVE(possible_buddy, next_freelist);
+            blbt++;
+            blbt->count++;
+            buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
+            printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
+            LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
+            memset(smallest_address, 0, 2 * size);
+            smallest_address->size = 2 * size - sizeof(buddy_list_t);
+            smallest_address->use = FREE;
+            blt = smallest_address;
+            merge_count++;
+        }
+        else {
+            break;
+        }
+    }
+
+    return merge_count;
+}
+
+/**
  * Free the given pointer (and coalesce it with its buddy if possible).
  * @param ptr The pointer to free.
  */
@@ -39,28 +88,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         return;
     }
 
-    assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
-    unsigned long pointer_as_long = (unsigned long)blt;
-    // We need to normalize for the "buddy formula" to work
-    pointer_as_long -= (unsigned long)buddy_master;
-    pointer_as_long ^= size;
-    pointer_as_long += (unsigned long)buddy_master;
-    printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
-
-    // Our buddy has to meet some criteria
-    buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
-    if (possible_buddy->use == FREE &&
-        possible_buddy->size == (size - sizeof(buddy_list_t))) {
-        blbt->count--;
-        LIST_REMOVE(possible_buddy, next_freelist);
-        blbt++;
-        blbt->count++;
-        buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
-        printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
-        LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
-        memset(smallest_address, 0, 2 * size);
-        smallest_address->size = 2 * size;
-        smallest_address->use = FREE;
+    if (buddy_try_merge(blt, buddy_master)) {
         return;
     }
 
