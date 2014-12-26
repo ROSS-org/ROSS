@@ -2,6 +2,8 @@ PROJECT(ROSS C)
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
 SET(ross_srcs
+buddy.h
+buddy.c
 ross-kernel-inline.h
 tw-eventq.h
 ross-inline.h
