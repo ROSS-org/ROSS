@@ -1,9 +1,5 @@
 #include <ross.h>
-
-int LZ4_decompress_safe(const char* source,
-                        char* dest,
-                        int compressedSize,
-                        int maxDecompressedSize);
+#include "lz4.h"
 
 /**
  * Make a snapshot of the LP state and store it into the delta buffer
@@ -17,11 +13,13 @@ tw_snapshot(tw_lp *lp, size_t state_sz)
 /**
  * Create the delta from the current state and the snapshot.
  * Compress it.
+ * @return The size of the compressed data placed in delta_buffer[1].
  */
 long
 tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 {
     long i;
+    int ret_size = 0;
     unsigned char *current_state = lp->cur_state;
     unsigned char *snapshot = lp->pe->delta_buffer[0];
 
@@ -29,12 +27,24 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
         snapshot[i] = current_state[i] - snapshot[i];
     }
 
-    i = LZ4_decompress_safe((char*)snapshot, (char*)lp->pe->delta_buffer[1], g_tw_delta_sz, state_sz);
-    if (i < 0) {
-        tw_error(TW_LOC, "LZ4_decompress_safe error");
+    ret_size = LZ4_compress((char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz);
+    if (ret_size < 0) {
+        tw_error(TW_LOC, "LZ4_compress error");
     }
 
-    return i;
+    return ret_size;
+}
+
+/**
+ * Restore the state of lp to the (decompressed) data held in buffer
+ */
+void
+tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer)
+{
+    int ret = LZ4_decompress_fast(buffer, lp->cur_state, state_sz);
+    if (ret < 0) {
+        tw_error(TW_LOC, "LZ4_decompress_fast error");
+    }
 }
 
 void

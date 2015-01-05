@@ -326,6 +326,7 @@ struct tw_event
   	} state;
 
   	tw_bf		 cv; 				/**< @brief Used by app during reverse computation. */
+    void *delta_buddy;              /**< @brief Delta memory from buddy allocator. */
 
 	tw_lp		*dest_lp_ptr; 		/**< @brief Destination LP Pointer */
 	tw_lp		*src_lp_ptr; 		/**< @brief Sending LP Pointer */
