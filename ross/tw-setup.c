@@ -418,7 +418,8 @@ tw_delta_alloc(tw_pe *pe)
 {
     g_tw_delta_sz = LZ4_compressBound(g_tw_delta_sz);
 
-    pe->delta_buffer = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 2);
+    pe->delta_buffer[0] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
+    pe->delta_buffer[1] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
 }
 
 tw_pe *
