@@ -22,6 +22,7 @@ static const tw_optdef kernel_options[] = {
 	TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra,
                "Number of extra events allocated per PE."),
+    TWOPT_UINT("delta_size", g_tw_delta_alloc, "Size of delta encoding allocation (2^X)"),
 	TWOPT_END()
 };
 
@@ -443,7 +444,10 @@ setup_pes(void)
 	for(i = 0; i < g_tw_npe; i++)
 	{
 		pe = g_tw_pe[i];
-        tw_delta_alloc(pe);
+        if (g_tw_delta_alloc) {
+            g_tw_buddy_master = create_buddy_table(g_tw_delta_alloc);
+            tw_delta_alloc(pe);
+        }
 		pe->pq = tw_pq_create();
 
 		tw_eventq_alloc(&pe->free_q, num_events_per_pe);
