@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <ross.h>
 #include "buddy.h"
 
 /**
@@ -12,6 +13,61 @@
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
 /**
+ * Finds the next power of 2 or, if v is a power of 2, return that.
+ * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+ * @param v Find a power of 2 >= v.
+ */
+unsigned int
+next_power2(unsigned int v)
+{
+    // We're not allocating chunks smaller than 2^BUDDY_BLOCK_ORDER bytes
+    if (v < (1 << BUDDY_BLOCK_ORDER)) {
+        return (1 << BUDDY_BLOCK_ORDER);
+    }
+
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+
+    return v;
+}
+
+int dump_buddy_table(buddy_list_bucket_t *buddy_master)
+{
+    buddy_list_t *blt;
+    buddy_list_bucket_t *blbt = buddy_master;
+
+    while (1) {
+        printf("BLBT %p:\n", blbt);
+        printf("  Count: %d\n", blbt->count);
+        printf("  Order: %d\n", blbt->order);
+        if (blbt->is_valid == VALID)
+            printf("  Valid: YES\n");
+        else
+            printf("  Valid: NO\n");
+
+        printf("    Pointer         Use            Size\n");
+        LIST_FOREACH(blt, &blbt->ptr, next_freelist) {
+            assert(next_power2(blt->size) == (1 << blbt->order));
+            if (blt->use == FREE)
+                printf("    %11p%8s%16d\n", blt, "FREE", blt->size);
+            else
+                printf("    %11p%8s%16d\n", blt, "USED", blt->size);
+        }
+
+        blbt++;
+        if (blbt->is_valid == INVALID)
+            break;
+    }
+
+    return 1;
+}
+
+/**
  * See if we can merge.  If we can, see if we can merge again.
  */
 int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
@@ -19,6 +75,8 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
     int merge_count = 0;
 
     assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
+
+    assert(dump_buddy_table(g_tw_buddy_master));
 
     while (1) {
         unsigned long pointer_as_long = (unsigned long)blt;
@@ -46,9 +104,9 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
             printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
             LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
-            memset(smallest_address, 0, 2 * size);
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
+            memset(smallest_address+1, 0, smallest_address->size);
             blt = smallest_address;
             merge_count++;
         }
@@ -80,11 +138,12 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     }
 
     // If there are no entries here, we can't have a buddy
-    if (!blbt->count) {
+    if (blbt->count == 0) {
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-        memset(blt, 0, size);
-        blt->size = size;
+        blt->size = size - sizeof(buddy_list_t);
         blt->use = FREE;
+        memset(blt+1, 0, blt->size);
+        blbt->count++;
         return;
     }
 
@@ -94,9 +153,10 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
 
     // Otherwise, just add it to the list
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-    memset(blt, 0, size);
-    blt->size = size;
+    blt->size = size - sizeof(buddy_list_t);
     blt->use = FREE;
+    memset(blt+1, 0, blt->size);
+    blbt->count++;
 }
 
 /**
@@ -110,6 +170,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
 
     // Remove an entry from this bucket and adjust the count
     buddy_list_t *blt = LIST_FIRST(&bucket->ptr);
+    assert(blt && "LIST_FIRST returned NULL");
     bucket->count--;
     LIST_REMOVE(blt, next_freelist);
 
@@ -129,32 +190,10 @@ void buddy_split(buddy_list_bucket_t *bucket)
     new_blt->use = FREE;
     new_blt->size = (1 << bucket->order) - sizeof(buddy_list_t);
 
+    assert(blt != new_blt);
+
     LIST_INSERT_HEAD(&bucket->ptr, new_blt, next_freelist);
     LIST_INSERT_HEAD(&bucket->ptr, blt, next_freelist);
-}
-
-/**
- * Finds the next power of 2 or, if v is a power of 2, return that.
- * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
- * @param v Find a power of 2 >= v.
- */
-unsigned int
-next_power2(unsigned int v)
-{
-    // We're not allocating chunks smaller than 2^BUDDY_BLOCK_ORDER bytes
-    if (v < (1 << BUDDY_BLOCK_ORDER)) {
-        return (1 << BUDDY_BLOCK_ORDER);
-    }
-
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-
-    return v;
 }
 
 /**
@@ -178,6 +217,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
         blbt++;
         if (blbt->is_valid == INVALID) {
             // Error: we're out of bound for valid BLBTs
+            tw_error(TW_LOC, "Blew past the last valid BLBT");
             return NULL;
         }
     }
@@ -188,10 +228,11 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
         unsigned split_count = 0;
 
         // If there are none, keep moving up to larger sizes
-        while (!blbt->count) {
+        while (blbt->count == 0) {
             blbt++;
             if (blbt->is_valid == INVALID) {
                 // Error: we're out of bound for valid BLBTs
+                tw_error(TW_LOC, "Blew past the last valid BLBT");
                 return NULL;
             }
             split_count++;
@@ -204,9 +245,11 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
 
     if (LIST_EMPTY(&blbt->ptr)) {
         // This is bad -- they should have allocated more memory
+        tw_error(TW_LOC, "Allocate a larger buddy pool");
         return NULL;
     }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
+    assert(blt && "LIST_FIRST returned NULL");
     LIST_REMOVE(blt, next_freelist);
     blt->use = USED;
     blbt->count--;
@@ -264,6 +307,8 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     bsystem[list_count - 1].count = 1;
     LIST_INSERT_HEAD(&bsystem[list_count - 1].ptr, primordial, next_freelist);
+
+    assert(dump_buddy_table(bsystem));
 
     return bsystem;
 }
