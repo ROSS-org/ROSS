@@ -85,8 +85,6 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
 
     assert(dump_buddy_table(g_tw_buddy_master));
 
-    int x = 0;
-
     while (1) {
         unsigned long pointer_as_long = (unsigned long)blt;
         unsigned int size = blt->size + sizeof(buddy_list_t);
@@ -106,7 +104,13 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
         buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
         if (possible_buddy->use == FREE &&
             possible_buddy->size == (size - sizeof(buddy_list_t))) {
-            x++;
+
+            if (merge_count) {
+                // If we've already merged at least once, then it's already
+                // in its bucket and we must remove it
+                LIST_REMOVE(blt, next_freelist);
+            }
+
             assert(blbt->count && "bucket containing buddy has zero elements");
             blbt->count--;
             LIST_REMOVE(possible_buddy, next_freelist);
