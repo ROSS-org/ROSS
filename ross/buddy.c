@@ -108,6 +108,7 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             if (merge_count) {
                 // If we've already merged at least once, then it's already
                 // in its bucket and we must remove it
+                blbt->count--;
                 LIST_REMOVE(blt, next_freelist);
             }
 
