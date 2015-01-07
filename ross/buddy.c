@@ -169,10 +169,10 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     if (blbt->count == 0) {
         blt->size = size - sizeof(buddy_list_t);
         blt->use = FREE;
+        blbt->count++;
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
         assert(dump_buddy_table(g_tw_buddy_master));
         memset(blt+1, 0, blt->size);
-        blbt->count++;
         assert(blbt->count == initial_count + 1);
         return;
     }
@@ -185,10 +185,10 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     // Otherwise, just add it to the list
     blt->size = size - sizeof(buddy_list_t);
     blt->use = FREE;
+    blbt->count++;
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
     assert(dump_buddy_table(g_tw_buddy_master));
     memset(blt+1, 0, blt->size);
-    blbt->count++;
     assert(blbt->count == initial_count + 1);
 }
 
