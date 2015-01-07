@@ -91,14 +91,12 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
         buddy_list_bucket_t *blbt = buddy_master;
         // Find the bucket we need
         while (size > (1 << blbt->order)) {
-            printf("%d > %d\n", size, 1 << blbt->order);
             blbt++;
         }
         // We need to normalize for the "buddy formula" to work
         pointer_as_long -= (unsigned long)buddy_base_address;
         pointer_as_long ^= size;
         pointer_as_long += (unsigned long)buddy_base_address;
-        printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
 
         // Our buddy has to meet some criteria
         buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
@@ -117,8 +115,8 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             LIST_REMOVE(possible_buddy, next_freelist);
             blbt++;
             blbt->count++;
+
             buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
-            printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
             LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
@@ -150,7 +148,6 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     // Find the bucket we need
     buddy_list_bucket_t *blbt = buddy_master;
     while (size > (1 << blbt->order)) {
-        printf("%d > %d\n", size, 1 << blbt->order);
         blbt++;
     }
 
@@ -164,7 +161,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
                 return;
             }
         }
-        dump_buddy_table(g_tw_buddy_master);
+        assert(dump_buddy_table(g_tw_buddy_master));
         assert(0 && "buddy with FREE status not in freelist");
     }
 
@@ -222,7 +219,6 @@ void buddy_split(buddy_list_bucket_t *bucket)
 
     void *address = ((char *)blt) + (1 << bucket->order);
     buddy_list_t *new_blt = address;
-    printf("address of new_blt is %p\n", new_blt);
 
     // new_blt->next_freelist = NULL;
     new_blt->use = FREE;
@@ -253,16 +249,12 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
     // Find the bucket we need
     buddy_list_bucket_t *blbt = buddy_master;
     while (size > (1 << blbt->order)) {
-        printf("%d > %d\n", size, 1 << blbt->order);
         blbt++;
         if (blbt->is_valid == INVALID) {
             // Error: we're out of bound for valid BLBTs
             tw_error(TW_LOC, "Blew past the last valid BLBT");
-            return NULL;
         }
     }
-
-    printf("target: %d-sized block\n", 1 << blbt->order);
 
     if (blbt->count == 0) {
         unsigned split_count = 0;
@@ -274,7 +266,6 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
                 // Error: we're out of bound for valid BLBTs
                 assert(0);
                 tw_error(TW_LOC, "Blew past the last valid BLBT");
-                return NULL;
             }
             split_count++;
         }
@@ -287,7 +278,6 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
     if (LIST_EMPTY(&blbt->ptr)) {
         // This is bad -- they should have allocated more memory
         tw_error(TW_LOC, "Allocate a larger buddy pool");
-        return NULL;
     }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     assert(blt && "LIST_FIRST returned NULL");
@@ -333,13 +323,11 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     // Allocate the memory
     size = 1 << power_of_two;
-    printf("Allocating %d bytes\n", size);
     buddy_base_address = calloc(1, size);
     if (buddy_base_address == NULL) {
         free(bsystem);
         return NULL;
     }
-    printf("memory is %p\n", buddy_base_address);
 
     // Set up the primordial buddy block (2^power_of_two)
     buddy_list_t *primordial = buddy_base_address;
