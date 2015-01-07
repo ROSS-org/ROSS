@@ -114,10 +114,10 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             blbt->count++;
             buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
             printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
-            LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
-            assert(next_power2(smallest_address->size) == (1 << blbt->order));
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
+            LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
+            assert(next_power2(smallest_address->size) == (1 << blbt->order));
             memset(smallest_address+1, 0, smallest_address->size);
             blt = smallest_address;
             merge_count++;
@@ -167,10 +167,10 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
 
     // If there are no entries here, we can't have a buddy
     if (blbt->count == 0) {
-        LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-        assert(next_power2(blt->size) == (1 << blbt->order));
         blt->size = size - sizeof(buddy_list_t);
         blt->use = FREE;
+        LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+        assert(next_power2(blt->size) == (1 << blbt->order));
         memset(blt+1, 0, blt->size);
         blbt->count++;
         assert(blbt->count == initial_count + 1);
@@ -183,10 +183,10 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     }
 
     // Otherwise, just add it to the list
-    LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-    assert(next_power2(blt->size) == (1 << blbt->order));
     blt->size = size - sizeof(buddy_list_t);
     blt->use = FREE;
+    LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+    assert(next_power2(blt->size) == (1 << blbt->order));
     memset(blt+1, 0, blt->size);
     blbt->count++;
     assert(blbt->count == initial_count + 1);
