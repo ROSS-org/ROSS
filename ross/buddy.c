@@ -44,6 +44,8 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
     buddy_list_bucket_t *blbt = buddy_master;
 
     while (1) {
+        int counter = 0;
+
         printf("BLBT %p:\n", blbt);
         printf("  Count: %d\n", blbt->count);
         printf("  Order: %d\n", blbt->order);
@@ -54,6 +56,7 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
 
         printf("    Pointer         Use            Size\n");
         LIST_FOREACH(blt, &blbt->ptr, next_freelist) {
+            counter++;
             if (blt->use == FREE)
                 printf("    %11p%8s%16d\n", blt, "FREE", blt->size);
             else
@@ -61,6 +64,7 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
             assert(next_power2(blt->size) == (1 << blbt->order));
         }
         printf("\n");
+        assert(counter == blbt->count && "Count is incorrect!");
 
         blbt++;
         if (blbt->is_valid == INVALID)
@@ -111,6 +115,7 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             buddy_list_t *smallest_address = (blt < possible_buddy) ? blt : possible_buddy;
             printf("smallest_address: %p\tblt: %p\tpossible_buddy: %p\n", smallest_address, blt, possible_buddy);
             LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
+            assert(next_power2(smallest_address->size) == (1 << blbt->order));
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
             memset(smallest_address+1, 0, smallest_address->size);
@@ -134,8 +139,6 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     buddy_list_t *blt = ptr;
     blt--;
 
-    assert(blt->use == USED && "Double free of buddy memory");
-
     // Now blt is is pointing to the correct address
     unsigned int size = blt->size + sizeof(buddy_list_t);
 
@@ -146,11 +149,26 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         blbt++;
     }
 
+    if (blt->use != USED) {
+        buddy_list_t *iter;
+        tw_printf(TW_LOC, "warning: double free buddy");
+        // If it's free, it should be in the correct bucket so let's see
+        LIST_FOREACH(iter, &blbt->ptr, next_freelist) {
+            if (blt == iter) {
+                // Found it, great.
+                return;
+            }
+        }
+        dump_buddy_table(g_tw_buddy_master);
+        assert(0 && "buddy with FREE status not in freelist");
+    }
+
     int initial_count = blbt->count;
 
     // If there are no entries here, we can't have a buddy
     if (blbt->count == 0) {
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+        assert(next_power2(blt->size) == (1 << blbt->order));
         blt->size = size - sizeof(buddy_list_t);
         blt->use = FREE;
         memset(blt+1, 0, blt->size);
@@ -166,6 +184,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
 
     // Otherwise, just add it to the list
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
+    assert(next_power2(blt->size) == (1 << blbt->order));
     blt->size = size - sizeof(buddy_list_t);
     blt->use = FREE;
     memset(blt+1, 0, blt->size);
