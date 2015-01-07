@@ -12,6 +12,8 @@
 
 #define BUDDY_BLOCK_ORDER 6 /**< @brief Minimum block order */
 
+static void *buddy_base_address = 0;
+
 /**
  * Finds the next power of 2 or, if v is a power of 2, return that.
  * From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
@@ -52,12 +54,13 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
 
         printf("    Pointer         Use            Size\n");
         LIST_FOREACH(blt, &blbt->ptr, next_freelist) {
-            assert(next_power2(blt->size) == (1 << blbt->order));
             if (blt->use == FREE)
                 printf("    %11p%8s%16d\n", blt, "FREE", blt->size);
             else
                 printf("    %11p%8s%16d\n", blt, "USED", blt->size);
+            assert(next_power2(blt->size) == (1 << blbt->order));
         }
+        printf("\n");
 
         blbt++;
         if (blbt->is_valid == INVALID)
@@ -78,6 +81,8 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
 
     assert(dump_buddy_table(g_tw_buddy_master));
 
+    int x = 0;
+
     while (1) {
         unsigned long pointer_as_long = (unsigned long)blt;
         unsigned int size = blt->size + sizeof(buddy_list_t);
@@ -88,15 +93,17 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             blbt++;
         }
         // We need to normalize for the "buddy formula" to work
-        pointer_as_long -= (unsigned long)buddy_master;
+        pointer_as_long -= (unsigned long)buddy_base_address;
         pointer_as_long ^= size;
-        pointer_as_long += (unsigned long)buddy_master;
+        pointer_as_long += (unsigned long)buddy_base_address;
         printf("BLT: %p\tsize: %d\t\tXOR: %lx\n", blt, size, pointer_as_long);
 
         // Our buddy has to meet some criteria
         buddy_list_t *possible_buddy = (buddy_list_t*)pointer_as_long;
         if (possible_buddy->use == FREE &&
             possible_buddy->size == (size - sizeof(buddy_list_t))) {
+            x++;
+            assert(blbt->count && "bucket containing buddy has zero elements");
             blbt->count--;
             LIST_REMOVE(possible_buddy, next_freelist);
             blbt++;
@@ -127,6 +134,8 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     buddy_list_t *blt = ptr;
     blt--;
 
+    assert(blt->use == USED && "Double free of buddy memory");
+
     // Now blt is is pointing to the correct address
     unsigned int size = blt->size + sizeof(buddy_list_t);
 
@@ -137,6 +146,8 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         blbt++;
     }
 
+    int initial_count = blbt->count;
+
     // If there are no entries here, we can't have a buddy
     if (blbt->count == 0) {
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
@@ -144,10 +155,12 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         blt->use = FREE;
         memset(blt+1, 0, blt->size);
         blbt->count++;
+        assert(blbt->count == initial_count + 1);
         return;
     }
 
     if (buddy_try_merge(blt, buddy_master)) {
+        assert(initial_count > blbt->count);
         return;
     }
 
@@ -157,6 +170,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     blt->use = FREE;
     memset(blt+1, 0, blt->size);
     blbt->count++;
+    assert(blbt->count == initial_count + 1);
 }
 
 /**
@@ -232,6 +246,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
             blbt++;
             if (blbt->is_valid == INVALID) {
                 // Error: we're out of bound for valid BLBTs
+                assert(0);
                 tw_error(TW_LOC, "Blew past the last valid BLBT");
                 return NULL;
             }
@@ -293,7 +308,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     // Allocate the memory
     size = 1 << power_of_two;
     printf("Allocating %d bytes\n", size);
-    void *buddy_base_address = calloc(1, size);
+    buddy_base_address = calloc(1, size);
     if (buddy_base_address == NULL) {
         free(bsystem);
         return NULL;
