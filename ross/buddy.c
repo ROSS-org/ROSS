@@ -226,7 +226,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
     assert(blt != new_blt);
 
     LIST_INSERT_HEAD(&bucket->ptr, new_blt, next_freelist);
-    assert(dump_buddy_table(g_tw_buddy_master));
+    // assert(dump_buddy_table(g_tw_buddy_master));
     LIST_INSERT_HEAD(&bucket->ptr, blt, next_freelist);
     assert(dump_buddy_table(g_tw_buddy_master));
 }
