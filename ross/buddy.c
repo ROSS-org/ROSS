@@ -117,7 +117,7 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
             LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
-            assert(next_power2(smallest_address->size) == (1 << blbt->order));
+            assert(dump_buddy_table(g_tw_buddy_master));
             memset(smallest_address+1, 0, smallest_address->size);
             blt = smallest_address;
             merge_count++;
@@ -170,7 +170,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         blt->size = size - sizeof(buddy_list_t);
         blt->use = FREE;
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-        assert(next_power2(blt->size) == (1 << blbt->order));
+        assert(dump_buddy_table(g_tw_buddy_master));
         memset(blt+1, 0, blt->size);
         blbt->count++;
         assert(blbt->count == initial_count + 1);
@@ -186,7 +186,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     blt->size = size - sizeof(buddy_list_t);
     blt->use = FREE;
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-    assert(next_power2(blt->size) == (1 << blbt->order));
+    assert(dump_buddy_table(g_tw_buddy_master));
     memset(blt+1, 0, blt->size);
     blbt->count++;
     assert(blbt->count == initial_count + 1);
@@ -226,7 +226,9 @@ void buddy_split(buddy_list_bucket_t *bucket)
     assert(blt != new_blt);
 
     LIST_INSERT_HEAD(&bucket->ptr, new_blt, next_freelist);
+    assert(dump_buddy_table(g_tw_buddy_master));
     LIST_INSERT_HEAD(&bucket->ptr, blt, next_freelist);
+    assert(dump_buddy_table(g_tw_buddy_master));
 }
 
 /**
