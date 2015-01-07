@@ -62,13 +62,13 @@ INCLUDE(GetGitRevisionDescription)
 GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
 
 # Data Structure for remote Events
-# If USE_AVL_TREE is OFF, ROSS reverts to hashing
-OPTION(USE_AVL_TREE "Use AVL trees for tw_events?" ON)
+# If AVL_TREE is OFF, ROSS reverts to hashing
+OPTION(AVL_TREE "Use AVL trees for optimistic mode events? (hash tabels otherwise)" ON)
 SET(AVL_TREE_SIZE 18 CACHE STRING "AVL Treet contians 2^AVL_TREE_SIZE nodes")
-IF(USE_AVL_TREE)
+IF(AVL_TREE)
   SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
   MATH( EXPR AVL_NODE_COUNT "1 << ${AVL_TREE_SIZE}" )
-ENDIF(USE_AVL_TREE)
+ENDIF(AVL_TREE)
 
 # ROSS_MEMORY is either on or off depending on whether or not we desire
 # memory buffers.  If it's not set to YES, it defaults to NO
