@@ -51,7 +51,7 @@ extern unsigned int	g_tw_master;
 extern size_t		g_tw_msg_sz;
 extern size_t		g_tw_event_msg_sz;
 extern size_t       g_tw_delta_sz;
-extern size_t       g_tw_delta_alloc;
+extern size_t       g_tw_buddy_alloc;
 extern buddy_list_bucket_t *g_tw_buddy_master;
 
 extern unsigned int	g_tw_memory_nqueues;

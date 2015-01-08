@@ -34,7 +34,7 @@ tw_seed        *g_tw_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
 size_t g_tw_delta_sz = 0;
-size_t g_tw_delta_alloc = 0; /**< Allocation for buddy system */
+size_t g_tw_buddy_alloc = 0; /**< Allocation for buddy system */
 buddy_list_bucket_t *g_tw_buddy_master = 0;
 
 #if ROSS_MEMORY
