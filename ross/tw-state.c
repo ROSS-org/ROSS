@@ -39,9 +39,9 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
  * Restore the state of lp to the (decompressed) data held in buffer
  */
 void
-tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer)
+tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size)
 {
-    int ret = LZ4_decompress_fast(buffer, lp->cur_state, state_sz);
+    int ret = LZ4_decompress_safe(buffer, lp->cur_state, delta_size, state_sz);
     if (ret < 0) {
         tw_error(TW_LOC, "LZ4_decompress_fast error");
     }

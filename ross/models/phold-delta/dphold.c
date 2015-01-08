@@ -97,6 +97,7 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     delta_size = tw_snapshot_delta(lp, lp->type.state_sz);
     lp->pe->cur_event->delta_buddy = buddy_alloc(delta_size, g_tw_buddy_master);
     assert(lp->pe->cur_event->delta_buddy);
+    lp->pe->cur_event->delta_size = delta_size;
     memcpy(lp->pe->cur_event->delta_buddy, lp->pe->delta_buffer[1], delta_size);
 }
 
@@ -104,7 +105,7 @@ void
 phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
     // This should be the FIRST thing to do in your reverse event handler
-    tw_snapshot_restore(lp, lp->type.state_sz, lp->pe->cur_event->delta_buddy);
+    tw_snapshot_restore(lp, lp->type.state_sz, lp->pe->cur_event->delta_buddy, lp->pe->cur_event->delta_size);
     // buddy_free(lp->pe->cur_event->delta_buddy, g_tw_buddy_master);
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
