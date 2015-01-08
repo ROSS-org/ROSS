@@ -83,8 +83,6 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
 
     assert(sizeof(unsigned long) >= sizeof(buddy_list_t*));
 
-    assert(dump_buddy_table(g_tw_buddy_master));
-
     while (1) {
         unsigned long pointer_as_long = (unsigned long)blt;
         unsigned int size = blt->size + sizeof(buddy_list_t);
@@ -120,7 +118,6 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
             smallest_address->size = 2 * size - sizeof(buddy_list_t);
             smallest_address->use = FREE;
             LIST_INSERT_HEAD(&blbt->ptr, smallest_address, next_freelist);
-            assert(dump_buddy_table(g_tw_buddy_master));
             memset(smallest_address+1, 0, smallest_address->size);
             blt = smallest_address;
             merge_count++;
@@ -161,7 +158,6 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
                 return;
             }
         }
-        assert(dump_buddy_table(g_tw_buddy_master));
         assert(0 && "buddy with FREE status not in freelist");
     }
 
@@ -173,7 +169,6 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         blt->use = FREE;
         blbt->count++;
         LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-        assert(dump_buddy_table(g_tw_buddy_master));
         memset(blt+1, 0, blt->size);
         assert(blbt->count == initial_count + 1);
         return;
@@ -189,7 +184,6 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     blt->use = FREE;
     blbt->count++;
     LIST_INSERT_HEAD(&blbt->ptr, blt, next_freelist);
-    assert(dump_buddy_table(g_tw_buddy_master));
     memset(blt+1, 0, blt->size);
     assert(blbt->count == initial_count + 1);
 }
@@ -227,9 +221,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
     assert(blt != new_blt);
 
     LIST_INSERT_HEAD(&bucket->ptr, new_blt, next_freelist);
-    // assert(dump_buddy_table(g_tw_buddy_master));
     LIST_INSERT_HEAD(&bucket->ptr, blt, next_freelist);
-    assert(dump_buddy_table(g_tw_buddy_master));
 }
 
 /**
@@ -252,7 +244,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
         blbt++;
         if (blbt->is_valid == INVALID) {
             // Error: we're out of bound for valid BLBTs
-            tw_error(TW_LOC, "Blew past the last valid BLBT");
+            tw_error(TW_LOC, "Increase buddy_size");
         }
     }
 
@@ -264,8 +256,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
             blbt++;
             if (blbt->is_valid == INVALID) {
                 // Error: we're out of bound for valid BLBTs
-                assert(0);
-                tw_error(TW_LOC, "Blew past the last valid BLBT");
+                tw_error(TW_LOC, "Increase buddy_size");
             }
             split_count++;
         }
@@ -277,7 +268,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
 
     if (LIST_EMPTY(&blbt->ptr)) {
         // This is bad -- they should have allocated more memory
-        tw_error(TW_LOC, "Allocate a larger buddy pool");
+        tw_error(TW_LOC, "Increase buddy_size");
     }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     assert(blt && "LIST_FIRST returned NULL");
@@ -336,8 +327,6 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     bsystem[list_count - 1].count = 1;
     LIST_INSERT_HEAD(&bsystem[list_count - 1].ptr, primordial, next_freelist);
-
-    assert(dump_buddy_table(bsystem));
 
     return bsystem;
 }
