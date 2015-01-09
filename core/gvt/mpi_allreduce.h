@@ -34,7 +34,7 @@ gvt_print(tw_stime gvt)
 
 	printf(").\n");
     
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
     printf("AVL tree size: %d\n", g_tw_pe[0]->avl_tree_size);
 #endif
     

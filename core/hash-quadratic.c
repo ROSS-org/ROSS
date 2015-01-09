@@ -1,7 +1,7 @@
 #include <ross.h>
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
 #include "avl_tree.h"
-#endif /* USE_AVL_TREE */
+#endif /* AVL_TREE */
 
 static void     rehash(tw_hash * hash_t, int pe);
 static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
@@ -27,7 +27,7 @@ hash_(tw_eventid event_id, int hash_size)
 void           *
 tw_hash_create()
 {
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
   int i;
   AvlTree avl_list;
 
@@ -74,7 +74,7 @@ tw_hash_create()
 void
 tw_hash_insert(void *h, tw_event * event, long pe)
 {
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
   tw_clock start;
 
   g_tw_pe[0]->avl_tree_size++;
@@ -196,7 +196,7 @@ allocate_table(int hash_size)
 tw_event       *
 tw_hash_remove(void *h, tw_event * event, long pe)
 {
-#if USE_AVL_TREE
+#if AVL_TREE
   tw_event *ret;
   tw_clock start;
 

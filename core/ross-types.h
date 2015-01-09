@@ -351,7 +351,7 @@ struct tw_kp {
     tw_kp *up;
 #endif
 
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
     /* AVL tree root */
     AvlTree avl_tree;
 #endif
@@ -389,7 +389,7 @@ struct tw_pe {
     tw_event *cur_event; /**< @brief Current event being processed */
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
-#ifdef USE_AVL_TREE
+#ifdef AVL_TREE
     /* AVL node head pointer and size */
     AvlTree avl_list_head;
     unsigned avl_tree_size;
