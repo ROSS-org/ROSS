@@ -90,6 +90,11 @@ tw_state_rollback(tw_lp *lp, tw_event *revent)
 		&revent->cv,
 		tw_event_data(revent),
 		lp);
+
+        if (revent->delta_buddy) {
+            buddy_free(revent->delta_buddy, g_tw_buddy_master);
+            revent->delta_buddy = 0;
+        }
 #if 0
     } else
       {
