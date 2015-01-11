@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <assert.h>
 #include "lz4.h"
 
 /**
@@ -31,6 +32,11 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
     if (ret_size < 0) {
         tw_error(TW_LOC, "LZ4_compress error");
     }
+
+    lp->pe->cur_event->delta_buddy = buddy_alloc(ret_size);
+    assert(lp->pe->cur_event->delta_buddy);
+    lp->pe->cur_event->delta_size = ret_size;
+    memcpy(lp->pe->cur_event->delta_buddy, lp->pe->delta_buffer[1], ret_size);
 
     return ret_size;
 }
