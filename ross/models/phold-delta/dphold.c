@@ -106,7 +106,7 @@ phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * l
 {
     // This should be the FIRST thing to do in your reverse event handler
     tw_snapshot_restore(lp, lp->type.state_sz, lp->pe->cur_event->delta_buddy, lp->pe->cur_event->delta_size);
-    // buddy_free(lp->pe->cur_event->delta_buddy, g_tw_buddy_master);
+
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
 
