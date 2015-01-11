@@ -67,7 +67,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
         tw_free_output_messages(e, 1);
 
         if (e->delta_buddy) {
-            buddy_free(e->delta_buddy, g_tw_buddy_master);
+            buddy_free(e->delta_buddy);
             e->delta_buddy = 0;
         }
 

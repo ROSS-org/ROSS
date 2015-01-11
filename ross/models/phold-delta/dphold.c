@@ -95,7 +95,7 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     // This should be the LAST thing you do in your event handler
     // (Take care to cover all possible exits!)
     delta_size = tw_snapshot_delta(lp, lp->type.state_sz);
-    lp->pe->cur_event->delta_buddy = buddy_alloc(delta_size, g_tw_buddy_master);
+    lp->pe->cur_event->delta_buddy = buddy_alloc(delta_size);
     assert(lp->pe->cur_event->delta_buddy);
     lp->pe->cur_event->delta_size = delta_size;
     memcpy(lp->pe->cur_event->delta_buddy, lp->pe->delta_buffer[1], delta_size);

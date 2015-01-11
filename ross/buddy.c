@@ -77,7 +77,7 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
 /**
  * See if we can merge.  If we can, see if we can merge again.
  */
-int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
+int buddy_try_merge(buddy_list_t *blt)
 {
     int merge_count = 0;
 
@@ -86,7 +86,7 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
     while (1) {
         unsigned long pointer_as_long = (unsigned long)blt;
         unsigned int size = blt->size + sizeof(buddy_list_t);
-        buddy_list_bucket_t *blbt = buddy_master;
+        buddy_list_bucket_t *blbt = g_tw_buddy_master;
         // Find the bucket we need
         while (size > (1 << blbt->order)) {
             blbt++;
@@ -134,7 +134,7 @@ int buddy_try_merge(buddy_list_t *blt, buddy_list_bucket_t *buddy_master)
  * Free the given pointer (and coalesce it with its buddy if possible).
  * @param ptr The pointer to free.
  */
-void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
+void buddy_free(void *ptr)
 {
     buddy_list_t *blt = ptr;
     blt--;
@@ -143,7 +143,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
     unsigned int size = blt->size + sizeof(buddy_list_t);
 
     // Find the bucket we need
-    buddy_list_bucket_t *blbt = buddy_master;
+    buddy_list_bucket_t *blbt = g_tw_buddy_master;
     while (size > (1 << blbt->order)) {
         blbt++;
     }
@@ -174,7 +174,7 @@ void buddy_free(void *ptr, buddy_list_bucket_t *buddy_master)
         return;
     }
 
-    if (buddy_try_merge(blt, buddy_master)) {
+    if (buddy_try_merge(blt)) {
         assert(initial_count > blbt->count);
         return;
     }
@@ -230,7 +230,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
  * This may involve breaking up larger blocks.
  * @param size The size of the data this allocation must be able to hold.
  */
-void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
+void *buddy_alloc(unsigned size)
 {
     char *ret = 0; // Return value
 
@@ -239,7 +239,7 @@ void *buddy_alloc(unsigned size, buddy_list_bucket_t *buddy_master)
     size = next_power2(size);
 
     // Find the bucket we need
-    buddy_list_bucket_t *blbt = buddy_master;
+    buddy_list_bucket_t *blbt = g_tw_buddy_master;
     while (size > (1 << blbt->order)) {
         blbt++;
         if (blbt->is_valid == INVALID) {
