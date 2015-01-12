@@ -245,6 +245,8 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 
 	mask_bit <<= positions;
 
+        g->count = 0;
+
 	do
 	{
 		if(id & mask_bit)
@@ -354,6 +356,8 @@ rng_gen_val(tw_rng_stream * g)
   int32_t k, s;
   double u;
 
+  g->count++;
+
   u = 0.0;
 
   s = g->Cg[0];
@@ -412,6 +416,8 @@ rng_gen_reverse_val(tw_rng_stream * g)
   int32_t *m = rng->m;
   int32_t s;
   double u;
+
+  g->count--;
 
   u = 0.0;
 

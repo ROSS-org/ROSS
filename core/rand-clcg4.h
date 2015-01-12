@@ -31,6 +31,7 @@ typedef enum SeedType SeedType;
 
 struct tw_rng_stream
 {
+    unsigned long count;
 	int32_t	 Ig[4];
 	int32_t	 Lg[4];
 	int32_t	 Cg[4];
