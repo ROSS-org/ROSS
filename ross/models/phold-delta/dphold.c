@@ -62,7 +62,11 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     long start_count = lp->rng->count;
 
     // This should be the FIRST thing to do in your event handler
-    tw_snapshot(lp, lp->type.state_sz);
+    if (g_tw_synchronization_protocol == OPTIMISTIC ||
+        g_tw_synchronization_protocol == OPTIMISTIC_DEBUG) {
+        // Only do this in OPTIMISTIC mode
+        tw_snapshot(lp, lp->type.state_sz);
+    }
 
     count = tw_rand_ulong(lp->rng, 1, 100);
     
@@ -93,13 +97,19 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 
     // This should be the LAST thing you do in your event handler
     // (Take care to cover all possible exits!)
-    delta_size = tw_snapshot_delta(lp, lp->type.state_sz);
-    m->rng_count = lp->rng->count - start_count;
+    if (g_tw_synchronization_protocol == OPTIMISTIC ||
+        g_tw_synchronization_protocol == OPTIMISTIC_DEBUG) {
+        // Only do this in OPTIMISTIC mode
+        delta_size = tw_snapshot_delta(lp, lp->type.state_sz);
+        m->rng_count = lp->rng->count - start_count;
+    }
 }
 
 void
 phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+    // We don't need to check g_tw_synchronization_protocol here since if
+    // this gets called, we must be in an OPTIMISTIC mode anyway
     long count = m->rng_count;
     // This should be the FIRST thing to do in your reverse event handler
     tw_snapshot_restore(lp, lp->type.state_sz, lp->pe->cur_event->delta_buddy, lp->pe->cur_event->delta_size);
