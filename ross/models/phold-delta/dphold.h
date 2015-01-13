@@ -20,6 +20,7 @@ struct phold_state
 struct phold_message
 {
 	long int	 dummy_data;
+    long rng_count;
 };
 
 	/*

@@ -59,6 +59,7 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     long delta_size;
     unsigned count;
 	tw_lpid	 dest;
+    long start_count = lp->rng->count;
 
     // This should be the FIRST thing to do in your event handler
     tw_snapshot(lp, lp->type.state_sz);
@@ -75,7 +76,6 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     
 	if(tw_rand_unif(lp->rng) <= percent_remote)
 	{
-		bf->c1 = 1;
 		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
 		// Makes PHOLD non-deterministic across processors! Don't uncomment
 		/* dest += offset_lpid; */
@@ -83,7 +83,6 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 		/* 	dest -= ttl_lps; */
 	} else
 	{
-		bf->c1 = 0;
 		dest = lp->gid;
 	}
 
@@ -95,19 +94,18 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
     // This should be the LAST thing you do in your event handler
     // (Take care to cover all possible exits!)
     delta_size = tw_snapshot_delta(lp, lp->type.state_sz);
+    m->rng_count = lp->rng->count - start_count;
 }
 
 void
 phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+    long count = m->rng_count;
     // This should be the FIRST thing to do in your reverse event handler
     tw_snapshot_restore(lp, lp->type.state_sz, lp->pe->cur_event->delta_buddy, lp->pe->cur_event->delta_size);
-
-	tw_rand_reverse_unif(lp->rng);
-	tw_rand_reverse_unif(lp->rng);
-
-	if(bf->c1 == 1)
-		tw_rand_reverse_unif(lp->rng);
+    while (count--) {
+        tw_rand_reverse_unif(lp->rng);
+    }
 }
 
 void
