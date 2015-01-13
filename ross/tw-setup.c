@@ -447,6 +447,9 @@ setup_pes(void)
 		pe = g_tw_pe[i];
         if (g_tw_buddy_alloc) {
             g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
+            if (g_tw_buddy_master == NULL) {
+                tw_error(TW_LOC, "create_buddy_table() failed.");
+            }
             tw_delta_alloc(pe);
         }
 		pe->pq = tw_pq_create();
