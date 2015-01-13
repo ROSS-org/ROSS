@@ -326,6 +326,8 @@ struct tw_event
   	} state;
 
   	tw_bf		 cv; 				/**< @brief Used by app during reverse computation. */
+    void *delta_buddy;              /**< @brief Delta memory from buddy allocator. */
+    size_t      delta_size;         /**< @brief Size of delta. */
 
 	tw_lp		*dest_lp_ptr; 		/**< @brief Destination LP Pointer */
 	tw_lp		*src_lp_ptr; 		/**< @brief Sending LP Pointer */
@@ -429,6 +431,8 @@ struct tw_pe
   tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
   tw_event *cur_event; /**< @brief Current event being processed */
   tw_eventq sevent_q; /**< @brief events already sent over the network */
+
+  unsigned char *delta_buffer[2]; /**< @brief buffers used for delta encoding */
 
 #ifdef USE_AVL_TREE
   /* AVL node free list and head pointers */

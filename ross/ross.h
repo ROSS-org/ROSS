@@ -155,6 +155,7 @@ typedef unsigned long long tw_lpid;
 typedef uintptr_t tw_lpid;
 #endif
 
+#include "buddy.h"
 #include "ross-random.h"
 
 #ifdef ROSS_RAND_clcg4

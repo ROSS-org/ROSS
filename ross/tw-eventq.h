@@ -66,6 +66,11 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     {
         tw_free_output_messages(e, 1);
 
+        if (e->delta_buddy) {
+            buddy_free(e->delta_buddy);
+            e->delta_buddy = 0;
+        }
+
         pe = e->dest_lp->pe;
         // have to reclaim non-cancelled remote events from hash table
         if(e->event_id && e->state.remote)
