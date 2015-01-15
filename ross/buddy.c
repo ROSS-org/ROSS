@@ -299,7 +299,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
-    bsystem = calloc(list_count + 1, sizeof(buddy_list_bucket_t));
+    bsystem = tw_calloc(TW_LOC, "buddy system", list_count + 1, sizeof(buddy_list_bucket_t));
     if (bsystem == NULL) {
         return NULL;
     }
@@ -314,7 +314,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     // Allocate the memory
     size = 1 << power_of_two;
-    buddy_base_address = calloc(1, size);
+    buddy_base_address = tw_calloc(TW_LOC, "buddy system", 1, size);
     if (buddy_base_address == NULL) {
         free(bsystem);
         return NULL;
