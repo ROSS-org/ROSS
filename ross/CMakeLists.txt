@@ -133,6 +133,8 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-memoryq.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timer.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/ross-random.h DESTINATION include)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/tw-timing.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/buddy.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/ross/lz4.h DESTINATION include)
 
 #
 # build and install the ross-config script
