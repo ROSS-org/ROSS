@@ -20,6 +20,7 @@ long
 tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 {
     long i;
+    tw_clock start;
     int ret_size = 0;
     unsigned char *current_state = lp->cur_state;
     unsigned char *snapshot = lp->pe->delta_buffer[0];
@@ -28,12 +29,16 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
         snapshot[i] = current_state[i] - snapshot[i];
     }
 
+    start = tw_clock_read();
     ret_size = LZ4_compress((char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz);
+    g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret_size < 0) {
         tw_error(TW_LOC, "LZ4_compress error");
     }
 
+    start = tw_clock_read();
     lp->pe->cur_event->delta_buddy = buddy_alloc(ret_size);
+    g_tw_pe[0]->stats.s_buddy += (tw_clock_read() - start);
     assert(lp->pe->cur_event->delta_buddy);
     lp->pe->cur_event->delta_size = ret_size;
     memcpy(lp->pe->cur_event->delta_buddy, lp->pe->delta_buffer[1], ret_size);
@@ -47,7 +52,9 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 void
 tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size)
 {
+    tw_clock start = tw_clock_read();
     int ret = LZ4_decompress_safe(buffer, lp->cur_state, delta_size, state_sz);
+    g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret < 0) {
         tw_error(TW_LOC, "LZ4_decompress_fast error");
     }
@@ -98,7 +105,9 @@ tw_state_rollback(tw_lp *lp, tw_event *revent)
 		lp);
 
         if (revent->delta_buddy) {
+            tw_clock start = tw_clock_read();
             buddy_free(revent->delta_buddy);
+            g_tw_pe[0]->stats.s_buddy += (tw_clock_read() - start);
             revent->delta_buddy = 0;
         }
 #if 0
