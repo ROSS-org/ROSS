@@ -1,8 +1,8 @@
 #ifndef INC_ross_kernel_inline_h
 #define INC_ross_kernel_inline_h
 
-#define	max(a,b)	((a) > (b) ? (a) : (b))
-#define	min(a,b)	((a) < (b) ? (a) : (b))
+#define	ROSS_MAX(a,b)	((a) > (b) ? (a) : (b))
+#define	ROSS_MIN(a,b)	((a) < (b) ? (a) : (b))
 
 static inline tw_lp * 
      tw_getlocal_lp(tw_lpid gid)

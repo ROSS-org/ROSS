@@ -59,7 +59,7 @@ tw_stats(tw_pe * me)
 
 		tw_wall_sub(&rt, &pe->end_time, &pe->start_time);
 
-		s.s_max_run_time = max(s.s_max_run_time, tw_wall_to_double(&rt));
+		s.s_max_run_time = ROSS_MAX(s.s_max_run_time, tw_wall_to_double(&rt));
 		s.s_nevent_abort += pe->stats.s_nevent_abort;
 		s.s_pq_qsize += tw_pq_get_size(me->pq);
 

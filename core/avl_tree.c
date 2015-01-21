@@ -67,8 +67,6 @@ avlSearch(AvlTree t, tw_event *key)
     }
 }
 
-#define Max(x,y) ((x)>(y) ? (x) : (y))
-
 /* assert height fields are correct throughout tree */
 void
 avlSanityCheck(AvlTree root)
@@ -80,7 +78,7 @@ avlSanityCheck(AvlTree root)
             avlSanityCheck(root->child[i]);
         }
         
-        assert(root->height == 1 + Max(avlGetHeight(root->child[0]), avlGetHeight(root->child[1])));
+        assert(root->height == 1 + ROSS_MAX(avlGetHeight(root->child[0]), avlGetHeight(root->child[1])));
     }
 }
 
@@ -90,7 +88,7 @@ avlFixHeight(AvlTree t)
 {
     assert(t != AVL_EMPTY);
     
-    t->height = 1 + Max(avlGetHeight(t->child[0]), avlGetHeight(t->child[1]));
+    t->height = 1 + ROSS_MAX(avlGetHeight(t->child[0]), avlGetHeight(t->child[1]));
 }
 
 /* rotate child[d] to root */

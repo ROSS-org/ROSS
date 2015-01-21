@@ -70,7 +70,7 @@ void tw_event_send(tw_event * event) {
     }
 
     if(tw_gvt_inprogress(send_pe)) {
-        send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, recv_ts);
+        send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, recv_ts);
     }
 }
 
@@ -94,7 +94,7 @@ static inline void event_cancel(tw_event * event) {
         send_pe->stats.s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
-            send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, event->recv_ts);
+            send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
         }
 
         return;
@@ -117,7 +117,7 @@ static inline void event_cancel(tw_event * event) {
                 local_cancel(send_pe, event);
 
                 if(tw_gvt_inprogress(send_pe)) {
-                    send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, event->recv_ts);
+                    send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
                 }
                 break;
 
@@ -132,7 +132,7 @@ static inline void event_cancel(tw_event * event) {
         send_pe->stats.s_nsend_loc_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
-            send_pe->trans_msg_ts = min(send_pe->trans_msg_ts, event->recv_ts);
+            send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
         }
     } else {
         tw_error(TW_LOC, "Should be remote cancel!");
