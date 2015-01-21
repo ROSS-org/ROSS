@@ -10,16 +10,21 @@
 
 typedef enum purpose { FREE, USED } purpose_t;
 
+#define BUDDY_ALIGN_PREF (32 - 2 * sizeof(void*) - sizeof(uint32_t) - sizeof(purpose_t))
+
 /**
  * Metadata about this particular block
  * (and stored at the beginning of this block).
- * One per allocated block of memory
+ * One per allocated block of memory.
+ * Should be 32 bytes to not screw up alignment.
  */
 typedef struct buddy_list
 {
-    purpose_t use;
-    unsigned int size;
+    // Should be two pointers
     LIST_ENTRY(buddy_list) next_freelist;
+    uint32_t size;
+    purpose_t use;
+    char padding[BUDDY_ALIGN_PREF];
 } buddy_list_t;
 
 typedef enum valid { VALID, INVALID } valid_t;
