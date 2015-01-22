@@ -82,6 +82,9 @@ tw_stats(tw_pe * me)
         s.s_pe_event_ties += pe->stats.s_pe_event_ties;
         s.s_min_detected_offset = g_tw_min_detected_offset;
         s.s_avl += pe->stats.s_avl;
+        s.s_buddy += pe->stats.s_buddy;
+        s.s_lz4 += pe->stats.s_lz4;
+        
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -180,6 +183,8 @@ tw_stats(tw_pe * me)
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at %1.4lf GHz):\n", g_tw_clock_rate / 1000000000.0);
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / g_tw_clock_rate);
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
+    show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
+    show_4f("Buddy system", (double) s.s_buddy / g_tw_clock_rate);
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);
 	show_4f("Event Abort", (double) s.s_event_abort / g_tw_clock_rate);

@@ -17,6 +17,7 @@ static const tw_optdef kernel_options[] = {
     TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
+    TWOPT_UINT("buddy_size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
     TWOPT_END()
 };
 
@@ -368,6 +369,19 @@ void tw_end(void) {
     tw_net_stop();
 }
 
+int LZ4_compressBound(int isize);
+
+/**
+ * By the time this function gets called, g_tw_delta_sz should be as large
+ * as it will ever get.
+ */
+static void tw_delta_alloc(tw_pe *pe) {
+    g_tw_delta_sz = LZ4_compressBound(g_tw_delta_sz);
+    
+    pe->delta_buffer[0] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
+    pe->delta_buffer[1] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
+}
+
 static tw_pe * setup_pes(void) {
     tw_pe   *pe;
     tw_pe   *master;
@@ -390,6 +404,13 @@ static tw_pe * setup_pes(void) {
 
     for(i = 0; i < g_tw_npe; i++) {
         pe = g_tw_pe[i];
+        if (g_tw_buddy_alloc) {
+            g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
+            if (g_tw_buddy_master == NULL) {
+                tw_error(TW_LOC, "create_buddy_table() failed.");
+            }
+            tw_delta_alloc(pe);
+        }
         pe->pq = tw_pq_create();
 
         tw_eventq_alloc(&pe->free_q, num_events_per_pe);

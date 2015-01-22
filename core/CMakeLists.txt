@@ -25,6 +25,12 @@ network-${NETWORK}.c
 hash-quadratic.h
 hash-quadratic.c
 
+buddy.h
+buddy.c
+lz4.h
+lz4.c
+tw-state.c
+
 ross-extern.h
 ross-global.c
 

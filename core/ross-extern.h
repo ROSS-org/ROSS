@@ -30,6 +30,9 @@ extern tw_stime		g_tw_ts_end;
 extern unsigned int	g_tw_sim_started;
 extern size_t		g_tw_msg_sz;
 extern size_t		g_tw_event_msg_sz;
+extern size_t g_tw_delta_sz;
+extern uint32_t g_tw_buddy_alloc;
+extern buddy_list_bucket_t *g_tw_buddy_master;
 
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
@@ -146,6 +149,13 @@ extern void tw_scheduler_optimistic_debug(tw_pe * me);
  */
 extern void     tw_sigsegv(int sig);
 extern void     tw_sigterm(int sig);
+
+/*
+ * tw-state.c
+ */
+extern void tw_snapshot(tw_lp *lp, size_t state_sz);
+extern long tw_snapshot_delta(tw_lp *lp, size_t state_sz);
+extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size);
 
 /*
  * tw-timing.c

@@ -117,6 +117,13 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
   tw_free_output_messages(e, 0);
 
+  if (e->delta_buddy) {
+      tw_clock start = tw_clock_read();
+      buddy_free(e->delta_buddy);
+      g_tw_pe[0]->stats.s_buddy += (tw_clock_read() - start);
+      e->delta_buddy = 0;
+  }
+  
   e->state.owner = TW_pe_free_q;
 
   tw_eventq_unshift(&pe->free_q, e);

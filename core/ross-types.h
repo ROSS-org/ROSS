@@ -149,6 +149,8 @@ struct tw_statistics {
     tw_clock s_cancel_q;
 
     tw_clock s_avl;
+    tw_clock s_buddy;
+    tw_clock s_lz4;
 };
 
 #ifdef ROSS_MEMORY
@@ -291,6 +293,8 @@ struct tw_event {
     } state;
 
     tw_bf        cv;                /**< @brief Used by app during reverse computation. */
+    void *delta_buddy;              /**< @brief Delta memory from buddy allocator. */
+    size_t      delta_size;         /**< @brief Size of delta. */
 
     tw_lp       *dest_lp;           /**< @brief Destination LP ID */
     tw_lp       *src_lp;            /**< @brief Sending LP ID */
@@ -389,6 +393,8 @@ struct tw_pe {
     tw_event *cur_event; /**< @brief Current event being processed */
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
+    unsigned char *delta_buffer[2]; /**< @brief buffers used for delta encoding */
+    
 #ifdef AVL_TREE
     /* AVL node head pointer and size */
     AvlTree avl_list_head;

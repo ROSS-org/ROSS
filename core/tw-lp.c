@@ -43,6 +43,10 @@ tw_lp_settype(tw_lpid id, const tw_lptype * type)
 
 	// memcpy(&lp->type, type, sizeof(*type));
 	lp->type = type;
+
+        if (type->state_sz > g_tw_delta_sz) {
+            g_tw_delta_sz = type->state_sz;
+        }
 }
 
 void
