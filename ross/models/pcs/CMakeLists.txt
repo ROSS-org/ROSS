@@ -1,8 +1,0 @@
-INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
-
-SET(pcs_srcs
-pcs.c pcs.h)
-
-ADD_EXECUTABLE(pcs ${pcs_srcs})
-
-TARGET_LINK_LIBRARIES(pcs ROSS m)
