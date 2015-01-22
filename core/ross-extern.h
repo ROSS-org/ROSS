@@ -1,9 +1,6 @@
 #ifndef INC_ross_extern_h
 #define	INC_ross_extern_h
 
-tw_pe *setup_pes(void);
-void late_sanity_check(void);
-
 extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
 
 /*
