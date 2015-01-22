@@ -4,7 +4,7 @@ Welcome to a leaner, meaner, *faster* version of ROSS.
 While the entire history of ROSS has been preserved in this repository, a major change in the directory structure has getting the full history of a file somewhat of a pain.
 You find the now-deprecated version at the [ROSS-Legacy tag](https://github.com/carothersc/ROSS/releases/tag/Legacy) in this repository.
 Using this repository you can compare files from the new `ROSS/core` to `ROSS/ross`.
-For a detailed list of changes between old ROSS and SR please visit [the wiki](http://github.com/gonsie/SR/wiki).
+For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/carothersc/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
 
 ## History
 
@@ -35,7 +35,7 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
   ```
 
 3. *Optional* Symlink your model to ROSS.
-Please [this wiki page]() for details about creating and integrating model with ROSS.
+Please [this wiki page](https://github.com/carothersc/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.
   ```
   ln -s ~/path-to/your-existing-model models/your-model-name
   ```
@@ -57,7 +57,7 @@ ROSS developers typically do out-of-tree builds.
   ```
 
 5. Run your model.
-See [this wiki page]() for details about the ROSS command line options.
+See [this wiki page](https://github.com/carothersc/ROSS/wiki/Running-the-Simulator) for details about the ROSS command line options.
   ```
   cd ~/directory-of-builds/ROSS-build/models/your-model
   ./your-model --synch=1               // sequential mode
