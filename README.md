@@ -27,16 +27,19 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
   git clone git@github.com:carothersc/ROSS
   cd ROSS
   ```
+
 2. *New* Install the submodules:
   ```
   git submodule init
   git submodule update
   ```
+
 3. *Optional* Symlink your model to ROSS.
 Please [this wiki page]() for details about creating and integrating model with ROSS.
   ```
   ln -s ~/path-to/your-existing-model models/your-model-name
   ```
+
 3. Create a build directory.
 ROSS developers typically do out-of-tree builds.
   ```
@@ -45,12 +48,14 @@ ROSS developers typically do out-of-tree builds.
   cd ROSS-build
   ccmake ~/path-to/ROSS
   ```
+
 4. Make your model(s) with one of the following commands
   ```
   make -k         // ignore errors from other models
   make -j 12      // parallel build
   make model-name // build only one model
   ```
+
 5. Run your model.
 See [this wiki page]() for details about the ROSS command line options.
   ```
