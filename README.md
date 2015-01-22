@@ -23,45 +23,40 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
 ## Startup Instructions
 
 1. Clone the repository to your local machine:
-```
-git clone git@github.com:carothersc/ROSS
-cd ROSS
-```
-
+  ```
+  git clone git@github.com:carothersc/ROSS
+  cd ROSS
+  ```
 2. *New* Install the submodules:
-```
-git submodule init
-git submodule update
-```
-
+  ```
+  git submodule init
+  git submodule update
+  ```
 3. *Optional* Symlink your model to ROSS.
 Please [this wiki page]() for details about creating and integrating model with ROSS.
-```
-ln -s ~/path-to/your-existing-model models/your-model-name
-```
-
+  ```
+  ln -s ~/path-to/your-existing-model models/your-model-name
+  ```
 3. Create a build directory.
 ROSS developers typically do out-of-tree builds.
-```
-cd ~/directory-of-builds/
-mkdir ROSS-build
-cd ROSS-build
-ccmake ~/path-to/ROSS
-```
-
+  ```
+  cd ~/directory-of-builds/
+  mkdir ROSS-build
+  cd ROSS-build
+  ccmake ~/path-to/ROSS
+  ```
 4. Make your model(s) with one of the following commands
-```
-make -k         // ignore errors from other models
-make -j 12      // parallel build
-make model-name // build only one model
-```
-
+  ```
+  make -k         // ignore errors from other models
+  make -j 12      // parallel build
+  make model-name // build only one model
+  ```
 5. Run your model.
 See [this wiki page]() for details about the ROSS command line options.
-```
-cd ~/directory-of-builds/ROSS-build/models/your-model
-./your-model --synch=1               // sequential mode
-mpirun -np 2 ./your-model --synch=2  // conservative mode
-mpirun -np 2 ./your-model --synch=3  // optimistic mode
-./your-model --synch=4               // optimistic debug mode (note: not a parallel execution!)
-```
+  ```
+  cd ~/directory-of-builds/ROSS-build/models/your-model
+  ./your-model --synch=1               // sequential mode
+  mpirun -np 2 ./your-model --synch=2  // conservative mode
+  mpirun -np 2 ./your-model --synch=3  // optimistic mode
+  ./your-model --synch=4               // optimistic debug mode (note: not a parallel execution!)
+  ```
