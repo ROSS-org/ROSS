@@ -16,3 +16,4 @@
 #cmakedefine RAND_NORMAL
 #cmakedefine ROSS_timing
 #cmakedefine ROSS_runtime_checks
+#cmakedefine ROSS_ALLOC_DEBUG

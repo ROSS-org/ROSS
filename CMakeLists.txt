@@ -32,7 +32,7 @@ OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 #memory buffers.  If it's not set to YES, it defaults to NO
 OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
 #SET(MEMORY        YES)
-OPTION(ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
+OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 
 OPTION(TIMING	   "Perform ROSS timings"	ON)
 
