@@ -64,17 +64,6 @@ IF(NOT ARCH)
     "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT ARCH)
 
-# C Compiler
-SET(CC $ENV{CC} CACHE STRING "MPI C Compiler")
-MARK_AS_ADVANCED(CC)
-IF(NOT CC)
-  MESSAGE(WARNING "MPI Compiler, \$CC, not set.")
-ENDIF(NOT CC)
-
-# C++ Compiler for CODES
-SET(CXX $ENV{CXX} CACHE STRING "MPI C++ Compiler")
-MARK_AS_ADVANCED(CXX)
-
 IF(ARCH STREQUAL i386)
   SET(VALID_ARCH YES)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
