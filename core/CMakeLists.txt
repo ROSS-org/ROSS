@@ -83,6 +83,11 @@ IF(ROSS_MEMORY)
   SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
 ENDIF(ROSS_MEMORY)
 
+# use naive allocator. Corresponding option defined in ROSS/CMakeLists.txt
+IF(ALLOC_DEBUG)
+    SET(OPTIONS "${OPTIONS} -DROSS_ALLOC_DEBUG")
+ENDIF(ALLOC_DEBUG)
+
 OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
 # Show timing data at end of run
