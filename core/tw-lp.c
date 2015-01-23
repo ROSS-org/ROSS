@@ -31,7 +31,7 @@ void tw_lp_setup_types () {
  * once.
  */
 void
-tw_lp_settype(tw_lpid id, const tw_lptype * type)
+tw_lp_settype(tw_lpid id, tw_lptype * type)
 {
 	tw_lp *lp = g_tw_lp[id];
 
