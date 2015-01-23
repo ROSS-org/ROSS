@@ -84,7 +84,7 @@ tw_stats(tw_pe * me)
         s.s_avl += pe->stats.s_avl;
         s.s_buddy += pe->stats.s_buddy;
         s.s_lz4 += pe->stats.s_lz4;
-        s.s_events_past_end += s.s_events_past_end;
+        s.s_events_past_end += pe->stats.s_events_past_end;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
