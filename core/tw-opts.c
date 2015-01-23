@@ -99,6 +99,10 @@ show_help(void)
 					fprintf(stderr, " (default %s)", (char *) def->value);
 					break;
 
+                                case TWOPTTYPE_FLAG:
+                                    fprintf(stderr, " (default off)");
+                                    break;
+
 				default:
 					break;
 				}
@@ -151,6 +155,10 @@ tw_opt_print(void)
 				case TWOPTTYPE_CHAR:
 					fprintf(f, "%s,", (char *)def->value);
 					break;
+
+                                case TWOPTTYPE_FLAG:
+                                    fprintf(f, "%s,", (char *)def->name);
+                                    break;
 
 				default:
 					break;
@@ -227,6 +235,10 @@ apply_opt(const tw_optdef *def, const char *value)
 		strcpy((char *) def->value, value);
 		break;
 	}
+
+        case TWOPTTYPE_FLAG:
+                *((unsigned int*)def->value) = 1;
+                break;
 
 	case TWOPTTYPE_SHOWHELP:
 		if (tw_ismaster())
