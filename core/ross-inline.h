@@ -68,10 +68,12 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   /* If this event will be past the end time, or there
    * are no more free events available, use abort event.
    */
-  if (recv_ts >= g_tw_ts_end)
+  if (recv_ts >= g_tw_ts_end) {
     e = send_pe->abort_event;
-  else 
+    send_pe->stats.s_events_past_end++;
+  } else {
     e = tw_event_grab(send_pe);
+  }
 
   e->dest_lp = (tw_lp *) dest_gid;
   e->src_lp = sender;

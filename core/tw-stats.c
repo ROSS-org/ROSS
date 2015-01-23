@@ -84,6 +84,7 @@ tw_stats(tw_pe * me)
         s.s_avl += pe->stats.s_avl;
         s.s_buddy += pe->stats.s_buddy;
         s.s_lz4 += pe->stats.s_lz4;
+        s.s_events_past_end += s.s_events_past_end;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -156,6 +157,8 @@ tw_stats(tw_pe * me)
 		((double)s.s_net_events / s.s_max_run_time)
 	);
 
+        show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
+        
 	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated", g_tw_events_per_pe * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);

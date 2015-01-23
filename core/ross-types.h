@@ -151,6 +151,8 @@ struct tw_statistics {
     tw_clock s_avl;
     tw_clock s_buddy;
     tw_clock s_lz4;
+
+    tw_stat s_events_past_end;
 };
 
 #ifdef ROSS_MEMORY
