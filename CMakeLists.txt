@@ -17,27 +17,6 @@ CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
 
 # ROSS Configuration Options
 
-#SET(QUEUE      calendar) #Calendar Queue
-#SET(QUEUE      heap) #Push/Down Heap
-SET(QUEUE       splay) #Splay Tree
-
-#SET(MAPPING      none)
-#SET(MAPPING       linear)
-#SET(MAPPING      rrobin)
-
-SET(RAND           clcg4)
-OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
-
-#MEMORY is either on or off depending on whether or not we desire
-#memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(MEMORY	  "ROSS Memory Buffers (membufs)"     OFF)
-#SET(MEMORY        YES)
-OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
-
-OPTION(TIMING	   "Perform ROSS timings"	ON)
-
-OPTION(WITH_NETDMF "NetDMF support"             OFF)
-
 # Data Structure for Unprocessed Event List
 #SET(QUEUE calendar) #Calendar Queue
 #SET(QUEUE heap) #Push/Down Heap
@@ -54,6 +33,9 @@ SET(NETWORK mpi)
 # GVT algorithm option
 #SET(GVT 7oclock)
 SET(GVT mpi_allreduce)
+
+# Use debugging-friendly memory allocation
+OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 
 # Architecture setting and management
 SET(VALID_ARCH NO)
