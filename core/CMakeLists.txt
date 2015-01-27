@@ -83,6 +83,9 @@ IF(ROSS_MEMORY)
   SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
 ENDIF(ROSS_MEMORY)
 
+# Use debugging-friendly memory allocation
+OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
+
 OPTION(RAND_NORMAL "Turn on state for normal distribution" ON)
 
 # Show timing data at end of run

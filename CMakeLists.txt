@@ -34,9 +34,6 @@ SET(NETWORK mpi)
 #SET(GVT 7oclock)
 SET(GVT mpi_allreduce)
 
-# Use debugging-friendly memory allocation
-OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
-
 # Architecture setting and management
 SET(VALID_ARCH NO)
 SET(ARCH $ENV{ARCH} CACHE STRING "Target architecture")
