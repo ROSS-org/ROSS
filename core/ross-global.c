@@ -7,7 +7,7 @@
 	 * g_tw_nlp         -- Number of LPs on this processor
 	 * g_tw_lp_offset   -- global id of g_tw_lp[0] (on this processor)
 	 * g_tw_nkp         -- Number of KPs on this processor
-                            IF this is 1, then it gets over written as nkp_per_pe * g_tw_npe 
+                            IF this is 1, then it gets over written as nkp_per_pe * g_tw_npe
                             thus it is total KPs in simulation, not on this processor
 	 * g_tw_lp          -- Public LP object array (on this processor)
 	 * g_tw_kp          -- Public KP object array (on this processor)
@@ -18,7 +18,7 @@
 tw_synch     g_tw_synchronization_protocol=NO_SYNCH;
 map_local_f  g_tw_custom_lp_global_to_local_map=NULL;
 map_custom_f g_tw_custom_initial_mapping=NULL;
-tw_lp_map    g_tw_mapping=LINEAR;   
+tw_lp_map    g_tw_mapping=LINEAR;
 
 tw_lpid         g_tw_nlp = 0;
 tw_lpid		g_tw_lp_offset = 0;
@@ -34,10 +34,11 @@ size_t g_tw_msg_sz;
 size_t g_tw_delta_sz = 0;
 uint32_t g_tw_buddy_alloc = 0; /**< Allocation for buddy system */
 buddy_list_bucket_t *g_tw_buddy_master = 0;
+uint32_t g_tw_avl_node_count = 18;
 
 #if ROSS_MEMORY
 unsigned int	g_tw_memory_nqueues = 64;
-#else 
+#else
 unsigned int	g_tw_memory_nqueues = 0;
 #endif
 

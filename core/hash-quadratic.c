@@ -33,9 +33,10 @@ tw_hash_create()
 
   g_tw_pe[0]->avl_tree_size = 0;
 
-  avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), AVL_NODE_COUNT);
+  g_avl_node_count = 1 << g_tw_avl_node_count;
+  avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), g_tw_avl_node_count);
 
-  for (i = 0; i < AVL_NODE_COUNT - 1; i++) {
+  for (i = 0; i < g_tw_avl_node_count - 1; i++) {
     avl_list[i].next = &avl_list[i + 1];
   }
   avl_list[i].next = NULL;
@@ -179,7 +180,7 @@ find_entry(tw_event ** hash_t, tw_event * event, int hash_size, int pe)
 
 		if (key > hash_size)
 		{
-			tw_error(TW_LOC, "Cannot find event in hash table: PE %d, key %d, size %d\n", 
+			tw_error(TW_LOC, "Cannot find event in hash table: PE %d, key %d, size %d\n",
 				pe, key, hash_size);
 		}
 	}
@@ -219,7 +220,7 @@ tw_hash_remove(void *h, tw_event * event, long pe)
 
 	hash_t->incoming[pe][key] = NULL;
 	(hash_t->num_stored[pe])--;
-	
+
 	return ret_event;
 #endif
 }

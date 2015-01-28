@@ -14,7 +14,7 @@ extern void tw_stats(tw_pe * me);
 extern tw_synch g_tw_synchronization_protocol;
 extern map_local_f g_tw_custom_lp_global_to_local_map;
 extern map_custom_f g_tw_custom_initial_mapping;
-extern tw_lp_map g_tw_mapping;   
+extern tw_lp_map g_tw_mapping;
 extern tw_lpid  g_tw_nlp;
 extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
@@ -33,6 +33,7 @@ extern size_t		g_tw_event_msg_sz;
 extern size_t       g_tw_delta_sz;
 extern uint32_t     g_tw_buddy_alloc;
 extern buddy_list_bucket_t *g_tw_buddy_master;
+extern uint32_t		g_tw_avl_node_count;
 
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
@@ -123,7 +124,7 @@ extern void		 tw_pe_settype(tw_pe *, const tw_petype * type);
 extern void		 tw_pe_create(tw_peid npe);
 extern void		 tw_pe_init(tw_peid id, tw_peid global);
 extern void		 tw_pe_fossil_collect(tw_pe * me);
-extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem, 
+extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem,
 					   size_t d_sz, tw_stime mult);
 
 /*

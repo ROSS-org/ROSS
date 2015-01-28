@@ -18,6 +18,9 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
     TWOPT_UINT("buddy_size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
+#ifdef AVL_TREE
+    TWOPT_UINT("avl_size", g_tw_avl_node_count, "AVL Treet contians 2^avl_size nodes"),
+#endif
     TWOPT_END()
 };
 
@@ -123,7 +126,7 @@ void map_linear(void) {
 
             for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
                 tw_lp_onpe(lpid, pe, g_tw_lp_offset+lpid);
-                tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]); 
+                tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
                 if(0 == j % 20) {
@@ -177,7 +180,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed) {
     int  i;
 
     g_tw_nlp = nlp;
-    
+
 #ifdef ROSS_MEMORY
     g_tw_memory_sz = sizeof(tw_memory);
 #endif
@@ -274,14 +277,14 @@ static void late_sanity_check(void) {
 }
 
 #ifdef USE_BGPM
-unsigned cacheList[] = { 
+unsigned cacheList[] = {
     PEVT_L2_HITS,
     PEVT_L2_MISSES,
     PEVT_L2_FETCH_LINE,
     PEVT_L2_STORE_LINE,
 };
 
-unsigned instList[] = { 
+unsigned instList[] = {
     PEVT_LSU_COMMIT_CACHEABLE_LDS,
     PEVT_L1P_BAS_MISS,
     PEVT_INST_XU_ALL,
@@ -289,7 +292,7 @@ unsigned instList[] = {
     PEVT_INST_QFPU_FPGRP1,
     PEVT_INST_ALL,
 };
-#endif 
+#endif
 
 void tw_run(void) {
     tw_pe *me;
@@ -350,7 +353,7 @@ void tw_run(void) {
         int numEvts = Bgpm_NumEvents(hEvtSet);
         printf("\n \n ================================= \n");
         printf( "Performance Counter Results:\n");
-        printf("--------------------------------- \n");      
+        printf("--------------------------------- \n");
         for (i=0; i<numEvts; i++) {
             Bgpm_ReadEvent(hEvtSet, i, &cnt);
             printf("   %40s = %20llu\n", Bgpm_GetEventLabel(hEvtSet, i), cnt);
@@ -377,7 +380,7 @@ int LZ4_compressBound(int isize);
  */
 static void tw_delta_alloc(tw_pe *pe) {
     g_tw_delta_sz = LZ4_compressBound(g_tw_delta_sz);
-    
+
     pe->delta_buffer[0] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
     pe->delta_buffer[1] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
 }
