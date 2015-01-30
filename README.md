@@ -28,11 +28,13 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
   cd ROSS
   ```
 
-2. *New* Install the submodules:
+2. *Optional* Install the submodules:
   ```
   git submodule init
   git submodule update
   ```
+  Currently, ROSS includes two submodules.
+  A template model, [SR-model](http://github.com/gonsie/SR-model), and an [IO framework](http://github.com/gonsie/RIO).
 
 3. *Optional* Symlink your model to ROSS.
 Please [this wiki page](https://github.com/carothersc/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.
