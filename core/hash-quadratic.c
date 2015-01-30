@@ -33,7 +33,7 @@ tw_hash_create()
 
   g_tw_pe[0]->avl_tree_size = 0;
 
-  g_avl_node_count = 1 << g_tw_avl_node_count;
+  g_tw_avl_node_count = 1 << g_tw_avl_node_count;
   avl_list = (AvlTree) tw_calloc(TW_LOC, "avl tree", sizeof(struct avlNode), g_tw_avl_node_count);
 
   for (i = 0; i < g_tw_avl_node_count - 1; i++) {
