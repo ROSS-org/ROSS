@@ -36,7 +36,7 @@ tw_init(int *argc, char ***argv)
 	// setup trace file and print header information */
 	desTraceFile = fopen("desTraceFile.json", "w+");
 	
-	fprintf(desTraceFile, "{\n\"simulator_name\" : \"ROSS Revision: %s\n", ROSS_VERSION);
+	fprintf(desTraceFile, "{\n\"simulator_name\" : \"ROSS Revision: %s ", ROSS_VERSION);
         fprintf(desTraceFile, "(github version, forked on on June 21, 2014)\",\n");
 	
 	fprintf(desTraceFile, "\"model_name\" : \"");
@@ -52,7 +52,7 @@ tw_init(int *argc, char ***argv)
 	tw_opt_add(tw_net_init(argc, argv));
 
 	// capture command line arguments
-	fprintf(desTraceFile, "\"command\_line\_arguments\" : \"");
+	fprintf(desTraceFile, "\"command_line_arguments\" : \"");
 
         // Print out the command-line so we know what we passed in
 	if (tw_ismaster()) {
@@ -61,11 +61,12 @@ tw_init(int *argc, char ***argv)
 			// record command line arguments in desTraceFile
 	                fprintf(desTraceFile, " %s ", (*argv)[i]);
 	        }
-	        printf("\n\n");
+	        printf("\n");
 	}
     
 	// setup entry for capturing events exchanged in the simulation.
-	fprintf(desTraceFile,"\",\n\n\"events\" : [\n");
+	fprintf(desTraceFile,"\",\n\"events\" : [");
+	separator = " ";
 
     // Print our revision if we have it
 #ifdef ROSS_VERSION

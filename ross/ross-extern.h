@@ -218,5 +218,6 @@ extern void* tw_unsafe_realloc(
 	size_t len);
 
 extern FILE *desTraceFile;
+extern char *separator;
 
 #endif
