@@ -64,17 +64,6 @@ void tw_init(int *argc, char ***argv) {
 
     tw_opt_print();
 
-    // Check before tw_net_start
-    if(tw_nnodes() == 1 && g_tw_npe == 1) {
-        // force the setting of SEQUENTIAL protocol
-        if (g_tw_synchronization_protocol == NO_SYNCH) {
-            g_tw_synchronization_protocol = SEQUENTIAL;
-        } else if(g_tw_synchronization_protocol == CONSERVATIVE || g_tw_synchronization_protocol == OPTIMISTIC) {
-            g_tw_synchronization_protocol = SEQUENTIAL;
-            fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
-        }
-    }
-
     tw_net_start();
     tw_gvt_start();
 }

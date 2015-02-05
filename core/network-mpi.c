@@ -112,6 +112,17 @@ tw_net_start(void)
       printf("tw_net_start: Found world size to be %d \n", world_size );
     }
 
+  // Check after tw_nnodes is defined
+  if(tw_nnodes() == 1 && g_tw_npe == 1) {
+      // force the setting of SEQUENTIAL protocol
+      if (g_tw_synchronization_protocol == NO_SYNCH) {
+          g_tw_synchronization_protocol = SEQUENTIAL;
+      } else if(g_tw_synchronization_protocol == CONSERVATIVE || g_tw_synchronization_protocol == OPTIMISTIC) {
+          g_tw_synchronization_protocol = SEQUENTIAL;
+          fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
+      }
+  }
+
   tw_pe_create(1);
   tw_pe_init(0, g_tw_mynode);
 
