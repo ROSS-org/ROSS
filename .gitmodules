@@ -4,3 +4,6 @@
 [submodule "models/SR-model"]
 	path = models/SR-model
 	url = https://github.com/gonsie/SR-model.git
+[submodule "models/ROSS-Models"]
+	path = models/ROSS-Models
+	url = https://github.com/carothersc/ROSS-Models
