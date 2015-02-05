@@ -250,14 +250,6 @@ void tw_sched_init(tw_pe * me) {
     * the scheduler loop, and to print out the stats before
     * finishing if someone should type CTRL-c
     */
-    if(tw_nnodes() == 1 && g_tw_npe == 1) {
-        // force the setting of SEQUENTIAL protocol
-        if(g_tw_synchronization_protocol != SEQUENTIAL && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG) {
-            g_tw_synchronization_protocol = SEQUENTIAL;
-            printf("Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
-        }
-    }
-
     if (me->local_master) {
         g_tw_sim_started = 1;
     }
