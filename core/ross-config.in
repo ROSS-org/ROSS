@@ -1,8 +1,8 @@
 #!/bin/sh
 
-ROSS_CC="@CC@"
-ROSS_CXX="@CXX@"
-ROSS_LD="@CC@"
+ROSS_CC="@ROSS_CC@"
+ROSS_CXX="@ROSS_CXX@"
+ROSS_LD="@ROSS_CC@"
 
 prefix=`(cd $(dirname $0);pwd) | sed -e 's/\/bin//'`
 CFLAGS_OPTS=''

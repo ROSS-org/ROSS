@@ -110,6 +110,8 @@ ADD_LIBRARY(ROSS ${ross_srcs})
 CONFIGURE_FILE(config.h.in config.h)
 
 # CODES config bin
+SET(ROSS_CC $ENV{CC})
+SET(ROSS_CXX $ENV{CXX})
 CONFIGURE_FILE(ross-config.in ross-config @ONLY)
 
 # Make Install
