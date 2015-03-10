@@ -193,7 +193,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed) {
     /*
      * Construct the KP array.
      */
-    if( g_tw_nkp == 1 ) { // if it is the default, then check with the overide param
+    if( g_tw_nkp == 1 && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG ) { // if it is the default, then check with the overide param
         g_tw_nkp = nkp_per_pe * g_tw_npe;
     }
     // else assume the application overloaded and has BRAINS to set its own g_tw_nkp
