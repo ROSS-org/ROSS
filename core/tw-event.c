@@ -24,7 +24,7 @@ void tw_event_send(tw_event * event) {
     //Trap lookahead violations in debug mode
     //Note that compiling with the -DNDEBUG flag will turn this off!
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
-        if (recv_ts - tw_now(src_lp) >= g_tw_lookahead) {
+        if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {
             tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead");
         }
     }
@@ -51,7 +51,7 @@ void tw_event_send(tw_event * event) {
             return;
         } else {
             /* Slower, but still local send, so put into top of
-            * dest_pe->event_q. 
+            * dest_pe->event_q.
             */
             event->state.owner = TW_pe_event_q;
 
