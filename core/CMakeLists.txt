@@ -108,6 +108,10 @@ ADD_LIBRARY(ROSS ${ross_srcs})
 
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
+SET(ross_srcs ${ross_srcs} config.h)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in PROPERTIES GENERATED FALSE)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENERATED TRUE)
+
 
 # CODES config bin
 SET(ROSS_CC $ENV{CC})
