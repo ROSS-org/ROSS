@@ -1,7 +1,12 @@
-# 
-# Internal file for GetGitRevisionDescription.cmake
+# - Get the platform-appropriate flags to add to force inclusion of a file
 #
-# Requires CMake 2.6 or newer (uses the 'function' command)
+# The most common use of this is to use a generated config.h-type file
+# placed out of the source tree in all files.
+#
+#  get_force_include_definitions(var forcedincludefiles...) -
+#   where var is the name of  your desired output variable, and everything
+#   else is a source file to forcibly include.
+#   a list item to be filtered.
 #
 # Original Author:
 # 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
@@ -13,26 +18,27 @@
 # (See accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-set(HEAD_HASH)
-
-file(READ "@HEAD_FILE@" HEAD_CONTENTS LIMIT 1024)
-
-string(STRIP "${HEAD_CONTENTS}" HEAD_CONTENTS)
-if(HEAD_CONTENTS MATCHES "ref")
-	# named branch
-	string(REPLACE "ref: " "" HEAD_REF "${HEAD_CONTENTS}")
-	if(EXISTS "@GIT_DIR@/${HEAD_REF}")
-		configure_file("@GIT_DIR@/${HEAD_REF}" "@GIT_DATA@/head-ref" COPYONLY)
-	elseif(EXISTS "@GIT_DIR@/logs/${HEAD_REF}")
-		configure_file("@GIT_DIR@/logs/${HEAD_REF}" "@GIT_DATA@/head-ref" COPYONLY)
-		set(HEAD_HASH "${HEAD_REF}")
-	endif()
-else()
-	# detached HEAD
-	configure_file("@GIT_DIR@/HEAD" "@GIT_DATA@/head-ref" COPYONLY)
+if(__get_force_include_definitions)
+  return()
 endif()
+set(__get_force_include_definitions YES)
 
-if(NOT HEAD_HASH)
-	file(READ "@GIT_DATA@/head-ref" HEAD_HASH LIMIT 1024)
-	string(STRIP "${HEAD_HASH}" HEAD_HASH)
-endif()
+function(get_force_include_definitions var)
+  set(_flagprefix)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(_flag "-include")
+  elseif(MSVC)
+    set(_flag "/FI")
+  else()
+    message(SEND_ERROR "You don't seem to be using MSVC or GCC, but")
+    message(SEND_ERROR "the project called get_force_include_definitions.")
+    message(SEND_ERROR "Contact this project with the name of your")
+    message(FATAL_ERROR "compiler and preferably the flag to force includes")
+  endif()
+
+  set(_out)
+  foreach(_item ${ARGN})
+    list(APPEND _out "${_flag} \"${_item}\"")
+  endforeach()
+  set(${var} "${_out}" PARENT_SCOPE)
+endfunction()
