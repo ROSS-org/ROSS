@@ -27,7 +27,7 @@ typedef struct tw_memory tw_memory;
 
 /**
  * Synchronization protocol used
- */ 
+ */
 enum tw_synch_e {
     NO_SYNCH,
     SEQUENTIAL,
@@ -87,7 +87,7 @@ typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
 /**
  * tw_lptype
- * @brief Function Pointers for ROSS Event Handlers 
+ * @brief Function Pointers for ROSS Event Handlers
  *
  **/
 struct tw_lptype {
@@ -328,7 +328,7 @@ struct tw_lp {
 
     tw_pe *pe;
 
-    /* 
+    /*
     * pe_next  -- Next LP in the PE's service list.  ????
     */
     tw_kp *kp; /**< @brief kp -- Kernel process that we belong to (must match pe). */
@@ -342,7 +342,7 @@ struct tw_lp {
  * tw_kp KP State Structure
  *
  * Holds our state for the Kernel Process (KP), which consists only of
- * processed event list for a collection of LPs.  
+ * processed event list for a collection of LPs.
  */
 struct tw_kp {
     tw_kpid id;     /**< @brief ID number, otherwise its not available to the app */
@@ -396,7 +396,7 @@ struct tw_pe {
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
     unsigned char *delta_buffer[2]; /**< @brief buffers used for delta encoding */
-    
+
 #ifdef AVL_TREE
     /* AVL node head pointer and size */
     AvlTree avl_list_head;
