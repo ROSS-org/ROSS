@@ -3,7 +3,7 @@
 
 /** @mainpage Rensselaer's Optimistic Simulation System (ROSS)
     @section intro_sec Introduction
-    
+
     ROSS is an acronym for Rensselaer's Optimistic Simulation System. It is a
     parallel discrete-event simulator that executes on shared-memory
     multiprocessor systems. ROSS is geared for running large-scale simulation
@@ -108,7 +108,7 @@ extern "C" {
 #include <errno.h>
 #include <sys/types.h>
 #include <math.h>
-#include <limits.h> 
+#include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -125,7 +125,7 @@ extern "C" {
 
 #ifdef USE_BGPM
 #include<bgpm.h>
-#endif 
+#endif
 
 #ifdef ROSS_INTERNAL
 #undef malloc
@@ -213,6 +213,10 @@ typedef uintptr_t tw_lpid;
 
 #include "tw-eventq.h"
 #include "ross-inline.h"
+
+#ifdef USE_RIO
+#include "../IO/io.h"
+#endif
 
 #ifdef __cplusplus
 }
