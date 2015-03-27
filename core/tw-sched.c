@@ -21,10 +21,10 @@ static inline void reset_bitfields(tw_event *revent)
     }
 }
 
-/* 
+/*
  * Get all events out of my event queue and spin them out into
  * the priority queue so they can be processed in time stamp
- * order.  
+ * order.
  */
 static void tw_sched_event_q(tw_pe * me) {
     tw_clock     start;
@@ -73,7 +73,7 @@ static void tw_sched_event_q(tw_pe * me) {
 }
 
 /*
- * OPT: need to link events into canq in reverse order so 
+ * OPT: need to link events into canq in reverse order so
  *      that when we rollback the 1st event, we should not
  *  need to do any further rollbacks.
  */
@@ -124,7 +124,7 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     break;
 
                 case TW_kp_pevent_q:
-                    /* The event was already processed. 
+                    /* The event was already processed.
                     * SECONDARY ROLLBACK
                     */
                     tw_kp_rollback_event(cev);
@@ -149,7 +149,7 @@ static void tw_sched_batch(tw_pe * me) {
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
-    * (whichever comes first). 
+    * (whichever comes first).
     */
     for (msg_i = g_tw_mblock; msg_i; msg_i--) {
         tw_event *cev;
@@ -335,7 +335,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 
         // put "batch" loop directly here
         /* Process g_tw_mblock events, or until the PQ is empty
-        * (whichever comes first). 
+        * (whichever comes first).
         */
         for (msg_i = g_tw_mblock; msg_i; msg_i--) {
             tw_event *cev;
@@ -367,7 +367,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp = clp->kp;
             me->cur_event = cev;
             if( ckp->last_time > cev->recv_ts ){
-                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d", 
+                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d",
                 ckp->last_time, cev->recv_ts, clp->gid );
             }
             ckp->last_time = cev->recv_ts;
