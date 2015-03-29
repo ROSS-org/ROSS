@@ -32,9 +32,10 @@ tw_event_grab(tw_pe *pe)
 }
 
 #ifdef USE_RIO
-extern tw_eventq* g_io_events;
+extern tw_eventq g_io_free_events;
+extern tw_eventq g_io_buffered_events;
 static inline tw_event * io_event_grab (tw_pe *pe) {
-    tw_event  *e = tw_eventq_pop(g_io_events);
+    tw_event  *e = tw_eventq_pop(&g_io_free_events);
     // TODO: wrong! We don't want to pop. we just want get one
 
     if (e) {
@@ -45,6 +46,7 @@ static inline tw_event * io_event_grab (tw_pe *pe) {
 
         memset(&e->state, 0, sizeof(e->state));
         memset(&e->event_id, 0, sizeof(e->event_id));
+        tw_eventq_push(&g_io_buffered_events, e);
     } else {
         printf("WARNING: did not allocate enough events to RIO buffer\n");
         e = pe->abort_event;
