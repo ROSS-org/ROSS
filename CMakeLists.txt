@@ -3,6 +3,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 # ROSS Configuration Options
 
+ENABLE_TESTING()
+INCLUDE(CTest)
+
 # Data Structure for Unprocessed Event List
 #SET(QUEUE calendar) #Calendar Queue
 #SET(QUEUE heap) #Push/Down Heap
