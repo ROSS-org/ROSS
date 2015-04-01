@@ -3,10 +3,12 @@ compiler:
   - gcc
   - clang
 # Change this to your needs
+notifications:
+  email: false
 env:
- - MPI=mpich2 ARCH=x86_64 CC=mpicc
- - MPI=mpich3 ARCH=x86_64 CC=mpicc
+ - MPI=mpich2
+ - MPI=mpich3
 before_install:
  - sudo apt-get update -q
  - sh ./conf/travis-install-mpi.sh $MPI
-script: cmake . && make
+script: ARCH=x86_64 CC=mpicc cmake . && make
