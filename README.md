@@ -6,6 +6,8 @@ You find the now-deprecated version at the [ROSS-Legacy tag](https://github.com/
 Using this repository you can compare files from the new `ROSS/core` to `ROSS/ross`.
 For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/carothersc/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
 
+[![Build Status](https://travis-ci.org/carothersc/ROSS.svg?branch=master)](https://travis-ci.org/carothersc/ROSS)
+
 ## History
 
 ROSS's histroy starts with a one-week re-implementation of [Georgia Tech Time Warp (GTW)](http://www.cc.gatech.edu/computing/pads/tech-parallel-gtw.html) by Shawn Pearce and Dave Bauer in 1999.
