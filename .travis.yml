@@ -1,0 +1,12 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+# Change this to your needs
+env:
+ - MPI=mpich2
+ - MPI=mpich3
+ - ARCH=x86_64
+ - CC=mpicc
+
+script: cmake . && make
