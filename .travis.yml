@@ -6,5 +6,7 @@ compiler:
 env:
  - MPI=mpich2 ARCH=x86_64 CC=mpicc
  - MPI=mpich3 ARCH=x86_64 CC=mpicc
-
+before_install:
+ - sudo apt-get update -q
+ - sh ./conf/travis-install-mpi.sh $MPI
 script: cmake . && make
