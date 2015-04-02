@@ -13,4 +13,4 @@ env:
 before_install:
  - sudo apt-get update -q
  - sh ./conf/travis-install-mpi.sh $MPI
-script: ARCH=x86_64 CC=mpicc cmake . && make
+script: ARCH=x86_64 CC=mpicc cmake -DROSS_BUILD_MODELS=ON . && make
