@@ -6,6 +6,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 ENABLE_TESTING()
 INCLUDE(CTest)
 
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
+
+# We probably don't want this to run on every build.
+option(COVERALLS "Generate coveralls data" OFF)
+
+if (COVERALLS)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+endif()
+
 # Data Structure for Unprocessed Event List
 #SET(QUEUE calendar) #Calendar Queue
 #SET(QUEUE heap) #Push/Down Heap

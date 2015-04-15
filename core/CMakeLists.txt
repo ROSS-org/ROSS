@@ -106,6 +106,16 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 # Generate Library
 ADD_LIBRARY(ROSS ${ross_srcs})
 
+if (COVERALLS)
+    set(COVERAGE_SRCS ${ross_srcs})
+
+    # Create the coveralls target.
+    coveralls_setup(
+        "${COVERAGE_SRCS}" # The source files.
+        ON                 # If we should upload.
+        "${PROJECT_SOURCE_DIR}/cmake/") # (Optional) Alternate project cmake module path.
+endif()
+
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
 SET(ross_srcs ${ross_srcs} config.h)
