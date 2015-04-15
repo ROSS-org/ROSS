@@ -16,4 +16,14 @@ ELSE(NOT(BGPM))
 	TARGET_LINK_LIBRARIES(phold ROSS m)   
 ENDIF(BGPM)
 
+add_test(NAME sequential
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND phold --synch=1)
 
+add_test(NAME conservative
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	    COMMAND mpirun -np 2 ./phold --synch=2)
+
+add_test(NAME optimistic
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	    COMMAND mpirun -np 2 ./phold --synch=3)
