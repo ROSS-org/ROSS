@@ -215,7 +215,7 @@ foreach (GCOV_FILE ${ALL_GCOV_FILES})
 	# TODO: We want to match against relative path filenames from the source file root...
 	list(FIND COVERAGE_SRCS ${GCOV_SRC_PATH} WAS_FOUND)
 
-	if (NOT WAS_FOUND EQUAL -1)
+	if (WAS_FOUND EQUAL -1)
 		message("YES: ${GCOV_FILE}")
 		list(APPEND GCOV_FILES ${GCOV_FILE})
 
