@@ -36,7 +36,6 @@ extern tw_eventq g_io_free_events;
 extern tw_eventq g_io_buffered_events;
 static inline tw_event * io_event_grab (tw_pe *pe) {
     tw_event  *e = tw_eventq_pop(&g_io_free_events);
-    // TODO: wrong! We don't want to pop. we just want get one
 
     if (e) {
         e->cancel_next = NULL;
