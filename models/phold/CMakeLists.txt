@@ -11,19 +11,13 @@ phold.c		phold.h)
 ADD_EXECUTABLE(phold ${phold_srcs})
 
 IF(BGPM)
-	TARGET_LINK_LIBRARIES(phold ROSS imp_bgpm m)   
+	TARGET_LINK_LIBRARIES(phold ROSS imp_bgpm m)
 ELSE(NOT(BGPM))
-	TARGET_LINK_LIBRARIES(phold ROSS m)   
+	TARGET_LINK_LIBRARIES(phold ROSS m)
 ENDIF(BGPM)
 
-add_test(NAME sequential
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMAND phold --synch=1)
+add_test(PholdSequential phold --synch=1)
 
-add_test(NAME conservative
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	    COMMAND mpirun -np 2 ./phold --synch=2)
+add_test(PholdConservative mpirun -np 2 ./phold --synch=2)
 
-add_test(NAME optimistic
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	    COMMAND mpirun -np 2 ./phold --synch=3)
+add_test(PholdOptimistic mpirun -np 2 ./phold --synch=3)
