@@ -36,7 +36,7 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
   git submodule update
   ```
   Currently, ROSS includes three submodules:
-  - [ROSS-Models](http://github.com/carothers/ROSS-Models) is a set of existing models  
+  - [ROSS-Models](http://github.com/carothersc/ROSS-Models) is a set of existing models
   - [ROSS-template-model](http://github.com/gonsie/SR-model) is a starting place for new models
   - [RIO](http://github.com/gonsie/RIO) is a work-in-progress checkpointing framework
   
