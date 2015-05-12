@@ -35,6 +35,7 @@ after_success:
   -
   - cd ROSS
   - git clone -b master --single-branch https://github.com/carothersc/ROSS
+  - cd ROSS
   - mkdir build && cd build
   - ARCH=x86_64 cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
