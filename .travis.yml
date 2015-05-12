@@ -31,10 +31,10 @@ after_success:
   - git config --global user.email ${GIT_EMAIL}
   -
   - # clone the whole repo again, but switch to gh_pages branch
-  - git clone -b gh-pages --single-branch git@github.com:carothersc/ROSS.git
+  - git clone -b gh-pages --single-branch https://github.com/carothersc/ROSS
   -
   - cd ROSS
-  - git clone -b master --single-branch git@github.com:carothersc/ROSS.git
+  - git clone -b master --single-branch https://github.com/carothersc/ROSS
   - mkdir build && cd build
   - ARCH=x86_64 cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
