@@ -236,6 +236,11 @@ void tw_sched_init(tw_pe * me) {
     tw_pre_run_lps(me);
     tw_net_barrier(me);
 
+#ifdef USE_RIO
+    io_load_events(me);
+    tw_net_barrier(me);
+#endif
+
     /*
     * Recv all of the startup events out of the network before
     * starting simulation.. at this point, all LPs are done with init.
