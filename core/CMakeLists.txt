@@ -108,6 +108,8 @@ ADD_LIBRARY(ROSS ${ross_srcs})
 
 if (COVERALLS)
     set(COVERAGE_SRCS ${ross_srcs})
+    # Don't check coverage on lz4
+    list(REMOVE_ITEM COVERAGE_SRCS lz4.h lz4.c)
 
     # Create the coveralls target.
     coveralls_setup(
