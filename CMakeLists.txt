@@ -94,7 +94,7 @@ ENDIF(NOT VALID_ARCH)
 ADD_SUBDIRECTORY(core)
 
 # Submodules
-OPTION(USE_RIO "Build ROSS IO libraries?" OFF)
+OPTION(USE_RIO "Build RIO checkpointing library?" OFF)
 IF(USE_RIO)
   ADD_SUBDIRECTORY(IO)
 ENDIF(USE_RIO)

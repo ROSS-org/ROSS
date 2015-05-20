@@ -85,9 +85,9 @@ IF(ROSS_MEMORY)
 ENDIF(ROSS_MEMORY)
 
 IF(USE_RIO)
-	INCLUDE_DIRECTORIES(${ROSSIO_SOURCE_DIR})
-	MESSAGE("rio: ${ROSSIO_SOURCE_DIR}")
-	SET(ross_srcs ${ross_srcs} ${ROSSIO_SOURCE_DIR}/io.h)
+	INCLUDE_DIRECTORIES(${RIO_SOURCE_DIR})
+	MESSAGE("rio: ${RIO_SOURCE_DIR}")
+	SET(ross_srcs ${ross_srcs} ${RIO_SOURCE_DIR}/io.h)
 ENDIF(USE_RIO)
 
 # Use debugging-friendly memory allocation
