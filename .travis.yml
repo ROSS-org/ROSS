@@ -16,7 +16,7 @@ script:
  - mkdir build && cd build
  - ARCH=x86_64 CC=mpicc cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
  - make
- - make test
+ - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
 after_success:
   - ## the following automatically builds the doxygen
