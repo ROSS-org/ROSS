@@ -49,11 +49,13 @@ Please [this wiki page](https://github.com/carothersc/ROSS/wiki/Constructing-the
   ```
 
 3. Create a build directory.
-ROSS developers typically do out-of-tree builds.
+ROSS developers typically do out-of-tree builds.  See the [Installation page](https://github.com/carothersc/ROSS/wiki/Installation) for more details.
   ```
   cd ~/directory-of-builds/
   mkdir ROSS-build
   cd ROSS-build
+  export ARCH=x86_64
+  export CC=mpicc
   ccmake ~/path-to/ROSS
   ```
 
