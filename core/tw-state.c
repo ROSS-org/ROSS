@@ -12,6 +12,9 @@ tw_snapshot(tw_lp *lp, size_t state_sz)
     memcpy(lp->pe->delta_buffer[0], lp->cur_state, state_sz);
 }
 
+/** See the docs for LZ4_compress_fast() for more details */
+#define ROSS_LZ4_DEFAULT 17
+
 /**
  * Create the delta from the current state and the snapshot.
  * Compress it.
@@ -31,7 +34,7 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
     }
 
     start = tw_clock_read();
-    ret_size = LZ4_compress_fast((char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz, g_tw_delta_sz, 17);
+    ret_size = LZ4_compress_fast((char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz, g_tw_delta_sz, ROSS_LZ4_DEFAULT);
     g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret_size < 0) {
         tw_error(TW_LOC, "LZ4_compress error");
