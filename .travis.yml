@@ -14,7 +14,7 @@ before_install:
  - sh ./conf/travis-install-mpi.sh mpich2
 script:
  - mkdir build && cd build
- - ARCH=x86_64 CC=mpicc cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - ARCH=x86_64 CC=mpicc cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Release -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
