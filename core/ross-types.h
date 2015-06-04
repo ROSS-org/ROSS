@@ -395,7 +395,7 @@ struct tw_pe {
     tw_event *cur_event; /**< @brief Current event being processed */
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
-    unsigned char *delta_buffer[2]; /**< @brief buffers used for delta encoding */
+    unsigned char *delta_buffer[3]; /**< @brief buffers used for delta encoding */
 
 #ifdef AVL_TREE
     /* AVL node head pointer and size */

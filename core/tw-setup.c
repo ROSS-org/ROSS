@@ -383,6 +383,7 @@ static void tw_delta_alloc(tw_pe *pe) {
 
     pe->delta_buffer[0] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
     pe->delta_buffer[1] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
+    pe->delta_buffer[2] = tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
 }
 
 static tw_pe * setup_pes(void) {
