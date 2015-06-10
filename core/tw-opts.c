@@ -100,7 +100,11 @@ show_help(void)
 					break;
 
                                 case TWOPTTYPE_FLAG:
-                                    fprintf(stderr, " (default off)");
+                                    if((*(unsigned int*)def->value) == 0) {
+                                        fprintf(stderr, " (default off)");
+                                    } else {
+                                        fprintf(stderr, " (default on)");
+                                    }
                                     break;
 
 				default:
@@ -136,8 +140,9 @@ void tw_opt_settings(FILE *outfile) {
             }
 
             pos += fprintf(outfile, "  --%s", def->name);
+
             if (def->value) {
-                int col = 18;
+                int col = 20;
                 int pad = col - pos;
                 if (pad > 0) {
                     fprintf(outfile, "%*s", col - pos, "");
@@ -167,7 +172,11 @@ void tw_opt_settings(FILE *outfile) {
                     break;
 
                 case TWOPTTYPE_FLAG:
-                    fprintf(outfile, "off");
+                    if((*(unsigned int*)def->value) == 0) {
+                        fprintf(outfile, "off");
+                    } else {
+                        fprintf(outfile, "on");
+                    }
                     break;
 
                 default:
@@ -179,10 +188,6 @@ void tw_opt_settings(FILE *outfile) {
             cnt++;
         }
     }
-        
-    // CMake used to pass options by command line flags
-    fprintf(outfile, "ROSS CMake Configuration Options:\n");
-    fprintf(outfile, "  (See build-dir/core/config.h)\n");
 }
 
 void
