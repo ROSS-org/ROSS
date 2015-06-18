@@ -496,7 +496,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
             tw_kp_rollback_to( cev->dest_lp->kp, g_tw_rollback_time );
             printf("/******************* Completed Rollback Phase ******************************/\n");
 
-            return;
+            break;
         }
     }
     tw_wall_now(&me->end_time);
