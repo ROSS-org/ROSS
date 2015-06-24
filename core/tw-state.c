@@ -35,7 +35,7 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
     }
 
     start = tw_clock_read();
-    ret_size = LZ4_compress_fast_extState(scratch, (char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz, g_tw_delta_sz, ROSS_LZ4_DEFAULT);
+    ret_size = LZ4_compress_fast_extState(scratch, (char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz, g_tw_delta_sz, g_tw_lz4_knob);
     g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret_size < 0) {
         tw_error(TW_LOC, "LZ4_compress error");

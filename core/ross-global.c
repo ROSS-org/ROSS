@@ -36,6 +36,10 @@ uint32_t g_tw_buddy_alloc = 0; /**< Allocation for buddy system */
 buddy_list_bucket_t *g_tw_buddy_master = 0;
 uint32_t g_tw_avl_node_count = 18;
 
+unsigned int g_tw_lz4_knob = 1; /**< Tunable LZ4 param.  Higher = faster with
+                                 less compression. 17 is a good value for speed
+                                 with 1 being the default value. */
+
 #if ROSS_MEMORY
 unsigned int	g_tw_memory_nqueues = 64;
 #else

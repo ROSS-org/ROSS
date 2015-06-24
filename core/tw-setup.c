@@ -18,6 +18,7 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
     TWOPT_UINT("buddy_size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
+    TWOPT_UINT("lz4-knob", g_tw_lz4_knob, "LZ4 acceleration factor (higher = faster)"),
 #ifdef AVL_TREE
     TWOPT_UINT("avl_size", g_tw_avl_node_count, "AVL Treet contians 2^avl_size nodes"),
 #endif
