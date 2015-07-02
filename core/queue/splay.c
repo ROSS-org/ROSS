@@ -309,7 +309,7 @@ tw_pq_delete_any(splay_tree *st, tw_event * r)
 	UP(r) = NULL;
 }
 
-double
+tw_stime
 tw_pq_minimum(splay_tree *pq)
 {
 	return ((pq->least ? pq->least->recv_ts : DBL_MAX));
