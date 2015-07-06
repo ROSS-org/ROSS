@@ -1,18 +1,20 @@
 PROJECT(ROSS_TOP)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
-INCLUDE(CheckTypeSize)
-CHECK_TYPE_SIZE("short"         SIZEOF_SHORT       )
-CHECK_TYPE_SIZE("int"           SIZEOF_INT         )
-CHECK_TYPE_SIZE("float"         SIZEOF_FLOAT       )
-CHECK_TYPE_SIZE("double"        SIZEOF_DOUBLE      )
-CHECK_TYPE_SIZE("long"          SIZEOF_LONG        )
-CHECK_TYPE_SIZE("long int"      SIZEOF_LONG_INT    )
-CHECK_TYPE_SIZE("long long"     SIZEOF_LONG_LONG   )
-CHECK_TYPE_SIZE("uint"          SIZEOF_UINT        )
-CHECK_TYPE_SIZE("void *"        SIZEOF_VPTR        )
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 # ROSS Configuration Options
+
+ENABLE_TESTING()
+INCLUDE(CTest)
+
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
+
+# We probably don't want this to run on every build.
+option(COVERALLS "Generate coveralls data" OFF)
+
+if (COVERALLS)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+endif()
 
 # Data Structure for Unprocessed Event List
 #SET(QUEUE calendar) #Calendar Queue
@@ -106,7 +108,7 @@ IF(ROSS_BUILD_MODELS)
 ENDIF(ROSS_BUILD_MODELS)
 
 # ROSS Documentation
-FIND_PACKAGE(DOXYGEN)
+FIND_PACKAGE(Doxygen)
 IF(DOXYGEN_FOUND)
   OPTION(ROSS_BUILD_DOXYGEN "Build Doxygen documentation?" OFF)
   IF(ROSS_BUILD_DOXYGEN)

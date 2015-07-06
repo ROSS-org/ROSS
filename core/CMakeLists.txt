@@ -112,6 +112,18 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 # Generate Library
 ADD_LIBRARY(ROSS ${ross_srcs})
 
+if (COVERALLS)
+    set(COVERAGE_SRCS ${ross_srcs})
+    # Don't check coverage on lz4
+    list(REMOVE_ITEM COVERAGE_SRCS lz4.h lz4.c)
+
+    # Create the coveralls target.
+    coveralls_setup(
+        "${COVERAGE_SRCS}" # The source files.
+        ON)                # If we should upload.
+
+endif()
+
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
 SET(ross_srcs ${ross_srcs} config.h)

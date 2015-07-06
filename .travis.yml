@@ -1,0 +1,53 @@
+language: cpp
+compiler:
+  - clang
+# Change this to your needs
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+env:
+ - secure: "0kkcYHaW88jKB9/nvZKJIsmDv4KALyy4DrcWs3wncRa4rAp0Wk4Ge/2o5GgubcowswiX9EZFawVRoM3h8nOf+awPu/gO6OkZx1LhYwQa/5lo7/LYq5Bzf2NNM+1xmNSgRKP+84/gi8pm/Ytv81+4hDmlN2APSMMq9u6UMzQCkVM="
+before_install:
+ - sudo apt-get update -q
+ - sudo apt-get install -y -qq lcov curl doxygen graphviz
+ - sh ./conf/travis-install-mpi.sh mpich2
+script:
+ - mkdir release && cd release
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DROSS_BUILD_MODELS=ON ..
+ - make
+ - CTEST_OUTPUT_ON_FAILURE=1 make test
+ - cd ..
+ - mkdir build && cd build
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - make
+ - CTEST_OUTPUT_ON_FAILURE=1 make test
+ - make coveralls
+after_success:
+  - ## the following automatically builds the doxygen
+  - ## documentation and pushes it to the gh_pages branch
+  - ## Shamelessly stolen from http://bit.ly/1H1sawW
+  -
+  - # First, set up credentials using the environment variables
+  - # GIT_NAME, GIT_EMAIL and GH_TOKEN. These were passed
+  - # encrypted to travis and should have been decrypted
+  - # using travis' private key before this script was run.
+  - git config --global user.name "${GIT_NAME}"
+  - git config --global user.email ${GIT_EMAIL}
+  -
+  - # clone the whole repo again, but switch to gh_pages branch
+  - git clone -b gh-pages --single-branch https://github.com/carothersc/ROSS
+  -
+  - cd ROSS
+  - git clone -b master --single-branch https://github.com/carothersc/ROSS
+  - cd ROSS
+  - mkdir build && cd build
+  - ARCH=x86_64 cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
+  - make apidoc
+  - cd ../..
+  - git rm -r ROSS-docs
+  - mkdir -p ROSS-docs/docs
+  - mv ROSS/build/docs/html ROSS-docs/docs
+  - git add ROSS-docs
+  - git commit -m "Automatic doxygen build."
+  - git push https://${GH_TOKEN}@github.com/carothersc/ROSS gh-pages

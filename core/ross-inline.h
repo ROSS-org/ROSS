@@ -25,9 +25,7 @@ tw_event_grab(tw_pe *pe)
 	  e->memory = NULL;
 	}
 #endif
-    } else
-    e = pe->abort_event;
-
+    }
   return e;
 }
 
@@ -100,6 +98,16 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
     send_pe->stats.s_events_past_end++;
   } else {
     e = tw_event_grab(send_pe);
+    if (!e) {
+        if (g_tw_synchronization_protocol == CONSERVATIVE
+                || g_tw_synchronization_protocol == SEQUENTIAL) {
+        tw_error(TW_LOC,
+                "No free event buffers. Try increasing via g_tw_events_per_pe"
+                " or --extramem");
+        }
+        else
+            e = send_pe->abort_event;
+    }
   }
 
   e->dest_lp = (tw_lp *) dest_gid;

@@ -150,12 +150,9 @@ typedef unsigned long tw_peid;
 typedef double tw_stime;
 
 /* tw_lpid -- Logical Process "LP" id */
-#if defined(ARCH_bgl) || defined(ARCH_bgp)
-typedef unsigned long long tw_lpid;
-#else
 //typedef unsigned long long tw_lpid;
-typedef uintptr_t tw_lpid;
-#endif
+typedef uint64_t tw_lpid;
+
 
 #include "buddy.h"
 #include "ross-random.h"

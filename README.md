@@ -1,10 +1,14 @@
 # Welcome to Simplified ROSS!
 
 Welcome to a leaner, meaner, *faster* version of ROSS.
-While the entire history of ROSS has been preserved in this repository, a major change in the directory structure has getting the full history of a file somewhat of a pain.
-You find the now-deprecated version at the [ROSS-Legacy tag](https://github.com/carothersc/ROSS/releases/tag/Legacy) in this repository.
+While the entire history of ROSS has been preserved in this repository, a major change in the directory structure has made getting the full history of a file somewhat of a pain.
+You may find the now-deprecated version at the [ROSS-Legacy tag](https://github.com/carothersc/ROSS/releases/tag/Legacy) in this repository.
 Using this repository you can compare files from the new `ROSS/core` to `ROSS/ross`.
 For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/carothersc/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
+
+[![Build Status](https://travis-ci.org/carothersc/ROSS.svg?branch=master)](https://travis-ci.org/carothersc/ROSS)
+[![Coverage Status](https://coveralls.io/repos/carothersc/ROSS/badge.svg?branch=master)](https://coveralls.io/r/carothersc/ROSS?branch=master)
+[Doxygen](http://carothersc.github.io/ROSS/ROSS-docs/docs/html)
 
 ## History
 
@@ -34,7 +38,7 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
   git submodule update
   ```
   Currently, ROSS includes three submodules:
-  - [ROSS-Models](http://github.com/carothers/ROSS-Models) is a set of existing models  
+  - [ROSS-Models](http://github.com/carothersc/ROSS-Models) is a set of existing models
   - [ROSS-template-model](http://github.com/gonsie/SR-model) is a starting place for new models
   - [RIO](http://github.com/gonsie/RIO) is a work-in-progress checkpointing framework
   
@@ -46,11 +50,13 @@ Please [this wiki page](https://github.com/carothersc/ROSS/wiki/Constructing-the
   ```
 
 3. Create a build directory.
-ROSS developers typically do out-of-tree builds.
+ROSS developers typically do out-of-tree builds.  See the [Installation page](https://github.com/carothersc/ROSS/wiki/Installation) for more details.
   ```
   cd ~/directory-of-builds/
   mkdir ROSS-build
   cd ROSS-build
+  export ARCH=x86_64
+  export CC=mpicc
   ccmake ~/path-to/ROSS
   ```
 

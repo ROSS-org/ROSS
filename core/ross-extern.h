@@ -35,6 +35,8 @@ extern uint32_t     g_tw_buddy_alloc;
 extern buddy_list_bucket_t *g_tw_buddy_master;
 extern uint32_t		g_tw_avl_node_count;
 
+extern unsigned int g_tw_lz4_knob;
+
 extern unsigned int	g_tw_memory_nqueues;
 extern size_t		g_tw_memory_sz;
 
@@ -55,8 +57,8 @@ extern tw_node g_tw_masternode;
 
 extern FILE		*g_tw_csv;
 
-tw_lptype * g_tw_lp_types;
-tw_typemap_f g_tw_lp_typemap;
+extern tw_lptype * g_tw_lp_types;
+extern tw_typemap_f g_tw_lp_typemap;
 
         /*
 	 * Cycle Counter variables

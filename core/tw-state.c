@@ -8,8 +8,12 @@
 void
 tw_snapshot(tw_lp *lp, size_t state_sz)
 {
+    assert(lp->pe->delta_buffer[0] && "increase --buddy_size argument!");
     memcpy(lp->pe->delta_buffer[0], lp->cur_state, state_sz);
 }
+
+/** See the docs for LZ4_compress_fast() for more details */
+#define ROSS_LZ4_DEFAULT 17
 
 /**
  * Create the delta from the current state and the snapshot.
@@ -24,13 +28,14 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
     int ret_size = 0;
     unsigned char *current_state = lp->cur_state;
     unsigned char *snapshot = lp->pe->delta_buffer[0];
+    void *scratch = lp->pe->delta_buffer[2];
 
     for (i = 0; i < state_sz; i++) {
         snapshot[i] = current_state[i] - snapshot[i];
     }
 
     start = tw_clock_read();
-    ret_size = LZ4_compress((char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz);
+    ret_size = LZ4_compress_fast_extState(scratch, (char*)snapshot, (char*)lp->pe->delta_buffer[1], state_sz, g_tw_delta_sz, g_tw_lz4_knob);
     g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret_size < 0) {
         tw_error(TW_LOC, "LZ4_compress error");
@@ -52,10 +57,19 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 void
 tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size)
 {
+    int i;
     tw_clock start = tw_clock_read();
-    int ret = LZ4_decompress_safe(buffer, lp->cur_state, delta_size, state_sz);
+    unsigned char *snapshot = buffer;
+    unsigned char *current_state = lp->cur_state;
+
+    int ret = LZ4_decompress_fast(buffer, (char*)lp->pe->delta_buffer[0], state_sz);
     g_tw_pe[0]->stats.s_lz4 += (tw_clock_read() - start);
     if (ret < 0) {
         tw_error(TW_LOC, "LZ4_decompress_fast error");
+    }
+
+    snapshot = lp->pe->delta_buffer[0];
+    for (i = 0; i < state_sz; i++) {
+        current_state[i] = current_state[i] - snapshot[i];
     }
 }
