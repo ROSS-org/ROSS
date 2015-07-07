@@ -144,6 +144,7 @@ static void tw_sched_batch(tw_pe * me) {
     /* Number of consecutive times we gave up because there were no free event buffers. */
     static int no_free_event_buffers = 0;
     static int warned_no_free_event_buffers = 0;
+    const int max_alloc_fail_count = 20;
 
     tw_clock     start;
     unsigned int     msg_i;
@@ -161,9 +162,14 @@ static void tw_sched_batch(tw_pe * me) {
         */
         if (me->free_q.size <= g_tw_gvt_threshold) {
             /* Suggested by Adam Crume */
-            if(++no_free_event_buffers > 10 && !warned_no_free_event_buffers) {
-                fprintf(stderr, "WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n");
-                warned_no_free_event_buffers = 1;
+            if (++no_free_event_buffers > 10) {
+                if (!warned_no_free_event_buffers) {
+                    fprintf(stderr, "WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n");
+                    warned_no_free_event_buffers = 1;
+                }
+                if (no_free_event_buffers >= max_alloc_fail_count) {
+                    tw_error(TW_LOC, "Event allocation failed %d consecutive times.  Exiting.", max_alloc_fail_count);
+                }
             }
             tw_gvt_force_update(me);
             break;
