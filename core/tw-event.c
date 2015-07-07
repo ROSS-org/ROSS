@@ -21,6 +21,13 @@ void tw_event_send(tw_event * event) {
         return;
     }
 
+#ifdef USE_RIO
+    // rio saves events scheduled past end time
+     if (recv_ts >= g_tw_ts_end) {
+        return;
+    }
+#endif
+
     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
         if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {

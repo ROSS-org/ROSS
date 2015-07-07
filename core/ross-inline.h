@@ -1,7 +1,7 @@
 #ifndef INC_ross_inline_h
 #define	INC_ross_inline_h
 
-static inline tw_event * 
+static inline tw_event *
 tw_event_grab(tw_pe *pe)
 {
   tw_event	*e = tw_eventq_pop(&pe->free_q);
@@ -20,7 +20,7 @@ tw_event_grab(tw_pe *pe)
       if(e->memory)
 	{
 	  if(!e->memory->nrefs)
-	    tw_printf(TW_LOC, "membuf remaining on event: %d", 
+	    tw_printf(TW_LOC, "membuf remaining on event: %d",
 		      e->memory->nrefs);
 	  e->memory = NULL;
 	}
@@ -28,6 +28,29 @@ tw_event_grab(tw_pe *pe)
     }
   return e;
 }
+
+#ifdef USE_RIO
+extern tw_eventq g_io_free_events;
+extern tw_eventq g_io_buffered_events;
+static inline tw_event * io_event_grab (tw_pe *pe) {
+    tw_event  *e = tw_eventq_pop(&g_io_free_events);
+
+    if (e) {
+        e->cancel_next = NULL;
+        e->caused_by_me = NULL;
+        e->cause_next = NULL;
+        e->prev = e->next = NULL;
+
+        memset(&e->state, 0, sizeof(e->state));
+        memset(&e->event_id, 0, sizeof(e->event_id));
+        tw_eventq_push(&g_io_buffered_events, e);
+    } else {
+        printf("WARNING: did not allocate enough events to RIO buffer\n");
+        e = pe->abort_event;
+    }
+    return e;
+}
+#endif
 
 static inline void
 tw_free_output_messages(tw_event *e, int print_message)
@@ -44,9 +67,9 @@ tw_free_output_messages(tw_event *e, int print_message)
 
 /**
  * @bug There's a bug in this function.  We put dest_gid, which is
- * a 64-bit value, into dest_lp which may be a 32-bit pointer.  
+ * a 64-bit value, into dest_lp which may be a 32-bit pointer.
  */
-static inline tw_event * 
+static inline tw_event *
 tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 {
   tw_pe		*send_pe;
@@ -67,7 +90,11 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
    * are no more free events available, use abort event.
    */
   if (recv_ts >= g_tw_ts_end) {
+#ifdef USE_RIO
+    e = io_event_grab(send_pe);
+#else
     e = send_pe->abort_event;
+#endif
     send_pe->stats.s_events_past_end++;
   } else {
     e = tw_event_grab(send_pe);
@@ -92,7 +119,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   return e;
 }
 
-static inline void 
+static inline void
 tw_event_free(tw_pe *pe, tw_event *e)
 {
   /*
@@ -140,7 +167,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
 }
 
 #ifdef ROSS_MEMORY
-static inline tw_memory * 
+static inline tw_memory *
 tw_event_memory_get(tw_lp * lp)
 {
   tw_memory      *m = lp->pe->cur_event->memory;
@@ -153,14 +180,14 @@ tw_event_memory_get(tw_lp * lp)
   return m;
 }
 
-static inline void 
+static inline void
 tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
 {
   m->next = lp->pe->cur_event->memory;
   lp->pe->cur_event->memory = m;
 }
 
-static inline void 
+static inline void
 tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
 {
   tw_memory	*b;
@@ -188,7 +215,7 @@ tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
     }
 }
 
-static inline void 
+static inline void
 tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
 {
   if(e == e->src_lp->pe->abort_event)
@@ -201,7 +228,7 @@ tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
   e->memory = m;
 }
 
-static inline void 
+static inline void
 tw_event_memory_forward(tw_event * e)
 {
   tw_memory	*m;
@@ -219,14 +246,14 @@ tw_event_memory_forward(tw_event * e)
     }
 }
 
-static inline void * 
+static inline void *
 tw_memory_data(tw_memory * memory)
 {
   return memory + 1;
 }
 #endif
 
-static inline void * 
+static inline void *
 tw_event_data(tw_event * event)
 {
   return event + 1;

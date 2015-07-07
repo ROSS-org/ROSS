@@ -100,7 +100,11 @@ show_help(void)
 					break;
 
                                 case TWOPTTYPE_FLAG:
-                                    fprintf(stderr, " (default off)");
+                                    if((*(unsigned int*)def->value) == 0) {
+                                        fprintf(stderr, " (default off)");
+                                    } else {
+                                        fprintf(stderr, " (default on)");
+                                    }
                                     break;
 
 				default:
@@ -116,6 +120,74 @@ show_help(void)
         // CMake used to pass options by command line flags
 	fprintf(stderr, "ROSS CMake Configuration Options:\n");
         fprintf(stderr, "  (See build-dir/core/config.h)\n");
+}
+
+void tw_opt_settings(FILE *outfile) {
+    const tw_optdef **group = all_groups;
+    unsigned cnt = 0;
+    
+    for (; *group; group++){
+        const tw_optdef *def = *group;
+        for (; def->type; def++){
+            int pos = 0;
+
+            if (def->type == TWOPTTYPE_GROUP){
+                if (cnt)
+                    fputc('\n', outfile);
+                fprintf(outfile, "%s:\n", def->help);
+                cnt++;
+                continue;
+            }
+
+            pos += fprintf(outfile, "  --%s", def->name);
+
+            if (def->value) {
+                int col = 20;
+                int pad = col - pos;
+                if (pad > 0) {
+                    fprintf(outfile, "%*s", col - pos, "");
+                } else {
+                    fputc('\n', outfile);
+                    fprintf(outfile, "%*s", col, "");
+                }
+                fputs("  ", outfile);
+            }
+
+            if (def->value){
+                switch (def->type){
+                case TWOPTTYPE_ULONG:
+                    fprintf(outfile, "%lu", *((unsigned long*)def->value));
+                    break;
+
+                case TWOPTTYPE_UINT:
+                    fprintf(outfile, "%u", *((unsigned int*)def->value));
+                    break;
+
+                case TWOPTTYPE_STIME:
+                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
+                    break;
+
+                case TWOPTTYPE_CHAR:
+                    fprintf(outfile, "%s", (char *) def->value);
+                    break;
+
+                case TWOPTTYPE_FLAG:
+                    if((*(unsigned int*)def->value) == 0) {
+                        fprintf(outfile, "off");
+                    } else {
+                        fprintf(outfile, "on");
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+
+            fputc('\n', outfile);
+            cnt++;
+        }
+    }
 }
 
 void

@@ -87,10 +87,11 @@ tw_init_lps(tw_pe * me)
 			continue;
 
 		// Allocate initial state vector for this LP
-                if(!lp->cur_state) {
-                    lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type->state_sz, 1);
-                }
+		if(!lp->cur_state) {
+			lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type->state_sz, 1);
+		}
 
+#ifndef USE_RIO
 		if (lp->type->init)
 		{
 			me->cur_event = me->abort_event;
@@ -101,7 +102,30 @@ tw_init_lps(tw_pe * me)
 			if (me->cev_abort)
 				tw_error(TW_LOC, "ran out of events during init");
 		}
+#endif
 	}
+#ifdef USE_RIO
+	// RIO requires that all LPs have been allocated
+	if (g_io_load_at == PRE_INIT || g_io_load_at == INIT) {
+        io_load_checkpoint(g_io_checkpoint_name);
+    }
+    if (g_io_load_at != INIT) {
+    	for (i = 0; i < g_tw_nlp; i++) {
+			tw_lp * lp = g_tw_lp[i];
+			me->cur_event = me->abort_event;
+			me->cur_event->caused_by_me = NULL;
+
+			(*(init_f)lp->type->init) (lp->cur_state, lp);
+
+			if (me->cev_abort) {
+				tw_error(TW_LOC, "ran out of events during init");
+			}
+		}
+	}
+    if (g_io_load_at == POST_INIT) {
+        io_load_checkpoint(g_io_checkpoint_name);
+    }
+#endif
 }
 
 void tw_pre_run_lps (tw_pe * me) {

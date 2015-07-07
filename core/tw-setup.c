@@ -55,6 +55,9 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+#ifdef USE_RIO
+    tw_opt_add(io_opts);
+#endif
 
     // by now all options must be in
     tw_opt_parse(argc, argv);
@@ -420,6 +423,11 @@ static tw_pe * setup_pes(void) {
 
         tw_eventq_alloc(&pe->free_q, num_events_per_pe);
         pe->abort_event = tw_eventq_shift(&pe->free_q);
+#ifdef USE_RIO
+        for (i = 0; i < g_io_events_buffered_per_rank; i++) {
+            tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
+        }
+#endif
     }
 
     if (g_tw_mynode == g_tw_masternode) {
