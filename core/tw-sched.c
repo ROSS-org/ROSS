@@ -510,7 +510,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     // If we've run out of free events or events to process (maybe we're past end time?)
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
-    tw_kp_rollback_to( cev->dest_lp->kp, g_tw_rollback_time );
+    tw_kp_rollback_to( g_tw_kp[0], g_tw_rollback_time );
     printf("/******************* Completed Rollback Phase ******************************/\n");
     
     tw_wall_now(&me->end_time);
