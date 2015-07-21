@@ -21,3 +21,6 @@ add_test(PholdSequential phold --synch=1)
 add_test(PholdConservative mpirun -np 2 ./phold --synch=2)
 
 add_test(PholdOptimistic mpirun -np 2 ./phold --synch=3)
+
+# For our optimistic debug bug :)
+add_test(PholdOptDebug phold --synch=4 --nkp=1 --extramem=1000000)
