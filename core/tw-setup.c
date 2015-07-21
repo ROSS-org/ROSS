@@ -1,4 +1,5 @@
 #include <ross.h>
+#include "lz4.h"
 
 /**
  * @file tw-setup.c
@@ -375,8 +376,6 @@ void tw_end(void) {
 
     tw_net_stop();
 }
-
-int LZ4_compressBound(int isize);
 
 /**
  * By the time this function gets called, g_tw_delta_sz should be as large

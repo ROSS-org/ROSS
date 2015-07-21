@@ -136,7 +136,7 @@ int buddy_try_merge(buddy_list_t *blt)
  */
 void buddy_free(void *ptr)
 {
-    buddy_list_t *blt = ptr;
+    buddy_list_t *blt = (buddy_list_t *)ptr;
     blt--;
 
     // Now blt is is pointing to the correct address
@@ -212,7 +212,7 @@ void buddy_split(buddy_list_bucket_t *bucket)
     blt->size = (1 << bucket->order) - sizeof(buddy_list_t);
 
     void *address = ((char *)blt) + (1 << bucket->order);
-    buddy_list_t *new_blt = address;
+    buddy_list_t *new_blt = (buddy_list_t *)address;
 
     // new_blt->next_freelist = NULL;
     new_blt->use = FREE;
@@ -299,7 +299,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
-    bsystem = tw_calloc(TW_LOC, "buddy system", list_count + 1, sizeof(buddy_list_bucket_t));
+    bsystem = (buddy_list_bucket *)tw_calloc(TW_LOC, "buddy system", list_count + 1, sizeof(buddy_list_bucket_t));
     if (bsystem == NULL) {
         return NULL;
     }
@@ -321,7 +321,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
     }
 
     // Set up the primordial buddy block (2^power_of_two)
-    buddy_list_t *primordial = buddy_base_address;
+    buddy_list_t *primordial = (buddy_list_t *)buddy_base_address;
     primordial->use       = FREE;
     primordial->size      = (1 << power_of_two) - sizeof(buddy_list_t);
 
