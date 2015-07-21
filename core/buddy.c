@@ -299,7 +299,7 @@ buddy_list_bucket_t * create_buddy_table(unsigned int power_of_two)
 
     list_count = power_of_two - BUDDY_BLOCK_ORDER + 1;
 
-    bsystem = (buddy_list_bucket *)tw_calloc(TW_LOC, "buddy system", list_count + 1, sizeof(buddy_list_bucket_t));
+    bsystem = (buddy_list_bucket_t *)tw_calloc(TW_LOC, "buddy system", list_count + 1, sizeof(buddy_list_bucket_t));
     if (bsystem == NULL) {
         return NULL;
     }
