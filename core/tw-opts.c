@@ -207,8 +207,8 @@ void tw_opt_csv_print() {
             }
         }
     }
-
-    //print_options(f);
+    fputc('\n', f);
+    fclose(f);
 }
 
 static void
