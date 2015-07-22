@@ -33,6 +33,10 @@ void tw_init(int *argc, char ***argv) {
     time_t raw_time;
 #endif
 
+#ifdef USE_RIO
+    tw_opt_add(io_opts);
+#endif
+
     tw_opt_add(tw_net_init(argc, argv));
 
     // Print out the command-line so we know what we passed in
@@ -54,9 +58,6 @@ void tw_init(int *argc, char ***argv) {
     }
 #endif
 
-#ifdef USE_RIO
-    tw_opt_add(io_opts);
-#endif
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
