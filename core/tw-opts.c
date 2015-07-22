@@ -309,8 +309,9 @@ apply_opt(const tw_optdef *def, const char *value)
                 break;
 
 	case TWOPTTYPE_SHOWHELP:
-		if (tw_ismaster())
-			show_help();
+		if (tw_ismaster()) {
+			tw_opt_pretty_print(stdout, 1);
+		}
 		tw_net_stop();
 		exit(0);
 		break;
