@@ -133,8 +133,9 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
     fprintf(f, "  (See build-dir/core/config.h)\n");
 }
 
-void tw_opt_print(FILE *f) {
-    f = g_tw_csv;
+void tw_opt_csv_print() {
+    FILE *f = g_tw_csv;
+
     const tw_optdef **group = all_groups;
 
     if(!tw_ismaster() || NULL == f)
