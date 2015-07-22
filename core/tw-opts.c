@@ -207,9 +207,13 @@ void tw_opt_csv_print() {
                     fprintf(f, "%s,", (char *)def->value);
                     break;
 
-                                case TWOPTTYPE_FLAG:
-                                    fprintf(f, "%s,", (char *)def->name);
-                                    break;
+                case TWOPTTYPE_FLAG:
+                    if((*(unsigned int*)def->value) == 0) {
+                        fprintf(f, "off,");
+                    } else {
+                        fprintf(f, "on,");
+                    }
+                    break;
 
                 default:
                     break;
