@@ -20,106 +20,6 @@ tw_opt_add(const tw_optdef *options)
     opt_groups[opt_index] = NULL;
 }
 
-static void show_help(void) {
-    const tw_optdef **group = all_groups;
-    unsigned cnt = 0;
-
-    fprintf(stderr, "usage: %s [options] [-- [args]]\n", program);
-    fputc('\n', stderr);
-
-    for (; *group; group++)
-    {
-        const tw_optdef *def = *group;
-        for (; def->type; def++)
-        {
-            int pos = 0;
-
-            if (def->type == TWOPTTYPE_GROUP)
-            {
-                if (cnt)
-                    fputc('\n', stderr);
-                fprintf(stderr, "%s:\n", def->help);
-                cnt++;
-                continue;
-            }
-
-            pos += fprintf(stderr, "  --%s", def->name);
-            switch (def->type)
-            {
-            case TWOPTTYPE_ULONG:
-            case TWOPTTYPE_UINT:
-                pos += fprintf(stderr, "=n");
-                break;
-
-            case TWOPTTYPE_STIME:
-                pos += fprintf(stderr, "=ts");
-                break;
-
-            case TWOPTTYPE_CHAR:
-                pos += fprintf(stderr, "=str");
-                break;
-
-            default:
-                break;
-            }
-
-            if (def->help)
-            {
-                int col = 22;
-                int pad = col - pos;
-                if (pad > 0)
-                    fprintf(stderr, "%*s", col - pos, "");
-                else {
-                    fputc('\n', stderr);
-                    fprintf(stderr, "%*s", col, "");
-                }
-                fputs("  ", stderr);
-                fputs(def->help, stderr);
-            }
-
-            if (def->value)
-            {
-                switch (def->type)
-                {
-                case TWOPTTYPE_ULONG:
-                    fprintf(stderr, " (default %lu)", *((unsigned long*)def->value));
-                    break;
-
-                case TWOPTTYPE_UINT:
-                    fprintf(stderr, " (default %u)", *((unsigned int*)def->value));
-                    break;
-
-                case TWOPTTYPE_STIME:
-                    fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
-                    break;
-
-                case TWOPTTYPE_CHAR:
-                    fprintf(stderr, " (default %s)", (char *) def->value);
-                    break;
-
-                                case TWOPTTYPE_FLAG:
-                                    if((*(unsigned int*)def->value) == 0) {
-                                        fprintf(stderr, " (default off)");
-                                    } else {
-                                        fprintf(stderr, " (default on)");
-                                    }
-                                    break;
-
-                default:
-                    break;
-                }
-            }
-
-            fputc('\n', stderr);
-            cnt++;
-        }
-    }
-
-        // CMake used to pass options by command line flags
-    fprintf(stderr, "ROSS CMake Configuration Options:\n");
-        fprintf(stderr, "  (See build-dir/core/config.h)\n");
-}
-
 void tw_opt_pretty_print(FILE *f, int help_flag) {
     const tw_optdef **group = all_groups;
     unsigned cnt = 0;
@@ -134,6 +34,7 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
         for (; def->type; def++){
             int pos = 0;
 
+            // Starting a new Opt Group
             if (def->type == TWOPTTYPE_GROUP){
                 if (cnt)
                     fputc('\n', f);
@@ -142,18 +43,50 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
                 continue;
             }
 
+            // Print option name
             pos += fprintf(f, "  --%s", def->name);
 
-            if (def->value) {
-                int col = 20;
-                int pad = col - pos;
-                if (pad > 0) {
-                    fprintf(f, "%*s", col - pos, "");
-                } else {
-                    fputc('\n', f);
-                    fprintf(f, "%*s", col, "");
+            // If help_flag:
+            //    print =type after name
+            //    print help text (if specified)
+            //    print default value (actually current value)
+            // If no help_flag
+            //    just print current value
+
+            if (help_flag) {
+                switch (def->type)
+                {
+                case TWOPTTYPE_ULONG:
+                case TWOPTTYPE_UINT:
+                    pos += fprintf(stderr, "=n");
+                    break;
+
+                case TWOPTTYPE_STIME:
+                    pos += fprintf(stderr, "=ts");
+                    break;
+
+                case TWOPTTYPE_CHAR:
+                    pos += fprintf(stderr, "=str");
+                    break;
+
+                default:
+                    break;
                 }
-                fputs("  ", f);
+            }
+
+            int col = 22;
+            int pad = col - pos;
+            if (pad > 0)
+                fprintf(f, "%*s", col - pos, "");
+            else {
+                fputc('\n', f);
+                fprintf(f, "%*s", col, "");
+            }
+            fputs("  ", f);
+
+            if (help_flag) {
+                fputs(def->help, f);
+                fprintf(f, " (default ");
             }
 
             if (def->value){
@@ -187,10 +120,17 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
                 }
             }
 
+            if (help_flag) {
+                fprintf(f, ")");
+            }
+
             fputc('\n', f);
             cnt++;
         }
     }
+
+    fprintf(f, "\nROSS CMake Configuration Options:\n");
+    fprintf(f, "  (See build-dir/core/config.h)\n");
 }
 
 void tw_opt_print(FILE *f) {
