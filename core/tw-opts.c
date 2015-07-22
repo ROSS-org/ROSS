@@ -124,6 +124,11 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
     const tw_optdef **group = all_groups;
     unsigned cnt = 0;
 
+    if (help_flag) {
+        fprintf(f, "usage: %s [options] [-- [args]]\n", program);
+        fputc('\n', f);
+    }
+
     for (; *group; group++){
         const tw_optdef *def = *group;
         for (; def->type; def++){
@@ -131,49 +136,49 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
 
             if (def->type == TWOPTTYPE_GROUP){
                 if (cnt)
-                    fputc('\n', outfile);
-                fprintf(outfile, "%s:\n", def->help);
+                    fputc('\n', f);
+                fprintf(f, "%s:\n", def->help);
                 cnt++;
                 continue;
             }
 
-            pos += fprintf(outfile, "  --%s", def->name);
+            pos += fprintf(f, "  --%s", def->name);
 
             if (def->value) {
                 int col = 20;
                 int pad = col - pos;
                 if (pad > 0) {
-                    fprintf(outfile, "%*s", col - pos, "");
+                    fprintf(f, "%*s", col - pos, "");
                 } else {
-                    fputc('\n', outfile);
-                    fprintf(outfile, "%*s", col, "");
+                    fputc('\n', f);
+                    fprintf(f, "%*s", col, "");
                 }
-                fputs("  ", outfile);
+                fputs("  ", f);
             }
 
             if (def->value){
                 switch (def->type){
                 case TWOPTTYPE_ULONG:
-                    fprintf(outfile, "%lu", *((unsigned long*)def->value));
+                    fprintf(f, "%lu", *((unsigned long*)def->value));
                     break;
 
                 case TWOPTTYPE_UINT:
-                    fprintf(outfile, "%u", *((unsigned int*)def->value));
+                    fprintf(f, "%u", *((unsigned int*)def->value));
                     break;
 
                 case TWOPTTYPE_STIME:
-                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
+                    fprintf(f, "%.2f", *((tw_stime*)def->value));
                     break;
 
                 case TWOPTTYPE_CHAR:
-                    fprintf(outfile, "%s", (char *) def->value);
+                    fprintf(f, "%s", (char *) def->value);
                     break;
 
                 case TWOPTTYPE_FLAG:
                     if((*(unsigned int*)def->value) == 0) {
-                        fprintf(outfile, "off");
+                        fprintf(f, "off");
                     } else {
-                        fprintf(outfile, "on");
+                        fprintf(f, "on");
                     }
                     break;
 
@@ -182,7 +187,7 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
                 }
             }
 
-            fputc('\n', outfile);
+            fputc('\n', f);
             cnt++;
         }
     }
