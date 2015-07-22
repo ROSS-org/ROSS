@@ -23,6 +23,7 @@ static const tw_optdef kernel_options[] = {
 #ifdef AVL_TREE
     TWOPT_UINT("avl_size", g_tw_avl_node_count, "AVL Treet contians 2^avl_size nodes"),
 #endif
+    TWOPT_FLAG("csv", g_tw_print_csv, "Turn on CSV printing"),
     TWOPT_END()
 };
 

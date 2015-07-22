@@ -55,6 +55,7 @@ extern unsigned int	g_tw_net_device_size;
 extern tw_node g_tw_mynode;
 extern tw_node g_tw_masternode;
 
+extern unsigned int g_tw_print_csv;
 extern FILE		*g_tw_csv;
 
 extern tw_lptype * g_tw_lp_types;
