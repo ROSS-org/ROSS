@@ -134,8 +134,12 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
 }
 
 void tw_opt_csv_print() {
+    // calculate a per-git-revision filename
     char fname[20];
     sprintf(fname, "ross-%.*s-clo.csv", 6, ROSS_VERSION);
+
+    // calculate how many model/user added opt groups
+    int user_opt_groups = opt_index - 3;
 
     // If file doesn't exist yet
     // create it and add header row
@@ -144,10 +148,15 @@ void tw_opt_csv_print() {
         f = fopen(fname, "w");
         // last 4 opt groups are from ROSS itself
         const tw_optdef **group = all_groups;
+        int group_index = 0;
         for (; *group; group++){
             const tw_optdef *def = *group;
             for (; def->type; def++) {
                 if (def->type == TWOPTTYPE_GROUP || (def->name && 0 == strcmp(def->name, "help"))) {
+                    group_index++;
+                    continue;
+                }
+                if (group_index < user_opt_groups) {
                     continue;
                 }
                 if (def->name) {
@@ -163,17 +172,20 @@ void tw_opt_csv_print() {
     // put current option values into CSV file
     const tw_optdef **group = all_groups;
 
-    if(!tw_ismaster() || NULL == f)
-        return;
-
+    int group_index = 0;
     for (; *group; group++)
     {
         const tw_optdef *def = *group;
         for (; def->type; def++)
         {
-            if (def->type == TWOPTTYPE_GROUP ||
-                (def->name && 0 == strcmp(def->name, "help")))
+            if (def->type == TWOPTTYPE_GROUP || (def->name && 0 == strcmp(def->name, "help"))) {
+                group_index++;
                 continue;
+            }
+
+            if (group_index < user_opt_groups) {
+                continue;
+            }
 
             if (def->name && def->value)
             {
