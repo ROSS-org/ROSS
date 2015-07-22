@@ -4,11 +4,11 @@
 enum tw_opttype
 {
 	TWOPTTYPE_GROUP = 1,
-	TWOPTTYPE_ULONG,   /* value must be an "unsigned long*" */
-	TWOPTTYPE_UINT,    /* value must be an "unsigned int*" */
-	TWOPTTYPE_STIME,   /* value must be an "tw_stime*" */
-	TWOPTTYPE_CHAR,    /* value must be a char * */
-        TWOPTTYPE_FLAG,    /* value must be at "unsigned int*" */
+	TWOPTTYPE_ULONG,   /**< value must be an "unsigned long*" */
+	TWOPTTYPE_UINT,    /**< value must be an "unsigned int*" */
+	TWOPTTYPE_STIME,   /**< value must be an "tw_stime*" */
+	TWOPTTYPE_CHAR,    /**< value must be a char * */
+        TWOPTTYPE_FLAG,    /**< value must be at "unsigned int*" */
 	TWOPTTYPE_SHOWHELP
 };
 typedef enum tw_opttype tw_opttype;
@@ -32,8 +32,11 @@ struct tw_optdef
 
 /** Remove options from the command line arguments. */
 extern void tw_opt_parse(int *argc, char ***argv);
+/** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
+/** Pretty-print the option descriptions (for --help) */
 extern void tw_opt_print(void);
+/** Pretty-print the option descriptions and current values */
 extern void tw_opt_settings(FILE *f);
 
 #endif
