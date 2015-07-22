@@ -134,8 +134,33 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
 }
 
 void tw_opt_csv_print() {
-    FILE *f = g_tw_csv;
+    char fname[20];
+    sprintf(fname, "ross-%.*s-clo.csv", 6, ROSS_VERSION);
 
+    // If file doesn't exist yet
+    // create it and add header row
+    FILE *f;
+    if ((f = fopen(fname, "r")) == NULL) {
+        f = fopen(fname, "w");
+        // last 4 opt groups are from ROSS itself
+        const tw_optdef **group = all_groups;
+        for (; *group; group++){
+            const tw_optdef *def = *group;
+            for (; def->type; def++) {
+                if (def->type == TWOPTTYPE_GROUP || (def->name && 0 == strcmp(def->name, "help"))) {
+                    continue;
+                }
+                if (def->name) {
+                    fprintf(f, "%s,", def->name);
+                }
+            }
+        }
+        fputc('\n', f);
+    } else {
+        f = fopen(fname, "a");
+    }
+
+    // put current option values into CSV file
     const tw_optdef **group = all_groups;
 
     if(!tw_ismaster() || NULL == f)
@@ -150,7 +175,7 @@ void tw_opt_csv_print() {
                 (def->name && 0 == strcmp(def->name, "help")))
                 continue;
 
-            if (def->value)
+            if (def->name && def->value)
             {
                 switch (def->type)
                 {
@@ -177,8 +202,9 @@ void tw_opt_csv_print() {
                 default:
                     break;
                 }
-            } else
+            } else if (def->name) {
                 fprintf(f, "undefined,");
+            }
         }
     }
 
