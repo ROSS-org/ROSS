@@ -34,12 +34,12 @@ struct tw_optdef
 extern void tw_opt_parse(int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
-/** Print options to CSV */
+/** Print core/kernel options in CSV format */
 extern void tw_opt_print(FILE *f);
-/** Pretty-print the option descriptions current values
+/** Pretty-print all option groups with descriptions and current values
  *  @param f a FILE pointer
  *  @param help_flag indicates the printing of the current value
  */
-extern void tw_opt_pprint(FILE *f, int help_flag);
+extern void tw_opt_pretty_print(FILE *f, int help_flag);
 
 #endif
