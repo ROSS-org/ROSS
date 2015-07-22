@@ -35,8 +35,11 @@ extern void tw_opt_parse(int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
 /** Print options to CSV */
-extern void tw_opt_print(void);
-/** Pretty-print the option descriptions and current values */
-extern void tw_opt_settings(FILE *f);
+extern void tw_opt_print(FILE *f);
+/** Pretty-print the option descriptions current values
+ *  @param f a FILE pointer
+ *  @param help_flag indicates the printing of the current value
+ */
+extern void tw_opt_pprint(FILE *f, int help_flag);
 
 #endif
