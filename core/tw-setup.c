@@ -67,7 +67,7 @@ void tw_init(int *argc, char ***argv) {
         tw_error(TW_LOC, "Unable to open: ross.csv\n");
     }
 
-    tw_opt_print();
+    tw_opt_print(g_tw_csv);
 
     tw_net_start();
     tw_gvt_start();
