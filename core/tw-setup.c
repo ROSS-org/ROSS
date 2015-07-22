@@ -65,11 +65,9 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
-    if(tw_ismaster() && NULL == (g_tw_csv = fopen("ross.csv", "a"))) {
-        tw_error(TW_LOC, "Unable to open: ross.csv\n");
+    if(g_tw_print_csv && tw_ismaster()) {
+        tw_opt_csv_print();
     }
-
-    tw_opt_csv_print();
 
     tw_net_start();
     tw_gvt_start();
