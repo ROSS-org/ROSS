@@ -34,7 +34,7 @@ struct tw_optdef
 extern void tw_opt_parse(int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
-/** Pretty-print the option descriptions (for --help) */
+/** Print options to CSV */
 extern void tw_opt_print(void);
 /** Pretty-print the option descriptions and current values */
 extern void tw_opt_settings(FILE *f);
