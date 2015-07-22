@@ -134,7 +134,7 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
 }
 
 void tw_opt_print(FILE *f) {
-    FILE *f = g_tw_csv;
+    f = g_tw_csv;
     const tw_optdef **group = all_groups;
 
     if(!tw_ismaster() || NULL == f)
