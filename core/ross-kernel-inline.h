@@ -89,7 +89,7 @@ static inline void *
 }
 
 static inline tw_stime 
-     tw_now(tw_lp * lp)
+     tw_now(tw_lp const * lp)
 {
   return (lp->kp->last_time);
 }
