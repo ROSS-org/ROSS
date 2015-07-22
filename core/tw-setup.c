@@ -440,8 +440,8 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        printf("\t%-50s %11lu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-        fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+        printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+        fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
