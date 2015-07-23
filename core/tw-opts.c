@@ -6,6 +6,7 @@ static const tw_optdef *all_groups[10];
 
 static void need_argument(const tw_optdef *def) NORETURN;
 static int is_empty(const tw_optdef *def);
+static void tw_optdef_print_value(const tw_optdef *def, FILE *f);
 
 static const tw_optdef *opt_groups[10];
 static unsigned int opt_index = 0;
