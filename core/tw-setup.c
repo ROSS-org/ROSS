@@ -369,11 +369,6 @@ void tw_run(void) {
 }
 
 void tw_end(void) {
-    if(tw_ismaster()) {
-        fprintf(g_tw_csv, "\n");
-        fclose(g_tw_csv);
-    }
-
     tw_net_stop();
 }
 
