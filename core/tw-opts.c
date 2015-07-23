@@ -20,6 +20,37 @@ tw_opt_add(const tw_optdef *options)
     opt_groups[opt_index] = NULL;
 }
 
+static void tw_optdef_print_value(const tw_optdef *def, FILE *f) {
+    switch (def->type){
+    case TWOPTTYPE_ULONG:
+        fprintf(f, "%lu", *((unsigned long*)def->value));
+        break;
+
+    case TWOPTTYPE_UINT:
+        fprintf(f, "%u", *((unsigned int*)def->value));
+        break;
+
+    case TWOPTTYPE_STIME:
+        fprintf(f, "%.2f", *((tw_stime*)def->value));
+        break;
+
+    case TWOPTTYPE_CHAR:
+        fprintf(f, "%s", (char *) def->value);
+        break;
+
+    case TWOPTTYPE_FLAG:
+        if((*(unsigned int*)def->value) == 0) {
+            fprintf(f, "off");
+        } else {
+            fprintf(f, "on");
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
 void tw_opt_pretty_print(FILE *f, int help_flag) {
     const tw_optdef **group = all_groups;
     unsigned cnt = 0;
@@ -90,34 +121,7 @@ void tw_opt_pretty_print(FILE *f, int help_flag) {
             }
 
             if (def->value){
-                switch (def->type){
-                case TWOPTTYPE_ULONG:
-                    fprintf(f, "%lu", *((unsigned long*)def->value));
-                    break;
-
-                case TWOPTTYPE_UINT:
-                    fprintf(f, "%u", *((unsigned int*)def->value));
-                    break;
-
-                case TWOPTTYPE_STIME:
-                    fprintf(f, "%.2f", *((tw_stime*)def->value));
-                    break;
-
-                case TWOPTTYPE_CHAR:
-                    fprintf(f, "%s", (char *) def->value);
-                    break;
-
-                case TWOPTTYPE_FLAG:
-                    if((*(unsigned int*)def->value) == 0) {
-                        fprintf(f, "off");
-                    } else {
-                        fprintf(f, "on");
-                    }
-                    break;
-
-                default:
-                    break;
-                }
+                tw_optdef_print_value(def, f);
             }
 
             if (help_flag) {
@@ -187,37 +191,9 @@ void tw_opt_csv_print() {
                 continue;
             }
 
-            if (def->name && def->value)
-            {
-                switch (def->type)
-                {
-                case TWOPTTYPE_ULONG:
-                    fprintf(f, "%lu,", *((unsigned long*)def->value));
-                    break;
-
-                case TWOPTTYPE_UINT:
-                    fprintf(f, "%u,", *((unsigned int*)def->value));
-                    break;
-
-                case TWOPTTYPE_STIME:
-                    fprintf(f, "%.2f,", *((tw_stime*)def->value));
-                    break;
-
-                case TWOPTTYPE_CHAR:
-                    fprintf(f, "%s,", (char *)def->value);
-                    break;
-
-                case TWOPTTYPE_FLAG:
-                    if((*(unsigned int*)def->value) == 0) {
-                        fprintf(f, "off,");
-                    } else {
-                        fprintf(f, "on,");
-                    }
-                    break;
-
-                default:
-                    break;
-                }
+            if (def->name && def->value) {
+                tw_optdef_print_value(def, f);
+                fputc(',', f);
             } else if (def->name) {
                 fprintf(f, "undefined,");
             }
