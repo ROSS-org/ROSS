@@ -481,11 +481,13 @@ static tw_pe * setup_pes(void) {
 #endif
     }
 
-    if (g_tw_mynode == g_tw_masternode) {
+    if(g_tw_print_csv && tw_ismaster())
         FILE *f = fopen("ross.csv", "a");
         tw_run_csv_print(f);
         fclose(f);
+    }
 
+    if (g_tw_mynode == g_tw_masternode) {
         printf("\nROSS Core Configuration: \n");
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
         switch(g_tw_mapping) {
