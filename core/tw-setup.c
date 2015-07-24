@@ -65,8 +65,22 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
+    // ross.csv file
+    // - command-line-options details (tw_opts)
+    // - run-time settings
+    // - ending statistics
+    // note that first row is header
     if(g_tw_print_csv && tw_ismaster()) {
-        tw_opt_csv_print();
+        FILE *f;
+        if ((f = fopen("ross.csv", "wx")) != NULL) {
+            tw_opt_csv_print_header(f);
+            tw_run_csv_print_header(f);
+            tw_stat_csv_print_header(f);
+        } else {
+            f = fopen("ross.csv", "a");
+        }
+        tw_opt_csv_print(f);
+        fclose(f);
     }
 
     tw_net_start();
