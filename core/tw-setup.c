@@ -454,16 +454,6 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
         fprintf(g_tw_csv, "%u,", tw_nnodes());
 
-        printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
-        fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
-
-        printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-
-        printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
-        fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
-
-
         switch(g_tw_mapping) {
             case LINEAR:
                 printf("\t%-50s %11s\n", "LP-to-PE Mapping", "linear");
@@ -480,6 +470,17 @@ static tw_pe * setup_pes(void) {
                 fprintf(g_tw_csv, "%s,", "model defined");
                 break;
         }
+        if (g_tw_mapping != CUSTOM) {
+            printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
+            fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
+
+            printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+            fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+        }
+
+        printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
+        fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
+
         printf("\n");
 
 #ifndef ROSS_DO_NOT_PRINT
