@@ -454,9 +454,6 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
         fprintf(g_tw_csv, "%u,", tw_nnodes());
 
-        printf("\t%-50s [Nodes (%u) x PE_per_Node (%lu)] %lu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
-        fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
-
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
