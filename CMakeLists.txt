@@ -42,9 +42,6 @@ IF(NOT ARCH)
     "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
 ENDIF(NOT ARCH)
 
-# Require C11 for all builds
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
-
 IF(ARCH STREQUAL i386)
   SET(VALID_ARCH YES)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
