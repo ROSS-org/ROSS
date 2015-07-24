@@ -74,7 +74,7 @@ void tw_init(int *argc, char ***argv) {
     // - run-time settings
     // - ending statistics
     // note that first row is header
-    if(g_tw_print_csv && tw_ismaster()) {
+    if(g_tw_print_csv_flag && tw_ismaster()) {
         FILE *f;
         if ((f = fopen("ross.csv", "wx")) != NULL) {
             tw_opt_csv_print_header(f);
@@ -482,7 +482,7 @@ static tw_pe * setup_pes(void) {
 #endif
     }
 
-    if(g_tw_print_csv && tw_ismaster())
+    if(g_tw_print_csv_flag && tw_ismaster()) {
         FILE *f = fopen("ross.csv", "a");
         tw_run_csv_print(f);
         fclose(f);
