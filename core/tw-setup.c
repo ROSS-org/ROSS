@@ -11,6 +11,9 @@
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
 
+static void tw_run_csv_print(FILE *f);
+static void tw_run_csv_print_header(FILE *f);
+
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
     TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4"),
@@ -396,6 +399,14 @@ static void tw_delta_alloc(tw_pe *pe) {
     pe->delta_buffer[0] = (unsigned char *)tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
     pe->delta_buffer[1] = (unsigned char *)tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
     pe->delta_buffer[2] = (unsigned char *)tw_calloc(TW_LOC, "Delta buffers", g_tw_delta_sz, 1);
+}
+
+static void tw_run_csv_print_header(FILE *f) {
+
+}
+
+static void tw_run_csv_print(FILE *f) {
+
 }
 
 static tw_pe * setup_pes(void) {
