@@ -488,7 +488,7 @@ static tw_pe * setup_pes(void) {
         fclose(f);
     }
 
-    if (g_tw_mynode == g_tw_masternode) {
+    if (!g_tw_silent_flag && tw_ismaster()) {
         printf("\nROSS Core Configuration: \n");
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
         switch(g_tw_mapping) {
@@ -509,14 +509,12 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         printf("\n");
 
-#ifndef ROSS_DO_NOT_PRINT
         printf("\nROSS Event Memory Allocation:\n");
         printf("\t%-50s %11d\n", "Model events", g_tw_events_per_pe);
         printf("\t%-50s %11d\n", "Extra events", g_tw_events_per_pe_extra);
         printf("\t%-50s %11d\n", "Network events", g_tw_gvt_threshold);
         printf("\t%-50s %11d\n", "Total events", (1+g_tw_events_per_pe+g_tw_events_per_pe_extra+g_tw_gvt_threshold));
         printf("\n");
-#endif
     }
     return master;
 }

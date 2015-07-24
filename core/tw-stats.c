@@ -1,6 +1,5 @@
 #include <ross.h>
 
-#ifndef ROSS_DO_NOT_PRINT
 static void
 show_lld(const char *name, tw_stat v)
 {
@@ -28,8 +27,6 @@ show_4f(const char *name, double v)
 	printf("\t%-50s %11.4lf\n", name, v);
 	fprintf(g_tw_csv, "%.4lf,", v);
 }
-
-#endif
 
 void
 tw_stats(tw_pe * me)
@@ -112,7 +109,6 @@ tw_stats(tw_pe * me)
 	if (!tw_ismaster())
 		return;
 
-#ifndef ROSS_DO_NOT_PRINT
 	printf("\n\t: Running Time = %.4f seconds\n", s.s_max_run_time);
 	fprintf(g_tw_csv, "%.4f,", s.s_max_run_time);
 
@@ -123,7 +119,7 @@ tw_stats(tw_pe * me)
 	show_lld("Event Ties Detected in PE Queues", s.s_pe_event_ties);
         if(g_tw_synchronization_protocol == CONSERVATIVE)
             printf("\t%-50s %11.9lf\n",
-               "Minimum TS Offset Detected in Conservative Mode",  
+               "Minimum TS Offset Detected in Conservative Mode",
                (double) s.s_min_detected_offset);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
 	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
@@ -158,7 +154,7 @@ tw_stats(tw_pe * me)
 	);
 
         show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
-        
+
 	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated",(1+g_tw_events_per_pe+g_tw_events_per_pe_extra) * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);
@@ -181,7 +177,6 @@ tw_stats(tw_pe * me)
 	show_lld("Event struct", sizeof(tw_event));
 	show_lld("Event struct with Model", sizeof(tw_event) + g_tw_msg_sz);
 
-#ifdef ROSS_timing
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at %1.4lf GHz):\n", g_tw_clock_rate / 1000000000.0);
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / g_tw_clock_rate);
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
@@ -196,8 +191,6 @@ tw_stats(tw_pe * me)
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
 	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);
-#endif
 
 	tw_gvt_stats(stdout);
-#endif
 }
