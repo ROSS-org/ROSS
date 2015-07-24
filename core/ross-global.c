@@ -94,6 +94,7 @@ tw_node		g_tw_mynode = -1;
 tw_node		g_tw_masternode = -1;
 
 unsigned int g_tw_print_csv_flag = 0;
+unsigned int g_tw_silent_flag = 0;
 
 /*
  *

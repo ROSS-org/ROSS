@@ -56,6 +56,7 @@ extern tw_node g_tw_mynode;
 extern tw_node g_tw_masternode;
 
 extern unsigned int g_tw_print_csv_flag;
+extern unsigned int g_tw_silent_flag;
 
 extern tw_lptype * g_tw_lp_types;
 extern tw_typemap_f g_tw_lp_typemap;
