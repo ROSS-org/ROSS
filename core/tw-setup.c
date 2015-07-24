@@ -79,6 +79,7 @@ void tw_init(int *argc, char ***argv) {
             tw_opt_csv_print_header(f);
             tw_run_csv_print_header(f);
             tw_stat_csv_print_header(f);
+            fputc('\n', f);
         } else {
             f = fopen("ross.csv", "a");
         }
@@ -402,11 +403,42 @@ static void tw_delta_alloc(tw_pe *pe) {
 }
 
 static void tw_run_csv_print_header(FILE *f) {
+    fprintf(f, "%u,", tw_nnodes());
+    fprintf(f, "%s,", "Mapping,");
+    if (g_tw_mapping != CUSTOM) {
+        fprintf(f, "Total KPs,");
+        fprintf(f, "Total LPs,");
+    }
+    fprintf(f, "End Time,");
+    fprintf(f, "Model Events,");
+    fprintf(f, "Extra Events,");
+    fprintf(f, "Network Events,");
+    fprintf(f, "Total Events,");
 
 }
 
 static void tw_run_csv_print(FILE *f) {
-
+    fprintf(f, "%u,", tw_nnodes());
+    switch (g_tw_mapping) {
+    case LINEAR:
+        fprintf(f, "%s,", "linear");
+        break;
+    case ROUND_ROBIN:
+        fprintf(f, "%s,", "round robin");
+        break;
+    case CUSTOM:
+        fprintf(f, "%s,", "model defined");
+        break;
+    }
+    if (g_tw_mapping != CUSTOM) {
+        fprintf(f, "%lu,", (tw_nnodes() * g_tw_nkp));
+        fprintf(f, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+    }
+    fprintf(f, "%11.2lf,", g_tw_ts_end);
+    fprintf(f, "%d,", g_tw_events_per_pe);
+    fprintf(f, "%d,", g_tw_events_per_pe_extra);
+    fprintf(f, "%d,", g_tw_gvt_threshold);
+    fprintf(f, "%d,", (1+g_tw_events_per_pe+g_tw_events_per_pe_extra+g_tw_gvt_threshold));
 }
 
 static tw_pe * setup_pes(void) {
@@ -450,52 +482,45 @@ static tw_pe * setup_pes(void) {
     }
 
     if (g_tw_mynode == g_tw_masternode) {
+        FILE *f = fopen("ross.csv", "a");
+        tw_run_csv_print(f);
+        fclose(f);
+
         printf("\nROSS Core Configuration: \n");
         printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
-        fprintf(g_tw_csv, "%u,", tw_nnodes());
 
         switch(g_tw_mapping) {
             case LINEAR:
                 printf("\t%-50s %11s\n", "LP-to-PE Mapping", "linear");
-                fprintf(g_tw_csv, "%s,", "linear");
                 break;
 
             case ROUND_ROBIN:
                 printf("\t%-50s %11s\n", "LP-to-PE Mapping", "round robin");
-                fprintf(g_tw_csv, "%s,", "round robin");
                 break;
 
             case CUSTOM:
                 printf("\t%-50s %11s\n", "LP-to-PE Mapping", "model defined");
-                fprintf(g_tw_csv, "%s,", "model defined");
                 break;
         }
         if (g_tw_mapping != CUSTOM) {
             printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
-            fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
             printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-            fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
         }
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
-        fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
 
         printf("\n");
 
 #ifndef ROSS_DO_NOT_PRINT
         printf("\nROSS Event Memory Allocation:\n");
         printf("\t%-50s %11d\n", "Model events", g_tw_events_per_pe);
-        fprintf(g_tw_csv, "%d,", g_tw_events_per_pe);
 
         printf("\t%-50s %11d\n", "Extra events", g_tw_events_per_pe_extra);
-        fprintf(g_tw_csv, "%d,", g_tw_events_per_pe_extra);
 
         printf("\t%-50s %11d\n", "Network events", g_tw_gvt_threshold);
-        fprintf(g_tw_csv, "%d,", g_tw_gvt_threshold);
 
         printf("\t%-50s %11d\n", "Total events", (1+g_tw_events_per_pe+g_tw_events_per_pe_extra+g_tw_gvt_threshold));
-        fprintf(g_tw_csv, "%d,", (1+g_tw_events_per_pe+g_tw_events_per_pe_extra+g_tw_gvt_threshold));
         printf("\n");
 #endif
     }
