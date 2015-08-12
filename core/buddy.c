@@ -244,7 +244,7 @@ void *buddy_alloc(unsigned size)
         blbt++;
         if (blbt->is_valid == INVALID) {
             // Error: we're out of bound for valid BLBTs
-            tw_error(TW_LOC, "Increase buddy_size");
+            tw_error(TW_LOC, "Increase buddy-size");
         }
     }
 
@@ -256,7 +256,7 @@ void *buddy_alloc(unsigned size)
             blbt++;
             if (blbt->is_valid == INVALID) {
                 // Error: we're out of bound for valid BLBTs
-                tw_error(TW_LOC, "Increase buddy_size");
+                tw_error(TW_LOC, "Increase buddy-size");
             }
             split_count++;
         }
@@ -268,7 +268,7 @@ void *buddy_alloc(unsigned size)
 
     if (LIST_EMPTY(&blbt->ptr)) {
         // This is bad -- they should have allocated more memory
-        tw_error(TW_LOC, "Increase buddy_size");
+        tw_error(TW_LOC, "Increase buddy-size");
     }
     buddy_list_t *blt = LIST_FIRST(&blbt->ptr);
     assert(blt && "LIST_FIRST returned NULL");
