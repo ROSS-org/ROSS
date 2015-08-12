@@ -28,7 +28,7 @@ struct tw_optdef
 #define TWOPT_STIME(n,v,h) { TWOPTTYPE_STIME, (n), (h), &(v) }
 #define TWOPT_CHAR(n,v,h)  { TWOPTTYPE_CHAR,  (n), (h), &(v) }
 #define TWOPT_FLAG(n,v,h)  { TWOPTTYPE_FLAG,  (n), (h), &(v) }
-#define TWOPT_END()        (tw_opttype)0
+#define TWOPT_END()        { (tw_opttype)0 }
 
 /** Remove options from the command line arguments. */
 extern void tw_opt_parse(int *argc, char ***argv);
