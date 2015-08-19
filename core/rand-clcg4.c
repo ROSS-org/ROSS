@@ -319,7 +319,7 @@ rng_init(int v, int w)
 	if(g_tw_rng_seed)
 	{
 		for(j = 0; j < 4; j++)
-			rng->seed[j] = *g_tw_rng_seed[j];
+			rng->seed[j] = g_tw_rng_seed[j];
 	} else
 	{
 		rng->seed[0] = 11111111;
