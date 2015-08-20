@@ -181,7 +181,7 @@ void map_round_robin(void) {
  * important global variable.  It is also set in (very few) other places,
  * but mainly just here.
  */
-void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed) {
+void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed seed) {
     int  i;
 
     g_tw_nlp = nlp;

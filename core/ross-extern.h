@@ -23,7 +23,7 @@ extern tw_kp	**g_tw_kp;
 extern int      g_tw_fossil_attempts;
 extern unsigned int	g_tw_nRNG_per_lp;
 extern tw_lpid		g_tw_rng_default;
-extern tw_seed		*g_tw_rng_seed;
+extern tw_seed		g_tw_rng_seed;
 extern unsigned int	g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
 extern tw_stime		g_tw_ts_end;
@@ -133,7 +133,7 @@ extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem,
  * tw-setup.c
  */
 extern void tw_init(int *argc, char ***argv);
-extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed * seed);
+extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed seed);
 extern void tw_run(void);
 extern void tw_end(void);
 extern tw_lpid map_onetype (tw_lpid gid);
