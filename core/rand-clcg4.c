@@ -141,6 +141,38 @@ MultModM(int32_t s, int32_t t, int32_t M)
  *
  *******************************************************************/
 
+#define S0_MAX 2147483646
+#define S1_MAX 2147483542
+#define S2_MAX 2147483422
+#define S3_MAX 2147483322
+
+/**
+ * These seeds MUST adhere to these requirements.
+ * This is explicitly stated in L'Ecuyer and Andres (1997)
+ */
+void clamp_seed(uint32_t s[4])
+{
+    if (s[0] < 1)
+        s[0] = 1;
+    if (s[0] > S0_MAX)
+        s[0] = S0_MAX;
+
+    if (s[1] < 1)
+        s[1] = 1;
+    if (s[1] > S1_MAX)
+        s[1] = S1_MAX;
+
+    if (s[2] < 1)
+        s[2] = 1;
+    if (s[2] > S2_MAX)
+        s[2] = S2_MAX;
+
+    if (s[3] < 1)
+        s[3] = 1;
+    if (s[3] > S3_MAX)
+        s[3] = S3_MAX;
+}
+
 /*
  * rng_set_seed
  */
@@ -149,6 +181,8 @@ void
 rng_set_seed(tw_rng_stream * g, uint32_t s[4])
 {
 	int	j;
+
+    clamp_seed(s);
 
 	for(j = 0; j < 4; j++)
 		g->Ig[j] = s[j];
@@ -273,6 +307,8 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 			Ig_t[j] = MultModM(rng->avw[j], Ig_t[j], rng->m[j]);
 	}
 
+    clamp_seed(Ig_t);
+
 	for(j = 0; j < 4; j++)
 		g->Ig[j] = Ig_t[j];
 
@@ -318,6 +354,7 @@ rng_init(int v, int w)
 	
 	if(g_tw_rng_seed)
 	{
+        clamp_seed((uint32_t*)g_tw_rng_seed);
 		for(j = 0; j < 4; j++)
 			rng->seed[j] = g_tw_rng_seed[j];
 	} else
