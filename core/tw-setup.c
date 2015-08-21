@@ -191,7 +191,6 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed seed) {
 #endif
 
     g_tw_msg_sz = msg_sz;
-    g_tw_rng_seed = seed;
 
     early_sanity_check();
 
