@@ -24,6 +24,13 @@ Some of these features have since been optimized out, leaving behind cruft.
 In early 2015 a sleeker version of ROSS was released.
 Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this version removed many files, functions, and variables that had become deprecated over time.
 
+## Requirements
+
+1. ROSS is written in C standard and thus requires a C compiler (C11 is prefered, but not required).
+1. The build system is [CMake](http://cmake.org), and we require version 2.8 or higher.
+2. ROSS relies on MPI.
+   We recommend the [MPICH](http://www.mpich.org) implementation.
+
 ## Startup Instructions
 
 1. Clone the repository to your local machine:
