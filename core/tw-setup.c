@@ -274,7 +274,7 @@ static void late_sanity_check(void) {
             tw_error(TW_LOC, "LP %u has mismatched KP and PE.", lp->id);
         }
 
-        if (!memcmp(&lp->type, &null_type, sizeof(null_type))) {
+        if (!memcmp(lp->type, &null_type, sizeof(null_type))) {
             tw_error(TW_LOC, "LP %u has no type.", lp->id);
         }
     }
