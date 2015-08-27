@@ -35,7 +35,7 @@ Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ver
 
 1. Clone the repository to your local machine:
   ```
-  git clone git@github.com:carothersc/ROSS
+  git clone git@github.com:carothersc/ROSS.git
   cd ROSS
   ```
 
