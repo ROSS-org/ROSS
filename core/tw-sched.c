@@ -417,7 +417,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
-        printf("*** START PARALLEL OPTIMISTIC SIMULATION ***\n\n");
+        printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
 
     tw_wall_now(&me->start_time);
