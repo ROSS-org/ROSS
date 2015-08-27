@@ -19,7 +19,11 @@ script:
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
  - mkdir build && cd build
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang                          \
+   CFLAGS="-fsanitize=address -fno-omit-frame-pointer -g -Wall" \
+   LDFLAGS="-fsanitize=address"                                 \
+   ASAN_OPTIONS="abort_on_error=1"                              \
+   cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
