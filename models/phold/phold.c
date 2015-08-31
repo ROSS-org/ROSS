@@ -147,7 +147,7 @@ main(int argc, char **argv, char **env)
 	//g_tw_rng_default = TW_FALSE;
 	g_tw_lookahead = lookahead;
 
-	tw_define_lps(nlp_per_pe, sizeof(phold_message), 0);
+	tw_define_lps(nlp_per_pe, sizeof(phold_message));
 
 	for(i = 0; i < g_tw_nlp; i++)
 		tw_lp_settype(i, &mylps[0]);
