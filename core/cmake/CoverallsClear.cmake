@@ -1,6 +1,4 @@
 #
-# The MIT License (MIT)
-#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -22,10 +20,5 @@
 # Copyright (C) 2014 Joakim Söderberg <joakim.soderberg@gmail.com>
 #
 
-# do not follow symlinks in file(GLOB_RECURSE ...)
-cmake_policy(SET CMP0009 NEW)
+file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/*.gcda)
 
-file(GLOB_RECURSE GCDA_FILES "${PROJECT_BINARY_DIR}/*.gcda")
-if(NOT GCDA_FILES STREQUAL "")
-  file(REMOVE ${GCDA_FILES})
-endif()

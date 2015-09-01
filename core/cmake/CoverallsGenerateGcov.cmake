@@ -1,6 +1,4 @@
 #
-# The MIT License (MIT)
-#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -69,39 +67,13 @@ string(REGEX REPLACE "\\*" ";" COVERAGE_SRCS ${COVERAGE_SRCS})
 
 find_program(GCOV_EXECUTABLE gcov)
 
-# convert all paths in COVERAGE_SRCS to absolute paths
-set(COVERAGE_SRCS_TMP "")
-foreach (COVERAGE_SRC ${COVERAGE_SRCS})
-	if (NOT "${COVERAGE_SRC}" MATCHES "^/")
-		set(COVERAGE_SRC ${PROJECT_ROOT}/${COVERAGE_SRC})
-	endif()
-	list(APPEND COVERAGE_SRCS_TMP ${COVERAGE_SRC})
-endforeach()
-set(COVERAGE_SRCS ${COVERAGE_SRCS_TMP})
-unset(COVERAGE_SRCS_TMP)
-
 if (NOT GCOV_EXECUTABLE)
 	message(FATAL_ERROR "gcov not found! Aborting...")
 endif()
 
 find_package(Git)
 
-set(JSON_REPO_TEMPLATE
-  "{
-    \"head\": {
-      \"id\": \"\@GIT_COMMIT_HASH\@\",
-      \"author_name\": \"\@GIT_AUTHOR_NAME\@\",
-      \"author_email\": \"\@GIT_AUTHOR_EMAIL\@\",
-      \"committer_name\": \"\@GIT_COMMITTER_NAME\@\",
-      \"committer_email\": \"\@GIT_COMMITTER_EMAIL\@\",
-      \"message\": \"\@GIT_COMMIT_MESSAGE\@\"
-    },
-    \"branch\": \"@GIT_BRANCH@\",
-    \"remotes\": []
-  }"
-)
-
-# TODO: Fill in git remote data
+# TODO: Add these git things to the coveralls json.
 if (GIT_FOUND)
 	# Branch.
 	execute_process(
@@ -120,12 +92,11 @@ if (GIT_FOUND)
 		)
 	endmacro()
 
-	git_log_format(an GIT_AUTHOR_NAME)
+	git_log_format(an GIT_AUTHOR_EMAIL)
 	git_log_format(ae GIT_AUTHOR_EMAIL)
 	git_log_format(cn GIT_COMMITTER_NAME)
 	git_log_format(ce GIT_COMMITTER_EMAIL)
 	git_log_format(B GIT_COMMIT_MESSAGE)
-	git_log_format(H GIT_COMMIT_HASH)
 
 	message("Git exe: ${GIT_EXECUTABLE}")
 	message("Git branch: ${GIT_BRANCH}")
@@ -133,12 +104,8 @@ if (GIT_FOUND)
 	message("Git e-mail: ${GIT_AUTHOR_EMAIL}")
 	message("Git commiter name: ${GIT_COMMITTER_NAME}")
 	message("Git commiter e-mail: ${GIT_COMMITTER_EMAIL}")
-	message("Git commit hash: ${GIT_COMMIT_HASH}")
 	message("Git commit message: ${GIT_COMMIT_MESSAGE}")
 
-	string(CONFIGURE ${JSON_REPO_TEMPLATE} JSON_REPO_DATA)
-else()
-	set(JSON_REPO_DATA "{}")
 endif()
 
 ############################# Macros #########################################
@@ -243,13 +210,12 @@ foreach (GCOV_FILE ${ALL_GCOV_FILES})
 	# -> 
 	# /path/to/project/root/subdir/the_file.c 
 	get_source_path_from_gcov_filename(GCOV_SRC_PATH ${GCOV_FILE})
-	file(RELATIVE_PATH GCOV_SRC_REL_PATH "${PROJECT_ROOT}" "${GCOV_SRC_PATH}")
 
 	# Is this in the list of source files?
 	# TODO: We want to match against relative path filenames from the source file root...
 	list(FIND COVERAGE_SRCS ${GCOV_SRC_PATH} WAS_FOUND)
 
-	if (NOT WAS_FOUND EQUAL -1)
+	if (WAS_FOUND EQUAL -1)
 		message("YES: ${GCOV_FILE}")
 		list(APPEND GCOV_FILES ${GCOV_FILE})
 
@@ -265,15 +231,12 @@ endforeach()
 # TODO: Enable setting these
 set(JSON_SERVICE_NAME "travis-ci")
 set(JSON_SERVICE_JOB_ID $ENV{TRAVIS_JOB_ID})
-set(JSON_REPO_TOKEN $ENV{COVERALLS_REPO_TOKEN})
 
 set(JSON_TEMPLATE
 "{
-  \"repo_token\": \"\@JSON_REPO_TOKEN\@\",
   \"service_name\": \"\@JSON_SERVICE_NAME\@\",
   \"service_job_id\": \"\@JSON_SERVICE_JOB_ID\@\",
-  \"source_files\": \@JSON_GCOV_FILES\@,
-  \"git\": \@JSON_REPO_DATA\@
+  \"source_files\": \@JSON_GCOV_FILES\@
 }"
 )
 
@@ -310,9 +273,6 @@ foreach (GCOV_FILE ${GCOV_FILES})
 	string(REPLACE "[" "_" GCOV_CONTENTS "${GCOV_CONTENTS}")
 	string(REPLACE "]" "_" GCOV_CONTENTS "${GCOV_CONTENTS}")
 	string(REPLACE "\\" "_" GCOV_CONTENTS "${GCOV_CONTENTS}")
-
-	# Remove file contents to avoid encoding issues (cmake 2.8 has no ENCODING option)
-	string(REGEX REPLACE "([^:]*):([^:]*):([^\n]*)\n" "\\1:\\2: \n" GCOV_CONTENTS "${GCOV_CONTENTS}")
 	file(WRITE ${GCOV_FILE}_tmp "${GCOV_CONTENTS}")
 
 	file(STRINGS ${GCOV_FILE}_tmp GCOV_LINES)
@@ -389,7 +349,7 @@ foreach (GCOV_FILE ${GCOV_FILES})
 					set(GCOV_FILE_COVERAGE "${GCOV_FILE_COVERAGE}null, ")
 				else()
 					# Translate the hitcount into valid JSON values.
-					if (${HITCOUNT} STREQUAL "#####" OR ${HITCOUNT} STREQUAL "=====")
+					if (${HITCOUNT} STREQUAL "#####")
 						set(GCOV_FILE_COVERAGE "${GCOV_FILE_COVERAGE}0, ")
 					elseif (${HITCOUNT} STREQUAL "-")
 						set(GCOV_FILE_COVERAGE "${GCOV_FILE_COVERAGE}null, ")
@@ -428,19 +388,14 @@ endforeach()
 # as well, and generate JSON for those as well with 0% coverage.
 foreach(NOT_COVERED_SRC ${COVERAGE_SRCS_REMAINING})
 
-	# Set variables for json replacement
-	set(GCOV_SRC_PATH ${NOT_COVERED_SRC})
-	file(MD5 "${GCOV_SRC_PATH}" GCOV_CONTENTS_MD5)
-	file(RELATIVE_PATH GCOV_SRC_REL_PATH "${PROJECT_ROOT}" "${GCOV_SRC_PATH}")
-
 	# Loads the source file as a list of lines.
-	file(STRINGS ${NOT_COVERED_SRC} SRC_LINES)
+	file(STRINGS ${PROJECT_ROOT}/${NOT_COVERED_SRC} SRC_LINES)
 
 	set(GCOV_FILE_COVERAGE "[")
 	set(GCOV_FILE_SOURCE "")
 
 	foreach (SOURCE ${SRC_LINES})
-		set(GCOV_FILE_COVERAGE "${GCOV_FILE_COVERAGE}null, ")
+		set(GCOV_FILE_COVERAGE "${GCOV_FILE_COVERAGE}0, ")
 
 		string(REPLACE "\\" "\\\\" SOURCE "${SOURCE}")
 		string(REGEX REPLACE "\"" "\\\\\"" SOURCE "${SOURCE}")

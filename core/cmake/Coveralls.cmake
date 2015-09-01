@@ -1,6 +1,4 @@
 #
-# The MIT License (MIT)
-#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -22,18 +20,18 @@
 # Copyright (C) 2014 Joakim Söderberg <joakim.soderberg@gmail.com>
 #
 
-set(_CMAKE_SCRIPT_PATH ${CMAKE_CURRENT_LIST_DIR}) # must be outside coveralls_setup() to get correct path
 
 #
 # Param _COVERAGE_SRCS	A list of source files that coverage should be collected for.
 # Param _COVERALLS_UPLOAD Upload the result to coveralls?
 #
-
 function(coveralls_setup _COVERAGE_SRCS _COVERALLS_UPLOAD)
 
 	if (ARGC GREATER 2)
 		set(_CMAKE_SCRIPT_PATH ${ARGN})
-		message(STATUS "Coveralls: Using alternate CMake script dir: ${_CMAKE_SCRIPT_PATH}")
+		message("Coveralls: Using alternate CMake script dir: ${_CMAKE_SCRIPT_PATH}")
+	else()
+		set(_CMAKE_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/cmake)
 	endif()
 
 	if (NOT EXISTS "${_CMAKE_SCRIPT_PATH}/CoverallsClear.cmake")
@@ -63,7 +61,8 @@ function(coveralls_setup _COVERAGE_SRCS _COVERALLS_UPLOAD)
 	add_custom_target(coveralls_generate
 
 		# Zero the coverage counters.
-		COMMAND ${CMAKE_COMMAND} -DPROJECT_BINARY_DIR="${PROJECT_BINARY_DIR}" -P "${_CMAKE_SCRIPT_PATH}/CoverallsClear.cmake"
+		COMMAND ${CMAKE_COMMAND}
+				-P "${_CMAKE_SCRIPT_PATH}/CoverallsClear.cmake"
 
 		# Run regress tests.
 		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
