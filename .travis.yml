@@ -24,6 +24,7 @@ script:
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
 after_success:
+  - bash <(curl -s https://codecov.io/bash)
   - ## the following automatically builds the doxygen
   - ## documentation and pushes it to the gh_pages branch
   - ## Shamelessly stolen from http://bit.ly/1H1sawW
