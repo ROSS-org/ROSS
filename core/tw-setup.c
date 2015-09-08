@@ -171,7 +171,7 @@ void map_round_robin(void) {
         tw_lp_onkp(g_tw_lp[i], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
-        printf("LP %4d KP %4d PE %4d\n", i, kp->id, pe->id);
+        printf("LP %4d KP %4d PE %4d\n", lpid, kpid, pe->id);
 #endif
     }
 }
