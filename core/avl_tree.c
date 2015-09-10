@@ -167,7 +167,9 @@ avlInsert(AvlTree *t, tw_event *key)
         /* new t */
         *t = avl_alloc();
         if (*t == NULL) {
-            tw_error(TW_LOC, "Out of AVL tree nodes!");
+            tw_error(TW_LOC,
+                     "AVL tree out of memory.\nIncrease avl-size beyond %d\n",
+                     (int)log2(g_tw_avl_node_count));
         }
         
         (*t)->child[0] = AVL_EMPTY;
@@ -301,7 +303,9 @@ AvlTree avl_alloc(void)
     g_tw_pe[0]->avl_list_head = head->next;
     
     if (g_tw_pe[0]->avl_list_head == NULL) {
-        tw_error(TW_LOC, "avl_list_head is invalid!");
+        tw_error(TW_LOC,
+                 "AVL tree out of memory.\nIncrease avl-size beyond %d\n",
+                 (int)log2(g_tw_avl_node_count));
     }
     
     head->next = NULL;
