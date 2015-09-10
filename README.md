@@ -7,7 +7,7 @@ Using this repository you can compare files from the new `ROSS/core` to `ROSS/ro
 For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/carothersc/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
 
 [![Build Status](https://travis-ci.org/carothersc/ROSS.svg?branch=master)](https://travis-ci.org/carothersc/ROSS)
-[![Coverage Status](https://coveralls.io/repos/carothersc/ROSS/badge.svg?branch=master)](https://coveralls.io/r/carothersc/ROSS?branch=master)
+[![codecov.io](http://codecov.io/github/carothersc/ROSS/coverage.svg?branch=master)](http://codecov.io/github/carothersc/ROSS?branch=master)
 [Doxygen](http://carothersc.github.io/ROSS/ROSS-docs/docs/html)
 
 ## History
