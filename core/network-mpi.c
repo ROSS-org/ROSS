@@ -297,7 +297,7 @@ recv_begin(tw_pe *me)
 	}
 
 #if ROSS_MEMORY
-      if(!flag || 
+      if(!flag ||
 	 MPI_Irecv(posted_recvs.buffers[id],
 		   EVENT_SIZE(e),
 		   MPI_BYTE,
@@ -306,7 +306,7 @@ recv_begin(tw_pe *me)
 		   MPI_COMM_WORLD,
 		   &posted_recvs.req_list[id]) != MPI_SUCCESS)
 #else
-	if(!flag || 
+	if(!flag ||
 	   MPI_Irecv(e,
 		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
@@ -361,7 +361,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   e->cause_next = NULL;
 
   if(e->recv_ts < me->GVT)
-    tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", 
+    tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)",
 	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me))
@@ -375,7 +375,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
       // NOTE: it is possible to cancel the event we
       // are currently processing at this PE since this
-      // MPI module lets me read cancel events during 
+      // MPI module lets me read cancel events during
       // event sends over the network.
 
       cancel->state.cancel_q = 1;
@@ -439,7 +439,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   if (me->node == dest_pe->node) {
     /* Slower, but still local send, so put into top
-     * of dest_pe->event_q. 
+     * of dest_pe->event_q.
      */
     e->state.owner = TW_pe_event_q;
     tw_eventq_push(&dest_pe->event_q, e);
@@ -742,7 +742,7 @@ tw_net_cancel(tw_event *e)
 tw_statistics	*
 tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
-  if(MPI_Reduce(&(s->s_max_run_time), 
+  if(MPI_Reduce(&(s->s_max_run_time),
 		&me->stats.s_max_run_time,
 		1,
 		MPI_DOUBLE,
@@ -751,7 +751,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&(s->s_net_events), 
+  if(MPI_Reduce(&(s->s_net_events),
 		&me->stats.s_net_events,
 		16,
 		MPI_UNSIGNED_LONG_LONG,
@@ -760,7 +760,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&s->s_total, 
+  if(MPI_Reduce(&s->s_total,
 		&me->stats.s_total,
 		8,
 		MPI_UNSIGNED_LONG_LONG,
@@ -768,7 +768,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 		(int)g_tw_masternode,
 		MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
   if(MPI_Reduce(&s->s_pe_event_ties,
         &me->stats.s_pe_event_ties,
         1,
@@ -777,7 +777,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-     
+
   if(MPI_Reduce(&s->s_min_detected_offset,
         &me->stats.s_min_detected_offset,
         1,
@@ -786,7 +786,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
   if(MPI_Reduce(&s->s_avl,
         &me->stats.s_avl,
         1,

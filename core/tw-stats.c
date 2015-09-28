@@ -123,7 +123,7 @@ tw_stats(tw_pe * me)
 	show_lld("Event Ties Detected in PE Queues", s.s_pe_event_ties);
         if(g_tw_synchronization_protocol == CONSERVATIVE)
             printf("\t%-50s %11.9lf\n",
-               "Minimum TS Offset Detected in Conservative Mode",  
+               "Minimum TS Offset Detected in Conservative Mode",
                (double) s.s_min_detected_offset);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
 	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
@@ -158,7 +158,7 @@ tw_stats(tw_pe * me)
 	);
 
         show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
-        
+
 	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated", g_tw_events_per_pe * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);
