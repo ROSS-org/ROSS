@@ -85,6 +85,9 @@ tw_stats(tw_pe * me)
         s.s_buddy += pe->stats.s_buddy;
         s.s_lz4 += pe->stats.s_lz4;
         s.s_events_past_end += pe->stats.s_events_past_end;
+#ifdef USE_RIO
+        s.s_rio += pe->stats.s_rio;
+#endif
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -187,6 +190,9 @@ tw_stats(tw_pe * me)
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
     show_4f("Buddy system", (double) s.s_buddy / g_tw_clock_rate);
+#ifdef USE_RIO
+    show_4f("RIO Checkpointing", (double) s.s_rio / g_tw_clock_rate);
+#endif
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);
 	show_4f("Event Abort", (double) s.s_event_abort / g_tw_clock_rate);

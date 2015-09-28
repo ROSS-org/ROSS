@@ -153,6 +153,10 @@ struct tw_statistics {
     tw_clock s_lz4;
 
     tw_stat s_events_past_end;
+
+#ifdef USE_RIO
+    tw_clock s_rio;
+#endif
 };
 
 #ifdef ROSS_MEMORY
