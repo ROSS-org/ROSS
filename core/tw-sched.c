@@ -239,8 +239,8 @@ void tw_sched_init(tw_pe * me) {
 #ifdef USE_RIO
     tw_clock start = tw_clock_read();
     io_load_events(me);
-    tw_net_barrier(me);
     me->stats.s_rio += (tw_clock_read() - start);
+    tw_net_barrier(me);
 #endif
 
     /*
