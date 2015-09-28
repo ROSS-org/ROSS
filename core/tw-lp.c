@@ -105,6 +105,7 @@ tw_init_lps(tw_pe * me)
 #endif
 	}
 #ifdef USE_RIO
+	tw_clock start = tw_clock_read();
 	// RIO requires that all LPs have been allocated
 	if (g_io_load_at == PRE_INIT || g_io_load_at == INIT) {
         io_load_checkpoint(g_io_checkpoint_name);
@@ -125,6 +126,7 @@ tw_init_lps(tw_pe * me)
     if (g_io_load_at == POST_INIT) {
         io_load_checkpoint(g_io_checkpoint_name);
     }
+    me->stats.s_rio += (tw_clock_read() - start);
 #endif
 }
 

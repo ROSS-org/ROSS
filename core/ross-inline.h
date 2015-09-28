@@ -33,6 +33,7 @@ tw_event_grab(tw_pe *pe)
 extern tw_eventq g_io_free_events;
 extern tw_eventq g_io_buffered_events;
 static inline tw_event * io_event_grab (tw_pe *pe) {
+    tw_clock start = tw_clock_read();
     tw_event  *e = tw_eventq_pop(&g_io_free_events);
 
     if (e) {
@@ -48,6 +49,7 @@ static inline tw_event * io_event_grab (tw_pe *pe) {
         printf("WARNING: did not allocate enough events to RIO buffer\n");
         e = pe->abort_event;
     }
+    pe->stats.s_rio += (tw_clock_read() - start);
     return e;
 }
 #endif
