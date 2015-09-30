@@ -828,7 +828,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
             &me->stats.s_rio,
             1,
             MPI_UNSIGNED_LONG_LONG,
-            MPI_SUM,
+            MPI_MAX,
             (int)g_tw_masternode,
             MPI_COMM_WORLD) != MPI_SUCCESS)
         tw_error(TW_LOC, "Unable to reduce statistics!");
