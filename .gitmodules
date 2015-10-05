@@ -1,9 +1,9 @@
 [submodule "IO"]
 	path = IO
 	url = https://github.com/gonsie/ROSSIO.git
-[submodule "models/ROSS-template-model"]
-	path = models/ROSS-template-model
-	url = https://github.com/gonsie/ROSS-template-model.git
+[submodule "models/template-model"]
+	path = models/template-model
+	url = https://github.com/gonsie/template-model.git
 [submodule "models/ROSS-Models"]
 	path = models/ROSS-Models
 	url = https://github.com/carothersc/ROSS-Models
