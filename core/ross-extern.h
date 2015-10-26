@@ -134,7 +134,7 @@ extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem,
  * tw-setup.c
  */
 extern void tw_init(int *argc, char ***argv);
-extern void tw_define_lps(tw_lpid nlp, size_t msg_sz, tw_seed seed);
+extern void tw_define_lps(tw_lpid nlp, size_t msg_sz);
 extern void tw_run(void);
 extern void tw_end(void);
 extern tw_lpid map_onetype (tw_lpid gid);
@@ -161,7 +161,7 @@ extern void     tw_sigterm(int sig);
  */
 extern void tw_snapshot(tw_lp *lp, size_t state_sz);
 extern long tw_snapshot_delta(tw_lp *lp, size_t state_sz);
-extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size);
+extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz);
 
 /*
  * tw-timing.c

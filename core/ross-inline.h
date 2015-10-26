@@ -76,6 +76,10 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   tw_event	*e;
   tw_stime	 recv_ts;
 
+  if (offset_ts < 0.0) {
+    tw_error(TW_LOC, "Cannot send events into the past!\n");
+  }
+
   send_pe = sender->pe;
   recv_ts = tw_now(sender) + offset_ts;
 
