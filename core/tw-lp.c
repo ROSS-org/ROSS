@@ -148,3 +148,71 @@ void tw_pre_run_lps (tw_pe * me) {
 		}
 	}
 }
+
+/**********************************************************************
+            LP Suspension Design Notes! (John Jenkins, ANL)
+
+Many times, when developing optimistic models, we are able to
+determine < LP state, event > pairs which represent infeasible model
+behavior. These types of simulation states typically arise when time
+warp causes us to receive and potentially process messages in an order
+we don't expect.
+
+For example, consider a client/server protocol in which a server sends
+an ACK to a client upon completion of some event. In optimistic mode,
+the client can see what amounts to duplicate ACKs from the server due
+to the server LP rolling back and re-sending an ACK.
+
+While some models can gracefully cope with such issues, more complex
+models can have troubles (the client in the example could for instance
+destroy the request metadata after receiving an ACK).
+
+A solution, as noted in the "Dark Side of Risk" paper, is to introduce
+LP "self-suspend" functionality. If an LP is able to detect a < state,
+message > pair which is incorrect / unexpected in a well-behaved
+simulation, the LP should be able to put itself into suspend mode,
+refusing to process messages until rolled back to a pre < state,
+message > state. There are two benefits: 1) it greatly reduces the
+difficulty in tracking down and distinguishing proper model bugs from
+bugs arising from time-warp related issues such as out-of-order event
+receipt and 2) it improves simulation performance by pruning the
+number of processed events that we know are invalid and will be rolled
+back anyways.
+
+I suggest the function signature tw_suspend(tw_lp *lp, int
+do_suspend_event_rc, const char * format, ...), with the following
+semantics:
+
+After a call to tw_suspend, all subsequent events (both forward and
+reverse) that arrive at the suspended LP shall be processed as if they
+were no-ops. The reverse event handler of the event that caused the
+suspend will be run if do_orig_event_rc is nonzero; otherwise, the
+reverse event handler shall additionally be a no-op. Typically,
+do_orig_event_rc == 0 is desired, as good coding practices for
+moderate-or-greater complexity simulations dictate state/event
+validation prior to modifying LP state (partial rollbacks are very
+undesirable), but there may be messy logic in the user code for which
+a partial rollback is warranted (operations that free memory as a side
+effect of operations, for example).  An LP exits suspend state upon
+rolling back the event that caused the suspend (whether or not that
+event is processed as a no-op).  Upon GVT, if an LP is in self-suspend
+mode and the event that caused the suspend has a timestamp less than
+that of GVT, then the simulator shall report the format string of
+suspended LP(s) and exit.  A NULL format string is acceptable for
+performance purposes, e.g. when doing "production" simulation runs.
+
+*************************************************************************/
+
+void
+tw_lp_suspend(tw_lp * lp, int do_orig_event_rc, int error_num )
+{
+  if(!lp)
+    tw_error(TW_LOC, "Bad LP pointer!");
+
+  lp->suspend_flag=1;
+  lp->suspend_event = lp->pe->cur_event; // only valid prior to GVT
+  lp->suspend_time = tw_now(lp);
+  lp->suspend_error_number = error_num;
+  lp->suspend_do_orig_event_rc = do_orig_event_rc;
+
+}

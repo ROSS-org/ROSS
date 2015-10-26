@@ -336,6 +336,13 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
+
+  /* tw_suspend variables */
+  tw_event    *suspend_event;
+  tw_stime     suspend_time;
+  unsigned int suspend_error_number;
+  unsigned int suspend_do_orig_event_rc;
+  unsigned int suspend_flag;
 };
 
 /**
