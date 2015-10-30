@@ -72,6 +72,7 @@ tw_lp_onkp(tw_lp * lp, tw_kp * kp)
 		tw_error(TW_LOC, "Bad LP pointer!");
 
 	lp->kp = kp;
+	kp->lp_count++;
 }
 
 void

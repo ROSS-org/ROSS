@@ -353,6 +353,7 @@ struct tw_kp {
     tw_pe *pe;      /**< @brief PE that services this KP */
     tw_kp *next;    /**< @brief Next KP in the PE's service list */
     tw_out *output; /**< @brief Output messages */
+    int lp_count;
 
 #ifdef ROSS_QUEUE_kp_splay
     tw_eventpq *pq;
