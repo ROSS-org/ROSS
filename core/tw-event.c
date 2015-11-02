@@ -162,6 +162,7 @@ void tw_event_rollback(tw_event * event) {
 	dest_lp->suspend_time == event->recv_ts)
       {
 	// unsuspend the LP
+	dest_lp->suspend_flag = 0;
 	dest_lp->suspend_event = NULL;
 	dest_lp->suspend_time = 0.0;
 	dest_lp->suspend_error_number = 0;
