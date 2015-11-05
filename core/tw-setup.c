@@ -6,7 +6,7 @@
  * @brief tw_define_lps is defined here!
  */
 
-#define VERIFY_MAPPING 1
+#define VERIFY_MAPPING 0
 
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
