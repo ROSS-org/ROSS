@@ -9,19 +9,26 @@ static inline tw_lp *
 {
   long id;
 
-  if( g_tw_custom_lp_global_to_local_map )
-    return( g_tw_custom_lp_global_to_local_map( gid ) );
-  
-  id = gid - g_tw_lp_offset;
+
+  switch (g_tw_mapping) {
+  case CUSTOM:
+      return( g_tw_custom_lp_global_to_local_map( gid ) );
+  case ROUND_ROBIN:
+      id = gid / tw_nnodes();
+      break;
+  case LINEAR:
+      id = gid - g_tw_lp_offset;
+      break;
+  }
 
 #ifdef ROSS_runtime_checks  
-  if (id >= g_tw_nlp)
-    tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
-  if (gid != g_tw_lp[id]->gid)
-    tw_error(TW_LOC, "Inconsistent LP Mapping");
+      if (id >= g_tw_nlp)
+          tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
+      if (gid != g_tw_lp[id]->gid)
+          tw_error(TW_LOC, "Inconsistent LP Mapping");
 #endif /* ROSS_runtime_checks */
   
-  return g_tw_lp[id];
+      return g_tw_lp[id];
 }
 
 static inline tw_lp * 
