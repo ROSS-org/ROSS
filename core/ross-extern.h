@@ -160,7 +160,7 @@ extern void     tw_sigterm(int sig);
  */
 extern void tw_snapshot(tw_lp *lp, size_t state_sz);
 extern long tw_snapshot_delta(tw_lp *lp, size_t state_sz);
-extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz, void *buffer, size_t delta_size);
+extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz);
 
 /*
  * tw-timing.c
