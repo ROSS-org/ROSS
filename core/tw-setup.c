@@ -6,7 +6,7 @@
  * @brief tw_define_lps is defined here!
  */
 
-#define VERIFY_MAPPING 0
+#define VERIFY_MAPPING 1
 
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
@@ -157,21 +157,24 @@ void map_linear(void) {
 }
 
 void map_round_robin(void) {
-    tw_pe   *pe;
+    tw_pe   * pe = g_tw_pe[0]; // ASSUMPTION: only 1 pe
 
-    int  kpid;
+    int  kpid, lpid;
     int  i;
 
-    for(i = 0; i < g_tw_nlp; i++) {
-        kpid = i % g_tw_nkp;
-        pe = tw_getpe(kpid % g_tw_npe);
+    // ASSUMPTION: g_tw_nlp is the same on each rank
+    int lp_stride = tw_nnodes();
+    int lp_offset = g_tw_mynode;
 
-        tw_lp_onpe(i, pe, g_tw_lp_offset+i);
+    for(i = 0, lpid=lp_offset; i < g_tw_nlp; i++, lpid+=lp_stride) {
+        kpid = i % g_tw_nkp;
+
+        tw_lp_onpe(i, pe, lpid);
         tw_kp_onpe(kpid, pe);
         tw_lp_onkp(g_tw_lp[i], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
-        printf("LP %4d KP %4d PE %4d\n", i, kp->id, pe->id);
+        printf("LP %4d KP %4d PE %4d\n", lpid, kpid, pe->id);
 #endif
     }
 }
