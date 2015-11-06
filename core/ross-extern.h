@@ -102,6 +102,7 @@ extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
 extern void		 tw_init_lps(tw_pe * me);
 extern void tw_pre_run_lps(tw_pe * me);
 extern void tw_lp_setup_types();
+extern void tw_lp_suspend(tw_lp * lp, int do_orig_event_rc, int error_num );
 
 /*
  * tw-kp.c

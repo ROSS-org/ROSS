@@ -155,9 +155,36 @@ void tw_event_rollback(tw_event * event) {
 
     dest_lp->pe->cur_event = event;
     dest_lp->kp->last_time = event->recv_ts;
+
+    if( dest_lp->suspend_flag &&
+	dest_lp->suspend_event == event && 
+	// Must test time stamp since events are reused once GVT sweeps by
+	dest_lp->suspend_time == event->recv_ts)
+      {
+	// unsuspend the LP
+	dest_lp->suspend_flag = 0;
+	dest_lp->suspend_event = NULL;
+	dest_lp->suspend_time = 0.0;
+	dest_lp->suspend_error_number = 0;
+
+	if( dest_lp->suspend_do_orig_event_rc == 0 )
+	  {
+	    goto jump_over_rc_event_handler;
+	  }
+	else
+	  { // reset 
+	    dest_lp->suspend_do_orig_event_rc = 0;
+	    // note, should fall thru and process reverse events
+	  }
+      }
+    else if( dest_lp->suspend_flag )
+      { // don't rc this event since it was never forward processed
+	goto jump_over_rc_event_handler;
+      }
+
     (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
 
-
+jump_over_rc_event_handler:
     if (event->delta_buddy) {
         tw_clock start = tw_clock_read();
         buddy_free(event->delta_buddy);

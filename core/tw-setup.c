@@ -6,7 +6,7 @@
  * @brief tw_define_lps is defined here!
  */
 
-#define VERIFY_MAPPING 1
+#define VERIFY_MAPPING 0
 
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
@@ -442,8 +442,9 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        printf("\t%-50s %11llu\n", "Total LPs", (tw_nnodes() * g_tw_npe * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", (tw_nnodes() * g_tw_npe * g_tw_nlp));
+        printf("\t%-50s %11llu\n", "Total LPs", 
+	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
+        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
