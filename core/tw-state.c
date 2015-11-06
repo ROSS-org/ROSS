@@ -12,9 +12,6 @@ tw_snapshot(tw_lp *lp, size_t state_sz)
     memcpy(lp->pe->delta_buffer[0], lp->cur_state, state_sz);
 }
 
-/** See the docs for LZ4_compress_fast() for more details */
-#define ROSS_LZ4_DEFAULT 17
-
 /**
  * Create the delta from the current state and the snapshot.
  * Compress it.
