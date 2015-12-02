@@ -86,7 +86,8 @@ tw_stats(tw_pe * me)
         s.s_lz4 += pe->stats.s_lz4;
         s.s_events_past_end += pe->stats.s_events_past_end;
 #ifdef USE_RIO
-        s.s_rio += pe->stats.s_rio;
+        s.s_rio_load += pe->stats.s_rio_load;
+        s.s_rio_lp_init += pe->stats.s_rio_lp_init;
 #endif
 
 		for(i = 0; i < g_tw_nkp; i++)
@@ -191,7 +192,8 @@ tw_stats(tw_pe * me)
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
     show_4f("Buddy system", (double) s.s_buddy / g_tw_clock_rate);
 #ifdef USE_RIO
-    show_4f("RIO Checkpointing", (double) s.s_rio / g_tw_clock_rate);
+    show_4f("RIO Loading", (double) s.s_rio_load / g_tw_clock_rate);
+    show_4f("RIO LP Init", (double) s.s_rio_lp_init / g_tw_clock_rate);
 #endif
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);

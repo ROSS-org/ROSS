@@ -155,7 +155,8 @@ struct tw_statistics {
     tw_stat s_events_past_end;
 
 #ifdef USE_RIO
-    tw_clock s_rio;
+    tw_clock s_rio_load;
+    tw_clock s_rio_lp_init;
 #endif
 };
 
