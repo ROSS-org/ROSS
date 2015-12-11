@@ -10,6 +10,7 @@ env:
  - secure: "0kkcYHaW88jKB9/nvZKJIsmDv4KALyy4DrcWs3wncRa4rAp0Wk4Ge/2o5GgubcowswiX9EZFawVRoM3h8nOf+awPu/gO6OkZx1LhYwQa/5lo7/LYq5Bzf2NNM+1xmNSgRKP+84/gi8pm/Ytv81+4hDmlN2APSMMq9u6UMzQCkVM="
 before_install:
  - sudo apt-get update -q
+ - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
  - sudo apt-get install -y -qq lcov curl doxygen graphviz
  - sh ./conf/travis-install-mpi.sh mpich2
 script:
