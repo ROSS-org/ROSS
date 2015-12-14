@@ -149,7 +149,7 @@ void tw_pre_run_lps (tw_pe * me) {
 	}
 }
 
-/**********************************************************************
+/********************************************************************//**
             LP Suspension Design Notes! (John Jenkins, ANL)
 
 Many times, when developing optimistic models, we are able to
@@ -200,6 +200,10 @@ mode and the event that caused the suspend has a timestamp less than
 that of GVT, then the simulator shall report the format string of
 suspended LP(s) and exit.  A NULL format string is acceptable for
 performance purposes, e.g. when doing "production" simulation runs.
+
+@param lp Pointer to the LP we're suspending
+@param do_orig_event_rc A bool indicating whether or not to skip the RC function
+@param error_num User-specified value for tracking purposes; ROSS ignores this
 
 *************************************************************************/
 
