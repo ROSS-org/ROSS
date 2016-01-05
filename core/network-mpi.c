@@ -127,7 +127,9 @@ tw_net_start(void)
   tw_pe_init(0, g_tw_mynode);
 
   //If we're in (some variation of) optimistic mode, we need this hash
-  if (g_tw_synchronization_protocol == OPTIMISTIC || g_tw_synchronization_protocol == OPTIMISTIC_DEBUG) {
+  if (g_tw_synchronization_protocol == OPTIMISTIC ||
+      g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
+      g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
     g_tw_pe[0]->hash_t = tw_hash_create();
   } else {
     g_tw_pe[0]->hash_t = NULL;
@@ -350,6 +352,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   me->stats.s_nread_network++;
   me->s_nwhite_recv++;
 
+  //  printf("recv_finish: remote event [cancel %u] FROM: LP %lu, PE %lu, TO: LP %lu, PE %lu at TS %lf \n",
+  //	 e->state.cancel_q, (tw_lpid)e->src_lp, e->send_pe, (tw_lpid)e->dest_lp, me->id, e->recv_ts);
+
   e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
   dest_pe = e->dest_lp->pe;
 
@@ -359,6 +364,8 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   e->cancel_next = NULL;
   e->caused_by_me = NULL;
   e->cause_next = NULL;
+
+
 
   if(e->recv_ts < me->GVT)
     tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", 
@@ -389,7 +396,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
       return;
     }
 
-  if (g_tw_synchronization_protocol == OPTIMISTIC || g_tw_synchronization_protocol == OPTIMISTIC_DEBUG) {
+  if (g_tw_synchronization_protocol == OPTIMISTIC || 
+      g_tw_synchronization_protocol == OPTIMISTIC_DEBUG || 
+      g_tw_synchronization_protocol == OPTIMISTIC_REALTIME ) {
     tw_hash_insert(me->hash_t, e, e->send_pe);
     e->state.remote = 1;
   }
