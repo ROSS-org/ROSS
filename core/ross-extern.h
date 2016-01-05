@@ -26,6 +26,8 @@ extern tw_lpid		g_tw_rng_default;
 extern tw_seed		g_tw_rng_seed;
 extern unsigned int	g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
+extern unsigned long long g_tw_gvt_realtime_interval;
+extern unsigned long long g_tw_gvt_interval_start_cycles;
 extern tw_stime		g_tw_ts_end;
 extern unsigned int	g_tw_sim_started;
 extern size_t		g_tw_msg_sz;

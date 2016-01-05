@@ -34,6 +34,7 @@ enum tw_synch_e {
     CONSERVATIVE,
     OPTIMISTIC,
     OPTIMISTIC_DEBUG,
+    OPTIMISTIC_REALTIME,
 };
 
 typedef enum tw_synch_e tw_synch;

@@ -13,7 +13,7 @@ unsigned int nkp_per_pe = 16;
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
-    TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4"),
+    TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
     TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
     TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
@@ -331,20 +331,24 @@ void tw_run(void) {
     tw_sched_init(me);
 
     switch(g_tw_synchronization_protocol) {
-        case SEQUENTIAL:    // case 1
+        case SEQUENTIAL:            // case 1
             tw_scheduler_sequential(me);
             break;
 
-        case CONSERVATIVE: // case 2
+        case CONSERVATIVE:         // case 2
             tw_scheduler_conservative(me);
             break;
 
-        case OPTIMISTIC:   // case 3
+        case OPTIMISTIC:          // case 3
             tw_scheduler_optimistic(me);
             break;
 
-        case OPTIMISTIC_DEBUG:  // case 4
+        case OPTIMISTIC_DEBUG:    // case 4
             tw_scheduler_optimistic_debug(me);
+            break;
+
+        case OPTIMISTIC_REALTIME: // case 5
+            tw_scheduler_optimistic_realtime(me);
             break;
 
         default:
