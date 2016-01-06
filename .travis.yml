@@ -12,6 +12,7 @@ before_install:
  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
  - sudo apt-get update -q
  - sudo apt-get install -y -qq lcov curl doxygen graphviz
+ - lscpu
  - sh ./conf/travis-install-mpi.sh mpich2
 script:
  - mkdir release && cd release
