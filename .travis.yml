@@ -14,6 +14,7 @@ before_install:
  - sudo apt-get install -y -qq lcov curl doxygen graphviz
  - lscpu
  - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
+ - echo $CLOCK_SPEED
  - sh ./conf/travis-install-mpi.sh mpich2
 script:
  - mkdir release && cd release
