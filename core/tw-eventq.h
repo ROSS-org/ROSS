@@ -34,6 +34,8 @@ tw_eventq_debug(tw_eventq * q)
 
   if(cnt != q->size)
     tw_error(TW_LOC, "Size not correct!");	
+#else
+  (void)q; // avoid "unused parameter" warning
 #endif
 }
 
