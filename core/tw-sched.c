@@ -190,44 +190,44 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 	ckp->last_time = cev->recv_ts;
-	
+
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
 	  tw_error(TW_LOC, "Reverse Computation must be implemented!");
 	}
-	    
+
 	start = tw_clock_read();
 	reset_bitfields(cev);
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
-	    (*clp->type->event)(clp->cur_state, &cev->cv, 
+	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
 	  }
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
-	    
+
 	/* We ran out of events while processing this event.  We
 	 * cannot continue without doing GVT and fossil collect.
 	 */
-	
-	if (me->cev_abort) 
+
+	if (me->cev_abort)
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
 	    me->cev_abort = 0;
-	    
+
 	    tw_event_rollback(cev);
 	    tw_pq_enqueue(me->pq, cev);
-	    
+
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
-	    
+
 	    tw_gvt_force_update(me);
-	    
+
 	    me->stats.s_event_abort += tw_clock_read() - start;
-	    
+
 	    break;
 	  } // END ABORT CHECK
 
@@ -666,13 +666,13 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
             break;
         }
     }
-    
+
     // If we've run out of free events or events to process (maybe we're past end time?)
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
     tw_kp_rollback_to( g_tw_kp[0], g_tw_rollback_time );
     printf("/******************* Completed Rollback Phase ******************************/\n");
-    
+
     tw_wall_now(&me->end_time);
 
     printf("*** END SIMULATION ***\n\n");

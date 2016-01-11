@@ -58,7 +58,7 @@ tw_gvt_stats(FILE * f)
 	fprintf(f, "\t%-50s %11d\n", "Forced GVT", gvt_force);
 	fprintf(f, "\t%-50s %11d\n", "Total GVT Computations", g_tw_gvt_done);
 	fprintf(f, "\t%-50s %11lld\n", "Total All Reduce Calls", all_reduce_cnt);
-	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT", 
+	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT",
 			(double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
 }
 
@@ -114,7 +114,7 @@ tw_gvt_step2(tw_pe *me)
 	while(1)
 	  {
 	    tw_net_read(me);
-	
+
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 	    all_reduce_cnt++;
@@ -126,7 +126,7 @@ tw_gvt_step2(tw_pe *me)
 			     MPI_SUM,
 			     MPI_COMM_WORLD) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-	    
+
 	    if(total_white == 0)
 	      break;
 	  }
