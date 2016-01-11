@@ -69,7 +69,7 @@ tw_stime g_tw_min_detected_offset=DBL_MAX;
 unsigned int g_tw_mblock = 16;
 unsigned int g_tw_gvt_interval = 16;
 
-unsigned long long g_tw_gvt_realtime_interval = (unsigned long long)1 * (unsigned long long)3600000; // 1ms in cycles at 3.6GHz
+unsigned long long g_tw_gvt_realtime_interval; // calculated at runtime
 unsigned long long g_tw_gvt_interval_start_cycles = 0;
 
 tw_stime     g_tw_ts_end = 100000.0;

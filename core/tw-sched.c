@@ -573,6 +573,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
 void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_clock start;
 
+    g_tw_gvt_realtime_interval = g_tw_gvt_interval * g_tw_clock_rate / 1000;
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE AND REAL TIME GVT ***\n\n");
     }
