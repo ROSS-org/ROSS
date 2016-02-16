@@ -53,6 +53,20 @@ tw_gvt_stats(FILE * f)
 }
 
 void
+tw_gvt_log(FILE * f)
+{
+	fprintf(f, "\nTW GVT Statistics: MPI AllReduce\n");
+	fprintf(f, "\t%-50s %11d\n", "GVT Interval", g_tw_gvt_interval);
+	fprintf(f, "\t%-50s %11d\n", "Batch Size", g_tw_mblock);
+	fprintf(f, "\n");
+	fprintf(f, "\t%-50s %11d\n", "Forced GVT", gvt_force);
+	fprintf(f, "\t%-50s %11d\n", "Total GVT Computations", g_tw_gvt_done);
+	fprintf(f, "\t%-50s %11lld\n", "Total All Reduce Calls", all_reduce_cnt);
+	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT", 
+			(double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
+}
+
+void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
@@ -144,6 +158,13 @@ tw_gvt_step2(tw_pe *me)
 
 	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
 		gvt_print(gvt);
+		printf("foo\n");
+//		tw_stats(me);
+		FILE *foo_log=fopen("foo.txt", "a");
+	if(foo_log == NULL)
+		tw_error(TW_LOC, "\n Failed to open foo log file \n");
+		tw_gvt_log(foo_log);
+		fclose(foo_log);
 	}
 
 	me->s_nwhite_sent = 0;
