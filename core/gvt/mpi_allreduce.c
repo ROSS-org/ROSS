@@ -185,8 +185,11 @@ tw_gvt_step2(tw_pe *me)
 	if (gvt / g_tw_ts_end > percent_complete )
 	{
 		gvt_print(gvt);
-		char filename[100];
-		sprintf( filename, "foo%d.txt",(int)me->id);
+		char filename[160];
+        if (stats_out[0])
+            sprintf(filename, "%s-%d.txt", stats_out, (int)me->id);
+        else
+            sprintf( filename, "foo%d.txt",(int)me->id);
 		FILE *foo_log=fopen(filename, "a");
 		if(foo_log == NULL)
 			tw_error(TW_LOC, "\n Failed to open foo log file \n");

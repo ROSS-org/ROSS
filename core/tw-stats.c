@@ -1,5 +1,18 @@
 #include <ross.h>
 
+char stats_out[128] = {0};
+
+static const tw_optdef stats_options[] = {
+    TWOPT_GROUP("ROSS Stats"),
+    TWOPT_CHAR("stats-filename", stats_out, "filename for stats output"),
+    TWOPT_END()
+};
+
+const tw_optdef *tw_stats_setup(void)
+{
+	return stats_options;
+}
+
 #ifndef ROSS_DO_NOT_PRINT
 static void
 show_lld(const char *name, tw_stat v)
@@ -41,8 +54,6 @@ tw_stats_log(FILE * f,tw_pe * me)
 void
 tw_get_stats(tw_pe * me, tw_statistics *s)
 {
-	//tw_statistics s;
-
 	tw_pe	*pe;
 	tw_kp	*kp;
 

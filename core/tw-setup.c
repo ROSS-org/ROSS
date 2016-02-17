@@ -56,6 +56,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+    tw_opt_add(tw_stats_setup());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
