@@ -53,12 +53,30 @@ tw_gvt_stats(FILE * f)
 }
 
 void
-tw_gvt_log(FILE * f)
+tw_gvt_log(FILE * f, tw_pe *me)
 {
-	fprintf(f, "%s, %s, %s, %s, %s, %s\n", "GVT Interval", "Batch Size", "Forced GVT", "Total GVT Computations", 
-		"Total All Reduce Calls", "Average Reduction / GVT");
-	fprintf(f, "%d, %d, %d, %d, %lld, %.2f, ",g_tw_gvt_interval, g_tw_mblock, gvt_force, g_tw_gvt_done, 
+    tw_statistics s;
+    tw_get_stats(me, &s);
+    // now print all of these stats
+	// Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
+	fprintf(f, "%d,%d,%lld,%.2f,", gvt_force, g_tw_gvt_done, 
 		all_reduce_cnt, (double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
+    
+    // total events processes, events aborted, events rolled back, event ties detected in PE queues
+    fprintf(f, "%lld,%lld,%lld,%lld,", s.s_nevent_processed, s.s_nevent_abort, s.s_e_rbs, s.s_pe_event_ties);
+    
+    // efficiency, total remote (shared mem) events processed, percent remote events
+    fprintf(f, "%f,%lld,%f,", 100.0 * (1.0 - ((double) s.s_e_rbs/(double) s.s_net_events)),
+            s.s_nsend_loc_remote, ((double)s.s_nsend_loc_remote / (double)s.s_net_events)*100.0);
+
+    // total remote network events processed, percent remote events
+    fprintf(f, "%lld,%f,", s.s_nsend_net_remote, ((double)s.s_nsend_net_remote / (double)s.s_net_events) * 100);
+
+    // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
+    fprintf(f, "%lld,%lld,%lld,%lld,", s.s_rb_total, s.s_rb_primary, s.s_rb_secondary, s.s_fc_attempts);
+
+    // net events processed, remote sends, remote recvs
+    fprintf(f, "%lld,%lld,%lld\n", s.s_net_events, s.s_nsend_network, s.s_nread_network);
 }
 
 void
@@ -159,8 +177,8 @@ tw_gvt_step2(tw_pe *me)
 		FILE *foo_log=fopen(filename, "a");
 		if(foo_log == NULL)
 			tw_error(TW_LOC, "\n Failed to open foo log file \n");
-		tw_gvt_log(foo_log);
-		tw_stats_log(foo_log,me);
+		tw_gvt_log(foo_log, me);
+		//tw_stats_log(foo_log,me);
 		fclose(foo_log);
 	}
 
