@@ -72,7 +72,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 
     // print out header for stats file
-    tw_stats_file_setup(id);
+    tw_stats_file_setup(gid);
 }
 
 void
