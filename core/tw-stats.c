@@ -32,6 +32,13 @@ show_4f(const char *name, double v)
 #endif
 
 void
+tw_stats_log(FILE * f,tw_pe * me)
+{
+	fprintf(f,"%s, %s\n","Total Remote (shared mem) Events Processed","Total Remote (network) Events Processed");
+	fprintf(f,"%lld %lld\n",me->stats.s_nsend_net_remote,me->stats.s_nsend_loc_remote);
+}
+
+void
 tw_stats(tw_pe * me)
 {
 	tw_statistics s;
