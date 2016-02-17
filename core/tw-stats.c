@@ -51,6 +51,28 @@ tw_stats_log(FILE * f,tw_pe * me)
 	fprintf(f,"%lld %lld\n",me->stats.s_nsend_net_remote,me->stats.s_nsend_loc_remote);
 }
 
+/** write header line to stats output files */
+void tw_stats_file_setup(tw_peid id)
+{
+    char filename[160];
+    if (stats_out[0])
+        sprintf(filename, "%s-%d.txt", stats_out, (int)id);
+    else
+        sprintf( filename, "ross-stats-%d.txt",(int)id);
+    FILE *f=fopen(filename, "w");
+    if(f == NULL)
+        tw_error(TW_LOC, "\n Failed to open stats log file \n");
+
+	fprintf(f, "Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT,");
+    fprintf(f, "total events processes,events aborted,events rolled back,event ties detected in PE queues,");
+    fprintf(f, "efficiency,total remote (shared mem) events processed,percent remote events,");
+    fprintf(f, "total remote network events processed,percent remote events,");
+    fprintf(f, "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts,");
+    fprintf(f, "net events processed,remote sends,remote recvs\n");
+
+    fclose(f);
+}
+
 void
 tw_get_stats(tw_pe * me, tw_statistics *s)
 {

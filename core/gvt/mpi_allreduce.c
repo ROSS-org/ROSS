@@ -189,12 +189,11 @@ tw_gvt_step2(tw_pe *me)
         if (stats_out[0])
             sprintf(filename, "%s-%d.txt", stats_out, (int)me->id);
         else
-            sprintf( filename, "foo%d.txt",(int)me->id);
+            sprintf( filename, "ross-stats-%d.txt",(int)me->id);
 		FILE *foo_log=fopen(filename, "a");
 		if(foo_log == NULL)
-			tw_error(TW_LOC, "\n Failed to open foo log file \n");
+			tw_error(TW_LOC, "\n Failed to open stats log file \n");
 		tw_gvt_log(foo_log, me);
-		//tw_stats_log(foo_log,me);
 		fclose(foo_log);
 	}
 
