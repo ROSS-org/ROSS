@@ -57,13 +57,13 @@ tw_gvt_stats(FILE * f)
 }
 
 void
-tw_gvt_log(FILE * f, tw_pe *me)
+tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt)
 {
     tw_statistics s;
     tw_get_stats(me, &s);
     // now print all of these stats
-	// Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
-	fprintf(f, "%d,%d,%lld,%.2f,", gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, 
+	// GVT,Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
+	fprintf(f, "%f,%d,%d,%lld,%f,", gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, 
 		all_reduce_cnt-last_all_reduce_cnt, (double) ((double) (all_reduce_cnt-last_all_reduce_cnt) / (double) (g_tw_gvt_done-last_gvt_done)));
     
     // total events processes, events aborted, events rolled back, event ties detected in PE queues
@@ -182,21 +182,24 @@ tw_gvt_step2(tw_pe *me)
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete )
+	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
 	{
 		gvt_print(gvt);
+	}
+
+    if (g_tw_stats_enabled)
+    {
 		char filename[160];
-        if (stats_out[0])
-            sprintf(filename, "%s-%d.txt", stats_out, (int)me->id);
+        if (g_tw_stats_out[0])
+            sprintf(filename, "%s-%d.txt", g_tw_stats_out, (int)me->id);
         else
             sprintf( filename, "ross-stats-%d.txt",(int)me->id);
 		FILE *foo_log=fopen(filename, "a");
 		if(foo_log == NULL)
 			tw_error(TW_LOC, "\n Failed to open stats log file \n");
-		tw_gvt_log(foo_log, me);
+		tw_gvt_log(foo_log, me, gvt);
 		fclose(foo_log);
-	}
-
+    }
 
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;

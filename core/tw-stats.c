@@ -1,10 +1,12 @@
 #include <ross.h>
 
-char stats_out[128] = {0};
+char g_tw_stats_out[128] = {0};
+int g_tw_stats_enabled = 0;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
-    TWOPT_CHAR("stats-filename", stats_out, "filename for stats output"),
+    TWOPT_UINT("enable-stats", g_tw_stats_enabled, "0 no stats, 1 for stats"), 
+    TWOPT_CHAR("stats-filename", g_tw_stats_out, "filename for stats output"),
     TWOPT_END()
 };
 
@@ -44,26 +46,19 @@ show_4f(const char *name, double v)
 
 #endif
 
-void
-tw_stats_log(FILE * f,tw_pe * me)
-{
-	fprintf(f,"%s, %s\n","Total Remote (shared mem) Events Processed","Total Remote (network) Events Processed");
-	fprintf(f,"%lld %lld\n",me->stats.s_nsend_net_remote,me->stats.s_nsend_loc_remote);
-}
-
 /** write header line to stats output files */
 void tw_stats_file_setup(tw_peid id)
 {
     char filename[160];
-    if (stats_out[0])
-        sprintf(filename, "%s-%d.txt", stats_out, (int)id);
+    if (g_tw_stats_out[0])
+        sprintf(filename, "%s-%d.txt", g_tw_stats_out, (int)id);
     else
         sprintf( filename, "ross-stats-%d.txt",(int)id);
     FILE *f=fopen(filename, "w");
     if(f == NULL)
         tw_error(TW_LOC, "\n Failed to open stats log file \n");
 
-	fprintf(f, "Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT,");
+	fprintf(f, "GVT,Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT,");
     fprintf(f, "total events processes,events aborted,events rolled back,event ties detected in PE queues,");
     fprintf(f, "efficiency,total remote (shared mem) events processed,percent remote events,");
     fprintf(f, "total remote network events processed,percent remote events,");
