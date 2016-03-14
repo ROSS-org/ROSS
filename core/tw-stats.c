@@ -59,9 +59,8 @@ void tw_stats_file_setup(tw_peid id)
         tw_error(TW_LOC, "\n Failed to open stats log file \n");
 
 	fprintf(f, "GVT,Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT,");
-    fprintf(f, "total events processes,events aborted,events rolled back,event ties detected in PE queues,");
-    fprintf(f, "efficiency,total remote (shared mem) events processed,percent remote events,");
-    fprintf(f, "total remote network events processed,percent remote events,");
+    fprintf(f, "total events processed,events aborted,events rolled back,event ties detected in PE queues,");
+    fprintf(f, "efficiency,total remote network events processed,percent remote events,");
     fprintf(f, "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts,");
     fprintf(f, "net events processed,remote sends,remote recvs\n");
 

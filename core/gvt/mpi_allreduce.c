@@ -66,17 +66,13 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt)
 	fprintf(f, "%f,%d,%d,%lld,%f,", gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, 
 		all_reduce_cnt-last_all_reduce_cnt, (double) ((double) (all_reduce_cnt-last_all_reduce_cnt) / (double) (g_tw_gvt_done-last_gvt_done)));
     
-    // total events processes, events aborted, events rolled back, event ties detected in PE queues
+    // total events processed, events aborted, events rolled back, event ties detected in PE queues
     fprintf(f, "%lld,%lld,%lld,%lld,", s.s_nevent_processed-last_stats.s_nevent_processed, 
             s.s_nevent_abort-last_stats.s_nevent_abort, s.s_e_rbs-last_stats.s_e_rbs, s.s_pe_event_ties-last_stats.s_pe_event_ties);
     
-    // efficiency, total remote (shared mem) events processed, percent remote events
+    // efficiency, total remote network events processed, percent remote events
     fprintf(f, "%f,%lld,%f,", 100.0 * (1.0 - ((double) (s.s_e_rbs-last_stats.s_e_rbs)/(double) (s.s_net_events-last_stats.s_net_events))),
-            s.s_nsend_loc_remote-last_stats.s_nsend_loc_remote,
-            ((double)(s.s_nsend_loc_remote-last_stats.s_nsend_loc_remote) / (double)(s.s_net_events-last_stats.s_net_events))*100.0);
-
-    // total remote network events processed, percent remote events
-    fprintf(f, "%lld,%f,", s.s_nsend_net_remote-last_stats.s_nsend_net_remote,
+            s.s_nsend_net_remote-last_stats.s_nsend_net_remote,
             ((double)(s.s_nsend_net_remote-last_stats.s_nsend_net_remote) / (double)(s.s_net_events-last_stats.s_net_events)) * 100);
 
     // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
