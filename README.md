@@ -8,7 +8,7 @@ For a detailed list of changes between old ROSS and SR please visit [the wiki](h
 
 [![Build Status](https://travis-ci.org/carothersc/ROSS.svg?branch=master)](https://travis-ci.org/carothersc/ROSS)
 [![codecov.io](http://codecov.io/github/carothersc/ROSS/coverage.svg?branch=master)](http://codecov.io/github/carothersc/ROSS?branch=master)
-[Doxygen](http://carothersc.github.io/ROSS/ROSS-docs/docs/html)
+[![Doxygen](https://img.shields.io/badge/doxygen-reference-blue.svg)](http://carothersc.github.io/ROSS/ROSS-docs/docs/html)
 
 ## History
 
