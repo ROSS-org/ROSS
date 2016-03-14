@@ -18,11 +18,11 @@ Thus the official version history began!
 
 Through the years ROSS has migrated from CVS, to SVN, to Git and GitHub.com.
 The code was maintained by Chris Carothers and his graduate students at RPI ([publications](http://cs.rpi.edu//~chrisc/#publications)).
-Over the years, sevearal features (including a shared-memory version) were implemented within ROSS.
+Over the years, several features (including a shared-memory version) were implemented within ROSS.
 Some of these features have since been optimized out, leaving behind cruft.
 
 In early 2015 a sleeker version of ROSS was released.
-Developed as Simplifed ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this version removed many files, functions, and variables that had become deprecated over time.
+Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this version removed many files, functions, and variables that had become deprecated over time.
 
 ## Requirements
 
