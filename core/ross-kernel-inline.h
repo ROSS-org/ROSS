@@ -7,7 +7,7 @@
 static inline tw_lp * 
      tw_getlocal_lp(tw_lpid gid)
 {
-  long id;
+  tw_lpid id;
 
 
   switch (g_tw_mapping) {
