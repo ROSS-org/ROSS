@@ -2,10 +2,15 @@
 
 char g_tw_stats_out[128] = {0};
 int g_tw_stats_enabled = 0;
+long g_tw_time_interval = 0;
+long g_tw_current_interval = 0;
+tw_stat_list *g_tw_stat_head = NULL;
+tw_stat_list *g_tw_stat_tail = NULL;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
     TWOPT_UINT("enable-stats", g_tw_stats_enabled, "0 no stats, 1 for stats"), 
+    TWOPT_UINT("time-interval", g_tw_time_interval, "collect stats for specified time interval"), 
     TWOPT_CHAR("stats-filename", g_tw_stats_out, "filename for stats output"),
     TWOPT_END()
 };

@@ -264,6 +264,18 @@ typedef struct tw_out {
 } tw_out;
 
 /**
+ * tw_stat_list
+ * @brief statistics collection
+ *
+ * hold statistics for each list
+ */
+typedef struct tw_stat_list {
+    struct tw_stat_list *next;
+    long interval; 
+    tw_statistics s;
+} tw_stat_list;
+
+/**
  * tw_event:
  * @brief Event Stucture
  *
