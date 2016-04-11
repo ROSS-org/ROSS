@@ -466,6 +466,32 @@ static tw_pe * setup_pes(void) {
                 fprintf(g_tw_csv, "%s,", "model defined");
                 break;
         }
+	
+	switch(g_tw_synchronization_protocol) {
+	    case NO_SYNCH:
+	        printf("\t%-50s %11s\n", "Synchronization", "none specified");
+		fprintf(g_tw_csv, "%s,", "none specified");
+	        break;
+	    case SEQUENTIAL:
+	        printf("\t%-50s %11s\n", "Synchronization", "");
+		fprintf(g_tw_csv, "%s,", "");
+	        break;
+	    case CONSERVATIVE:
+	        printf("\t%-50s %11s\n", "Synchronization", "conservative");
+		fprintf(g_tw_csv, "%s,", "conservative");
+	        break;
+	    case OPTIMISTIC:
+	        printf("\t%-50s %11s\n", "Synchronization", "optimistic");
+		fprintf(g_tw_csv, "%s,", "optimistic");
+	        break;
+	    case OPTIMISTIC_DEBUG:
+	        printf("\t%-50s %11s\n", "Synchronization", "optimistic debug");
+		fprintf(g_tw_csv, "%s,", "optimistic debug");
+	        break;
+	    default:
+	        printf("\t%-50s %11s\n", "Synchronization", "undefined");
+		fprintf(g_tw_csv, "%s,", "undefined");
+	}
         printf("\n");
 
 #ifndef ROSS_DO_NOT_PRINT
