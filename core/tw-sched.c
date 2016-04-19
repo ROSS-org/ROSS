@@ -190,50 +190,155 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 	ckp->last_time = cev->recv_ts;
-	
+
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
 	  tw_error(TW_LOC, "Reverse Computation must be implemented!");
 	}
-	    
+
 	start = tw_clock_read();
 	reset_bitfields(cev);
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
-	    (*clp->type->event)(clp->cur_state, &cev->cv, 
+	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
 	  }
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
-	    
+
 	/* We ran out of events while processing this event.  We
 	 * cannot continue without doing GVT and fossil collect.
 	 */
-	
-	if (me->cev_abort) 
+
+	if (me->cev_abort)
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
 	    me->cev_abort = 0;
-	    
+
 	    tw_event_rollback(cev);
 	    tw_pq_enqueue(me->pq, cev);
-	    
+
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
-	    
+
 	    tw_gvt_force_update(me);
-	    
+
 	    me->stats.s_event_abort += tw_clock_read() - start;
-	    
+
 	    break;
 	  } // END ABORT CHECK
 
 	/* Thread current event into processed queue of kp */
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
+    }
+}
+
+static void tw_sched_batch_realtime(tw_pe * me) {
+    /* Number of consecutive times we gave up because there were no free event buffers. */
+    static int no_free_event_buffers = 0;
+    static int warned_no_free_event_buffers = 0;
+    const int max_alloc_fail_count = 20;
+
+    tw_clock     start;
+    unsigned int     msg_i;
+
+    /* Process g_tw_mblock events, or until the PQ is empty
+    * (whichever comes first).
+    */
+    for (msg_i = g_tw_mblock; msg_i; msg_i--) {
+        tw_event *cev;
+        tw_lp *clp;
+        tw_kp *ckp;
+
+        /* OUT OF FREE EVENT BUFFERS.  BAD.
+        * Go do fossil collect immediately.
+        */
+        if (me->free_q.size <= g_tw_gvt_threshold) {
+            /* Suggested by Adam Crume */
+            if (++no_free_event_buffers > 10) {
+                if (!warned_no_free_event_buffers) {
+                    fprintf(stderr, "WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n");
+                    warned_no_free_event_buffers = 1;
+                }
+                if (no_free_event_buffers >= max_alloc_fail_count) {
+                    tw_error(TW_LOC, "Event allocation failed %d consecutive times.  Exiting.", max_alloc_fail_count);
+                }
+            }
+            tw_gvt_force_update_realtime(me);
+            break;
+        }
+        no_free_event_buffers = 0;
+
+        start = tw_clock_read();
+        if (!(cev = tw_pq_dequeue(me->pq))) {
+	  break; // leave the batch function
+        }
+        me->stats.s_pq += tw_clock_read() - start;
+        if(cev->recv_ts == tw_pq_minimum(me->pq)) {
+            me->stats.s_pe_event_ties++;
+        }
+
+        clp = cev->dest_lp;
+
+	ckp = clp->kp;
+	me->cur_event = cev;
+	ckp->last_time = cev->recv_ts;
+
+	/* Save state if no reverse computation is available */
+	if (!clp->type->revent) {
+	  tw_error(TW_LOC, "Reverse Computation must be implemented!");
+	}
+
+	start = tw_clock_read();
+
+	reset_bitfields(cev);
+
+	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
+	if( !(clp->suspend_flag) )
+	  {
+	    (*clp->type->event)(clp->cur_state, &cev->cv,
+				tw_event_data(cev), clp);
+	  }
+	ckp->s_nevent_processed++;
+	me->stats.s_event_process += tw_clock_read() - start;
+
+	/* We ran out of events while processing this event.  We
+	 * cannot continue without doing GVT and fossil collect.
+	 */
+
+	if (me->cev_abort)
+	  {
+	    start = tw_clock_read();
+	    me->stats.s_nevent_abort++;
+	    me->cev_abort = 0;
+
+	    tw_event_rollback(cev);
+	    tw_pq_enqueue(me->pq, cev);
+
+	    cev = tw_eventq_peek(&ckp->pevent_q);
+	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
+
+	    tw_gvt_force_update_realtime(me);
+
+	    me->stats.s_event_abort += tw_clock_read() - start;
+
+	    break; // leave the batch function
+	  } // END ABORT CHECK
+
+	/* Thread current event into processed queue of kp */
+        cev->state.owner = TW_kp_pevent_q;
+        tw_eventq_unshift(&ckp->pevent_q, cev);
+
+	/* Check if realtime GVT time interval has expired */
+	if( tw_clock_read() - g_tw_gvt_interval_start_cycles > g_tw_gvt_realtime_interval)
+	  {
+	    tw_gvt_force_update_realtime(me);
+	    break; // leave the batch function
+	  }
     }
 }
 
@@ -465,6 +570,55 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_stats(me);
 }
 
+void tw_scheduler_optimistic_realtime(tw_pe * me) {
+    tw_clock start;
+
+    g_tw_gvt_realtime_interval = g_tw_gvt_interval * g_tw_clock_rate / 1000;
+
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+        printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE AND REAL TIME GVT ***\n\n");
+    }
+
+    tw_wall_now(&me->start_time);
+    me->stats.s_total = tw_clock_read();
+
+    // init the realtime GVT
+    g_tw_gvt_interval_start_cycles = tw_clock_read();
+
+    for (;;) {
+        if (tw_nnodes() > 1) {
+            start = tw_clock_read();
+            tw_net_read(me);
+            me->stats.s_net_read += tw_clock_read() - start;
+        }
+
+        tw_gvt_step1_realtime(me);
+        tw_sched_event_q(me);
+        tw_sched_cancel_q(me);
+        tw_gvt_step2(me); // use regular step2 at this point
+
+        if (me->GVT > g_tw_ts_end) {
+            break;
+        }
+
+        tw_sched_batch_realtime(me);
+    }
+
+    tw_wall_now(&me->end_time);
+    me->stats.s_total = tw_clock_read() - me->stats.s_total;
+
+    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+        printf("*** END SIMULATION ***\n\n");
+    }
+
+    tw_net_barrier(me);
+
+    // call the model PE finalize function
+    (*me->type.final)(me);
+
+    tw_stats(me);
+}
+
 tw_stime g_tw_rollback_time = 0.000000001;
 
 void tw_scheduler_optimistic_debug(tw_pe * me) {
@@ -514,13 +668,13 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
             break;
         }
     }
-    
+
     // If we've run out of free events or events to process (maybe we're past end time?)
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
     tw_kp_rollback_to( g_tw_kp[0], g_tw_rollback_time );
     printf("/******************* Completed Rollback Phase ******************************/\n");
-    
+
     tw_wall_now(&me->end_time);
 
     printf("*** END SIMULATION ***\n\n");

@@ -22,5 +22,7 @@ add_test(PholdConservative mpirun -np 2 ./phold --synch=2)
 
 add_test(PholdOptimistic mpirun -np 2 ./phold --synch=3)
 
+add_test(PholdRealtime mpirun -np 2 ./phold --synch=5 --gvt-interval=1 --clock-rate=$ENV{CLOCK_SPEED})
+
 # For our optimistic debug bug :)
 add_test(PholdOptDebug phold --synch=4 --nkp=1 --extramem=1000000)

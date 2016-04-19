@@ -4,11 +4,12 @@
 enum tw_opttype
 {
 	TWOPTTYPE_GROUP = 1,
-	TWOPTTYPE_ULONG,   /**< value must be an "unsigned long*" */
-	TWOPTTYPE_UINT,    /**< value must be an "unsigned int*" */
-	TWOPTTYPE_STIME,   /**< value must be an "tw_stime*" */
-	TWOPTTYPE_CHAR,    /**< value must be a char * */
-        TWOPTTYPE_FLAG,    /**< value must be at "unsigned int*" */
+	TWOPTTYPE_ULONG,       /**< value must be an "unsigned long*" */
+	TWOPTTYPE_ULONGLONG,   /**< value must be an "unsigned long long*" */
+	TWOPTTYPE_UINT,        /**< value must be an "unsigned int*" */
+	TWOPTTYPE_STIME,       /**< value must be an "tw_stime*" */
+	TWOPTTYPE_CHAR,        /**< value must be a char * */
+        TWOPTTYPE_FLAG,        /**< value must be at "unsigned int*" */
 	TWOPTTYPE_SHOWHELP
 };
 typedef enum tw_opttype tw_opttype;
@@ -24,6 +25,7 @@ struct tw_optdef
 
 #define TWOPT_GROUP(h)     { TWOPTTYPE_GROUP, NULL, (h), NULL }
 #define TWOPT_ULONG(n,v,h) { TWOPTTYPE_ULONG, (n), (h), &(v) }
+#define TWOPT_ULONGLONG(n,v,h) { TWOPTTYPE_ULONGLONG, (n), (h), &(v) }
 #define TWOPT_UINT(n,v,h)  { TWOPTTYPE_UINT,  (n), (h), &(v) }
 #define TWOPT_STIME(n,v,h) { TWOPTTYPE_STIME, (n), (h), &(v) }
 #define TWOPT_CHAR(n,v,h)  { TWOPTTYPE_CHAR,  (n), (h), &(v) }

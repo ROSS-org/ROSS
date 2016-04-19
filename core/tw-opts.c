@@ -49,6 +49,7 @@ show_help(void)
 			switch (def->type)
 			{
 			case TWOPTTYPE_ULONG:
+			case TWOPTTYPE_ULONGLONG:
 			case TWOPTTYPE_UINT:
 				pos += fprintf(stderr, "=n");
 				break;
@@ -85,6 +86,10 @@ show_help(void)
 				{
 				case TWOPTTYPE_ULONG:
 					fprintf(stderr, " (default %lu)", *((unsigned long*)def->value));
+					break;
+
+				case TWOPTTYPE_ULONGLONG:
+					fprintf(stderr, " (default %llu)", *((unsigned long long*)def->value));
 					break;
 
 				case TWOPTTYPE_UINT:
@@ -159,6 +164,10 @@ void tw_opt_settings(FILE *outfile) {
                     fprintf(outfile, "%lu", *((unsigned long*)def->value));
                     break;
 
+                case TWOPTTYPE_ULONGLONG:
+                    fprintf(outfile, "%llu", *((unsigned long long*)def->value));
+                    break;
+
                 case TWOPTTYPE_UINT:
                     fprintf(outfile, "%u", *((unsigned int*)def->value));
                     break;
@@ -216,6 +225,10 @@ tw_opt_print(void)
 					fprintf(f, "%lu,", *((unsigned long*)def->value));
 					break;
 
+				case TWOPTTYPE_ULONGLONG:
+					fprintf(f, "%llu,", *((unsigned long long*)def->value));
+					break;
+
 				case TWOPTTYPE_UINT:
 					fprintf(f, "%u,", *((unsigned int*)def->value));
 					break;
@@ -260,6 +273,7 @@ apply_opt(const tw_optdef *def, const char *value)
 	switch (def->type)
 	{
 	case TWOPTTYPE_ULONG:
+	case TWOPTTYPE_ULONGLONG:
 	case TWOPTTYPE_UINT:
 	{
 		unsigned long v;
@@ -275,6 +289,10 @@ apply_opt(const tw_optdef *def, const char *value)
 		case TWOPTTYPE_ULONG:
 			*((unsigned long*)def->value) = v;
 			break;
+		case TWOPTTYPE_ULONGLONG:
+			*((unsigned long long*)def->value) = v;
+			break;
+
 		case TWOPTTYPE_UINT:
 			*((unsigned int*)def->value) = (unsigned int)v;
 			break;

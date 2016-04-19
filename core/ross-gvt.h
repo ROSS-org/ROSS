@@ -17,6 +17,7 @@ extern void tw_gvt_start(void);
  * stage 2: compute GVT
  */
 extern void tw_gvt_step1(tw_pe *);
+extern void tw_gvt_step1_realtime(tw_pe *);
 extern void tw_gvt_step2(tw_pe *);
 
 /*
@@ -24,6 +25,7 @@ extern void tw_gvt_step2(tw_pe *);
  * GVT interval (optional)
  */
 extern void tw_gvt_force_update(tw_pe *);
+extern void tw_gvt_force_update_realtime(tw_pe *);
 
 /* Set the PE GVT value */
 extern int tw_gvt_set(tw_pe * pe, tw_stime LVT);

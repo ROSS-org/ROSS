@@ -12,8 +12,8 @@ static unsigned int gvt_force = 0;
 static const tw_optdef gvt_opts [] =
 {
 	TWOPT_GROUP("ROSS MPI GVT"),
-	TWOPT_UINT("gvt-interval", g_tw_gvt_interval, "GVT Interval"),
-	TWOPT_STIME("report-interval", gvt_print_interval, 
+	TWOPT_UINT("gvt-interval", g_tw_gvt_interval, "GVT Interval: Iterations through scheduling loop (synch=1,2,3,4), or ms between GVTs (synch=5)"),
+	TWOPT_STIME("report-interval", gvt_print_interval,
 			"percent of runtime to print GVT"),
 	TWOPT_END()
 };
@@ -39,16 +39,25 @@ tw_gvt_force_update(tw_pe *me)
 }
 
 void
+tw_gvt_force_update_realtime(tw_pe *me)
+{
+	gvt_force++;
+        g_tw_gvt_interval_start_cycles = 0; // reset to start of time
+}
+
+void
 tw_gvt_stats(FILE * f)
 {
 	fprintf(f, "\nTW GVT Statistics: MPI AllReduce\n");
 	fprintf(f, "\t%-50s %11d\n", "GVT Interval", g_tw_gvt_interval);
+	fprintf(f, "\t%-50s %llu\n", "GVT Real Time Interval (cycles)", g_tw_gvt_realtime_interval);
+	fprintf(f, "\t%-50s %11.8lf\n", "GVT Real Time Interval (sec)", (double)g_tw_gvt_realtime_interval/(double)g_tw_clock_rate);
 	fprintf(f, "\t%-50s %11d\n", "Batch Size", g_tw_mblock);
 	fprintf(f, "\n");
 	fprintf(f, "\t%-50s %11d\n", "Forced GVT", gvt_force);
 	fprintf(f, "\t%-50s %11d\n", "Total GVT Computations", g_tw_gvt_done);
 	fprintf(f, "\t%-50s %11lld\n", "Total All Reduce Calls", all_reduce_cnt);
-	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT", 
+	fprintf(f, "\t%-50s %11.2lf\n", "Average Reduction / GVT",
 			(double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
 }
 
@@ -61,6 +70,28 @@ tw_gvt_step1(tw_pe *me)
 
 	me->gvt_status = TW_GVT_COMPUTE;
 }
+
+void
+tw_gvt_step1_realtime(tw_pe *me)
+{
+  unsigned long long current_rt;
+
+  if( (me->gvt_status == TW_GVT_COMPUTE) ||
+      ( (current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval))
+    {
+      /* if( me->node == 0 ) */
+      /* 	{ */
+      /* 	  printf("GVT Step 1 RT Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", */
+      /* 		 me->node, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
+
+      /* 	} */
+
+    return;
+    }
+
+  me->gvt_status = TW_GVT_COMPUTE;
+}
+
 
 void
 tw_gvt_step2(tw_pe *me)
@@ -82,7 +113,7 @@ tw_gvt_step2(tw_pe *me)
 	while(1)
 	  {
 	    tw_net_read(me);
-	
+
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 	    all_reduce_cnt++;
@@ -94,7 +125,7 @@ tw_gvt_step2(tw_pe *me)
 			     MPI_SUM,
 			     MPI_COMM_WORLD) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-	    
+
 	    if(total_white == 0)
 	      break;
 	  }
@@ -158,8 +189,9 @@ tw_gvt_step2(tw_pe *me)
 	// update GVT timing stats
 	me->stats.s_gvt += tw_clock_read() - start;
 
-	// only FC if OPTIMISTIC
-	if( g_tw_synchronization_protocol == OPTIMISTIC )
+	// only FC if OPTIMISTIC or REALTIME, do not do for DEBUG MODE
+	if( g_tw_synchronization_protocol == OPTIMISTIC ||
+	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME )
 	  {
 	    start = tw_clock_read();
 	    tw_pe_fossil_collect(me);
@@ -167,4 +199,7 @@ tw_gvt_step2(tw_pe *me)
 	  }
 
 	g_tw_gvt_done++;
-}
+
+	// reset for the next gvt round -- for use in realtime GVT mode only!!
+	g_tw_gvt_interval_start_cycles = tw_clock_read();
+ }

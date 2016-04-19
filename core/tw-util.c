@@ -12,7 +12,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     tw_event *cev;
     tw_out *temp;
 
-    if (g_tw_synchronization_protocol != OPTIMISTIC) {
+    if (g_tw_synchronization_protocol == SEQUENTIAL || g_tw_synchronization_protocol == CONSERVATIVE) {
         va_start(ap, fmt);
         vfprintf(stdout, fmt, ap);
         va_end(ap);
