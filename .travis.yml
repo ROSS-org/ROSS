@@ -17,6 +17,12 @@ before_install:
  - echo $CLOCK_SPEED
  - sh ./conf/travis-install-mpi.sh mpich2
 script:
+ - mkdir cxx-build && cd cxx-build
+ - ARCH=x86_64 CC=mpicc cmake -DCMAKE_BUILD_TYPE=Release ..
+ - export MPICH_CC=clang++
+ - make
+ - unset MPICH_CC
+ - cd ..
  - mkdir release && cd release
  - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DROSS_BUILD_MODELS=ON ..
  - make
