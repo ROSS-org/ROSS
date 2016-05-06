@@ -19,6 +19,8 @@ typedef struct tw_lp tw_lp;
 typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
 typedef struct avlNode *AvlTree;
+typedef struct stat_node stat_node;
+typedef struct stats_bin stats_bin;
 
 #ifdef ROSS_MEMORY
 typedef struct tw_memoryq tw_memoryq;
@@ -415,6 +417,9 @@ struct tw_pe {
     tw_eventq sevent_q; /**< @brief events already sent over the network */
 
     unsigned char *delta_buffer[3]; /**< @brief buffers used for delta encoding */
+
+    stat_node *stats_tree_root;
+    unsigned stats_tree_size;
 
 #ifdef AVL_TREE
     /* AVL node head pointer and size */

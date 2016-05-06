@@ -52,13 +52,13 @@ show_4f(const char *name, double v)
 #endif
 
 /** write header line to stats output files */
-void tw_stats_file_setup(tw_peid id)
+void tw_gvt_stats_file_setup(tw_peid id)
 {
     char filename[160];
     if (g_tw_stats_out[0])
-        sprintf(filename, "%s-%d.txt", g_tw_stats_out, (int)id);
+        sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
     else
-        sprintf( filename, "ross-stats-%d.txt",(int)id);
+        sprintf( filename, "ross-gvt-stats-%d.txt",(int)id);
     FILE *f=fopen(filename, "w");
     if(f == NULL)
         tw_error(TW_LOC, "\n Failed to open stats log file \n");
@@ -68,6 +68,41 @@ void tw_stats_file_setup(tw_peid id)
     fprintf(f, "efficiency,total remote network events processed,percent remote events,");
     fprintf(f, "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts,");
     fprintf(f, "net events processed,remote sends,remote recvs\n");
+
+    fclose(f);
+}
+
+/** write header line to stats output files */
+void tw_interval_stats_file_setup(tw_peid id)
+{
+/*    tw_stat forward_events;
+    tw_stat reverse_events;
+    tw_stat num_gvts;
+    tw_stat all_reduce_calls;
+    tw_stat events_aborted;
+    tw_stat pe_event_ties;
+
+    tw_stat nevents_remote;
+    tw_stat nsend_network;
+    tw_stat nread_network;
+
+    tw_stat events_rbs;
+    tw_stat rb_primary;
+    tw_stat rb_secondary;
+    tw_stat fc_attempts;
+    */
+    char filename[160];
+    if (g_tw_stats_out[0])
+        sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
+    else
+        sprintf( filename, "ross-interval-stats-%d.txt",(int)id);
+    FILE *f=fopen(filename, "w");
+    if(f == NULL)
+        tw_error(TW_LOC, "\n Failed to open stats log file \n");
+
+	fprintf(f, "interval,forward events,reverse events,number of GVT comps,all reduce calls,");
+    fprintf(f, "events aborted,event ties detected in PE queues,remote events,network sends,network recvs");
+    fprintf(f, "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
 
     fclose(f);
 }

@@ -73,7 +73,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
 
     // print out header for stats file
     if (g_tw_stats_enabled)
-        tw_stats_file_setup(gid);
+        tw_gvt_stats_file_setup(gid);
+    if (g_tw_time_interval)
+        tw_interval_stats_file_setup(gid);
 }
 
 void
