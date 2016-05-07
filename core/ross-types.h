@@ -59,6 +59,22 @@ typedef void (*pe_init_f) (tw_pe * pe);
 typedef void (*pe_gvt_f) (tw_pe * pe);
 typedef void (*pe_final_f) (tw_pe * pe);
 
+enum tw_stat_types {
+    FORWARD_EV,
+    REVERSE_EV,
+    NUM_GVT,
+    NUM_ALLREDUCE,
+    EVENTS_ABORTED,
+    PE_EVENT_TIES,
+    REMOTE_SEND,
+    REMOTE_RECV,
+    EVENTS_RB,
+    RB_PRIMARY,
+    RB_SECONDARY,
+    FC_ATTEMPTS
+};
+typedef enum tw_stat_types tw_stat_types;
+
 /** tw_petype @brief Virtual Functions for per PE ops
  *
  * User model implements virtual functions for per PE operations.  Currently,

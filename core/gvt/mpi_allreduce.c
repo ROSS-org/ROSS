@@ -63,7 +63,7 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
     //tw_get_stats(me, &s);
     // now print all of these stats
 	// GVT,Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
-	fprintf(f, "%f,%d,%d,%lld,%f,", gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, 
+	/*fprintf(f, "%f,%d,%d,%lld,%f,", gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, 
 		all_reduce_cnt-last_all_reduce_cnt, (double) ((double) (all_reduce_cnt-last_all_reduce_cnt) / (double) (g_tw_gvt_done-last_gvt_done)));
     
     // total events processed, events aborted, events rolled back, event ties detected in PE queues
@@ -82,6 +82,22 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
     // net events processed, remote sends, remote recvs
     fprintf(f, "%lld,%lld,%lld\n", s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
             s->s_nread_network-last_stats.s_nread_network);
+    */
+    char buffer[2048];
+	sprintf(buffer, "%ld,%f,%d,%d,%lld,%f,%lld,%lld,%lld,%lld,%f,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
+            g_tw_mynode, gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, all_reduce_cnt-last_all_reduce_cnt, 
+            (double) ((double) (all_reduce_cnt-last_all_reduce_cnt) / (double) (g_tw_gvt_done-last_gvt_done)),
+            s->s_nevent_processed-last_stats.s_nevent_processed, s->s_nevent_abort-last_stats.s_nevent_abort, 
+            s->s_e_rbs-last_stats.s_e_rbs, s->s_pe_event_ties-last_stats.s_pe_event_ties,
+            100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events))),
+            s->s_nsend_net_remote-last_stats.s_nsend_net_remote,
+            ((double)(s->s_nsend_net_remote-last_stats.s_nsend_net_remote) / (double)(s->s_net_events-last_stats.s_net_events)) * 100,
+            s->s_rb_total-last_stats.s_rb_total, s->s_rb_primary-last_stats.s_rb_primary,
+            s->s_rb_secondary-last_stats.s_rb_secondary, s->s_fc_attempts-last_stats.s_fc_attempts,
+            s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
+            s->s_nread_network-last_stats.s_nread_network);
+
+    MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
     last_gvt_done = g_tw_gvt_done;
@@ -114,7 +130,7 @@ tw_gvt_step2(tw_pe *me)
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
-
+    int tmp_all_red_cnt = 0;
 	while(1)
 	  {
 	    tw_net_read(me);
@@ -122,6 +138,7 @@ tw_gvt_step2(tw_pe *me)
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 	    all_reduce_cnt++;
+        tmp_all_red_cnt++;
 	    if(MPI_Allreduce(
 			     &local_white,
 			     &total_white,
@@ -145,6 +162,7 @@ tw_gvt_step2(tw_pe *me)
 		lvt = net_min;
 
 	all_reduce_cnt++;
+    tmp_all_red_cnt++;
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
@@ -185,18 +203,38 @@ tw_gvt_step2(tw_pe *me)
 
     if (g_tw_stats_enabled)
     {
-		char filename[160];
+		/*char filename[160];
         if (g_tw_stats_out[0])
             sprintf(filename, "%s-%d.txt", g_tw_stats_out, (int)me->id);
         else
-            sprintf( filename, "ross-stats-%d.txt",(int)me->id);
+            sprintf( filename, "ross-gvt-stats-%d.txt",(int)me->id);
 		FILE *foo_log=fopen(filename, "a");
 		if(foo_log == NULL)
 			tw_error(TW_LOC, "\n Failed to open stats log file \n");
+        */
         tw_statistics s;
         tw_get_stats(me, &s);
-		tw_gvt_log(foo_log, me, gvt, &s);
-		fclose(foo_log);
+		tw_gvt_log(NULL, me, gvt, &s);
+		//fclose(foo_log);
+    }
+    if (g_tw_time_interval)
+    {
+        // increment appropriate bin for gvt comp
+        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_GVT, me->stats_tree_root);
+        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_ALLREDUCE, me->stats_tree_root);
+        
+        // try to write out stats below gvt
+		/*char filename[160];
+        if (g_tw_stats_out[0])
+            sprintf(filename, "%s-%d.txt", g_tw_stats_out, (int)me->id);
+        else
+            sprintf( filename, "ross-interval-stats-%d.txt",(int)me->id);
+		FILE *foo_log=fopen(filename, "a");
+		if(foo_log == NULL)
+			tw_error(TW_LOC, "\n Failed to open stats log file \n");
+        */
+        me->stats_tree_root = gvt_write_bins(NULL, me->stats_tree_root, gvt);
+		//fclose(foo_log);
     }
 
 	me->s_nwhite_sent = 0;

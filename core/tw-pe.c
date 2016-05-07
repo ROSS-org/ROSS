@@ -1,4 +1,5 @@
 #include <ross.h>
+#include "stat_tree.h"
 
 static void dummy_pe_f (tw_pe *pe)
 {
@@ -75,7 +76,20 @@ tw_pe_init(tw_peid id, tw_peid gid)
     if (g_tw_stats_enabled)
         tw_gvt_stats_file_setup(gid);
     if (g_tw_time_interval)
+    {
         tw_interval_stats_file_setup(gid);
+
+        // init tree
+        pe->stats_tree_root = init_stat_tree(0);
+        stat_node *tmp = find_stat_max(pe->stats_tree_root);
+        g_tw_max_bin = tmp->key;
+
+        if (tw_ismaster())
+        {
+            printf("max bin %lu\n", g_tw_max_bin);
+            statPrintKeys(pe->stats_tree_root);
+        }
+    }
 }
 
 void

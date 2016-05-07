@@ -6,17 +6,19 @@
 
 #include "stat_tree.h"
 long g_tw_min_bin = 0;
+long g_tw_max_bin = 0;
+
 
 /* implementation of an AVL tree with explicit heights */
 
 /* find max bin in tree */
-static stat_node *find_max(stat_node *t)
+stat_node *find_stat_max(stat_node *t)
 {
     if (t == AVL_EMPTY)
         return NULL;
 
     if (t->child[1])
-        return find_max(t->child[1]);
+        return find_stat_max(t->child[1]);
     else 
         return t;
 }
@@ -37,7 +39,7 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
         current_node->key = k1 + g_tw_time_interval;
         current_node->height = height;
         create_tree(current_node->child[1], (current_node->key) + g_tw_time_interval, height-1);
-        stat_node *maxptr = find_max(current_node);
+        stat_node *maxptr = find_stat_max(current_node);
         return maxptr->key;
     }
     else if (height == 1)
@@ -56,13 +58,9 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
 stat_node *init_stat_tree(tw_stat start)
 {
     // TODO num_bins should actually just be set to some number
-    tw_stat total_bins = ceil(g_tw_ts_end / g_tw_time_interval);
-    long power = (long) floor(log2(total_bins));
-    tw_stat num_bins = pow(2, power-1);
-    int height = (int) log2(num_bins) + 1;
+    int height = 6;
     //tw_stat end = num_bins * g_tw_time_interval;
     stat_node *root = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 3);
-    //stat_node *root = calloc(3, sizeof(struct stat_node));
 
     root->child[0] = root + 1;
     root->child[1] = root + 2;
@@ -75,41 +73,49 @@ stat_node *init_stat_tree(tw_stat start)
 
 /* return nonzero if key is present in tree */
 // TODO need to make sure that original caller adds bins if it gets a return value == 0
-int stat_increment(stat_node *t, long time_stamp, int stat_type)
+stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root)
 {
+    // check that there is a bin for this time stamp
+    if (time_stamp > g_tw_max_bin + g_tw_time_interval)
+    {
+        root = init_stat_tree(g_tw_max_bin + g_tw_time_interval);
+        stat_node *tmp = find_stat_max(root);
+        g_tw_max_bin = tmp->key;
+    }
+
     // find bin this time stamp belongs to
     int key = floor(time_stamp / g_tw_time_interval) * g_tw_time_interval;
     if (t == AVL_EMPTY) {
-        return 0;
+        return root;
     }
     
     if (key == t->key) 
     {
         t->bin.stats[stat_type] += 1;
-        return 1;
+        //return 1;
     }
 
     if (key < t->key)
     {
         if (t->child[0])
         {
-            stat_increment(t->child[0], time_stamp, stat_type);
-            return 1;
+            stat_increment(t->child[0], time_stamp, stat_type, root);
+            //return 1;
         }
-        else
-            return 0;
+        //else
+        //    return 0;
     }
     else if (key > t->key)
     {
         if (t->child[1])
         {
-            stat_increment(t->child[1], time_stamp, stat_type);
-            return 1;
+            stat_increment(t->child[1], time_stamp, stat_type, root);
+            //return 1;
         }
-        else
-            return 0;
+        //else
+        //    return 0;
     }
-    return 0;
+    return root;
 }
 
 /* recompute height of a node */
@@ -252,16 +258,22 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
             root = write_bins(log, t->child[0], gvt, t, root, flag);
         if (t->key + g_tw_time_interval <= gvt)
         { // write in order
-            fprintf(log, "%ld,", t->key);
+            char buffer[2048];
+            char tmp[32];
+            sprintf(tmp, "%ld,%ld,", g_tw_mynode, t->key);
+            strcat(buffer, tmp);
             int i;
-            for (i = 0; i < 14; i++)
+            for (i = 0; i <= NUM_INTERVAL_STATS; i++)
             {
-                fprintf(log, "%llu", t->bin.stats[i]);
-                if (i != 13)
-                    fprintf(log, ",");
+                sprintf(tmp, "%llu", t->bin.stats[i]);
+                strcat(buffer, tmp);
+                if (i != NUM_INTERVAL_STATS)
+                    sprintf(tmp, ",");
                 else
-                    fprintf(log, "\n");
+                    sprintf(tmp, "\n");
+                strcat(buffer, tmp);
             }
+            MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
         }
         if (t->child[1] && *flag)
             root = write_bins(log, t->child[1], gvt, t, root, flag);

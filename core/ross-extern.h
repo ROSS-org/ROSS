@@ -14,11 +14,21 @@ extern void tw_interval_stats_file_setup(tw_peid id);
 extern char g_tw_stats_out[128]; 
 extern int g_tw_stats_enabled;
 extern long g_tw_time_interval;
+extern int g_tw_pe_per_file;
+extern int g_tw_my_file_id;
+extern MPI_File gvt_file;
+extern MPI_File interval_file;
+extern MPI_Comm  stats_comm;
 
 /*
  * stat_tree.c
  */
 extern long g_tw_min_bin;
+extern long g_tw_max_bin;
+extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
+extern stat_node *init_stat_tree(tw_stat start);
+extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root);
+extern stat_node *find_stat_max(stat_node *t);
 
 /*
  * ross-global.c

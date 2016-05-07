@@ -4,14 +4,19 @@ char g_tw_stats_out[128] = {0};
 int g_tw_stats_enabled = 0;
 long g_tw_time_interval = 0;
 long g_tw_current_interval = 0;
+int g_tw_pe_per_file = 4;
+int g_tw_my_file_id = 0;
 tw_stat_list *g_tw_stat_head = NULL;
 tw_stat_list *g_tw_stat_tail = NULL;
+MPI_File gvt_file;
+MPI_File interval_file;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
     TWOPT_UINT("enable-stats", g_tw_stats_enabled, "0 no stats, 1 for stats"), 
     TWOPT_UINT("time-interval", g_tw_time_interval, "collect stats for specified time interval"), 
     TWOPT_CHAR("stats-filename", g_tw_stats_out, "filename for stats output"),
+    TWOPT_UINT("pe-per-file", g_tw_pe_per_file, "how many PEs to output per file"), 
     TWOPT_END()
 };
 
@@ -56,10 +61,22 @@ void tw_gvt_stats_file_setup(tw_peid id)
 {
     char filename[160];
     if (g_tw_stats_out[0])
-        sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
+        sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, g_tw_my_file_id);
+        //sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
     else
-        sprintf( filename, "ross-gvt-stats-%d.txt",(int)id);
-    FILE *f=fopen(filename, "w");
+        sprintf( filename, "ross-gvt-stats-%d.txt", g_tw_my_file_id);
+
+    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
+    
+    char buffer[1024];
+	sprintf(buffer, "PE,GVT,Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT," 
+        "total events processed,events aborted,events rolled back,event ties detected in PE queues," 
+        "efficiency,total remote network events processed,percent remote events," 
+        "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts," 
+        "net events processed,remote sends,remote recvs\n");
+    MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+
+    /*FILE *f=fopen(filename, "w");
     if(f == NULL)
         tw_error(TW_LOC, "\n Failed to open stats log file \n");
 
@@ -69,7 +86,7 @@ void tw_gvt_stats_file_setup(tw_peid id)
     fprintf(f, "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts,");
     fprintf(f, "net events processed,remote sends,remote recvs\n");
 
-    fclose(f);
+    fclose(f);*/
 }
 
 /** write header line to stats output files */
@@ -93,6 +110,21 @@ void tw_interval_stats_file_setup(tw_peid id)
     */
     char filename[160];
     if (g_tw_stats_out[0])
+        sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, g_tw_my_file_id);
+        //sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
+    else
+        sprintf( filename, "ross-interval-stats-%d.txt", g_tw_my_file_id);
+
+    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
+    
+    char buffer[1024];
+	sprintf(buffer, "PE,interval,forward events,reverse events,number of GVT comps,all reduce calls,"
+        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs"
+        "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
+    MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+
+    /*char filename[160];
+    if (g_tw_stats_out[0])
         sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
     else
         sprintf( filename, "ross-interval-stats-%d.txt",(int)id);
@@ -104,7 +136,7 @@ void tw_interval_stats_file_setup(tw_peid id)
     fprintf(f, "events aborted,event ties detected in PE queues,remote events,network sends,network recvs");
     fprintf(f, "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
 
-    fclose(f);
+    fclose(f);*/
 }
 
 void
