@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <sys/stat.h>
 
 char g_tw_stats_out[128] = {0};
 int g_tw_stats_enabled = 0;
@@ -59,12 +60,16 @@ show_4f(const char *name, double v)
 /** write header line to stats output files */
 void tw_gvt_stats_file_setup(tw_peid id)
 {
+    int max_files_directory = 100;
+    char directory_path[8];
+    sprintf(directory_path, "gvt-%d", g_tw_my_file_id/max_files_directory);
+    mkdir(directory_path, S_IRUSR || S_IWUSR || S_IXUSR);
     char filename[160];
     if (g_tw_stats_out[0])
-        sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, g_tw_my_file_id);
+        sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
         //sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
     else
-        sprintf( filename, "ross-gvt-stats-%d.txt", g_tw_my_file_id);
+        sprintf( filename, "%s/ross-gvt-stats-%d.txt", directory_path, g_tw_my_file_id);
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
     
@@ -108,12 +113,16 @@ void tw_interval_stats_file_setup(tw_peid id)
     tw_stat rb_secondary;
     tw_stat fc_attempts;
     */
+    int max_files_directory = 100;
+    char directory_path[8];
+    sprintf(directory_path, "interval-%d", g_tw_my_file_id/max_files_directory);
+    mkdir(directory_path, S_IRUSR || S_IWUSR || S_IXUSR);
     char filename[160];
     if (g_tw_stats_out[0])
-        sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, g_tw_my_file_id);
+        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
         //sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
     else
-        sprintf( filename, "ross-interval-stats-%d.txt", g_tw_my_file_id);
+        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_tw_my_file_id);
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
     
