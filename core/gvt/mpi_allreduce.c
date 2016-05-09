@@ -207,7 +207,7 @@ tw_gvt_step2(tw_pe *me)
 		gvt_print(gvt);
 	}
 
-    if (g_tw_stats_enabled)
+    if (g_tw_stats_enabled && gvt <= g_tw_ts_end)
     {
 		/*char filename[160];
         if (g_tw_stats_out[0])

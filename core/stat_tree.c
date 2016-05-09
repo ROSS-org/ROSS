@@ -303,8 +303,8 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
             root = write_bins(log, t->child[0], gvt, t, root, flag);
         if (t->key + g_tw_time_interval <= gvt)
         { // write in order
-            char buffer[2048];
-            char tmp[32];
+            char buffer[2048] = {0};
+            char tmp[32] = {0};
             sprintf(tmp, "%ld,%ld,", g_tw_mynode, t->key);
             strcat(buffer, tmp);
             int i;

@@ -8,7 +8,7 @@
 #include <math.h>
 #include <ross.h>
 
-#define NUM_INTERVAL_STATS 11
+#define NUM_INTERVAL_STATS 12
 /***
  * end
  *****/
