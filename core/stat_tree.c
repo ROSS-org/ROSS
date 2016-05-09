@@ -35,8 +35,6 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
     {
         current_node->child[0] = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 1);
         current_node->child[1] = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 1);
-        //current_node->child[0] = calloc(1, sizeof(struct stat_node));
-        //current_node->child[1] = calloc(1, sizeof(struct stat_node));
         int k1 = create_tree(current_node->child[0], key, height-1);
         current_node->key = k1 + g_tw_time_interval;
         current_node->height = height;
@@ -61,8 +59,8 @@ stat_node *init_stat_tree(tw_stat start)
 {
     tw_clock start_cycle_time = tw_clock_read();
     
-    // TODO num_bins should actually just be set to some number
-    int height = 6;
+    // TODO need to do some stuff to make sure too many bins are created
+    int height = 8;
     //tw_stat end = num_bins * g_tw_time_interval;
     stat_node *root = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 3);
 
@@ -83,7 +81,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     // check that there is a bin for this time stamp
     if (time_stamp > g_tw_max_bin + g_tw_time_interval)
     {
-        printf("adding nodes to the tree\n");
+        //printf("adding nodes to the tree\n");
         root = add_nodes(root);
         stat_node *tmp = find_stat_max(root);
         g_tw_max_bin = tmp->key;
@@ -99,7 +97,6 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     if (key == t->key) 
     {
         t->bin.stats[stat_type] += amount;
-        //return 1;
     }
 
     if (key < t->key)
@@ -107,20 +104,14 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
         if (t->child[0])
         {
             stat_increment(t->child[0], time_stamp, stat_type, root, amount);
-            //return 1;
         }
-        //else
-        //    return 0;
     }
     else if (key > t->key)
     {
         if (t->child[1])
         {
             stat_increment(t->child[1], time_stamp, stat_type, root, amount);
-            //return 1;
         }
-        //else
-        //    return 0;
     }
     stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
@@ -477,6 +468,5 @@ stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root
     }
     if (!newroot)
         newroot = root;
-    //newroot = statRebalance(newroot);
     return newroot;
 }

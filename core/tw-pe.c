@@ -84,11 +84,11 @@ tw_pe_init(tw_peid id, tw_peid gid)
         stat_node *tmp = find_stat_max(pe->stats_tree_root);
         g_tw_max_bin = tmp->key;
 
-        if (tw_ismaster())
+        /*if (tw_ismaster())
         {
             printf("max bin %lu\n", g_tw_max_bin);
             statPrintKeys(pe->stats_tree_root);
-        }
+        }*/
     }
 }
 
