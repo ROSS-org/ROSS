@@ -48,7 +48,7 @@ struct stat_node {
 stat_node *find_stat_max(stat_node *t);
 stat_node *init_stat_tree(tw_stat start);
 
-stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root);
+stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
 
 stat_node *add_nodes(stat_node *root);
 

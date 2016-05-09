@@ -228,8 +228,8 @@ tw_gvt_step2(tw_pe *me)
     if (g_tw_time_interval)
     {
         // increment appropriate bin for gvt comp
-        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_GVT, me->stats_tree_root);
-        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_ALLREDUCE, me->stats_tree_root);
+        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_GVT, me->stats_tree_root, 1);
+        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_ALLREDUCE, me->stats_tree_root, tmp_all_red_cnt);
         
         // try to write out stats below gvt
 		/*char filename[160];

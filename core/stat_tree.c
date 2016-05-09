@@ -78,7 +78,7 @@ stat_node *init_stat_tree(tw_stat start)
 
 /* return nonzero if key is present in tree */
 // TODO need to make sure that original caller adds bins if it gets a return value == 0
-stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root)
+stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount)
 {
     // check that there is a bin for this time stamp
     if (time_stamp > g_tw_max_bin + g_tw_time_interval)
@@ -98,7 +98,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     
     if (key == t->key) 
     {
-        t->bin.stats[stat_type] += 1;
+        t->bin.stats[stat_type] += amount;
         //return 1;
     }
 
@@ -106,7 +106,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     {
         if (t->child[0])
         {
-            stat_increment(t->child[0], time_stamp, stat_type, root);
+            stat_increment(t->child[0], time_stamp, stat_type, root, amount);
             //return 1;
         }
         //else
@@ -116,7 +116,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     {
         if (t->child[1])
         {
-            stat_increment(t->child[1], time_stamp, stat_type, root);
+            stat_increment(t->child[1], time_stamp, stat_type, root, amount);
             //return 1;
         }
         //else
