@@ -414,6 +414,7 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
@@ -499,6 +500,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             start = tw_clock_read();
             reset_bitfields(cev);
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
             ckp->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
