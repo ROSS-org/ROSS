@@ -7,6 +7,8 @@
 #include "stat_tree.h"
 long g_tw_min_bin = 0;
 long g_tw_max_bin = 0;
+tw_clock stat_write_cycle_counter = 0;
+tw_clock stat_comp_cycle_counter = 0;
 
 
 /* implementation of an AVL tree with explicit heights */
@@ -57,6 +59,8 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
  */
 stat_node *init_stat_tree(tw_stat start)
 {
+    tw_clock start_cycle_time = tw_clock_read();
+    
     // TODO num_bins should actually just be set to some number
     int height = 6;
     //tw_stat end = num_bins * g_tw_time_interval;
@@ -68,6 +72,7 @@ stat_node *init_stat_tree(tw_stat start)
     root->key = k + g_tw_time_interval;
     root->height = height;
     create_tree(root->child[1], (root->key) + g_tw_time_interval, height-1);
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
 }
 
@@ -78,11 +83,13 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     // check that there is a bin for this time stamp
     if (time_stamp > g_tw_max_bin + g_tw_time_interval)
     {
-        root = init_stat_tree(g_tw_max_bin + g_tw_time_interval);
+        printf("adding nodes to the tree\n");
+        root = add_nodes(root);
         stat_node *tmp = find_stat_max(root);
         g_tw_max_bin = tmp->key;
     }
 
+    tw_clock start_cycle_time = tw_clock_read();
     // find bin this time stamp belongs to
     int key = floor(time_stamp / g_tw_time_interval) * g_tw_time_interval;
     if (t == AVL_EMPTY) {
@@ -115,6 +122,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
         //else
         //    return 0;
     }
+    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
 }
 
@@ -207,18 +215,55 @@ static stat_node *statRebalance(stat_node *t)
     return t;
 }
 
+void insert_node(stat_node *root, stat_node *t)
+{
+    if(t == AVL_EMPTY) {
+        return;
+    } 
+    if (t->key < root->key) {
+        /* do the insert in subtree */
+        if (root->child[0])
+            insert_node(root->child[0], t);
+        else
+            root->child[0] = t;
+    
+    }
+    else if (t->key > root->key){
+        if (root->child[1])
+            insert_node(root->child[1], t);
+        else
+            root->child[1] = t;
+        
+    }
+    //    statRebalance(t);
+
+    return;
+}
+
+
 /* determined that more bins should be added */
 stat_node *add_nodes(stat_node *root)
 {
+    tw_clock start_cycle_time = tw_clock_read();;
     stat_node *old_root = root;
     stat_node *max_node = statDeleteMax(root, NULL);
     tw_stat start = max_node->key + g_tw_time_interval;
+    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+
     stat_node *subtree = init_stat_tree(start);
 
-    max_node->child[0] = old_root;
-    // connect subtree to tree
-    max_node->child[1] = subtree;
-    root = max_node;
+    if (!old_root->child[0] && !old_root->child[1])
+    {
+        insert_node(subtree, old_root);
+        root = subtree;
+    }
+    else
+    {
+        max_node->child[0] = old_root;
+        // connect subtree to tree
+        max_node->child[1] = subtree;
+        root = max_node;
+    }
 
     fix_all_heights(root);
     root = statRebalance(root);
@@ -273,7 +318,10 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
                     sprintf(tmp, "\n");
                 strcat(buffer, tmp);
             }
+
+            tw_clock start_cycle_time = tw_clock_read();;
             MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+            stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
         }
         if (t->child[1] && *flag)
             root = write_bins(log, t->child[1], gvt, t, root, flag);
@@ -297,9 +345,11 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
 /* call after GVT; write bins < GVT to file and delete */
 stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
 {
+    tw_clock start_cycle_time = tw_clock_read();
     int flag = 1;
     t = write_bins(log, t, gvt, NULL, t, &flag);
     t = statRebalance(t);
+    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
     return t;
 }
 
@@ -372,7 +422,8 @@ stat_node *statDeleteMax(stat_node *t, stat_node *parent)
     if((t)->child[1] == AVL_EMPTY) {
         /* root is max value */
         max_node = t;
-        parent->child[1] = NULL;
+        if (parent)
+            parent->child[1] = NULL;
     } else {
         /* max value is in right subtree */
         max_node = statDeleteMax((t)->child[1], t);
@@ -403,7 +454,7 @@ stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root
                     parent->child[1] = temp;
             }
             else
-                newroot = t; 
+                newroot = temp; 
             t->child[1] = oldroot->child[1];
             //free(oldroot);
         } else {

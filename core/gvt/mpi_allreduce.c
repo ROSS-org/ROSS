@@ -83,6 +83,7 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
     fprintf(f, "%lld,%lld,%lld\n", s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
             s->s_nread_network-last_stats.s_nread_network);
     */
+    tw_clock start_cycle_time = tw_clock_read();
     char buffer[2048];
 	sprintf(buffer, "%ld,%f,%d,%d,%lld,%f,%lld,%lld,%lld,%lld,%f,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
             g_tw_mynode, gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, all_reduce_cnt-last_all_reduce_cnt, 
@@ -97,11 +98,16 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
             s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
             s->s_nread_network-last_stats.s_nread_network);
 
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
+    start_cycle_time = tw_clock_read();
     MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+    start_cycle_time = tw_clock_read();
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
     last_gvt_done = g_tw_gvt_done;
     last_gvt_force = gvt_force;
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 }
 
 void
@@ -212,8 +218,10 @@ tw_gvt_step2(tw_pe *me)
 		if(foo_log == NULL)
 			tw_error(TW_LOC, "\n Failed to open stats log file \n");
         */
+        tw_clock start_cycle_time = tw_clock_read();
         tw_statistics s;
         tw_get_stats(me, &s);
+        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 		tw_gvt_log(NULL, me, gvt, &s);
 		//fclose(foo_log);
     }

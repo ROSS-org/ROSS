@@ -19,6 +19,8 @@ extern int g_tw_my_file_id;
 extern MPI_File gvt_file;
 extern MPI_File interval_file;
 extern MPI_Comm  stats_comm;
+extern tw_clock stat_write_cycle_counter;
+extern tw_clock stat_comp_cycle_counter;
 
 /*
  * stat_tree.c
