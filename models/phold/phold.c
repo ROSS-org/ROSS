@@ -17,8 +17,8 @@ phold_init(phold_state * s, tw_lp * lp)
 	    for (i = 0; i < g_phold_start_events; i++)
 	      {
 		tw_event_send(
-			      tw_event_new(lp->gid, 
-					   tw_rand_exponential(lp->rng, mean) + lookahead + (tw_stime)(lp->gid % (unsigned int)g_tw_ts_end), 
+			      tw_event_new(lp->gid,
+					   tw_rand_exponential(lp->rng, mean) + lookahead + (tw_stime)(lp->gid % (unsigned int)g_tw_ts_end),
 					   lp));
 	      }
 	  }
@@ -27,8 +27,8 @@ phold_init(phold_state * s, tw_lp * lp)
 	    for (i = 0; i < g_phold_start_events; i++)
 	      {
 		tw_event_send(
-			      tw_event_new(lp->gid, 
-					   tw_rand_exponential(lp->rng, mean) + lookahead, 
+			      tw_event_new(lp->gid,
+					   tw_rand_exponential(lp->rng, mean) + lookahead,
 					   lp));
 	      }
 	  }
@@ -142,7 +142,7 @@ main(int argc, char **argv, char **env)
 
 	offset_lpid = g_tw_mynode * nlp_per_pe;
 	ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
-	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
+	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) +
 				optimistic_memory;
 	//g_tw_rng_default = TW_FALSE;
 	g_tw_lookahead = lookahead;
