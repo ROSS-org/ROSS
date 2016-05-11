@@ -63,8 +63,10 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     q->size += cnt;
 
     // iterate through list to collect sent events
+    // go in reverse to ensure correct commit order
+    e = t;
     t = t->next;
-    for(e = h; e != t; e = e->next)
+    while(1)
     {
         tw_lp * clp = e->dest_lp;
         (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
@@ -100,6 +102,10 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             e->caused_by_me = NULL;
             e->state.owner = TW_pe_free_q;
         }
+        if (e == h) {
+          break;
+        }
+        e = e->prev;
     }
 
     tw_eventq_debug(q);
