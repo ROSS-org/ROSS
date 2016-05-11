@@ -61,10 +61,10 @@ show_4f(const char *name, double v)
 void tw_gvt_stats_file_setup(tw_peid id)
 {
     int max_files_directory = 100;
-    char directory_path[8];
-    sprintf(directory_path, "gvt-%d", g_tw_my_file_id/max_files_directory);
+    char directory_path[128];
+    sprintf(directory_path, "%s-gvt-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
     mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-    char filename[160];
+    char filename[256];
     if (g_tw_stats_out[0])
         sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
         //sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
@@ -102,10 +102,10 @@ void tw_interval_stats_file_setup(tw_peid id)
     tw_stat fc_attempts;
     */
     int max_files_directory = 100;
-    char directory_path[8];
-    sprintf(directory_path, "interval-%d", g_tw_my_file_id/max_files_directory);
+    char directory_path[128];
+    sprintf(directory_path, "%s-interval-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
     mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-    char filename[160];
+    char filename[256];
     if (g_tw_stats_out[0])
         sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
         //sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
