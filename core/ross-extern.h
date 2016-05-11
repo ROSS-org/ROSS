@@ -93,6 +93,7 @@ extern void		 tw_event_rollback(tw_event * event);
  */
 static inline void  tw_event_free(tw_pe *, tw_event *);
 static inline void  tw_free_output_messages(tw_event *e, int print_message);
+static inline void * tw_event_data(tw_event * event);
 
 /*
  * tw-lp.c
