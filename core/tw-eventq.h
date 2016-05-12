@@ -69,7 +69,9 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     while(1)
     {
         tw_lp * clp = e->dest_lp;
-        (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
+        }
         tw_free_output_messages(e, 1);
 
         if (e->delta_buddy) {
