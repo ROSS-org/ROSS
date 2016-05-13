@@ -80,14 +80,14 @@ tw_pe_init(tw_peid id, tw_peid gid)
         tw_interval_stats_file_setup(gid);
 
         // init tree
-        pe->stats_tree_root = init_stat_tree(0);
-        stat_node *tmp = find_stat_max(pe->stats_tree_root);
+        pe->stats_tree_root = stat_init_tree(0);
+        stat_node *tmp = stat_find_max(pe->stats_tree_root);
         g_tw_max_bin = tmp->key;
 
         /*if (tw_ismaster())
         {
             printf("max bin %lu\n", g_tw_max_bin);
-            statPrintKeys(pe->stats_tree_root);
+            stat_print_keys(pe->stats_tree_root);
         }*/
     }
 }

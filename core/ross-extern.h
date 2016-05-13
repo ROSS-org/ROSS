@@ -28,9 +28,9 @@ extern tw_clock stat_comp_cycle_counter;
 extern long g_tw_min_bin;
 extern long g_tw_max_bin;
 extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
-extern stat_node *init_stat_tree(tw_stat start);
+extern stat_node *stat_init_tree(tw_stat start);
 extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
-extern stat_node *find_stat_max(stat_node *t);
+extern stat_node *stat_find_max(stat_node *t);
 
 /*
  * ross-global.c

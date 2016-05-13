@@ -14,13 +14,13 @@ tw_clock stat_comp_cycle_counter = 0;
 /* implementation of an AVL tree with explicit heights */
 
 /* find max bin in tree */
-stat_node *find_stat_max(stat_node *t)
+stat_node *stat_find_max(stat_node *t)
 {
     if (t == AVL_EMPTY)
         return NULL;
 
     if (t->child[1])
-        return find_stat_max(t->child[1]);
+        return stat_find_max(t->child[1]);
     else 
         return t;
 }
@@ -39,7 +39,7 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
         current_node->key = k1 + g_tw_time_interval;
         current_node->height = height;
         create_tree(current_node->child[1], (current_node->key) + g_tw_time_interval, height-1);
-        stat_node *maxptr = find_stat_max(current_node);
+        stat_node *maxptr = stat_find_max(current_node);
         return maxptr->key;
     }
     else if (height == 1)
@@ -55,7 +55,7 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
  * currently about 10% of bins expected based on end time and time interval
  * returns pointer to the root
  */
-stat_node *init_stat_tree(tw_stat start)
+stat_node *stat_init_tree(tw_stat start)
 {
     tw_clock start_cycle_time = tw_clock_read();
     
@@ -82,8 +82,8 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
     if (time_stamp > g_tw_max_bin + g_tw_time_interval)
     {
         //printf("adding nodes to the tree\n");
-        root = add_nodes(root);
-        stat_node *tmp = find_stat_max(root);
+        root = stat_add_nodes(root);
+        stat_node *tmp = stat_find_max(root);
         g_tw_max_bin = tmp->key;
     }
 
@@ -122,7 +122,7 @@ static void fix_node_height(stat_node *t)
 {
     assert(t != AVL_EMPTY);
     
-    t->height = 1 + ROSS_MAX(statGetHeight(t->child[0]), statGetHeight(t->child[1]));
+    t->height = 1 + ROSS_MAX(stat_get_height(t->child[0]), stat_get_height(t->child[1]));
 }
 
 static void fix_all_heights(stat_node *root)
@@ -181,11 +181,11 @@ static stat_node *statRebalance(stat_node *t)
     if (t != AVL_EMPTY) {
         for (d = 0; d < 2; d++) {
             /* maybe child[d] is now too tall */
-            if (statGetHeight((t)->child[d]) > statGetHeight((t)->child[!d]) + 1) {
+            if (stat_get_height((t)->child[d]) > stat_get_height((t)->child[!d]) + 1) {
                 /* imbalanced! */
                 /* how to fix it? */
                 /* need to look for taller grandchild of child[d] */
-                if (statGetHeight((t)->child[d]->child[d]) > statGetHeight((t)->child[d]->child[!d])) {
+                if (stat_get_height((t)->child[d]->child[d]) > stat_get_height((t)->child[d]->child[!d])) {
                     /* same direction grandchild wins, do single rotation */
                     t = statRotate(t, d);
                 }
@@ -233,15 +233,15 @@ void insert_node(stat_node *root, stat_node *t)
 
 
 /* determined that more bins should be added */
-stat_node *add_nodes(stat_node *root)
+stat_node *stat_add_nodes(stat_node *root)
 {
     tw_clock start_cycle_time = tw_clock_read();;
     stat_node *old_root = root;
-    stat_node *max_node = statDeleteMax(root, NULL);
+    stat_node *max_node = stat_delete_max(root, NULL);
     tw_stat start = max_node->key + g_tw_time_interval;
     stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
 
-    stat_node *subtree = init_stat_tree(start);
+    stat_node *subtree = stat_init_tree(start);
 
     if (!old_root->child[0] && !old_root->child[1])
     {
@@ -262,7 +262,7 @@ stat_node *add_nodes(stat_node *root)
 }
 
 /* return height of an AVL tree */
-int statGetHeight(stat_node *t)
+int stat_get_height(stat_node *t)
 {
     if (t != AVL_EMPTY) {
         return t->height;
@@ -273,16 +273,16 @@ int statGetHeight(stat_node *t)
 }
 
 /* assert height fields are correct throughout tree */
-void statSanityCheck(stat_node *root)
+void stat_sanity_check(stat_node *root)
 {
     int i;
     
     if (root != AVL_EMPTY) {
         for (i = 0; i < 2; i++) {
-            statSanityCheck(root->child[i]);
+            stat_sanity_check(root->child[i]);
         }
         
-        assert(root->height == 1 + ROSS_MAX(statGetHeight(root->child[0]), statGetHeight(root->child[1])));
+        assert(root->height == 1 + ROSS_MAX(stat_get_height(root->child[0]), stat_get_height(root->child[1])));
     }
 }
 
@@ -320,7 +320,7 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
         if (t->key + g_tw_time_interval <= gvt)
         {
             // can delete this node now
-            root = statDelete(t, t->key, parent, root);
+            root = stat_delete(t, t->key, parent, root);
             //free(t);
             //if (parent != root)
             //    statRebalance(parent);
@@ -345,12 +345,12 @@ stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
 }
 
 /* free a tree */
-void statDestroy(stat_node *t)
+void stat_destroy(stat_node *t)
 {
     if (t != AVL_EMPTY) {
-        statDestroy(t->child[0]);
+        stat_destroy(t->child[0]);
         t->child[0] = AVL_EMPTY;
-        statDestroy(t->child[1]);
+        stat_destroy(t->child[1]);
         t->child[1] = AVL_EMPTY;
         stat_free(t);
     }
@@ -365,18 +365,18 @@ void stat_free(stat_node *t)
 }
 
 /* print all elements of the tree in order */
-void statPrintKeys(stat_node *t)
+void stat_print_keys(stat_node *t)
 {
     if (t != AVL_EMPTY) {
-        statPrintKeys(t->child[0]);
+        stat_print_keys(t->child[0]);
         printf("%ld\t%d\n", t->key, t->height);
-        statPrintKeys(t->child[1]);
+        stat_print_keys(t->child[1]);
     }
 }
 
 /* delete and return minimum value in a tree */
 // Need to make sure to rebalance after calling
-stat_node *statDeleteMin(stat_node *t, stat_node *parent)
+stat_node *stat_delete_min(stat_node *t, stat_node *parent)
 {
     stat_node *oldroot;
     stat_node *min_node;
@@ -396,7 +396,7 @@ stat_node *statDeleteMin(stat_node *t, stat_node *parent)
         //free(oldroot);
     } else {
         /* min value is in left subtree */
-        min_node = statDeleteMin((t)->child[0], t);
+        min_node = stat_delete_min((t)->child[0], t);
     }
 
     return min_node;
@@ -404,7 +404,7 @@ stat_node *statDeleteMin(stat_node *t, stat_node *parent)
 
 /* delete and return max node in a tree */
 // Need to make sure to rebalance after calling
-stat_node *statDeleteMax(stat_node *t, stat_node *parent)
+stat_node *stat_delete_max(stat_node *t, stat_node *parent)
 {
     stat_node *max_node;
 
@@ -417,7 +417,7 @@ stat_node *statDeleteMax(stat_node *t, stat_node *parent)
             parent->child[1] = NULL;
     } else {
         /* max value is in right subtree */
-        max_node = statDeleteMax((t)->child[1], t);
+        max_node = stat_delete_max((t)->child[1], t);
     }
 
     return max_node;
@@ -425,7 +425,7 @@ stat_node *statDeleteMax(stat_node *t, stat_node *parent)
 
 /* delete the given value */
 // Need to make sure to rebalance after calling
-stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root)
+stat_node *stat_delete(stat_node *t, long key, stat_node *parent, stat_node *root)
 {
     stat_node *oldroot;
     stat_node *newroot = NULL;
@@ -437,7 +437,7 @@ stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root
         if((t)->child[1] != AVL_EMPTY) {
             /* give root min value in right subtree */
             oldroot = t;
-            stat_node *temp = statDeleteMin(oldroot->child[1], oldroot);
+            stat_node *temp = stat_delete_min(oldroot->child[1], oldroot);
             if (parent != AVL_EMPTY){
                 if (oldroot->key < parent->key)
                     parent->child[0] = temp; 
@@ -464,7 +464,7 @@ stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root
             //free(oldroot);
         }
     } else {
-        statDelete((t)->child[key > (t)->key], key, t, root);
+        stat_delete((t)->child[key > (t)->key], key, t, root);
     }
     if (!newroot)
         newroot = root;

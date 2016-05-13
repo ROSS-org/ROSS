@@ -45,35 +45,35 @@ struct stat_node {
 
 #define AVL_EMPTY (0)
 
-stat_node *find_stat_max(stat_node *t);
-stat_node *init_stat_tree(tw_stat start);
+stat_node *stat_find_max(stat_node *t);
+stat_node *stat_init_tree(tw_stat start);
 
 stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
 
-stat_node *add_nodes(stat_node *root);
+stat_node *stat_add_nodes(stat_node *root);
 
 /* return the height of a tree */
-int statGetHeight(stat_node *t);
+int stat_get_height(stat_node *t);
 
 /* run sanity checks on tree (for debugging) */
 /* assert will fail if heights are wrong */
-void statSanityCheck(stat_node *t);
+void stat_sanity_check(stat_node *t);
 
 stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
 
 /* free a tree */
-void statDestroy(stat_node *t);
+void stat_destroy(stat_node *t);
 
 void stat_free(stat_node *t);
 
 /* print all keys of the tree in order */
-void statPrintKeys(stat_node *t);
+void stat_print_keys(stat_node *t);
 
 /* delete and return minimum value in a tree */
-stat_node *statDeleteMin(stat_node *t, stat_node *parent);
-stat_node *statDeleteMax(stat_node *t, stat_node *parent);
+stat_node *stat_delete_min(stat_node *t, stat_node *parent);
+stat_node *stat_delete_max(stat_node *t, stat_node *parent);
 
 // Should only need to delete at GVT
 // could be 1 bin or many, so write necessary bins to file, delete those bins,
 // then rebalance the tree
-stat_node *statDelete(stat_node *t, long key, stat_node *parent, stat_node *root);
+stat_node *stat_delete(stat_node *t, long key, stat_node *parent, stat_node *root);
