@@ -299,6 +299,8 @@ struct tw_event {
     void *delta_buddy;              /**< @brief Delta memory from buddy allocator. */
     size_t      delta_size;         /**< @brief Size of delta. */
 
+    unsigned int critical_path;     /**< @brief Critical path of this event */
+
     tw_lp       *dest_lp;           /**< @brief Destination LP ID */
     tw_lp       *src_lp;            /**< @brief Sending LP ID */
     tw_stime     recv_ts;           /**< @brief Actual time to be received */
@@ -337,6 +339,8 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
+
+    unsigned int critical_path; /**< @brief Critical path value for this LP */
 
   /* tw_suspend variables */
   tw_event    *suspend_event;
