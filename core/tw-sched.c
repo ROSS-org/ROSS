@@ -202,6 +202,7 @@ static void tw_sched_batch(tw_pe * me) {
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
 	  }
@@ -300,6 +301,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
 	  }
@@ -413,6 +415,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         }
 
         reset_bitfields(cev);
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         if (me->cev_abort){
@@ -498,6 +501,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             start = tw_clock_read();
             reset_bitfields(cev);
+            clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
             ckp->s_nevent_processed++;
@@ -655,6 +659,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         /* don't update GVT */
         reset_bitfields(cev);
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
 
         ckp->s_nevent_processed++;
