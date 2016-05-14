@@ -117,6 +117,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   e->dest_lp = (tw_lp *) dest_gid;
   e->src_lp = sender;
   e->recv_ts = recv_ts;
+  e->critical_path = sender->critical_path + 1;
 
   tw_free_output_messages(e, 0);
 
