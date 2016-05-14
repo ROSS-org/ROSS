@@ -205,10 +205,9 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
-        cev->critical_path = prev_cp;
-
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+        cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
@@ -308,10 +307,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
-        cev->critical_path = prev_cp;
-
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+        cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
@@ -671,9 +669,8 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path);
-        cev->critical_path = prev_cp;
-
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        cev->critical_path = prev_cp;
 
         ckp->s_nevent_processed++;
 
