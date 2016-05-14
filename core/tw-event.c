@@ -184,6 +184,9 @@ void tw_event_rollback(tw_event * event) {
 
     (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
 
+    // reset critical path
+    dest_lp->critical_path = event->critical_path;
+
 jump_over_rc_event_handler:
     if (event->delta_buddy) {
         tw_clock start = tw_clock_read();
