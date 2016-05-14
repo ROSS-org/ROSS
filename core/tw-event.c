@@ -157,7 +157,7 @@ void tw_event_rollback(tw_event * event) {
     dest_lp->kp->last_time = event->recv_ts;
 
     if( dest_lp->suspend_flag &&
-	dest_lp->suspend_event == event && 
+	dest_lp->suspend_event == event &&
 	// Must test time stamp since events are reused once GVT sweeps by
 	dest_lp->suspend_time == event->recv_ts)
       {
@@ -172,7 +172,7 @@ void tw_event_rollback(tw_event * event) {
 	    goto jump_over_rc_event_handler;
 	  }
 	else
-	  { // reset 
+	  { // reset
 	    dest_lp->suspend_do_orig_event_rc = 0;
 	    // note, should fall thru and process reverse events
 	  }
