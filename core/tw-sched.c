@@ -564,11 +564,11 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
-
-    tw_net_barrier(me);
 
     // call the model PE finalize function
     (*me->type.final)(me);
@@ -613,11 +613,11 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
-
-    tw_net_barrier(me);
 
     // call the model PE finalize function
     (*me->type.final)(me);
