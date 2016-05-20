@@ -62,14 +62,19 @@ void tw_gvt_stats_file_setup(tw_peid id)
 {
     int max_files_directory = 100;
     char directory_path[128];
-    sprintf(directory_path, "%s-gvt-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
-    mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
     char filename[256];
     if (g_tw_stats_out[0])
+    {
+        sprintf(directory_path, "%s-gvt-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
+        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
         sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
-        //sprintf(filename, "%s-%d-gvt.txt", g_tw_stats_out, (int)id);
+    }
     else
+    {
+        sprintf(directory_path, "ross-gvt-%d", g_tw_my_file_id/max_files_directory);
+        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
         sprintf( filename, "%s/ross-gvt-stats-%d.txt", directory_path, g_tw_my_file_id);
+    }
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
     
@@ -103,14 +108,19 @@ void tw_interval_stats_file_setup(tw_peid id)
     */
     int max_files_directory = 100;
     char directory_path[128];
-    sprintf(directory_path, "%s-interval-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
-    mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
     char filename[256];
     if (g_tw_stats_out[0])
+    {
+        sprintf(directory_path, "%s-interval-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
+        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
         sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
-        //sprintf(filename, "%s-%d-interval.txt", g_tw_stats_out, (int)id);
+    }
     else
+    {
+        sprintf(directory_path, "ross-interval-%d", g_tw_my_file_id/max_files_directory);
+        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
         sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_tw_my_file_id);
+    }
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
     
