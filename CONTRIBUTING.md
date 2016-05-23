@@ -81,9 +81,11 @@ Instead, each commit on the master branch represents a change in ROSS.
 Thus, each commit hash can be used as a version number that we guarantee will never change.
 
 To achieve the eternal validity of a commit hash, we utilize squash commits to merge any changes.
+All merges into the master branch should be made through the GitHub pull request interface.
+Through this interface, the merge can be squashed.
 Squash commits have several implications:
 
-1. *The squash-on-merge option must be selected by the person doing the merge.*
+1. *The squash-on-merge option must be selected within the GitHub interface by the person doing the merge.*
 1. The individual commits are not placed in the history of the master branch.
    However, they do remain available through the pull request page.
 2. One positive outcome is that the blame on any file will be simplified since there is now only one commit associated with the entire change.
