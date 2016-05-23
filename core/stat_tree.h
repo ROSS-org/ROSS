@@ -45,6 +45,7 @@ struct stat_node {
 
 #define AVL_EMPTY (0)
 
+stat_node *stat_find_min(stat_node *t);
 stat_node *stat_find_max(stat_node *t);
 stat_node *stat_init_tree(tw_stat start);
 
@@ -77,3 +78,4 @@ stat_node *stat_delete_max(stat_node *t, stat_node *parent);
 // could be 1 bin or many, so write necessary bins to file, delete those bins,
 // then rebalance the tree
 stat_node *stat_delete(stat_node *t, long key, stat_node *parent, stat_node *root);
+void debug_nodes(stat_node *root, long *counter, tw_stime lvt);

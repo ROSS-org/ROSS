@@ -81,7 +81,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
 
         // init tree
         pe->stats_tree_root = stat_init_tree(0);
-        stat_node *tmp = stat_find_max(pe->stats_tree_root);
+        stat_node *tmp = stat_find_min(pe->stats_tree_root);
+        g_tw_min_bin = tmp->key;
+        tmp = stat_find_max(pe->stats_tree_root);
         g_tw_max_bin = tmp->key;
 
         /*if (tw_ismaster())

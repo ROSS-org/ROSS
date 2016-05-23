@@ -11,7 +11,17 @@ tw_clock stat_write_cycle_counter = 0;
 tw_clock stat_comp_cycle_counter = 0;
 
 
-/* implementation of an AVL tree with explicit heights */
+/* find min bin in tree */
+stat_node *stat_find_min(stat_node *t)
+{
+    if (t == AVL_EMPTY)
+        return NULL;
+
+    if (t->child[0])
+        return stat_find_min(t->child[0]);
+    else 
+        return t;
+}
 
 /* find max bin in tree */
 stat_node *stat_find_max(stat_node *t)
@@ -59,7 +69,7 @@ stat_node *stat_init_tree(tw_stat start)
 {
     tw_clock start_cycle_time = tw_clock_read();
     
-    // TODO need to do some stuff to make sure too many bins are created
+    // TODO need to do some stuff to make sure too many bins aren't created
     int height = 8;
     //tw_stat end = num_bins * g_tw_time_interval;
     stat_node *root = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 3);
@@ -336,11 +346,23 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
 /* call after GVT; write bins < GVT to file and delete */
 stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
 {
+    if (g_tw_mynode == g_tw_masternode)
+    {
+        //printf("\n\nprinting tree at gvt: %f\n", gvt);
+        //stat_print_keys(t);
+        long counter = g_tw_min_bin;
+        debug_nodes(t, &counter, gvt);
+    }
     tw_clock start_cycle_time = tw_clock_read();
     int flag = 1;
     t = write_bins(log, t, gvt, NULL, t, &flag);
     t = statRebalance(t);
     stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+    
+    stat_node *tmp = stat_find_min(t);
+    g_tw_min_bin = tmp->key;
+    tmp = stat_find_max(t);
+    g_tw_max_bin = tmp->key;
     return t;
 }
 
@@ -446,7 +468,7 @@ stat_node *stat_delete(stat_node *t, long key, stat_node *parent, stat_node *roo
             }
             else
                 newroot = temp; 
-            t->child[1] = oldroot->child[1];
+            temp->child[1] = oldroot->child[1];
             //free(oldroot);
         } else {
             /* splice out root */
@@ -470,3 +492,18 @@ stat_node *stat_delete(stat_node *t, long key, stat_node *parent, stat_node *roo
         newroot = root;
     return newroot;
 }
+
+/* run through tree to check that it is correct */
+void debug_nodes(stat_node *root, long *counter, tw_stime lvt)
+{
+    if (root == AVL_EMPTY)
+        return;
+    if (root->child[0] != AVL_EMPTY)
+        debug_nodes(root->child[0], counter, lvt);
+    if (root->key != *counter)
+        printf("tree is incorrect at virtual time: %f\n", lvt);
+    *counter += g_tw_time_interval;
+    if (root->child[1] != AVL_EMPTY)
+        debug_nodes(root->child[1], counter, lvt);
+
+} 

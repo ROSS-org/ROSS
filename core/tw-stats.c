@@ -126,7 +126,7 @@ void tw_interval_stats_file_setup(tw_peid id)
     
     char buffer[1024];
 	sprintf(buffer, "PE,interval,forward events,reverse events,number of GVT comps,all reduce calls,"
-        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs"
+        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs,"
         "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
     MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
 }
