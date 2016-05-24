@@ -38,7 +38,6 @@ stat_node *stat_find_max(stat_node *t)
 /* recursive function for creating a tree for stats collection. 
  * takes in the current node, uses in order traversal.
  */
-//TODO need to handle small special cases
 static long create_tree(stat_node *current_node, tw_stat key, int height)
 {
     if (height > 1)
@@ -67,8 +66,6 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
  */
 stat_node *stat_init_tree(tw_stat start)
 {
-    tw_clock start_cycle_time = tw_clock_read();
-    
     // TODO need to do some stuff to make sure too many bins aren't created
     int height = 8;
     //tw_stat end = num_bins * g_tw_time_interval;
@@ -80,12 +77,10 @@ stat_node *stat_init_tree(tw_stat start)
     root->key = k + g_tw_time_interval;
     root->height = height;
     create_tree(root->child[1], (root->key) + g_tw_time_interval, height-1);
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
 }
 
 /* return nonzero if key is present in tree */
-// TODO need to make sure that original caller adds bins if it gets a return value == 0
 stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount)
 {
     // check that there is a bin for this time stamp
@@ -249,7 +244,6 @@ stat_node *stat_add_nodes(stat_node *root)
     stat_node *old_root = root;
     stat_node *max_node = stat_delete_max(root, NULL);
     tw_stat start = max_node->key + g_tw_time_interval;
-    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
 
     stat_node *subtree = stat_init_tree(start);
 
@@ -268,6 +262,7 @@ stat_node *stat_add_nodes(stat_node *root)
 
     fix_all_heights(root);
     root = statRebalance(root);
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
 }
 
@@ -320,9 +315,9 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
                 strcat(buffer, tmp);
             }
 
-            tw_clock start_cycle_time = tw_clock_read();;
+            //tw_clock start_cycle_time = tw_clock_read();;
             MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-            stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+            //stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
         }
         if (t->child[1] && *flag)
             root = write_bins(log, t->child[1], gvt, t, root, flag);
@@ -346,18 +341,20 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
 /* call after GVT; write bins < GVT to file and delete */
 stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
 {
-    if (g_tw_mynode == g_tw_masternode)
+    /*if (g_tw_mynode == g_tw_masternode)
     {
         //printf("\n\nprinting tree at gvt: %f\n", gvt);
         //stat_print_keys(t);
         long counter = g_tw_min_bin;
         debug_nodes(t, &counter, gvt);
-    }
-    tw_clock start_cycle_time = tw_clock_read();
+    }*/
     int flag = 1;
+    tw_clock start_cycle_time = tw_clock_read();
     t = write_bins(log, t, gvt, NULL, t, &flag);
-    t = statRebalance(t);
     stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+    start_cycle_time = tw_clock_read();
+    t = statRebalance(t);
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     
     stat_node *tmp = stat_find_min(t);
     g_tw_min_bin = tmp->key;

@@ -74,9 +74,14 @@ tw_pe_init(tw_peid id, tw_peid gid)
 
     // print out header for stats file
     if (g_tw_stats_enabled)
+    {
+        tw_clock start_cycle_time = tw_clock_read();
         tw_gvt_stats_file_setup(gid);
+        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
+    }
     if (g_tw_time_interval)
     {
+        tw_clock start_cycle_time = tw_clock_read();
         tw_interval_stats_file_setup(gid);
 
         // init tree
@@ -85,12 +90,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
         g_tw_min_bin = tmp->key;
         tmp = stat_find_max(pe->stats_tree_root);
         g_tw_max_bin = tmp->key;
-
-        /*if (tw_ismaster())
-        {
-            printf("max bin %lu\n", g_tw_max_bin);
-            stat_print_keys(pe->stats_tree_root);
-        }*/
+        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
 }
 
