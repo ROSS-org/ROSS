@@ -59,7 +59,8 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
-                        me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, RB_PRIMARY, me->stats_tree_root, 1);
+                        if (g_tw_time_interval)
+                            me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, RB_PRIMARY, me->stats_tree_root, 1);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -130,7 +131,8 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     */
                     tw_kp_rollback_event(cev);
                     tw_event_free(me, cev);
-                    me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, RB_SECONDARY, me->stats_tree_root, 1);
+                    if (g_tw_time_interval)
+                        me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, RB_SECONDARY, me->stats_tree_root, 1);
                     break;
 
                 default:
@@ -185,7 +187,8 @@ static void tw_sched_batch(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - start;
         if(cev->recv_ts == tw_pq_minimum(me->pq)) {
             me->stats.s_pe_event_ties++;
-            me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, PE_EVENT_TIES, me->stats_tree_root, 1);
+            if (g_tw_time_interval)
+                me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, PE_EVENT_TIES, me->stats_tree_root, 1);
         }
 
         clp = cev->dest_lp;
@@ -208,7 +211,8 @@ static void tw_sched_batch(tw_pe * me) {
 	    (*clp->type->event)(clp->cur_state, &cev->cv, 
 				tw_event_data(cev), clp);
 	  }
-    me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, FORWARD_EV, me->stats_tree_root, 1);
+    if (g_tw_time_interval)
+        me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, FORWARD_EV, me->stats_tree_root, 1);
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 	    
@@ -232,7 +236,8 @@ static void tw_sched_batch(tw_pe * me) {
 	    
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
-        me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, EVENTS_ABORTED, me->stats_tree_root, 1);
+        if (g_tw_time_interval)
+            me->stats_tree_root = stat_increment(me->stats_tree_root, cev->recv_ts, EVENTS_ABORTED, me->stats_tree_root, 1);
 	    
 	    break;
 	  } // END ABORT CHECK

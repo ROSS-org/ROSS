@@ -223,7 +223,8 @@ tw_gvt_step2(tw_pe *me)
 	    start = tw_clock_read();
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
-        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, FC_ATTEMPTS, me->stats_tree_root, 1);
+        if (g_tw_time_interval)
+            me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, FC_ATTEMPTS, me->stats_tree_root, 1);
 	  }
 
 	g_tw_gvt_done++;
