@@ -123,7 +123,7 @@ stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_nod
             stat_increment(t->child[1], time_stamp, stat_type, root, amount);
         }
     }
-    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     return root;
 }
 
@@ -302,7 +302,7 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
     {
         if (t->child[0])
             root = write_bins(log, t->child[0], gvt, t, root, flag);
-        if (t->key + g_tw_time_interval <= gvt && t->key <= g_tw_ts_end)
+        if (t->key + g_tw_time_interval <= gvt && t->key < g_tw_ts_end)
         { // write in order
             char buffer[2048] = {0};
             char tmp[32] = {0};
