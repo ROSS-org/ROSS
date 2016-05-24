@@ -8,28 +8,25 @@
 #include <math.h>
 #include <ross.h>
 
-#define NUM_INTERVAL_STATS 12
+#define NUM_INTERVAL_STATS 11
 /***
  * end
  *****/
 
 // TODO set up enum for accessing correct location in array
 struct stats_bin {
-/*    tw_stat forward_events;
-    tw_stat reverse_events;
-    tw_stat num_gvts;
-    tw_stat all_reduce_calls;
-    tw_stat events_aborted;
-    tw_stat pe_event_ties;
-
-    tw_stat nsend_network;
-    tw_stat nread_network;
-
-    tw_stat events_rbs;
-
-    tw_stat rb_primary;
-    tw_stat rb_secondary;
-    tw_stat fc_attempts;
+/*  
+    0  FORWARD_EV,
+    1  REVERSE_EV,
+    2  NUM_GVT,
+    3  NUM_ALLREDUCE,
+    4  EVENTS_ABORTED,
+    5  PE_EVENT_TIES,
+    6  REMOTE_SEND,
+    7  REMOTE_RECV,
+    8  RB_PRIMARY,
+    9 RB_SECONDARY,
+    10 FC_ATTEMPTS
     */
     tw_stat stats[NUM_INTERVAL_STATS];
 };

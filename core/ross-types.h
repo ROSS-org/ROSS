@@ -68,7 +68,6 @@ enum tw_stat_types {
     PE_EVENT_TIES,
     REMOTE_SEND,
     REMOTE_RECV,
-    EVENTS_RB,
     RB_PRIMARY,
     RB_SECONDARY,
     FC_ATTEMPTS
