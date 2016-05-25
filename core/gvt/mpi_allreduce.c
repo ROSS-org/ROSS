@@ -10,8 +10,6 @@ static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
-static unsigned int last_gvt_done = 0;
-static unsigned int last_gvt_force = 0;
 
 static const tw_optdef gvt_opts [] =
 {
@@ -66,14 +64,12 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
     // net events processed, remote sends, remote recvs
     tw_clock start_cycle_time = tw_clock_read();
     char buffer[2048];
-	sprintf(buffer, "%ld,%f,%d,%d,%lld,%f,%lld,%lld,%lld,%lld,%f,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
-            g_tw_mynode, gvt, gvt_force-last_gvt_force, g_tw_gvt_done-last_gvt_done, all_reduce_cnt-last_all_reduce_cnt, 
-            (double) ((double) (all_reduce_cnt-last_all_reduce_cnt) / (double) (g_tw_gvt_done-last_gvt_done)),
+	sprintf(buffer, "%ld,%f,%lld,%lld,%lld,%lld,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
+            g_tw_mynode, gvt, all_reduce_cnt-last_all_reduce_cnt, 
             s->s_nevent_processed-last_stats.s_nevent_processed, s->s_nevent_abort-last_stats.s_nevent_abort, 
             s->s_e_rbs-last_stats.s_e_rbs, s->s_pe_event_ties-last_stats.s_pe_event_ties,
             100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events))),
             s->s_nsend_net_remote-last_stats.s_nsend_net_remote,
-            ((double)(s->s_nsend_net_remote-last_stats.s_nsend_net_remote) / (double)(s->s_net_events-last_stats.s_net_events)) * 100,
             s->s_rb_total-last_stats.s_rb_total, s->s_rb_primary-last_stats.s_rb_primary,
             s->s_rb_secondary-last_stats.s_rb_secondary, s->s_fc_attempts-last_stats.s_fc_attempts,
             s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
@@ -86,8 +82,6 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
     start_cycle_time = tw_clock_read();
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
-    last_gvt_done = g_tw_gvt_done;
-    last_gvt_force = gvt_force;
     stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 }
 

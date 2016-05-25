@@ -79,9 +79,9 @@ void tw_gvt_stats_file_setup(tw_peid id)
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
     
     char buffer[1024];
-	sprintf(buffer, "PE,GVT,Forced GVT,Total GVT Computations,Total All Reduce Calls,Average Reduction / GVT," 
+	sprintf(buffer, "PE,GVT,Total All Reduce Calls," 
         "total events processed,events aborted,events rolled back,event ties detected in PE queues," 
-        "efficiency,total remote network events processed,percent remote events," 
+        "efficiency,total remote network events processed," 
         "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts," 
         "net events processed,remote sends,remote recvs\n");
     MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
