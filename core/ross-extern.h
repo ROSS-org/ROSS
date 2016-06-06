@@ -21,6 +21,8 @@ extern MPI_File interval_file;
 extern MPI_Comm  stats_comm;
 extern tw_clock stat_write_cycle_counter;
 extern tw_clock stat_comp_cycle_counter;
+extern tw_clock g_tw_real_time_samp;
+extern tw_clock g_tw_real_samp_start_cycles;
 
 /*
  * stat_tree.c

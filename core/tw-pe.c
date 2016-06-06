@@ -92,6 +92,11 @@ tw_pe_init(tw_peid id, tw_peid gid)
         g_tw_max_bin = tmp->key;
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
+    if (g_tw_real_time_samp)
+    {
+        g_tw_real_time_samp = g_tw_real_time_samp * g_tw_clock_rate / 1000;
+        g_tw_real_samp_start_cycles = tw_clock_read();
+    }
 }
 
 void

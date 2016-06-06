@@ -245,6 +245,19 @@ static void tw_sched_batch(tw_pe * me) {
 	/* Thread current event into processed queue of kp */
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
+
+        if( tw_clock_read() - g_tw_real_samp_start_cycles > g_tw_real_time_samp)
+        {
+            tw_clock current_rt = tw_clock_read();
+            if (me->node == 0)
+            {
+                /*printf("RT sampling Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", 
+                    me->node, g_tw_real_samp_start_cycles, g_tw_real_time_samp, current_rt);
+                    */
+                printf("RT sampling: current time %lf\n", current_rt / g_tw_clock_rate);
+            }
+            g_tw_real_samp_start_cycles = tw_clock_read();
+        }
     }
 }
 
