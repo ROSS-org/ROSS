@@ -246,9 +246,10 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if( tw_clock_read() - g_tw_real_samp_start_cycles > g_tw_real_time_samp)
+        if(g_tw_real_time_samp && tw_clock_read() - g_tw_real_samp_start_cycles > g_tw_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
+            get_time_ahead_GVT(me);
             if (me->node == 0)
             {
                 /*printf("RT sampling Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", 

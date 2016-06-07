@@ -311,3 +311,19 @@ tw_stats(tw_pe *me)
 	tw_gvt_stats(stdout);
 #endif
 }
+
+void get_time_ahead_GVT(tw_pe *me)
+{
+    tw_kp *kp;
+    int i;
+    printf("%lf,", tw_clock_read() / g_tw_clock_rate);    
+    for(i = 0; i < g_tw_nkp; i++)
+    {
+        kp = tw_getkp(i);
+        printf("%lf", kp->last_time - me->GVT);
+        if(i < g_tw_nkp - 1)
+           printf(",");
+        else
+           printf("\n"); 
+    }
+}
