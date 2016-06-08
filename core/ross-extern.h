@@ -36,6 +36,14 @@ extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, s
 extern stat_node *stat_find_max(stat_node *t);
 
 /*
+ * tw-stats-buffer.c
+ */
+extern st_buf_block *g_st_buffer;
+extern st_buf_block *g_st_buf_end;
+extern st_buf_block *g_st_buf_read;
+extern st_buf_block *g_st_buf_write;
+
+/*
  * ross-global.c
  */
 extern tw_synch g_tw_synchronization_protocol;
