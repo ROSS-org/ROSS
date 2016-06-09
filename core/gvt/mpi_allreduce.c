@@ -221,5 +221,8 @@ tw_gvt_step2(tw_pe *me)
             me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, FC_ATTEMPTS, me->stats_tree_root, 1);
 	  }
 
+    if (g_tw_real_time_samp)
+        st_buffer_write(0); 
+
 	g_tw_gvt_done++;
 }

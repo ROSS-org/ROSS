@@ -215,6 +215,8 @@ typedef uint64_t tw_lpid;
 #include "../IO/io.h"
 #endif
 
+#include "st-stats-buffer.h"
+
 #ifdef __cplusplus
 }
 #endif

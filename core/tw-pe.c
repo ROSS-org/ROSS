@@ -96,6 +96,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
     {
         g_tw_real_time_samp = g_tw_real_time_samp * g_tw_clock_rate / 1000;
         g_tw_real_samp_start_cycles = tw_clock_read();
+        st_buffer_init();
     }
 }
 

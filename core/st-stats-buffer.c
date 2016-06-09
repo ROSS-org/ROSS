@@ -1,5 +1,4 @@
 #include <ross.h>
-#include "st-stats-buffer.h"
 
 //TODO probably make this configurable
 #define BUFFER_SIZE 8000000
@@ -12,7 +11,6 @@ static int passed_buf_end = 0;
 static long missed_blocks = 0;
 static long total_blocks = 0;
 static MPI_File fh;
-static MPI_Comm file_comm;
 
 /* initialize circular buffer for stats collection */
 void st_buffer_init()
@@ -32,7 +30,7 @@ void st_buffer_init()
     // TODO make name configurable
     char filename[100];
     sprintf(filename, "ross-stats.bin");
-    MPI_File_open(file_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
 }
 
 /* write stats to buffer */
@@ -68,14 +66,14 @@ void st_buffer_push(st_block_type type, st_stats *stats)
 }
 
 /* determine whether to dump buffer to file */
-void st_buffer_write()
+void st_buffer_write(int end_of_sim)
 {
     MPI_Offset offset = 0;
     int write_to_file = 0;
     long my_write_size = 0;
     long free_blocks = g_st_buf_end - g_st_buf_write;
 
-    if ((double)free_blocks / total_blocks < .25)
+    if ((double)free_blocks / total_blocks < .25 || end_of_sim)
     {
         my_write_size = (total_blocks-free_blocks) * sizeof(st_buf_block);
         write_to_file = 1;
@@ -102,6 +100,8 @@ void st_buffer_write()
 void st_buffer_finalize()
 {
     // check if any data needs to be written out
+    if (g_st_buf_write != g_st_buffer)
+        st_buffer_write(1);
 
     if (g_tw_mynode == g_tw_masternode)
         printf("There were %ld blocks of data missed because of buffer overflow\n", missed_blocks);

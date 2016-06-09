@@ -249,7 +249,7 @@ static void tw_sched_batch(tw_pe * me) {
         if(g_tw_real_time_samp && tw_clock_read() - g_tw_real_samp_start_cycles > g_tw_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            get_time_ahead_GVT(me);
+            get_time_ahead_GVT(me, current_rt / g_tw_clock_rate);
             if (me->node == 0)
             {
                 /*printf("RT sampling Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", 
@@ -486,6 +486,9 @@ void tw_scheduler_optimistic(tw_pe * me) {
 
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_tw_real_time_samp)
+        st_buffer_finalize();
 
     tw_stats(me);
 }

@@ -23,7 +23,7 @@ extern tw_clock stat_write_cycle_counter;
 extern tw_clock stat_comp_cycle_counter;
 extern tw_clock g_tw_real_time_samp;
 extern tw_clock g_tw_real_samp_start_cycles;
-extern void get_time_ahead_GVT(tw_pe *me);
+extern void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt);
 
 /*
  * stat_tree.c
@@ -34,14 +34,6 @@ extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
 extern stat_node *stat_init_tree(tw_stat start);
 extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
 extern stat_node *stat_find_max(stat_node *t);
-
-/*
- * tw-stats-buffer.c
- */
-extern st_buf_block *g_st_buffer;
-extern st_buf_block *g_st_buf_end;
-extern st_buf_block *g_st_buf_read;
-extern st_buf_block *g_st_buf_write;
 
 /*
  * ross-global.c

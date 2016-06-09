@@ -21,10 +21,6 @@ typedef struct tw_pe tw_pe;
 typedef struct avlNode *AvlTree;
 typedef struct stat_node stat_node;
 typedef struct stats_bin stats_bin;
-typedef struct st_lp_stats st_lp_stats;
-typedef struct st_kp_stats st_kp_stats;
-typedef struct st_pe_stats st_pe_stats;
-typedef struct st_buf_block st_buf_block;
 
 #ifdef ROSS_MEMORY
 typedef struct tw_memoryq tw_memoryq;
