@@ -488,7 +488,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     (*me->type.final)(me);
 
     if (g_tw_real_time_samp)
-        st_buffer_finalize();
+        st_buffer_finalize(g_st_buffer);
 
     tw_stats(me);
 }

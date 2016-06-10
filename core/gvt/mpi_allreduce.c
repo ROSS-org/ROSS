@@ -222,7 +222,7 @@ tw_gvt_step2(tw_pe *me)
 	  }
 
     if (g_tw_real_time_samp)
-        st_buffer_write(0); 
+        st_buffer_write(g_st_buffer, 0); 
 
 	g_tw_gvt_done++;
 }
