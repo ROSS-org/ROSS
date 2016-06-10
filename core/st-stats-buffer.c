@@ -60,6 +60,7 @@ void st_buffer_push(st_block_type type, st_stats *stats)
     {
         passed_buf_end = 1;
         g_st_buf_write = g_st_buffer;
+        printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
     }
     else
         g_st_buf_write++;
@@ -68,6 +69,7 @@ void st_buffer_push(st_block_type type, st_stats *stats)
 /* determine whether to dump buffer to file */
 void st_buffer_write(int end_of_sim)
 {
+    //TODO need metadata file
     MPI_Offset offset = 0;
     int write_to_file = 0;
     long my_write_size = 0;

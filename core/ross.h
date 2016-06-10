@@ -216,6 +216,7 @@ typedef uint64_t tw_lpid;
 #endif
 
 #include "st-stats-buffer.h"
+#include "st-data-collection.h"
 
 #ifdef __cplusplus
 }

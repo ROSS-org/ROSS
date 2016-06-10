@@ -61,7 +61,9 @@ tw-util.c
 stat_tree.h
 stat_tree.c
 st-stats-buffer.h
-st-stats-buffer.c)
+st-stats-buffer.c
+st-data-collection.h
+st-data-collection.c)
 
 
 # ROSS VERSION INFORMATION

@@ -23,7 +23,6 @@ extern tw_clock stat_write_cycle_counter;
 extern tw_clock stat_comp_cycle_counter;
 extern tw_clock g_tw_real_time_samp;
 extern tw_clock g_tw_real_samp_start_cycles;
-extern void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt);
 
 /*
  * stat_tree.c
