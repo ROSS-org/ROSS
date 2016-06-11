@@ -46,14 +46,14 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
         {
             // can use only one memcpy here
             memcpy(st_buffer_write_ptr(buffer), data, size);
-            buffer->write_pos = size;
+            buffer->write_pos += size;
         }
         else // data to be stored wraps around end of physical array
         {
             size2 = size - size1;
             memcpy(st_buffer_write_ptr(buffer), data, size1);
             memcpy(buffer->buffer, data + size1 + 1, size2);
-            buffer->write_pos = size2;
+            buffer->write_pos += size2;
         }
     }
     buffer->count += size;
