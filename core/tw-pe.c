@@ -1,5 +1,4 @@
 #include <ross.h>
-#include "stat_tree.h"
 
 static void dummy_pe_f (tw_pe *pe)
 {
@@ -85,10 +84,10 @@ tw_pe_init(tw_peid id, tw_peid gid)
         tw_interval_stats_file_setup(gid);
 
         // init tree
-        pe->stats_tree_root = stat_init_tree(0);
-        stat_node *tmp = stat_find_min(pe->stats_tree_root);
+        st_tree_root = stat_init_tree(0);
+        stat_node *tmp = stat_find_min(st_tree_root);
         g_tw_min_bin = tmp->key;
-        tmp = stat_find_max(pe->stats_tree_root);
+        tmp = stat_find_max(st_tree_root);
         g_tw_max_bin = tmp->key;
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }

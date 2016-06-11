@@ -8,31 +8,6 @@ extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
  */
 extern void tw_get_stats(tw_pe * me, tw_statistics *s);
 extern void tw_stats(tw_pe *me);
-extern const tw_optdef *tw_stats_setup();
-extern void tw_gvt_stats_file_setup(tw_peid id);
-extern void tw_interval_stats_file_setup(tw_peid id);
-extern char g_tw_stats_out[128]; 
-extern int g_tw_stats_enabled;
-extern long g_tw_time_interval;
-extern int g_tw_pe_per_file;
-extern int g_tw_my_file_id;
-extern MPI_File gvt_file;
-extern MPI_File interval_file;
-extern MPI_Comm  stats_comm;
-extern tw_clock stat_write_cycle_counter;
-extern tw_clock stat_comp_cycle_counter;
-extern tw_clock g_tw_real_time_samp;
-extern tw_clock g_tw_real_samp_start_cycles;
-
-/*
- * stat_tree.c
- */
-extern long g_tw_min_bin;
-extern long g_tw_max_bin;
-extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
-extern stat_node *stat_init_tree(tw_stat start);
-extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
-extern stat_node *stat_find_max(stat_node *t);
 
 /*
  * ross-global.c

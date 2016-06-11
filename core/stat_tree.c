@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <ross.h>
 
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
-
-#include "stat_tree.h"
+stat_node *st_tree_root = NULL;
 long g_tw_min_bin = 0;
 long g_tw_max_bin = 0;
 tw_clock stat_write_cycle_counter = 0;

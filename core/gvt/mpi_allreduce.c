@@ -8,8 +8,6 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-static tw_statistics last_stats = {0};
-static tw_stat last_all_reduce_cnt = 0;
 
 static const tw_optdef gvt_opts [] =
 {
@@ -55,37 +53,6 @@ tw_gvt_stats(FILE * f)
 }
 
 void
-tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s)
-{
-	// GVT,Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
-    // total events processed, events aborted, events rolled back, event ties detected in PE queues
-    // efficiency, total remote network events processed, percent remote events
-    // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
-    // net events processed, remote sends, remote recvs
-    tw_clock start_cycle_time = tw_clock_read();
-    char buffer[2048];
-	sprintf(buffer, "%ld,%f,%lld,%lld,%lld,%lld,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
-            g_tw_mynode, gvt, all_reduce_cnt-last_all_reduce_cnt, 
-            s->s_nevent_processed-last_stats.s_nevent_processed, s->s_nevent_abort-last_stats.s_nevent_abort, 
-            s->s_e_rbs-last_stats.s_e_rbs, s->s_pe_event_ties-last_stats.s_pe_event_ties,
-            100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events))),
-            s->s_nsend_net_remote-last_stats.s_nsend_net_remote,
-            s->s_rb_total-last_stats.s_rb_total, s->s_rb_primary-last_stats.s_rb_primary,
-            s->s_rb_secondary-last_stats.s_rb_secondary, s->s_fc_attempts-last_stats.s_fc_attempts,
-            s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
-            s->s_nread_network-last_stats.s_nread_network);
-
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-    start_cycle_time = tw_clock_read();
-    MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
-    start_cycle_time = tw_clock_read();
-    memcpy(&last_stats, s, sizeof(tw_statistics));
-    last_all_reduce_cnt = all_reduce_cnt;
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-}
-
-void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
@@ -128,7 +95,7 @@ tw_gvt_step2(tw_pe *me)
 			     MPI_SUM,
 			     MPI_COMM_WORLD) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-	    
+	     
 	    if(total_white == 0)
 	      break;
 	  }
@@ -182,23 +149,6 @@ tw_gvt_step2(tw_pe *me)
 		gvt_print(gvt);
 	}
 
-    if (g_tw_stats_enabled && gvt <= g_tw_ts_end)
-    {
-        tw_clock start_cycle_time = tw_clock_read();
-        tw_statistics s;
-        tw_get_stats(me, &s);
-        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-		tw_gvt_log(NULL, me, gvt, &s);
-    }
-    if (g_tw_time_interval)
-    {
-        // increment appropriate bin for gvt comp
-        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_GVT, me->stats_tree_root, 1);
-        me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, NUM_ALLREDUCE, me->stats_tree_root, tmp_all_red_cnt);
-        
-        me->stats_tree_root = gvt_write_bins(NULL, me->stats_tree_root, gvt);
-    }
-
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;
 	me->trans_msg_ts = DBL_MAX;
@@ -218,8 +168,25 @@ tw_gvt_step2(tw_pe *me)
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
         if (g_tw_time_interval)
-            me->stats_tree_root = stat_increment(me->stats_tree_root, gvt, FC_ATTEMPTS, me->stats_tree_root, 1);
+            st_tree_root = stat_increment(st_tree_root, gvt, FC_ATTEMPTS, st_tree_root, 1);
 	  }
+
+    if (g_tw_stats_enabled && gvt <= g_tw_ts_end)
+    {
+        tw_clock start_cycle_time = tw_clock_read();
+        tw_statistics s;
+        tw_get_stats(me, &s);
+        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
+		tw_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);
+    }
+    if (g_tw_time_interval)
+    {
+        // increment appropriate bin for gvt comp
+        st_tree_root = stat_increment(st_tree_root, gvt, NUM_GVT, st_tree_root, 1);
+        st_tree_root = stat_increment(st_tree_root, gvt, NUM_ALLREDUCE, st_tree_root, tmp_all_red_cnt);
+        
+        st_tree_root = gvt_write_bins(NULL, st_tree_root, gvt);
+    }
 
     if (g_tw_real_time_samp)
         st_buffer_write(g_st_buffer, 0); 

@@ -2,16 +2,26 @@
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
 
 /* implementation of an AVL tree with explicit heights */
-/****
- * This is just to be able to run without ross
- ****/
 #include <math.h>
 #include <ross.h>
 
 #define NUM_INTERVAL_STATS 11
-/***
- * end
- *****/
+typedef struct stat_node stat_node;
+typedef struct stats_bin stats_bin;
+
+typedef enum {
+    FORWARD_EV,
+    REVERSE_EV,
+    NUM_GVT,
+    NUM_ALLREDUCE,
+    EVENTS_ABORTED,
+    PE_EVENT_TIES,
+    REMOTE_SEND,
+    REMOTE_RECV,
+    RB_PRIMARY,
+    RB_SECONDARY,
+    FC_ATTEMPTS
+} tw_stat_types;
 
 // TODO set up enum for accessing correct location in array
 struct stats_bin {
@@ -38,9 +48,33 @@ struct stat_node {
   stats_bin bin;
 };
 
+/**
+ * tw_stat_list
+ * @brief statistics collection
+ *
+ * hold statistics for each list
+ */
+typedef struct tw_stat_list {
+    struct tw_stat_list *next;
+    long interval; 
+    tw_statistics s;
+} tw_stat_list;
+
+extern stat_node *st_tree_root;
+extern tw_clock stat_write_cycle_counter;
+extern tw_clock stat_comp_cycle_counter;
+extern tw_clock g_tw_real_time_samp;
+extern tw_clock g_tw_real_samp_start_cycles;
 /* empty stat tree is just a null pointer */
 
 #define AVL_EMPTY (0)
+extern long g_tw_min_bin;
+extern long g_tw_max_bin;
+extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
+extern stat_node *stat_init_tree(tw_stat start);
+extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);
+extern stat_node *stat_find_max(stat_node *t);
+
 
 stat_node *stat_find_min(stat_node *t);
 stat_node *stat_find_max(stat_node *t);
@@ -57,7 +91,6 @@ int stat_get_height(stat_node *t);
 /* assert will fail if heights are wrong */
 void stat_sanity_check(stat_node *t);
 
-stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
 
 /* free a tree */
 void stat_destroy(stat_node *t);
