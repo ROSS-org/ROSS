@@ -80,9 +80,6 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
         // dump buffer to file
         MPI_Status status;
 
-        // for now write everything to same file, maybe later make it so you can split files?
-        // TODO actually make one file each for PE, KP, and LP data?
-        // also need to create (human readable) metadata file in order to read the binary file
         //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
         MPI_File_write_at(fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
 

@@ -142,18 +142,22 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
 void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
 {
     tw_kp *kp;
-    int i, index;
+    tw_stime time;
+    int i, index = 0;
     int element_size = sizeof(tw_stime);
-    int num_bytes = (g_tw_nkp + 1) * element_size;
+    int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
     char data[num_bytes];
-    memcpy(&data, &current_rt, element_size);
-    index = element_size;
+    memcpy(&data[index], &(me->id), sizeof(tw_peid));
+    index += sizeof(tw_peid);
+    memcpy(&data[index], &current_rt, element_size);
+    index += element_size;
 
     printf("%lf,", tw_clock_read() / g_tw_clock_rate);    
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        data[index] = kp->last_time - me->GVT;
+        time = kp->last_time - me->GVT;
+        memcpy(&data[index], &time, element_size);
         index += element_size;
 
         // TODO remove print after debug
