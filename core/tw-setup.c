@@ -382,7 +382,7 @@ void tw_end(void) {
         fclose(g_tw_csv);
     }
 
-    MPI_File_close(&gvt_file);
+    //MPI_File_close(&gvt_file);
     tw_net_stop();
 }
 

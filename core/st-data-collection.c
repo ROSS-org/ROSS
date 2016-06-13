@@ -33,6 +33,30 @@ const tw_optdef *tw_stats_setup(void)
 	return stats_options;
 }
 
+void st_stats_init()
+{
+    if (g_tw_mynode == 0) {
+        FILE *file;
+        char filename[64];
+        sprintf(filename, "read-me.txt");
+        file = fopen(filename, "w");
+        fprintf(file, "Info for ROSS run.\n\n");
+#if HAVE_CTIME
+        time_t raw_time;
+        time(&raw_time);
+        fprintf(file, "Date Created:\t%s\n", ctime(&raw_time));
+#endif
+        fprintf(file, "## BUILD CONFIGURATION\n\n");
+#ifdef ROSS_VERSION
+        fprintf(file, "ROSS Version:\t%s\n", ROSS_VERSION);
+#endif
+        //fprintf(file, "MODEL Version:\t%s\n", model_version);
+        fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
+        tw_opt_settings(file);
+        fclose(file);
+    }
+}
+
 /** write header line to stats output files */
 void tw_gvt_stats_file_setup(tw_peid id)
 {
@@ -116,8 +140,12 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
     // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
     // net events processed, remote sends, remote recvs
     tw_clock start_cycle_time = tw_clock_read();
-    char buffer[2048];
-	sprintf(buffer, "%ld,%f,%lld,%lld,%lld,%lld,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
+    int buf_size = sizeof(tw_stat) * 13 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double); 
+    int index = 0;
+    char buffer[buf_size];
+    tw_stat tmp;
+    double eff;
+	/*sprintf(buffer, "%ld,%f,%lld,%lld,%lld,%lld,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
             g_tw_mynode, gvt, all_reduce_cnt-last_all_reduce_cnt, 
             s->s_nevent_processed-last_stats.s_nevent_processed, s->s_nevent_abort-last_stats.s_nevent_abort, 
             s->s_e_rbs-last_stats.s_e_rbs, s->s_pe_event_ties-last_stats.s_pe_event_ties,
@@ -127,12 +155,57 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
             s->s_rb_secondary-last_stats.s_rb_secondary, s->s_fc_attempts-last_stats.s_fc_attempts,
             s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
             s->s_nread_network-last_stats.s_nread_network);
+    */
+    memcpy(buffer, &g_tw_mynode, sizeof(tw_node));
+    memcpy(buffer, &gvt, sizeof(tw_stime));
+    tmp = all_reduce_cnt-last_all_reduce_cnt;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
 
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-    start_cycle_time = tw_clock_read();
-    MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-    stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
-    start_cycle_time = tw_clock_read();
+    tmp = s->s_nevent_processed-last_stats.s_nevent_processed;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_nevent_abort-last_stats.s_nevent_abort;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_e_rbs-last_stats.s_e_rbs;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_pe_event_ties-last_stats.s_pe_event_ties;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    eff = 100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events)));
+    memcpy(buffer, &eff, sizeof(double));
+
+    tmp = s->s_nsend_net_remote-last_stats.s_nsend_net_remote;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_rb_total-last_stats.s_rb_total;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_rb_primary-last_stats.s_rb_primary;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_rb_secondary-last_stats.s_rb_secondary;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_fc_attempts-last_stats.s_fc_attempts;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_net_events-last_stats.s_net_events;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_nsend_network-last_stats.s_nsend_network;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    tmp = s->s_nread_network-last_stats.s_nread_network;
+    memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    st_buffer_push(g_st_buffer, &buffer[0], buf_size);
+    //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
+    //start_cycle_time = tw_clock_read();
+    //MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+    //stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+    //start_cycle_time = tw_clock_read();
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
     stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
@@ -147,21 +220,27 @@ void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
     tw_stime time;
     int i, index = 0;
     int element_size = sizeof(tw_stime);
-    int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
+    //int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
+    int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + sizeof(tw_peid) + sizeof(tw_stime));
     char data[num_bytes];
     tw_peid id = me->id;
-    memcpy(&data[index], &id, sizeof(tw_peid));
-    index += sizeof(tw_peid);
-    memcpy(&data[index], &current_rt, element_size);
-    index += element_size;
+    //memcpy(&data[index], &id, sizeof(tw_peid));
+    //index += sizeof(tw_peid);
+    //memcpy(&data[index], &current_rt, element_size);
+    //index += element_size;
 
     fprintf(f,"%f,", current_rt);    
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
+        memcpy(&data[index], &id, sizeof(tw_peid));
+        index += sizeof(tw_peid);
+        //memcpy(&data[index], &current_rt, element_size);
+        memcpy(&data[index], &kp->id, sizeof(tw_kpid));
+        index += sizeof(tw_kpid);
         time = kp->last_time - me->GVT;
-        memcpy(&data[index], &time, element_size);
-        index += element_size;
+        memcpy(&data[index], &time, sizeof(tw_stime));
+        index += sizeof(tw_stime);
 
         // TODO remove print after debug
         fprintf(f,"%f", kp->last_time - me->GVT);
@@ -175,21 +254,3 @@ void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
 }
 
 
-/*if (mpi_rank == 0) {
-    FILE *file;
-    sprintf(filename, "%s.read-me.txt", master_filename);
-    file = fopen(filename, "w");
-    fprintf(file, "This file was auto-generated by RIO.\n\n");
-#if HAVE_CTIME
-    time_t raw_time;
-    time(&raw_time);
-    fprintf(file, "Date Created:\t%s\n", ctime(&raw_time));
-#endif
-    fprintf(file, "## BUILD CONFIGURATION\n\n");
-#ifdef ROSS_VERSION
-    fprintf(file, "ROSS Version:\t%s\n", ROSS_VERSION);
-#endif
-    fprintf(file, "MODEL Version:\t%s\n", model_version);
-    fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
-    tw_opt_settings(file);
-}*/

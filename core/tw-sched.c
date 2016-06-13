@@ -487,7 +487,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_tw_real_time_samp)
+    if (g_tw_real_time_samp || g_tw_stats_enabled)
         st_buffer_finalize(g_st_buffer);
 
     tw_stats(me);
