@@ -19,9 +19,12 @@ st_stats_buffer *st_buffer_init(int size)
 
     // set up MPI File
     // TODO make name configurable
-    char filename[100];
-    sprintf(filename, "ross-stats.bin");
-    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    if (!g_st_disable_out)
+    {
+        char filename[100];
+        sprintf(filename, "ross-stats.bin");
+        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+    }
 
     return buffer;
 }
@@ -33,7 +36,7 @@ st_stats_buffer *st_buffer_init(int size)
 void st_buffer_push(st_stats_buffer *buffer, char *data, int size) 
 {
     int size1, size2;
-    if (st_buffer_free_space(buffer) < size)
+    if (!g_st_disable_out && st_buffer_free_space(buffer) < size)
     {
         printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
         missed_bytes += size - st_buffer_free_space(buffer);
@@ -81,7 +84,9 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
         MPI_Status status;
 
         //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
+        tw_clock start_cycle_time = tw_clock_read();;
         MPI_File_write_at(fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
+        stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
         buffer->write_pos = 0;
@@ -93,7 +98,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
 void st_buffer_finalize(st_stats_buffer *buffer)
 {
     // check if any data needs to be written out
-    if (buffer->count)
+    if (!g_st_disable_out && buffer->count)
         st_buffer_write(buffer, 1);
 
     if (g_tw_mynode == g_tw_masternode)

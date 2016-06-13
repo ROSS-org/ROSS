@@ -11,5 +11,7 @@ extern int g_tw_my_file_id;
 extern MPI_File gvt_file;
 extern MPI_File interval_file;
 extern MPI_Comm  stats_comm;
+extern int g_st_disable_out;
+
 extern void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt);
 void st_stats_init();

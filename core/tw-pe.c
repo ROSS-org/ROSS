@@ -76,6 +76,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
     {
         tw_clock start_cycle_time = tw_clock_read();
         g_st_buffer = st_buffer_init(8000000);
+        st_stats_init();
         //tw_gvt_stats_file_setup(gid);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }

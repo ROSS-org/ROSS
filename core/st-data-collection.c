@@ -7,7 +7,6 @@ long g_tw_time_interval = 0;
 long g_tw_current_interval = 0;
 tw_clock g_tw_real_time_samp = 0;
 tw_clock g_tw_real_samp_start_cycles = 0;
-long g_tw_ = 0;
 int g_tw_pe_per_file = 1;
 int g_tw_my_file_id = 0;
 tw_stat_list *g_tw_stat_head = NULL;
@@ -16,6 +15,7 @@ MPI_File gvt_file;
 MPI_File interval_file;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
+int g_st_disable_out = 0;
 
 
 static const tw_optdef stats_options[] = {
@@ -25,6 +25,7 @@ static const tw_optdef stats_options[] = {
     TWOPT_UINT("real-time-samp", g_tw_real_time_samp, "real time sampling interval in ms"), 
     TWOPT_CHAR("stats-filename", g_tw_stats_out, "filename for stats output"),
     TWOPT_UINT("pe-per-file", g_tw_pe_per_file, "how many PEs to output per file"), 
+    TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"), 
     TWOPT_END()
 };
 
@@ -35,7 +36,7 @@ const tw_optdef *tw_stats_setup(void)
 
 void st_stats_init()
 {
-    if (g_tw_mynode == 0) {
+    if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
         char filename[64];
         sprintf(filename, "read-me.txt");
@@ -221,7 +222,8 @@ void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
     int i, index = 0;
     int element_size = sizeof(tw_stime);
     //int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
-    int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + sizeof(tw_peid) + sizeof(tw_stime));
+    //int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + sizeof(tw_peid) + sizeof(tw_stime));
+    int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + 2* sizeof(tw_stime));
     char data[num_bytes];
     tw_peid id = me->id;
     //memcpy(&data[index], &id, sizeof(tw_peid));
@@ -233,11 +235,13 @@ void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        memcpy(&data[index], &id, sizeof(tw_peid));
-        index += sizeof(tw_peid);
+        //memcpy(&data[index], &id, sizeof(tw_peid));
+        //index += sizeof(tw_peid);
         //memcpy(&data[index], &current_rt, element_size);
         memcpy(&data[index], &kp->id, sizeof(tw_kpid));
         index += sizeof(tw_kpid);
+        memcpy(&data[index], &current_rt, element_size);
+        index += element_size;
         time = kp->last_time - me->GVT;
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
