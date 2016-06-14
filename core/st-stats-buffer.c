@@ -1,9 +1,11 @@
 #include <ross.h>
+#include <sys/stat.h>
 
 st_stats_buffer *g_st_buffer = NULL;
 static long missed_bytes = 0;
 static MPI_File fh;
 static MPI_Offset prev_offset = 0;
+static char st_directory[13];
 
 /* initialize circular buffer for stats collection 
  * basically the read position marks the beginning of used space in the buffer
@@ -19,11 +21,15 @@ st_stats_buffer *st_buffer_init(int size)
     buffer->buffer = tw_calloc(TW_LOC, "statistics collection (buffer)", 1, buffer->size);
 
     // set up MPI File
-    // TODO make name configurable
     if (!g_st_disable_out)
     {
+        sprintf(st_directory, "stats-output");
+        mkdir(st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
         char filename[100];
-        sprintf(filename, "ross-stats.bin");
+        if (g_tw_stats_out[0])
+            sprintf(filename, "%s/%s.bin", st_directory, g_tw_stats_out);
+        else
+            sprintf(filename, "%s/ross-stats.bin", st_directory);
         MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
     }
 

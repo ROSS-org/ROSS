@@ -20,10 +20,10 @@ int g_st_disable_out = 0;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
-    TWOPT_UINT("enable-stats", g_tw_stats_enabled, "0 no stats, 1 for stats"), 
+    TWOPT_UINT("enable-gvt-stats", g_tw_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"), 
     TWOPT_UINT("time-interval", g_tw_time_interval, "collect stats for specified sim time interval"), 
     TWOPT_UINT("real-time-samp", g_tw_real_time_samp, "real time sampling interval in ms"), 
-    TWOPT_CHAR("stats-filename", g_tw_stats_out, "filename for stats output"),
+    TWOPT_CHAR("stats-filename", g_tw_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("pe-per-file", g_tw_pe_per_file, "how many PEs to output per file"), 
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"), 
     TWOPT_END()
