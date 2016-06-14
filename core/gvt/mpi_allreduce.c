@@ -188,7 +188,7 @@ tw_gvt_step2(tw_pe *me)
         st_tree_root = gvt_write_bins(NULL, st_tree_root, gvt);
     }
 
-    if (!g_st_disable_out && g_tw_real_time_samp)
+    if (!g_st_disable_out && (g_tw_real_time_samp || g_tw_stats_enabled))
         st_buffer_write(g_st_buffer, 0); 
 
 	g_tw_gvt_done++;

@@ -3,6 +3,7 @@
 st_stats_buffer *g_st_buffer = NULL;
 static long missed_bytes = 0;
 static MPI_File fh;
+static MPI_Offset prev_offset = 0;
 
 /* initialize circular buffer for stats collection 
  * basically the read position marks the beginning of used space in the buffer
@@ -66,20 +67,30 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
 void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
 {
     //TODO need metadata file
-    MPI_Offset offset = 0;
+    MPI_Offset offset = prev_offset;
     int write_to_file = 0;
     int my_write_size = 0;
+    int i;
+    int write_sizes[tw_nnodes()];
 
-    if ((double) st_buffer_free_space(buffer) < .1 || end_of_sim)
+    if ((double) st_buffer_free_space(buffer) < .15 || end_of_sim)
     {
         my_write_size = buffer->count;
         write_to_file = 1;
     }
 
-    MPI_Exscan(&my_write_size, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_WORLD);
+    for (i = 0; i < tw_nnodes(); i++)
+    {
+        if (i < g_tw_mynode)
+            offset += write_sizes[i];
+        prev_offset += write_sizes[i];
+    };
+    //MPI_Exscan(&my_write_size, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     if (write_to_file)
     {
+        //printf("rank %ld writing %d bytes at offset %lld\n", g_tw_mynode, my_write_size, offset);
         // dump buffer to file
         MPI_Status status;
 
