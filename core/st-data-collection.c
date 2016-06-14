@@ -218,37 +218,50 @@ void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
     FILE *f;
     f = fopen("test.out", "a");
     tw_kp *kp;
+    tw_lp *lp;
     tw_stime time;
     int i, index = 0;
     int element_size = sizeof(tw_stime);
     //int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
+    int num_bytes = (g_tw_nkp + g_tw_nlp + 1) * element_size + sizeof(tw_peid);
     //int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + sizeof(tw_peid) + sizeof(tw_stime));
-    int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + 2* sizeof(tw_stime));
+    //int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + 2* sizeof(tw_stime));
     char data[num_bytes];
     tw_peid id = me->id;
-    //memcpy(&data[index], &id, sizeof(tw_peid));
-    //index += sizeof(tw_peid);
-    //memcpy(&data[index], &current_rt, element_size);
-    //index += element_size;
+    memcpy(&data[index], &id, sizeof(tw_peid));
+    index += sizeof(tw_peid);
+    memcpy(&data[index], &current_rt, element_size);
+    index += element_size;
 
-    fprintf(f,"%f,", current_rt);    
+    fprintf(f,"%ld,%f,", me->id, current_rt);    
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        //memcpy(&data[index], &id, sizeof(tw_peid));
-        //index += sizeof(tw_peid);
+        //memcpy(&data[index], &kp->id, sizeof(tw_kpid));
+        //index += sizeof(tw_kpid);
         //memcpy(&data[index], &current_rt, element_size);
-        memcpy(&data[index], &kp->id, sizeof(tw_kpid));
-        index += sizeof(tw_kpid);
-        memcpy(&data[index], &current_rt, element_size);
-        index += element_size;
+        //index += element_size;
         time = kp->last_time - me->GVT;
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
 
         // TODO remove print after debug
         fprintf(f,"%f", kp->last_time - me->GVT);
-        if(i < g_tw_nkp - 1)
+        //if(i < g_tw_nkp - 1)
+           fprintf(f,",");
+        //else
+        //   fprintf(f,"\n"); 
+    }
+    for(i = 0; i < g_tw_nlp; i++)
+    {
+        lp = tw_getlp(i);
+        time = lp->last_time - me->GVT;
+        memcpy(&data[index], &time, sizeof(tw_stime));
+        index += sizeof(tw_stime);
+
+        // TODO remove print after debug
+        fprintf(f,"%f", lp->last_time - me->GVT);
+        if(i < g_tw_nlp - 1)
            fprintf(f,",");
         else
            fprintf(f,"\n"); 

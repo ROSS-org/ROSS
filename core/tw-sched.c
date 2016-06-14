@@ -196,6 +196,7 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 	ckp->last_time = cev->recv_ts;
+	clp->last_time = cev->recv_ts;
 	
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
@@ -231,6 +232,7 @@ static void tw_sched_batch(tw_pe * me) {
 	    
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
+	    clp->last_time = cev ? cev->recv_ts : me->GVT;
 	    
 	    tw_gvt_force_update(me);
 	    
@@ -415,6 +417,7 @@ void tw_scheduler_conservative(tw_pe * me) {
                 ckp->last_time, cev->recv_ts, clp->gid );
             }
             ckp->last_time = cev->recv_ts;
+            clp->last_time = cev->recv_ts;
 
             start = tw_clock_read();
             reset_bitfields(cev);
@@ -526,6 +529,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         me->cur_event = cev;
         ckp->last_time = cev->recv_ts;
+        clp->last_time = cev->recv_ts;
 
         /* don't update GVT */
         reset_bitfields(cev);
