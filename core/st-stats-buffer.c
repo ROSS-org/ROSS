@@ -26,8 +26,8 @@ st_stats_buffer *st_buffer_init(int size)
         sprintf(st_directory, "stats-output");
         mkdir(st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
         char filename[100];
-        if (g_tw_stats_out[0])
-            sprintf(filename, "%s/%s.bin", st_directory, g_tw_stats_out);
+        if (g_st_stats_out[0])
+            sprintf(filename, "%s/%s.bin", st_directory, g_st_stats_out);
         else
             sprintf(filename, "%s/ross-stats.bin", st_directory);
         MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);

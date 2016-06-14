@@ -69,8 +69,8 @@ void tw_init(int *argc, char ***argv) {
         tw_error(TW_LOC, "Unable to open: ross.csv\n");
     }
 
-    g_tw_my_file_id = g_tw_mynode / g_tw_pe_per_file;
-    MPI_Comm_split(MPI_COMM_WORLD, g_tw_my_file_id, g_tw_mynode, &stats_comm);
+    g_st_my_file_id = g_tw_mynode / g_st_pe_per_file;
+    MPI_Comm_split(MPI_COMM_WORLD, g_st_my_file_id, g_tw_mynode, &stats_comm);
 
 
     tw_opt_print();

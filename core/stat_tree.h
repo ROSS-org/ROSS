@@ -63,13 +63,13 @@ typedef struct tw_stat_list {
 extern stat_node *st_tree_root;
 extern tw_clock stat_write_cycle_counter;
 extern tw_clock stat_comp_cycle_counter;
-extern tw_clock g_tw_real_time_samp;
-extern tw_clock g_tw_real_samp_start_cycles;
+extern tw_clock g_st_real_time_samp;
+extern tw_clock g_st_real_samp_start_cycles;
 /* empty stat tree is just a null pointer */
 
 #define AVL_EMPTY (0)
-extern long g_tw_min_bin;
-extern long g_tw_max_bin;
+extern long g_st_min_bin;
+extern long g_st_max_bin;
 extern stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt);
 extern stat_node *stat_init_tree(tw_stat start);
 extern stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount);

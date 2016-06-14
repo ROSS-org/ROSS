@@ -5,8 +5,8 @@
 
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
 stat_node *st_tree_root = NULL;
-long g_tw_min_bin = 0;
-long g_tw_max_bin = 0;
+long g_st_min_bin = 0;
+long g_st_max_bin = 0;
 tw_clock stat_write_cycle_counter = 0;
 tw_clock stat_comp_cycle_counter = 0;
 
@@ -45,9 +45,9 @@ static long create_tree(stat_node *current_node, tw_stat key, int height)
         current_node->child[0] = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 1);
         current_node->child[1] = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 1);
         int k1 = create_tree(current_node->child[0], key, height-1);
-        current_node->key = k1 + g_tw_time_interval;
+        current_node->key = k1 + g_st_time_interval;
         current_node->height = height;
-        create_tree(current_node->child[1], (current_node->key) + g_tw_time_interval, height-1);
+        create_tree(current_node->child[1], (current_node->key) + g_st_time_interval, height-1);
         stat_node *maxptr = stat_find_max(current_node);
         return maxptr->key;
     }
@@ -68,15 +68,15 @@ stat_node *stat_init_tree(tw_stat start)
 {
     // TODO need to do some stuff to make sure too many bins aren't created
     int height = 8;
-    //tw_stat end = num_bins * g_tw_time_interval;
+    //tw_stat end = num_bins * g_st_time_interval;
     stat_node *root = tw_calloc(TW_LOC, "statistics collection (tree)", sizeof(struct stat_node), 3);
 
     root->child[0] = root + 1;
     root->child[1] = root + 2;
     long k = create_tree(root->child[0], start, height-1);
-    root->key = k + g_tw_time_interval;
+    root->key = k + g_st_time_interval;
     root->height = height;
-    create_tree(root->child[1], (root->key) + g_tw_time_interval, height-1);
+    create_tree(root->child[1], (root->key) + g_st_time_interval, height-1);
     return root;
 }
 
@@ -84,17 +84,17 @@ stat_node *stat_init_tree(tw_stat start)
 stat_node *stat_increment(stat_node *t, long time_stamp, int stat_type, stat_node *root, int amount)
 {
     // check that there is a bin for this time stamp
-    if (time_stamp > g_tw_max_bin + g_tw_time_interval)
+    if (time_stamp > g_st_max_bin + g_st_time_interval)
     {
         //printf("adding nodes to the tree\n");
         root = stat_add_nodes(root);
         stat_node *tmp = stat_find_max(root);
-        g_tw_max_bin = tmp->key;
+        g_st_max_bin = tmp->key;
     }
 
     tw_clock start_cycle_time = tw_clock_read();
     // find bin this time stamp belongs to
-    int key = floor(time_stamp / g_tw_time_interval) * g_tw_time_interval;
+    int key = floor(time_stamp / g_st_time_interval) * g_st_time_interval;
     if (t == AVL_EMPTY) {
         return root;
     }
@@ -243,7 +243,7 @@ stat_node *stat_add_nodes(stat_node *root)
     tw_clock start_cycle_time = tw_clock_read();;
     stat_node *old_root = root;
     stat_node *max_node = stat_delete_max(root, NULL);
-    tw_stat start = max_node->key + g_tw_time_interval;
+    tw_stat start = max_node->key + g_st_time_interval;
 
     stat_node *subtree = stat_init_tree(start);
 
@@ -297,7 +297,7 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
     {
         if (t->child[0])
             root = write_bins(log, t->child[0], gvt, t, root, flag);
-        if (t->key + g_tw_time_interval <= gvt && t->key < g_tw_ts_end)
+        if (t->key + g_st_time_interval <= gvt && t->key < g_tw_ts_end)
         { // write in order
             char buffer[2048] = {0};
             char tmp[32] = {0};
@@ -322,7 +322,7 @@ static stat_node *write_bins(FILE *log, stat_node *t, tw_stime gvt, stat_node *p
         if (t->child[1] && *flag)
             root = write_bins(log, t->child[1], gvt, t, root, flag);
         
-        if (t->key + g_tw_time_interval <= gvt)
+        if (t->key + g_st_time_interval <= gvt)
         {
             // can delete this node now
             root = stat_delete(t, t->key, parent, root);
@@ -345,7 +345,7 @@ stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
     {
         //printf("\n\nprinting tree at gvt: %f\n", gvt);
         //stat_print_keys(t);
-        long counter = g_tw_min_bin;
+        long counter = g_st_min_bin;
         debug_nodes(t, &counter, gvt);
     }*/
     int flag = 1;
@@ -357,9 +357,9 @@ stat_node *gvt_write_bins(FILE *log, stat_node *t, tw_stime gvt)
     stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     
     stat_node *tmp = stat_find_min(t);
-    g_tw_min_bin = tmp->key;
+    g_st_min_bin = tmp->key;
     tmp = stat_find_max(t);
-    g_tw_max_bin = tmp->key;
+    g_st_max_bin = tmp->key;
     return t;
 }
 
@@ -499,7 +499,7 @@ void debug_nodes(stat_node *root, long *counter, tw_stime lvt)
         debug_nodes(root->child[0], counter, lvt);
     if (root->key != *counter)
         printf("tree is incorrect at virtual time: %f\n", lvt);
-    *counter += g_tw_time_interval;
+    *counter += g_st_time_interval;
     if (root->child[1] != AVL_EMPTY)
         debug_nodes(root->child[1], counter, lvt);
 

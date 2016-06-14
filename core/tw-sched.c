@@ -59,7 +59,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
-                        if (g_tw_time_interval)
+                        if (g_st_time_interval)
                             st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
                     }
                     start = tw_clock_read();
@@ -131,7 +131,7 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     */
                     tw_kp_rollback_event(cev);
                     tw_event_free(me, cev);
-                    if (g_tw_time_interval)
+                    if (g_st_time_interval)
                         st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_SECONDARY, st_tree_root, 1);
                     break;
 
@@ -187,7 +187,7 @@ static void tw_sched_batch(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - start;
         if(cev->recv_ts == tw_pq_minimum(me->pq)) {
             me->stats.s_pe_event_ties++;
-            if (g_tw_time_interval)
+            if (g_st_time_interval)
                 st_tree_root = stat_increment(st_tree_root, cev->recv_ts, PE_EVENT_TIES, st_tree_root, 1);
         }
 
@@ -211,7 +211,7 @@ static void tw_sched_batch(tw_pe * me) {
 	    (*clp->type->event)(clp->cur_state, &cev->cv, 
 				tw_event_data(cev), clp);
 	  }
-    if (g_tw_time_interval)
+    if (g_st_time_interval)
         st_tree_root = stat_increment(st_tree_root, cev->recv_ts, FORWARD_EV, st_tree_root, 1);
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
@@ -236,7 +236,7 @@ static void tw_sched_batch(tw_pe * me) {
 	    
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
-        if (g_tw_time_interval)
+        if (g_st_time_interval)
             st_tree_root = stat_increment(st_tree_root, cev->recv_ts, EVENTS_ABORTED, st_tree_root, 1);
 	    
 	    break;
@@ -246,18 +246,18 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if(g_tw_real_time_samp && tw_clock_read() - g_tw_real_samp_start_cycles > g_tw_real_time_samp)
+        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
             get_time_ahead_GVT(me, current_rt / g_tw_clock_rate);
             if (me->node == 0)
             {
                 /*printf("RT sampling Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", 
-                    me->node, g_tw_real_samp_start_cycles, g_tw_real_time_samp, current_rt);
+                    me->node, g_st_real_samp_start_cycles, g_st_real_time_samp, current_rt);
                     */
                 printf("RT sampling: current time %lf\n", current_rt / g_tw_clock_rate);
             }
-            g_tw_real_samp_start_cycles = tw_clock_read();
+            g_st_real_samp_start_cycles = tw_clock_read();
         }
     }
 }
@@ -487,7 +487,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_tw_real_time_samp || g_tw_stats_enabled)
+    if (g_st_real_time_samp || g_st_stats_enabled)
         st_buffer_finalize(g_st_buffer);
 
     tw_stats(me);

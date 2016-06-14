@@ -72,7 +72,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 
     // print out header for stats file
-    if (g_tw_stats_enabled)
+    if (g_st_stats_enabled)
     {
         tw_clock start_cycle_time = tw_clock_read();
         g_st_buffer = st_buffer_init(8000000);
@@ -80,7 +80,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
         //tw_gvt_stats_file_setup(gid);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
-    if (g_tw_time_interval)
+    if (g_st_time_interval)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_interval_stats_file_setup(gid);
@@ -88,15 +88,15 @@ tw_pe_init(tw_peid id, tw_peid gid)
         // init tree
         st_tree_root = stat_init_tree(0);
         stat_node *tmp = stat_find_min(st_tree_root);
-        g_tw_min_bin = tmp->key;
+        g_st_min_bin = tmp->key;
         tmp = stat_find_max(st_tree_root);
-        g_tw_max_bin = tmp->key;
+        g_st_max_bin = tmp->key;
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
-    if (g_tw_real_time_samp)
+    if (g_st_real_time_samp)
     {
-        g_tw_real_time_samp = g_tw_real_time_samp * g_tw_clock_rate / 1000;
-        g_tw_real_samp_start_cycles = tw_clock_read();
+        g_st_real_time_samp = g_st_real_time_samp * g_tw_clock_rate / 1000;
+        g_st_real_samp_start_cycles = tw_clock_read();
         g_st_buffer = st_buffer_init(8000000);
         st_stats_init();
     }

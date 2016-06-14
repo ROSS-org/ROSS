@@ -167,11 +167,11 @@ tw_gvt_step2(tw_pe *me)
 	    start = tw_clock_read();
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
-        if (g_tw_time_interval)
+        if (g_st_time_interval)
             st_tree_root = stat_increment(st_tree_root, gvt, FC_ATTEMPTS, st_tree_root, 1);
 	  }
 
-    if (g_tw_stats_enabled && gvt <= g_tw_ts_end)
+    if (g_st_stats_enabled && gvt <= g_tw_ts_end)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_statistics s;
@@ -179,7 +179,7 @@ tw_gvt_step2(tw_pe *me)
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 		tw_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);
     }
-    if (g_tw_time_interval)
+    if (g_st_time_interval)
     {
         // increment appropriate bin for gvt comp
         st_tree_root = stat_increment(st_tree_root, gvt, NUM_GVT, st_tree_root, 1);
@@ -188,7 +188,7 @@ tw_gvt_step2(tw_pe *me)
         st_tree_root = gvt_write_bins(NULL, st_tree_root, gvt);
     }
 
-    if (!g_st_disable_out && (g_tw_real_time_samp || g_tw_stats_enabled))
+    if (!g_st_disable_out && (g_st_real_time_samp || g_st_stats_enabled))
         st_buffer_write(g_st_buffer, 0); 
 
 	g_tw_gvt_done++;

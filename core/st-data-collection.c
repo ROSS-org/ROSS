@@ -1,16 +1,16 @@
 #include <ross.h>
 #include <sys/stat.h>
 
-char g_tw_stats_out[128] = {0};
-int g_tw_stats_enabled = 0;
-long g_tw_time_interval = 0;
-long g_tw_current_interval = 0;
-tw_clock g_tw_real_time_samp = 0;
-tw_clock g_tw_real_samp_start_cycles = 0;
-int g_tw_pe_per_file = 1;
-int g_tw_my_file_id = 0;
-tw_stat_list *g_tw_stat_head = NULL;
-tw_stat_list *g_tw_stat_tail = NULL;
+char g_st_stats_out[128] = {0};
+int g_st_stats_enabled = 0;
+long g_st_time_interval = 0;
+long g_st_current_interval = 0;
+tw_clock g_st_real_time_samp = 0;
+tw_clock g_st_real_samp_start_cycles = 0;
+int g_st_pe_per_file = 1;
+int g_st_my_file_id = 0;
+tw_stat_list *g_st_stat_head = NULL;
+tw_stat_list *g_st_stat_tail = NULL;
 MPI_File gvt_file;
 MPI_File interval_file;
 static tw_statistics last_stats = {0};
@@ -20,11 +20,11 @@ int g_st_disable_out = 0;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
-    TWOPT_UINT("enable-gvt-stats", g_tw_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"), 
-    TWOPT_UINT("time-interval", g_tw_time_interval, "collect stats for specified sim time interval"), 
-    TWOPT_UINT("real-time-samp", g_tw_real_time_samp, "real time sampling interval in ms"), 
-    TWOPT_CHAR("stats-filename", g_tw_stats_out, "prefix for filename(s) for stats output"),
-    TWOPT_UINT("pe-per-file", g_tw_pe_per_file, "how many PEs to output per file"), 
+    TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"), 
+    TWOPT_UINT("time-interval", g_st_time_interval, "collect stats for specified sim time interval"), 
+    TWOPT_UINT("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"), 
+    TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
+    TWOPT_UINT("pe-per-file", g_st_pe_per_file, "how many PEs to output per file"), 
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"), 
     TWOPT_END()
 };
@@ -64,17 +64,17 @@ void tw_gvt_stats_file_setup(tw_peid id)
     int max_files_directory = 100;
     char directory_path[128];
     char filename[256];
-    if (g_tw_stats_out[0])
+    if (g_st_stats_out[0])
     {
-        sprintf(directory_path, "%s-gvt-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
+        sprintf(directory_path, "%s-gvt-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
         mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
+        sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_st_stats_out, g_st_my_file_id);
     }
     else
     {
-        sprintf(directory_path, "ross-gvt-%d", g_tw_my_file_id/max_files_directory);
+        sprintf(directory_path, "ross-gvt-%d", g_st_my_file_id/max_files_directory);
         mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf( filename, "%s/ross-gvt-stats-%d.txt", directory_path, g_tw_my_file_id);
+        sprintf( filename, "%s/ross-gvt-stats-%d.txt", directory_path, g_st_my_file_id);
     }
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
@@ -110,17 +110,17 @@ void tw_interval_stats_file_setup(tw_peid id)
     int max_files_directory = 100;
     char directory_path[128];
     char filename[256];
-    if (g_tw_stats_out[0])
+    if (g_st_stats_out[0])
     {
-        sprintf(directory_path, "%s-interval-%d", g_tw_stats_out, g_tw_my_file_id/max_files_directory);
+        sprintf(directory_path, "%s-interval-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
         mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_tw_stats_out, g_tw_my_file_id);
+        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_st_stats_out, g_st_my_file_id);
     }
     else
     {
-        sprintf(directory_path, "ross-interval-%d", g_tw_my_file_id/max_files_directory);
+        sprintf(directory_path, "ross-interval-%d", g_st_my_file_id/max_files_directory);
         mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_tw_my_file_id);
+        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_st_my_file_id);
     }
 
     MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
