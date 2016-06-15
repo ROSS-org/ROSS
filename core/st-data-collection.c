@@ -16,6 +16,7 @@ MPI_File interval_file;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
+st_cycle_counters last_cycle_counters = {0};
 
 
 static const tw_optdef stats_options[] = {
@@ -212,62 +213,107 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
     stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 }
 
-
-void get_time_ahead_GVT(tw_pe *me, tw_stime current_rt)
+void st_collect_data(tw_pe *pe, tw_stime current_rt)
 {
-    FILE *f;
-    f = fopen("test.out", "a");
+    int index = 0;
+    int total_size = sizeof(tw_peid) + sizeof(tw_stime);;
+    int data_size = (g_tw_nkp + g_tw_nlp) * sizeof(tw_stime);
+    char data_gvt[data_size]; 
+
+    get_time_ahead_GVT(pe, &data_gvt[0]);
+    total_size += data_size;
+
+    data_size = 11 * sizeof(tw_clock);
+    char data_cycles[data_size];
+    st_collect_cycle_counters(pe, &data_cycles[0]);
+    total_size += data_size;
+
+    char final_data[total_size];
+    memcpy(&final_data[index], &pe->id, sizeof(tw_peid));
+    index += sizeof(tw_peid);
+    memcpy(&final_data[index], &current_rt, sizeof(tw_stime));
+    index += sizeof(tw_stime);
+    memcpy(&final_data[index], &data_gvt[0], sizeof(data_gvt));
+    index += sizeof(data_gvt);
+    memcpy(&final_data[index], &data_cycles[0], sizeof(data_cycles));
+    index += sizeof(data_cycles);
+    st_buffer_push(g_st_buffer, final_data, total_size);
+}
+
+void get_time_ahead_GVT(tw_pe *pe, char *data)
+{
     tw_kp *kp;
     tw_lp *lp;
     tw_stime time;
     int i, index = 0;
-    int element_size = sizeof(tw_stime);
-    //int num_bytes = (g_tw_nkp + 1) * element_size + sizeof(tw_peid);
-    int num_bytes = (g_tw_nkp + g_tw_nlp + 1) * element_size + sizeof(tw_peid);
-    //int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + sizeof(tw_peid) + sizeof(tw_stime));
-    //int num_bytes = g_tw_nkp * (sizeof(tw_kpid) + 2* sizeof(tw_stime));
-    char data[num_bytes];
-    tw_peid id = me->id;
-    memcpy(&data[index], &id, sizeof(tw_peid));
-    index += sizeof(tw_peid);
-    memcpy(&data[index], &current_rt, element_size);
-    index += element_size;
 
-    fprintf(f,"%ld,%f,", me->id, current_rt);    
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        //memcpy(&data[index], &kp->id, sizeof(tw_kpid));
-        //index += sizeof(tw_kpid);
-        //memcpy(&data[index], &current_rt, element_size);
-        //index += element_size;
-        time = kp->last_time - me->GVT;
+        time = kp->last_time - pe->GVT;
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
-
-        // TODO remove print after debug
-        fprintf(f,"%f", kp->last_time - me->GVT);
-        //if(i < g_tw_nkp - 1)
-           fprintf(f,",");
-        //else
-        //   fprintf(f,"\n"); 
     }
     for(i = 0; i < g_tw_nlp; i++)
     {
         lp = tw_getlp(i);
-        time = lp->last_time - me->GVT;
+        time = lp->last_time - pe->GVT;
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
 
-        // TODO remove print after debug
-        fprintf(f,"%f", lp->last_time - me->GVT);
-        if(i < g_tw_nlp - 1)
-           fprintf(f,",");
-        else
-           fprintf(f,"\n"); 
     }
-    st_buffer_push(g_st_buffer, data, num_bytes);
-    fclose(f);
+}
+
+void st_collect_cycle_counters(tw_pe *pe, char *data)
+{
+    // TODO divide by clock rate before moving to buffer?
+    int index = 0;
+    tw_clock tmp;
+
+    tmp = pe->stats.s_net_read - last_cycle_counters.s_net_read;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_gvt - last_cycle_counters.s_gvt;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_fossil_collect - last_cycle_counters.s_fossil_collect;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_event_abort - last_cycle_counters.s_event_abort;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_event_process - last_cycle_counters.s_event_process;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_pq - last_cycle_counters.s_pq;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_rollback - last_cycle_counters.s_rollback;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_cancel_q - last_cycle_counters.s_cancel_q;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_avl - last_cycle_counters.s_avl;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_buddy - last_cycle_counters.s_buddy;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    tmp = pe->stats.s_lz4 - last_cycle_counters.s_lz4;
+    memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+
+    last_cycle_counters.s_net_read = pe->stats.s_net_read;
+    last_cycle_counters.s_gvt = pe->stats.s_gvt;
+    last_cycle_counters.s_fossil_collect = pe->stats.s_fossil_collect;
+    last_cycle_counters.s_event_abort = pe->stats.s_event_abort;
+    last_cycle_counters.s_event_process = pe->stats.s_event_process;
+    last_cycle_counters.s_pq = pe->stats.s_pq;
+    last_cycle_counters.s_rollback = pe->stats.s_rollback;
+    last_cycle_counters.s_cancel_q = pe->stats.s_cancel_q;
+    last_cycle_counters.s_avl = pe->stats.s_avl;
+    last_cycle_counters.s_buddy = pe->stats.s_buddy;
+    last_cycle_counters.s_lz4 = pe->stats.s_lz4;
 }
 
 
