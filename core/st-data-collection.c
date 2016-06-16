@@ -17,6 +17,7 @@ static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
 st_cycle_counters last_cycle_counters = {0};
+st_event_counters last_event_counters = {0};
 
 
 static const tw_optdef stats_options[] = {
@@ -220,12 +221,22 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     int data_size = (g_tw_nkp + g_tw_nlp) * sizeof(tw_stime);
     char data_gvt[data_size]; 
 
-    get_time_ahead_GVT(pe, &data_gvt[0]);
+    st_collect_time_ahead_GVT(pe, &data_gvt[0]);
     total_size += data_size;
 
     data_size = 11 * sizeof(tw_clock);
     char data_cycles[data_size];
     st_collect_cycle_counters(pe, &data_cycles[0]);
+    total_size += data_size;
+
+    data_size = (int) (sizeof(st_event_counters) / sizeof(tw_stat));
+    char data_events[data_size];
+    st_collect_event_counters(pe, &data_events[0]);
+    total_size += data_size;
+
+    data_size = sizeof(size_t) * 2;
+    char data_mem[data_size];
+    st_collect_event_counters(pe, &data_mem[0]);
     total_size += data_size;
 
     char final_data[total_size];
@@ -237,10 +248,14 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     index += sizeof(data_gvt);
     memcpy(&final_data[index], &data_cycles[0], sizeof(data_cycles));
     index += sizeof(data_cycles);
+    memcpy(&final_data[index], &data_events[0], sizeof(data_events));
+    index += sizeof(data_events);
+    memcpy(&final_data[index], &data_mem[0], sizeof(data_mem));
+    index += sizeof(data_mem);
     st_buffer_push(g_st_buffer, final_data, total_size);
 }
 
-void get_time_ahead_GVT(tw_pe *pe, char *data)
+void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
 {
     tw_kp *kp;
     tw_lp *lp;
@@ -272,33 +287,43 @@ void st_collect_cycle_counters(tw_pe *pe, char *data)
 
     tmp = pe->stats.s_net_read - last_cycle_counters.s_net_read;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_gvt - last_cycle_counters.s_gvt;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_fossil_collect - last_cycle_counters.s_fossil_collect;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_event_abort - last_cycle_counters.s_event_abort;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_event_process - last_cycle_counters.s_event_process;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_pq - last_cycle_counters.s_pq;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_rollback - last_cycle_counters.s_rollback;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_cancel_q - last_cycle_counters.s_cancel_q;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_avl - last_cycle_counters.s_avl;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_buddy - last_cycle_counters.s_buddy;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
+    index += sizeof(tw_clock);
 
     tmp = pe->stats.s_lz4 - last_cycle_counters.s_lz4;
     memcpy(&data[index], &tmp, sizeof(tw_clock)); 
@@ -314,6 +339,102 @@ void st_collect_cycle_counters(tw_pe *pe, char *data)
     last_cycle_counters.s_avl = pe->stats.s_avl;
     last_cycle_counters.s_buddy = pe->stats.s_buddy;
     last_cycle_counters.s_lz4 = pe->stats.s_lz4;
+}
+
+void st_collect_event_counters(tw_pe *pe, char *data)
+{
+    //TODO need to add in collection for LP/KP level granularity
+    int i, index = 0;
+    tw_kp *kp;
+    tw_stat tmp;
+
+    tmp = pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = tw_pq_get_size(pe->pq) - last_event_counters.s_pq_qsize;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_nsend_network - last_event_counters.s_nsend_network;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_nread_network - last_event_counters.s_nread_network;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = g_tw_fossil_attempts - last_event_counters.s_fc_attempts; 
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = g_tw_gvt_done - last_event_counters.s_ngvts;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tw_stat t[4];
+    for(i = 0; i < g_tw_nkp; i++)
+    {
+        kp = tw_getkp(i);
+        t[0] += kp->s_nevent_processed;
+        t[1] += kp->s_e_rbs;
+        t[2] += kp->s_rb_total;
+        t[3] += kp->s_rb_secondary;
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        memcpy(&data[index], &t[i], sizeof(tw_stat)); 
+        index += sizeof(tw_stat);
+    }
+
+	tmp = t[0] - t[1] - last_event_counters.s_net_events;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+	tmp = t[2] - t[3] - last_event_counters.s_rb_primary;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+    
+    last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
+    last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
+    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
+    last_event_counters.s_nsend_network = pe->stats.s_nsend_network;
+    last_event_counters.s_nread_network = pe->stats.s_nread_network;
+    last_event_counters.s_nsend_remote_rb = pe->stats.s_nsend_remote_rb;
+    last_event_counters.s_nsend_loc_remote = pe->stats.s_nsend_loc_remote;
+    last_event_counters.s_nsend_net_remote = pe->stats.s_nsend_net_remote;
+    last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
+    last_event_counters.s_ngvts = g_tw_gvt_done;  
+    last_event_counters.s_nevent_processed = t[0];
+    last_event_counters.s_e_rbs = t[1];
+    last_event_counters.s_rb_total = t[2];
+    last_event_counters.s_rb_secondary = t[3];
+    last_event_counters.s_net_events;
+    last_event_counters.s_rb_primary;
+}
+
+void st_collect_memory_usage(char *data)
+{
+    size_t mem_usage[2];
+    tw_calloc_stats(&mem_usage[0], &mem_usage[1]);
+    
+    memcpy(&data[0], &mem_usage[0], sizeof(size_t) * 2);
 }
 
 
