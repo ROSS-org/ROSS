@@ -74,6 +74,7 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
         }
     }
     buffer->count += size;
+    //printf("wrote %d bytes to buffer; %d bytes of free space left\n", size, st_buffer_free_space(buffer)); 
 }
 
 /* determine whether to dump buffer to file */

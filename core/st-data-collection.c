@@ -232,14 +232,14 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     st_collect_cycle_counters(pe, &data_cycles[0]);
     total_size += data_size;
 
-    data_size = (int) (sizeof(st_event_counters) / sizeof(tw_stat));
+    data_size = sizeof(st_event_counters);
     char data_events[data_size];
     st_collect_event_counters(pe, &data_events[0]);
     total_size += data_size;
 
     data_size = sizeof(size_t) * 2;
     char data_mem[data_size];
-    st_collect_event_counters(pe, &data_mem[0]);
+    st_collect_memory_usage(&data_mem[0]);
     total_size += data_size;
 
     char final_data[total_size];
@@ -391,7 +391,7 @@ void st_collect_event_counters(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(tw_stat)); 
     index += sizeof(tw_stat);
 
-    tw_stat t[4];
+    tw_stat t[4] = {0};
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
