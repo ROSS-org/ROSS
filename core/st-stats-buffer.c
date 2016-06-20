@@ -5,7 +5,7 @@ st_stats_buffer *g_st_buffer = NULL;
 static long missed_bytes = 0;
 static MPI_File fh;
 static MPI_Offset prev_offset = 0;
-static char st_directory[13];
+char g_st_directory[13];
 
 /* initialize circular buffer for stats collection 
  * basically the read position marks the beginning of used space in the buffer
@@ -23,13 +23,13 @@ st_stats_buffer *st_buffer_init(int size)
     // set up MPI File
     if (!g_st_disable_out)
     {
-        sprintf(st_directory, "stats-output");
-        mkdir(st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        char filename[100];
-        if (g_st_stats_out[0])
-            sprintf(filename, "%s/%s.bin", st_directory, g_st_stats_out);
-        else
-            sprintf(filename, "%s/ross-stats.bin", st_directory);
+        sprintf(g_st_directory, "stats-output");
+        mkdir(g_st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
+        char filename[128];
+        if (!g_st_stats_out[0])
+            sprintf(g_st_stats_out, "ross-stats");
+            //sprintf(filename, "%s/ross-stats.bin", g_st_directory);
+        sprintf(filename, "%s/%s.bin", g_st_directory, g_st_stats_out);
         MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
     }
 

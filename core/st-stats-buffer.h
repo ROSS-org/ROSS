@@ -13,6 +13,7 @@ typedef struct{
 } st_stats_buffer;
 
 extern st_stats_buffer *g_st_buffer;
+extern char g_st_directory[13];
 
 st_stats_buffer *st_buffer_init(int size);
 void st_buffer_push(st_stats_buffer *buffer, char *data, int size);

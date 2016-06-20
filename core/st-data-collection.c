@@ -38,10 +38,11 @@ const tw_optdef *tw_stats_setup(void)
 
 void st_stats_init()
 {
+    // Need to call after st_buffer_init()!
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
-        char filename[64];
-        sprintf(filename, "read-me.txt");
+        char filename[128];
+        sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
         file = fopen(filename, "w");
         fprintf(file, "Info for ROSS run.\n\n");
 #if HAVE_CTIME
@@ -431,6 +432,7 @@ void st_collect_event_counters(tw_pe *pe, char *data)
 
 void st_collect_memory_usage(char *data)
 {
+    // TODO need to take difference for memory usage?
     size_t mem_usage[2];
     tw_calloc_stats(&mem_usage[0], &mem_usage[1]);
     
