@@ -6,15 +6,18 @@ static long missed_bytes = 0;
 static MPI_File fh;
 static MPI_Offset prev_offset = 0;
 char g_st_directory[13];
+int g_st_buffer_size = 8000000;
+int g_st_buffer_free_percent = 15;
+static int buffer_overflow_warned = 0;
 
 /* initialize circular buffer for stats collection 
  * basically the read position marks the beginning of used space in the buffer
  * while the write postion marks the end of used space in the buffer
  */
-st_stats_buffer *st_buffer_init(int size)
+st_stats_buffer *st_buffer_init()
 {
     st_stats_buffer *buffer = tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
-    buffer->size  = size;
+    buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
     buffer->read_pos = 0;
     buffer->count = 0;
@@ -45,7 +48,11 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
     int size1, size2;
     if (!g_st_disable_out && st_buffer_free_space(buffer) < size)
     {
-        printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
+        if (!buffer_overflow_warned)
+        {
+            printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
+            buffer_overflow_warned = 1;
+        }
         missed_bytes += size - st_buffer_free_space(buffer);
         size = st_buffer_free_space(buffer);
     }
@@ -79,8 +86,9 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
     int i;
     int write_sizes[tw_nnodes()];
 
-    if ((double) st_buffer_free_space(buffer) < .15 || end_of_sim)
+    if ((double) st_buffer_free_space(buffer) / g_st_buffer_size < g_st_buffer_free_percent / 100.0 || end_of_sim)
     {
+        //printf("free space %f, free percent %f\n", (double)st_buffer_free_space(buffer)/g_st_buffer_size, g_st_buffer_free_percent/100.0);
         my_write_size = buffer->count;
         write_to_file = 1;
     }

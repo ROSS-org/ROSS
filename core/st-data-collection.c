@@ -27,6 +27,8 @@ static const tw_optdef stats_options[] = {
     TWOPT_UINT("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"), 
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("pe-per-file", g_st_pe_per_file, "how many PEs to output per file"), 
+    TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"), 
+    TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"), 
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"), 
     TWOPT_END()
 };
