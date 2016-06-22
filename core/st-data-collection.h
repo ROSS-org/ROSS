@@ -39,6 +39,11 @@ typedef struct {
     tw_stat rev_events;
 } st_event_counters;
 
+typedef struct {
+    size_t mem_allocated;
+    size_t mem_wasted;
+} st_mem_usage;
+
 extern const tw_optdef *tw_stats_setup();
 extern void tw_gvt_stats_file_setup(tw_peid id);
 extern void tw_interval_stats_file_setup(tw_peid id);
@@ -56,6 +61,7 @@ extern tw_stat g_st_reverse_events;
 
 st_cycle_counters last_cycle_counters;
 st_event_counters last_event_counters;
+st_mem_usage last_mem_usage;
 
 extern void st_collect_data(tw_pe *pe, tw_stime current_rt);
 void st_collect_time_ahead_GVT(tw_pe *me, char *data_size);

@@ -18,6 +18,7 @@ static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
 st_cycle_counters last_cycle_counters = {0};
 st_event_counters last_event_counters = {0};
+st_mem_usage last_mem_usage = {0};
 tw_stat g_st_forward_events = 0;
 tw_stat g_st_reverse_events = 0;
 
@@ -246,8 +247,8 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
 void st_collect_data(tw_pe *pe, tw_stime current_rt)
 {
     int index = 0;
-    int total_size = sizeof(tw_peid) + sizeof(tw_stime);;
-    int data_size = (g_tw_nkp + g_tw_nlp) * sizeof(tw_stime);
+    int total_size = sizeof(tw_peid) + sizeof(tw_stime);
+    int data_size = (g_tw_nkp/* + g_tw_nlp*/) * sizeof(tw_stime);
     char data_gvt[data_size]; 
 
     st_collect_time_ahead_GVT(pe, &data_gvt[0]);
@@ -298,14 +299,14 @@ void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
     }
-    for(i = 0; i < g_tw_nlp; i++)
+    /*for(i = 0; i < g_tw_nlp; i++)
     {
         lp = tw_getlp(i);
         time = lp->last_time - pe->GVT;
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
 
-    }
+    }*/
 }
 
 void st_collect_cycle_counters(tw_pe *pe, char *data)
@@ -381,7 +382,7 @@ void st_collect_event_counters(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(tw_stat)); 
     index += sizeof(tw_stat);
 
-    tmp = tw_pq_get_size(pe->pq) - last_event_counters.s_pq_qsize;
+    tmp = tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
     memcpy(&data[index], &tmp, sizeof(tw_stat)); 
     index += sizeof(tw_stat);
 
@@ -450,7 +451,7 @@ void st_collect_event_counters(tw_pe *pe, char *data)
 
     last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
     last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
-    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
+    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq); 
     last_event_counters.s_nsend_network = pe->stats.s_nsend_network;
     last_event_counters.s_nread_network = pe->stats.s_nread_network;
     last_event_counters.s_nsend_remote_rb = pe->stats.s_nsend_remote_rb;
@@ -468,11 +469,18 @@ void st_collect_event_counters(tw_pe *pe, char *data)
 
 void st_collect_memory_usage(char *data)
 {
-    // TODO need to take difference for memory usage?
-    size_t mem_usage[2];
-    tw_calloc_stats(&mem_usage[0], &mem_usage[1]);
-    
-    memcpy(&data[0], &mem_usage[0], sizeof(size_t) * 2);
+    size_t mem_allocated, mem_wasted, tmp;
+    int index = 0;
+    tw_calloc_stats(&mem_allocated, &mem_wasted);
+
+    tmp = mem_allocated - last_mem_usage.mem_allocated;
+    memcpy(&data[index], &tmp, sizeof(size_t));
+    index += sizeof(size_t);
+    tmp = mem_wasted - last_mem_usage.mem_wasted;
+    memcpy(&data[index], &tmp, sizeof(size_t));
+
+    last_mem_usage.mem_allocated = mem_allocated;
+    last_mem_usage.mem_wasted = mem_wasted;
 }
 
 
