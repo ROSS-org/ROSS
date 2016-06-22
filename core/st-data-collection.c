@@ -179,9 +179,6 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
     tmp = s->s_pe_event_ties-last_stats.s_pe_event_ties;
     memcpy(buffer, &tmp, sizeof(tw_stat));
 
-    eff = 100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events)));
-    memcpy(buffer, &eff, sizeof(double));
-
     tmp = s->s_nsend_net_remote-last_stats.s_nsend_net_remote;
     memcpy(buffer, &tmp, sizeof(tw_stat));
 
@@ -205,6 +202,9 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
 
     tmp = s->s_nread_network-last_stats.s_nread_network;
     memcpy(buffer, &tmp, sizeof(tw_stat));
+
+    eff = 100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events)));
+    memcpy(buffer, &eff, sizeof(double));
 
     st_buffer_push(g_st_buffer, &buffer[0], buf_size);
     //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
@@ -428,8 +428,8 @@ void st_collect_event_counters(tw_pe *pe, char *data)
     last_event_counters.s_e_rbs = t[1];
     last_event_counters.s_rb_total = t[2];
     last_event_counters.s_rb_secondary = t[3];
-    last_event_counters.s_net_events;
-    last_event_counters.s_rb_primary;
+    last_event_counters.s_net_events = t[0] - t[1];
+    last_event_counters.s_rb_primary = t[2] - t[3];
 }
 
 void st_collect_memory_usage(char *data)
