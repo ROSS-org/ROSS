@@ -146,10 +146,11 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
     // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
     // net events processed, remote sends, remote recvs
     tw_clock start_cycle_time = tw_clock_read();
-    int buf_size = sizeof(tw_stat) * 13 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double); 
+    int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2; 
     int index = 0;
     char buffer[buf_size];
     tw_stat tmp;
+    long long tmp2;
     double eff;
 	/*sprintf(buffer, "%ld,%f,%lld,%lld,%lld,%lld,%lld,%f,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", 
             g_tw_mynode, gvt, all_reduce_cnt-last_all_reduce_cnt, 
@@ -162,49 +163,72 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
             s->s_net_events-last_stats.s_net_events, s->s_nsend_network-last_stats.s_nsend_network, 
             s->s_nread_network-last_stats.s_nread_network);
     */
-    memcpy(buffer, &g_tw_mynode, sizeof(tw_node));
-    memcpy(buffer, &gvt, sizeof(tw_stime));
+    memcpy(&buffer[index], &g_tw_mynode, sizeof(tw_node));
+    index += sizeof(tw_node);
+
+    memcpy(&buffer[index], &gvt, sizeof(tw_stime));
+    index += sizeof(tw_stime);
+
     tmp = all_reduce_cnt-last_all_reduce_cnt;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_nevent_processed-last_stats.s_nevent_processed;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_nevent_abort-last_stats.s_nevent_abort;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_e_rbs-last_stats.s_e_rbs;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_pe_event_ties-last_stats.s_pe_event_ties;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
-
-    tmp = s->s_nsend_net_remote-last_stats.s_nsend_net_remote;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_rb_total-last_stats.s_rb_total;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_rb_primary-last_stats.s_rb_primary;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_rb_secondary-last_stats.s_rb_secondary;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_fc_attempts-last_stats.s_fc_attempts;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
-
-    tmp = s->s_net_events-last_stats.s_net_events;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_nsend_network-last_stats.s_nsend_network;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
 
     tmp = s->s_nread_network-last_stats.s_nread_network;
-    memcpy(buffer, &tmp, sizeof(tw_stat));
+    memcpy(&buffer[index], &tmp, sizeof(tw_stat));
+    index += sizeof(tw_stat);
+
+    // next two stats not guaranteed to always be non-decreasing
+    // can't use tw_stat (unsigned long long) for negative number
+    tmp2 = (long long)s->s_nsend_net_remote-(long long)last_stats.s_nsend_net_remote;
+    memcpy(&buffer[index], &tmp2, sizeof(long long));
+    index += sizeof(long long);
+
+    tmp2 = (long long)s->s_net_events-(long long)last_stats.s_net_events;
+    memcpy(&buffer[index], &tmp2, sizeof(long long));
+    index += sizeof(long long);
 
     eff = 100.0 * (1.0 - ((double) (s->s_e_rbs-last_stats.s_e_rbs)/(double) (s->s_net_events-last_stats.s_net_events)));
-    memcpy(buffer, &eff, sizeof(double));
+    memcpy(&buffer[index], &eff, sizeof(double));
+    index += sizeof(double);
+
+    if (index != buf_size)
+        printf("WARNING: size of data being pushed to buffer is incorrect!");
 
     st_buffer_push(g_st_buffer, &buffer[0], buf_size);
     //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
