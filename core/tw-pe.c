@@ -75,7 +75,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
     if (g_st_stats_enabled)
     {
         tw_clock start_cycle_time = tw_clock_read();
-        g_st_buffer = st_buffer_init();
+        char suffix[4];
+        sprintf(suffix, "gvt");
+        g_st_buffer_gvt = st_buffer_init(suffix, &g_st_gvt_fh);
         st_stats_init();
         //tw_gvt_stats_file_setup(gid);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
@@ -97,7 +99,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
     {
         g_st_real_time_samp = g_st_real_time_samp * g_tw_clock_rate / 1000;
         g_st_real_samp_start_cycles = tw_clock_read();
-        g_st_buffer = st_buffer_init();
+        char suffix[3];
+        sprintf(suffix, "rt");
+        g_st_buffer_rt = st_buffer_init(suffix, &g_st_rt_fh);
         st_stats_init();
     }
 }

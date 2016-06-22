@@ -1,20 +1,23 @@
 #include <ross.h>
 #include <sys/stat.h>
 
-st_stats_buffer *g_st_buffer = NULL;
+st_stats_buffer *g_st_buffer_gvt = NULL;
+st_stats_buffer *g_st_buffer_rt = NULL;
 static long missed_bytes = 0;
-static MPI_File fh;
-static MPI_Offset prev_offset = 0;
+static MPI_Offset prev_offset_gvt = 0;
+static MPI_Offset prev_offset_rt = 0;
 char g_st_directory[13];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
+MPI_File g_st_gvt_fh;
+MPI_File g_st_rt_fh;
 
 /* initialize circular buffer for stats collection 
  * basically the read position marks the beginning of used space in the buffer
  * while the write postion marks the end of used space in the buffer
  */
-st_stats_buffer *st_buffer_init()
+st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
     st_stats_buffer *buffer = tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
@@ -32,8 +35,8 @@ st_stats_buffer *st_buffer_init()
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
             //sprintf(filename, "%s/ross-stats.bin", g_st_directory);
-        sprintf(filename, "%s/%s.bin", g_st_directory, g_st_stats_out);
-        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+        sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
+        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
     }
 
     return buffer;
@@ -78,14 +81,27 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
 }
 
 /* determine whether to dump buffer to file */
-void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
+void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
 {
     //TODO need metadata file
-    MPI_Offset offset = prev_offset;
+    MPI_Offset offset;
+    MPI_File *fh;
     int write_to_file = 0;
     int my_write_size = 0;
     int i;
     int write_sizes[tw_nnodes()];
+
+    if (type == GVT_COL) 
+    {
+        offset = prev_offset_gvt;
+        fh = &g_st_gvt_fh;
+    }
+    else if (type == RT_COL)
+    {
+        offset = prev_offset_rt;
+        fh = &g_st_rt_fh;
+    }
+
 
     if ((double) st_buffer_free_space(buffer) / g_st_buffer_size < g_st_buffer_free_percent / 100.0 || end_of_sim)
     {
@@ -99,7 +115,10 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
     {
         if (i < g_tw_mynode)
             offset += write_sizes[i];
-        prev_offset += write_sizes[i];
+        if (type == GVT_COL)
+            prev_offset_gvt += write_sizes[i];
+        else if (type == RT_COL)
+            prev_offset_rt += write_sizes[i];
     };
     //MPI_Exscan(&my_write_size, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
@@ -111,7 +130,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
 
         //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
         tw_clock start_cycle_time = tw_clock_read();;
-        MPI_File_write_at(fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
+        MPI_File_write_at(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
         stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
@@ -121,16 +140,21 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim)
     }
 }
 
-void st_buffer_finalize(st_stats_buffer *buffer)
+void st_buffer_finalize(st_stats_buffer *buffer, int type)
 {
+    MPI_File *fh;
     // check if any data needs to be written out
     if (!g_st_disable_out && buffer->count)
-        st_buffer_write(buffer, 1);
+        st_buffer_write(buffer, 1, type);
 
     if (g_tw_mynode == g_tw_masternode)
         printf("There were %ld bytes of data missed because of buffer overflow\n", missed_bytes);
     
     // close MPI file
-    MPI_File_close(&fh);
+    if (type == GVT_COL) 
+        fh = &g_st_gvt_fh;
+    else if (type == RT_COL)
+        fh = &g_st_rt_fh;
+    MPI_File_close(fh);
 
 }

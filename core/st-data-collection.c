@@ -232,7 +232,7 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
     if (index != buf_size)
         printf("WARNING: size of data being pushed to buffer is incorrect!");
 
-    st_buffer_push(g_st_buffer, &buffer[0], buf_size);
+    st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
     //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     //start_cycle_time = tw_clock_read();
     //MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
@@ -281,7 +281,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     index += sizeof(data_events);
     memcpy(&final_data[index], &data_mem[0], sizeof(data_mem));
     index += sizeof(data_mem);
-    st_buffer_push(g_st_buffer, final_data, total_size);
+    st_buffer_push(g_st_buffer_rt, final_data, total_size);
 }
 
 void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
