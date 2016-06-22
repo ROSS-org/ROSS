@@ -18,6 +18,8 @@ static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
 st_cycle_counters last_cycle_counters = {0};
 st_event_counters last_event_counters = {0};
+tw_stat g_st_forward_events = 0;
+tw_stat g_st_reverse_events = 0;
 
 
 static const tw_optdef stats_options[] = {
@@ -438,6 +440,14 @@ void st_collect_event_counters(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(tw_stat)); 
     index += sizeof(tw_stat);
     
+    tmp = g_st_forward_events - last_event_counters.fwd_events;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
+    tmp = g_st_reverse_events - last_event_counters.rev_events;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+
     last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
     last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
     last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);

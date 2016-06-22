@@ -185,6 +185,8 @@ void tw_event_rollback(tw_event * event) {
     (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
     if (g_st_time_interval)
         st_tree_root = stat_increment(st_tree_root, event->recv_ts, REVERSE_EV, st_tree_root, 1);
+    if (g_st_real_time_samp)
+        g_st_reverse_events++;
 
 jump_over_rc_event_handler:
     if (event->delta_buddy) {
