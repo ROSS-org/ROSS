@@ -27,7 +27,9 @@ SET(RAND clcg4)
 
 # Network option
 # tcp option removed
-SET(NETWORK mpi)
+
+# SET(NETWORK mpi)
+SET(NETWORK mpishm)
 
 # GVT algorithm option
 #SET(GVT 7oclock)

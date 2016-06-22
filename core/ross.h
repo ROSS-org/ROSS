@@ -184,6 +184,10 @@ typedef uint64_t tw_lpid;
 #  include "network-mpi.h"
 #endif
 
+#ifdef ROSS_NETWORK_mpishm
+#  include "network-mpishm.h"
+#endif
+
 #include "tw-timing.h"
 #include "ross-types.h"
 #include "tw-opts.h"
