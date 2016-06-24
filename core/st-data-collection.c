@@ -247,7 +247,7 @@ tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_redu
 void st_collect_data(tw_pe *pe, tw_stime current_rt)
 {
     int index = 0;
-    int total_size = sizeof(tw_peid) + sizeof(tw_stime);
+    int total_size = sizeof(tw_peid) + sizeof(tw_stime)*2;
     int data_size = (g_tw_nkp/* + g_tw_nlp*/) * sizeof(tw_stime);
     char data_gvt[data_size]; 
 
@@ -274,6 +274,8 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     index += sizeof(tw_peid);
     memcpy(&final_data[index], &current_rt, sizeof(tw_stime));
     index += sizeof(tw_stime);
+    memcpy(&final_data[index], &pe->GVT, sizeof(tw_stime));
+    index += sizeof(tw_stime);
     memcpy(&final_data[index], &data_gvt[0], sizeof(data_gvt));
     index += sizeof(data_gvt);
     memcpy(&final_data[index], &data_cycles[0], sizeof(data_cycles));
@@ -295,7 +297,10 @@ void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        time = kp->last_time - pe->GVT;
+        if (pe->GVT <= g_tw_ts_end)
+            time = kp->last_time - pe->GVT;
+        else
+            time = -1.0; // so we can filter out
         memcpy(&data[index], &time, sizeof(tw_stime));
         index += sizeof(tw_stime);
     }
@@ -465,6 +470,8 @@ void st_collect_event_counters(tw_pe *pe, char *data)
     last_event_counters.s_rb_secondary = t[3];
     last_event_counters.s_net_events = t[0] - t[1];
     last_event_counters.s_rb_primary = t[2] - t[3];
+    last_event_counters.fwd_events = g_st_forward_events;
+    last_event_counters.rev_events = g_st_reverse_events;
 }
 
 void st_collect_memory_usage(char *data)
