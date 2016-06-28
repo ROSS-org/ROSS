@@ -109,7 +109,7 @@ tw_init_lps(tw_pe * me)
 	// RIO requires that all LPs have been allocated
 	if (g_io_load_at == PRE_INIT || g_io_load_at == INIT) {
 		tw_clock start = tw_clock_read();
-        io_load_checkpoint(g_io_checkpoint_name);
+        io_read_checkpoint();
         me->stats.s_rio_load += (tw_clock_read() - start);
     }
     if (g_io_load_at != INIT) {
@@ -129,7 +129,7 @@ tw_init_lps(tw_pe * me)
 	}
     if (g_io_load_at == POST_INIT) {
 		tw_clock start = tw_clock_read();
-        io_load_checkpoint(g_io_checkpoint_name);
+        io_read_checkpoint();
         me->stats.s_rio_load += (tw_clock_read() - start);
     }
 #endif
