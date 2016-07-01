@@ -27,7 +27,7 @@ static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"), 
     TWOPT_UINT("time-interval", g_st_time_interval, "collect stats for specified sim time interval"), 
-    TWOPT_UINT("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"), 
+    TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"), 
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("pe-per-file", g_st_pe_per_file, "how many PEs to output per file"), 
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"), 
