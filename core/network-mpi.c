@@ -350,6 +350,8 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 #endif
 
   me->stats.s_nread_network++;
+  if (g_st_time_interval)
+      st_tree_root = stat_increment(st_tree_root, e->recv_ts, REMOTE_RECV, st_tree_root, 1);
   me->s_nwhite_recv++;
 
   //  printf("recv_finish: remote event [cancel %u] FROM: LP %lu, PE %lu, TO: LP %lu, PE %lu at TS %lf \n",
@@ -600,6 +602,8 @@ static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
+  if (g_st_time_interval)
+      st_tree_root = stat_increment(st_tree_root, e->recv_ts, REMOTE_SEND, st_tree_root, 1);
 
   if (e->state.owner == TW_net_asend) {
     if (e->state.cancel_asend) {
@@ -831,6 +835,24 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
+
+    if (MPI_Reduce(&stat_comp_cycle_counter,
+        &me->stats.s_stat_comp,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
+        (int)g_tw_masternode,
+        MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
     
+    if (MPI_Reduce(&stat_write_cycle_counter,
+        &me->stats.s_stat_write,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
+        (int)g_tw_masternode,
+        MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
   return &me->stats;
 }

@@ -109,7 +109,7 @@ tw_gvt_step2(tw_pe *me)
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
-
+    int tmp_all_red_cnt = 0;
 	while(1)
 	  {
 	    tw_net_read(me);
@@ -117,6 +117,7 @@ tw_gvt_step2(tw_pe *me)
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 	    all_reduce_cnt++;
+        tmp_all_red_cnt++;
 	    if(MPI_Allreduce(
 			     &local_white,
 			     &total_white,
@@ -140,6 +141,7 @@ tw_gvt_step2(tw_pe *me)
 		lvt = net_min;
 
 	all_reduce_cnt++;
+    tmp_all_red_cnt++;
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
@@ -173,7 +175,8 @@ tw_gvt_step2(tw_pe *me)
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
+	{
 		gvt_print(gvt);
 	}
 
@@ -196,7 +199,31 @@ tw_gvt_step2(tw_pe *me)
 	    start = tw_clock_read();
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
+        if (g_st_time_interval)
+            st_tree_root = stat_increment(st_tree_root, gvt, FC_ATTEMPTS, st_tree_root, 1);
 	  }
+
+    if (g_st_stats_enabled && gvt <= g_tw_ts_end)
+    {
+        tw_clock start_cycle_time = tw_clock_read();
+        tw_statistics s;
+        tw_get_stats(me, &s);
+        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
+		tw_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);
+    }
+    if (g_st_time_interval)
+    {
+        // increment appropriate bin for gvt comp
+        st_tree_root = stat_increment(st_tree_root, gvt, NUM_GVT, st_tree_root, 1);
+        st_tree_root = stat_increment(st_tree_root, gvt, NUM_ALLREDUCE, st_tree_root, tmp_all_red_cnt);
+        
+        st_tree_root = gvt_write_bins(NULL, st_tree_root, gvt);
+    }
+
+    if (!g_st_disable_out && g_st_stats_enabled)
+        st_buffer_write(g_st_buffer_gvt, 0, GVT_COL); 
+    if (!g_st_disable_out && g_st_real_time_samp)
+        st_buffer_write(g_st_buffer_rt, 0, RT_COL); 
 
 	g_tw_gvt_done++;
 

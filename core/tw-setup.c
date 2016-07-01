@@ -10,6 +10,7 @@
 
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
+MPI_Comm stats_comm;
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
@@ -56,6 +57,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+    tw_opt_add(tw_stats_setup());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
@@ -66,6 +68,10 @@ void tw_init(int *argc, char ***argv) {
     if(tw_ismaster() && NULL == (g_tw_csv = fopen("ross.csv", "a"))) {
         tw_error(TW_LOC, "Unable to open: ross.csv\n");
     }
+
+    g_st_my_file_id = g_tw_mynode / g_st_pe_per_file;
+    MPI_Comm_split(MPI_COMM_WORLD, g_st_my_file_id, g_tw_mynode, &stats_comm);
+
 
     tw_opt_print();
 
@@ -327,7 +333,7 @@ void tw_run(void) {
     Bgpm_Apply(hEvtSet);
     Bgpm_Start(hEvtSet);
 #endif
-
+    
     tw_sched_init(me);
 
     switch(g_tw_synchronization_protocol) {
@@ -380,6 +386,7 @@ void tw_end(void) {
         fclose(g_tw_csv);
     }
 
+    //MPI_File_close(&gvt_file);
     tw_net_stop();
 }
 

@@ -59,6 +59,8 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
+                        if (g_st_time_interval)
+                            st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -129,6 +131,8 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     */
                     tw_kp_rollback_event(cev);
                     tw_event_free(me, cev);
+                    if (g_st_time_interval)
+                        st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_SECONDARY, st_tree_root, 1);
                     break;
 
                 default:
@@ -183,6 +187,8 @@ static void tw_sched_batch(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - start;
         if(cev->recv_ts == tw_pq_minimum(me->pq)) {
             me->stats.s_pe_event_ties++;
+            if (g_st_time_interval)
+                st_tree_root = stat_increment(st_tree_root, cev->recv_ts, PE_EVENT_TIES, st_tree_root, 1);
         }
 
         clp = cev->dest_lp;
@@ -190,7 +196,8 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 	ckp->last_time = cev->recv_ts;
-
+	clp->last_time = cev->recv_ts;
+	
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
 	  tw_error(TW_LOC, "Reverse Computation must be implemented!");
@@ -205,6 +212,10 @@ static void tw_sched_batch(tw_pe * me) {
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
 	  }
+    if (g_st_time_interval)
+        st_tree_root = stat_increment(st_tree_root, cev->recv_ts, FORWARD_EV, st_tree_root, 1);
+    if (g_st_real_time_samp)
+        g_st_forward_events++;
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
@@ -223,17 +234,33 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
-
+	    clp->last_time = cev ? cev->recv_ts : me->GVT;
+	    
 	    tw_gvt_force_update(me);
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
+        if (g_st_time_interval)
+            st_tree_root = stat_increment(st_tree_root, cev->recv_ts, EVENTS_ABORTED, st_tree_root, 1);
+	    
 	    break;
 	  } // END ABORT CHECK
 
 	/* Thread current event into processed queue of kp */
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
+
+        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        {
+            tw_clock current_rt = tw_clock_read();
+            //get_time_ahead_GVT(me, current_rt / g_tw_clock_rate);
+            st_collect_data(me, current_rt / g_tw_clock_rate);
+            /*if (me->node == 0)
+            {
+                printf("RT sampling: current time %lf\n", current_rt / g_tw_clock_rate);
+            }*/
+            g_st_real_samp_start_cycles = tw_clock_read();
+        }
     }
 }
 
@@ -495,6 +522,7 @@ void tw_scheduler_conservative(tw_pe * me) {
                 ckp->last_time, cev->recv_ts, clp->gid );
             }
             ckp->last_time = cev->recv_ts;
+            clp->last_time = cev->recv_ts;
 
             start = tw_clock_read();
             reset_bitfields(cev);
@@ -566,6 +594,11 @@ void tw_scheduler_optimistic(tw_pe * me) {
 
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_st_stats_enabled)
+        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
+    if (g_st_real_time_samp)
+        st_buffer_finalize(g_st_buffer_rt, RT_COL);
 
     tw_stats(me);
 }
@@ -652,6 +685,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         me->cur_event = cev;
         ckp->last_time = cev->recv_ts;
+        clp->last_time = cev->recv_ts;
 
         /* don't update GVT */
         reset_bitfields(cev);

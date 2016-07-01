@@ -154,6 +154,9 @@ struct tw_statistics {
     tw_clock s_lz4;
 
     tw_stat s_events_past_end;
+
+    tw_clock s_stat_comp;
+    tw_clock s_stat_write;
 };
 
 #ifdef ROSS_MEMORY
@@ -337,6 +340,7 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
+    tw_stime last_time;
 
   /* tw_suspend variables */
   tw_event    *suspend_event;
