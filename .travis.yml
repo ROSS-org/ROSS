@@ -33,6 +33,8 @@ script:
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
+branches:
+  only: master
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - ## the following automatically builds the doxygen
