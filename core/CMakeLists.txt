@@ -120,7 +120,7 @@ if (COVERALLS)
     # Create the coveralls target.
     coveralls_setup(
         "${COVERAGE_SRCS}" # The source files.
-        ON)                # If we should upload.
+        OFF)               # If we should upload.
 
 endif()
 
