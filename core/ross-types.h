@@ -83,6 +83,7 @@ typedef void (*map_custom_f) (void);
 typedef void (*pre_run_f) (void *sv, tw_lp * me);
 typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
+typedef void (*commit_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
 typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
@@ -96,6 +97,7 @@ struct tw_lptype {
     pre_run_f pre_run; /**< @brief Second stage LP initialization */
     event_f event; /**< @brief LP event handler routine */
     revent_f revent;  /**< @brief LP Reverse event handler routine */
+    commit_f commit;  /**< @brief LP Commit event routine */
     final_f final; /**< @brief Final handler routine */
     map_f map; /**< @brief LP Mapping of LP gid -> remote PE routine */
     size_t state_sz; /**< @brief Number of bytes that SV is for the LP */

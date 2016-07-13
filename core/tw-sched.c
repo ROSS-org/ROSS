@@ -426,6 +426,9 @@ void tw_scheduler_sequential(tw_pe * me) {
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        }
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
@@ -513,6 +516,9 @@ void tw_scheduler_conservative(tw_pe * me) {
             reset_bitfields(cev);
             clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            if (*clp->type->commit) {
+                (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            }
 
             ckp->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
@@ -572,11 +578,11 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
-
-    tw_net_barrier(me);
 
     // call the model PE finalize function
     (*me->type.final)(me);
@@ -621,11 +627,11 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
-
-    tw_net_barrier(me);
 
     // call the model PE finalize function
     (*me->type.final)(me);
@@ -649,7 +655,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     printf(" 2) One 1 KP is used.\n");
     printf("    NOTE: use the --nkp=1 argument to the simulation to ensure that\n");
     printf("          it only uses 1 KP.\n");
-    printf(" 3) Events ARE NEVER RECLAIMED.\n");
+    printf(" 3) Events ARE NEVER RECLAIMED (LP Commit Functions are not called).\n");
     printf(" 4) Executes til out of memory (16 events left) and \n    injects rollback to first before primodal init event.\n");
     printf(" 5) g_tw_rollback_time = %13.12lf \n", g_tw_rollback_time);
     printf("/***************************************************************************/\n");
