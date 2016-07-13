@@ -154,6 +154,11 @@ struct tw_statistics {
     tw_clock s_lz4;
 
     tw_stat s_events_past_end;
+
+#ifdef USE_RIO
+    tw_clock s_rio_load;
+    tw_clock s_rio_lp_init;
+#endif
 };
 
 #ifdef ROSS_MEMORY
@@ -246,7 +251,10 @@ enum tw_event_owner {
     TW_net_asend = 6,       /**< @brief Network transmission in progress */
     TW_net_acancel = 7,     /**< @brief Network transmission in progress */
     TW_pe_sevent_q = 8,     /**< @brief In tw_pe.sevent_q */
-    TW_pe_free_q = 9        /**< @brief In tw_pe.free_q */
+    TW_pe_free_q = 9,       /**< @brief In tw_pe.free_q */
+#ifdef USE_RIO
+    IO_buffer = 10,         /**< @brief RIO captured event */
+#endif
 };
 typedef enum tw_event_owner tw_event_owner;
 
@@ -361,6 +369,7 @@ struct tw_kp {
     tw_pe *pe;      /**< @brief PE that services this KP */
     tw_kp *next;    /**< @brief Next KP in the PE's service list */
     tw_out *output; /**< @brief Output messages */
+    int lp_count;
 
 #ifdef ROSS_QUEUE_kp_splay
     tw_eventpq *pq;

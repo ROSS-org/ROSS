@@ -364,7 +364,9 @@ void tw_sched_init(tw_pe * me) {
     tw_net_barrier(me);
 
 #ifdef USE_RIO
+    tw_clock start = tw_clock_read();
     io_load_events(me);
+    me->stats.s_rio_load += (tw_clock_read() - start);
     tw_net_barrier(me);
 #endif
 
@@ -403,6 +405,7 @@ void tw_scheduler_sequential(tw_pe * me) {
     printf("*** START SEQUENTIAL SIMULATION ***\n\n");
 
     tw_wall_now(&me->start_time);
+    me->stats.s_total = tw_clock_read();
 
     while ((cev = tw_pq_dequeue(me->pq))) {
         tw_lp *clp = cev->dest_lp;
@@ -432,6 +435,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         tw_event_free(me, cev);
     }
     tw_wall_now(&me->end_time);
+    me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
     printf("*** END SIMULATION ***\n\n");
 

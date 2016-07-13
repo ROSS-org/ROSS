@@ -29,29 +29,6 @@ tw_event_grab(tw_pe *pe)
   return e;
 }
 
-#ifdef USE_RIO
-extern tw_eventq g_io_free_events;
-extern tw_eventq g_io_buffered_events;
-static inline tw_event * io_event_grab (tw_pe *pe) {
-    tw_event  *e = tw_eventq_pop(&g_io_free_events);
-
-    if (e) {
-        e->cancel_next = NULL;
-        e->caused_by_me = NULL;
-        e->cause_next = NULL;
-        e->prev = e->next = NULL;
-
-        memset(&e->state, 0, sizeof(e->state));
-        memset(&e->event_id, 0, sizeof(e->event_id));
-        tw_eventq_push(&g_io_buffered_events, e);
-    } else {
-        printf("WARNING: did not allocate enough events to RIO buffer\n");
-        e = pe->abort_event;
-    }
-    return e;
-}
-#endif
-
 static inline void
 tw_free_output_messages(tw_event *e, int print_message)
 {

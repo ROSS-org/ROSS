@@ -85,6 +85,10 @@ tw_stats(tw_pe * me)
         s.s_buddy += pe->stats.s_buddy;
         s.s_lz4 += pe->stats.s_lz4;
         s.s_events_past_end += pe->stats.s_events_past_end;
+#ifdef USE_RIO
+        s.s_rio_load += pe->stats.s_rio_load;
+        s.s_rio_lp_init += pe->stats.s_rio_lp_init;
+#endif
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -123,7 +127,7 @@ tw_stats(tw_pe * me)
 	show_lld("Event Ties Detected in PE Queues", s.s_pe_event_ties);
         if(g_tw_synchronization_protocol == CONSERVATIVE)
             printf("\t%-50s %11.9lf\n",
-               "Minimum TS Offset Detected in Conservative Mode",  
+               "Minimum TS Offset Detected in Conservative Mode",
                (double) s.s_min_detected_offset);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
 	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
@@ -158,7 +162,7 @@ tw_stats(tw_pe * me)
 	);
 
         show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
-        
+
 	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated",(1+g_tw_events_per_pe+g_tw_events_per_pe_extra) * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);
@@ -187,6 +191,10 @@ tw_stats(tw_pe * me)
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
     show_4f("Buddy system", (double) s.s_buddy / g_tw_clock_rate);
+#ifdef USE_RIO
+    show_4f("RIO Loading", (double) s.s_rio_load / g_tw_clock_rate);
+    show_4f("RIO LP Init", (double) s.s_rio_lp_init / g_tw_clock_rate);
+#endif
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);
 	show_4f("Event Abort", (double) s.s_event_abort / g_tw_clock_rate);

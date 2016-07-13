@@ -209,11 +209,12 @@ typedef uint64_t tw_lpid;
 #endif
 
 #include "tw-eventq.h"
-#include "ross-inline.h"
 
 #ifdef USE_RIO
 #include "../IO/io.h"
 #endif
+
+#include "ross-inline.h"
 
 #ifdef __cplusplus
 }

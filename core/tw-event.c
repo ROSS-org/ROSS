@@ -24,6 +24,7 @@ void tw_event_send(tw_event * event) {
 #ifdef USE_RIO
     // rio saves events scheduled past end time
      if (recv_ts >= g_tw_ts_end) {
+        link_causality(event, send_pe->cur_event);
         return;
     }
 #endif
@@ -107,6 +108,13 @@ static inline void event_cancel(tw_event * event) {
 
         return;
     }
+
+#ifdef USE_RIO
+    if (event->state.owner == IO_buffer) {
+        io_event_cancel(event);
+        return;
+    }
+#endif
 
     dest_peid = event->dest_lp->pe->id;
 

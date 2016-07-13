@@ -429,9 +429,11 @@ static tw_pe * setup_pes(void) {
         tw_eventq_alloc(&pe->free_q, num_events_per_pe);
         pe->abort_event = tw_eventq_shift(&pe->free_q);
 #ifdef USE_RIO
+        tw_clock start = tw_clock_read();
         for (i = 0; i < g_io_events_buffered_per_rank; i++) {
             tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
         }
+        pe->stats.s_rio_load = (tw_clock_read() - start);
 #endif
     }
 
