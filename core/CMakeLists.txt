@@ -63,7 +63,9 @@ stat_tree.c
 st-stats-buffer.h
 st-stats-buffer.c
 st-data-collection.h
-st-data-collection.c)
+st-data-collection.c
+st-event-collection.h
+st-event-collection.c)
 
 
 # ROSS VERSION INFORMATION

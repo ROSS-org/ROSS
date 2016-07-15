@@ -28,6 +28,7 @@ static const tw_optdef stats_options[] = {
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"), 
     TWOPT_UINT("time-interval", g_st_time_interval, "collect stats for specified sim time interval"), 
     TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"), 
+    TWOPT_UINT("event-rb-collect", g_st_ev_rb_collect, "collect detailed data on events that cause rollbacks; 1 for collection"),
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("pe-per-file", g_st_pe_per_file, "how many PEs to output per file"), 
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"), 

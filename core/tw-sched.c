@@ -59,8 +59,10 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
-                        if (g_st_time_interval)
-                            st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
+                        if (g_st_ev_rb_collect)
+                           st_collect_event_data(cev, start / g_tw_clock_rate ); 
+                        //if (g_st_time_interval)
+                        //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -234,14 +236,13 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
-	    clp->last_time = cev ? cev->recv_ts : me->GVT;
 	    
 	    tw_gvt_force_update(me);
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
-        if (g_st_time_interval)
-            st_tree_root = stat_increment(st_tree_root, cev->recv_ts, EVENTS_ABORTED, st_tree_root, 1);
+        //if (g_st_time_interval)
+        //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, EVENTS_ABORTED, st_tree_root, 1);
 	    
 	    break;
 	  } // END ABORT CHECK
@@ -599,6 +600,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
         st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
     if (g_st_real_time_samp)
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    if (g_st_ev_rb_collect)
+        st_buffer_finalize(g_st_buffer_evrb, EV_RB_COL);
 
     tw_stats(me);
 }
