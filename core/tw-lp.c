@@ -72,6 +72,7 @@ tw_lp_onkp(tw_lp * lp, tw_kp * kp)
 		tw_error(TW_LOC, "Bad LP pointer!");
 
 	lp->kp = kp;
+	kp->lp_count++;
 }
 
 void
@@ -107,9 +108,12 @@ tw_init_lps(tw_pe * me)
 #ifdef USE_RIO
 	// RIO requires that all LPs have been allocated
 	if (g_io_load_at == PRE_INIT || g_io_load_at == INIT) {
-        io_load_checkpoint(g_io_checkpoint_name);
+		tw_clock start = tw_clock_read();
+        io_read_checkpoint();
+        me->stats.s_rio_load += (tw_clock_read() - start);
     }
     if (g_io_load_at != INIT) {
+    	tw_clock start = tw_clock_read();
     	for (i = 0; i < g_tw_nlp; i++) {
 			tw_lp * lp = g_tw_lp[i];
 			me->cur_event = me->abort_event;
@@ -121,9 +125,12 @@ tw_init_lps(tw_pe * me)
 				tw_error(TW_LOC, "ran out of events during init");
 			}
 		}
+		me->stats.s_rio_lp_init += (tw_clock_read() - start);
 	}
     if (g_io_load_at == POST_INIT) {
-        io_load_checkpoint(g_io_checkpoint_name);
+		tw_clock start = tw_clock_read();
+        io_read_checkpoint();
+        me->stats.s_rio_load += (tw_clock_read() - start);
     }
 #endif
 }

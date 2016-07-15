@@ -24,6 +24,7 @@ void tw_event_send(tw_event * event) {
 #ifdef USE_RIO
     // rio saves events scheduled past end time
      if (recv_ts >= g_tw_ts_end) {
+        link_causality(event, send_pe->cur_event);
         return;
     }
 #endif
@@ -108,6 +109,13 @@ static inline void event_cancel(tw_event * event) {
         return;
     }
 
+#ifdef USE_RIO
+    if (event->state.owner == IO_buffer) {
+        io_event_cancel(event);
+        return;
+    }
+#endif
+
     dest_peid = event->dest_lp->pe->id;
 
     if (send_pe->id == dest_peid) {
@@ -157,7 +165,7 @@ void tw_event_rollback(tw_event * event) {
     dest_lp->kp->last_time = event->recv_ts;
 
     if( dest_lp->suspend_flag &&
-	dest_lp->suspend_event == event && 
+	dest_lp->suspend_event == event &&
 	// Must test time stamp since events are reused once GVT sweeps by
 	dest_lp->suspend_time == event->recv_ts)
       {
@@ -172,7 +180,7 @@ void tw_event_rollback(tw_event * event) {
 	    goto jump_over_rc_event_handler;
 	  }
 	else
-	  { // reset 
+	  { // reset
 	    dest_lp->suspend_do_orig_event_rc = 0;
 	    // note, should fall thru and process reverse events
 	  }
@@ -187,6 +195,9 @@ void tw_event_rollback(tw_event * event) {
         st_tree_root = stat_increment(st_tree_root, event->recv_ts, REVERSE_EV, st_tree_root, 1);
     if (g_st_real_time_samp)
         g_st_reverse_events++;
+
+    // reset critical path
+    dest_lp->critical_path = event->critical_path;
 
 jump_over_rc_event_handler:
     if (event->delta_buddy) {

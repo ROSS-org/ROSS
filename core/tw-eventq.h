@@ -5,7 +5,7 @@
 
 #include <ross.h>
 
-static inline void 
+static inline void
 tw_eventq_debug(tw_eventq * q)
 {
 #if ROSS_DEBUG
@@ -33,7 +33,7 @@ tw_eventq_debug(tw_eventq * q)
     tw_error(TW_LOC, "Tail pointer not correct!");
 
   if(cnt != q->size)
-    tw_error(TW_LOC, "Size not correct!");	
+    tw_error(TW_LOC, "Size not correct!");
 #else
   (void)q; // avoid "unused parameter" warning
 #endif
@@ -63,9 +63,15 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     q->size += cnt;
 
     // iterate through list to collect sent events
+    // go in reverse to ensure correct commit order
+    e = t;
     t = t->next;
-    for(e = h; e != t; e = e->next)
+    while(1)
     {
+        tw_lp * clp = e->dest_lp;
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
+        }
         tw_free_output_messages(e, 1);
 
         if (e->delta_buddy) {
@@ -98,12 +104,16 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             e->caused_by_me = NULL;
             e->state.owner = TW_pe_free_q;
         }
+        if (e == h) {
+          break;
+        }
+        e = e->prev;
     }
 
     tw_eventq_debug(q);
 }
 
-static inline void 
+static inline void
 tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 {
   tw_stime gvt = pe->GVT;
@@ -152,7 +162,7 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
   }
 }
 
-static inline void 
+static inline void
 tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
 {
   tw_event *event;
@@ -198,7 +208,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   cnt += g_tw_gvt_threshold;
 
   q->size = cnt;
-  /* allocate one at a time so tools like valgrind can detect buffer 
+  /* allocate one at a time so tools like valgrind can detect buffer
    * overflows */
 #ifdef ROSS_ALLOC_DEBUG
   q->head = event = (tw_event *)tw_calloc(TW_LOC, "events", event_len, 1);
@@ -227,7 +237,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   q->tail = event;
 }
 
-static inline void 
+static inline void
 tw_eventq_push(tw_eventq *q, tw_event *e)
 {
   tw_event *t = q->tail;
@@ -247,13 +257,13 @@ tw_eventq_push(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-static inline tw_event * 
+static inline tw_event *
 tw_eventq_peek(tw_eventq *q)
 {
   return q->tail;
 }
 
-static inline tw_event * 
+static inline tw_event *
 tw_eventq_pop(tw_eventq * q)
 {
   tw_event *t = q->tail;
@@ -281,7 +291,7 @@ tw_eventq_pop(tw_eventq * q)
   return t;
 }
 
-static inline void 
+static inline void
 tw_eventq_unshift(tw_eventq *q, tw_event *e)
 {
   tw_event *h = q->head;
@@ -302,13 +312,13 @@ tw_eventq_unshift(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-static inline tw_event * 
+static inline tw_event *
 tw_eventq_peek_head(tw_eventq *q)
 {
   return q->head;
 }
 
-static inline tw_event * 
+static inline tw_event *
 tw_eventq_shift(tw_eventq *q)
 {
   tw_event *h = q->head;
@@ -336,7 +346,7 @@ tw_eventq_shift(tw_eventq *q)
   return h;
 }
 
-static inline void 
+static inline void
 tw_eventq_delete_any(tw_eventq *q, tw_event *e)
 {
   tw_event *p = e->prev;
@@ -360,7 +370,7 @@ tw_eventq_delete_any(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
-static inline tw_event * 
+static inline tw_event *
 tw_eventq_pop_list(tw_eventq * q)
 {
   tw_event	*h = q->head;
@@ -375,9 +385,9 @@ tw_eventq_pop_list(tw_eventq * q)
  * The purpose of this function is to be able to remove some
  * part of a list.. could be all of list, from head to some inner
  * buffer, or from some inner buffer to tail.  I only care about the
- * last case.. 
+ * last case..
  */
-static inline void 
+static inline void
 tw_eventq_splice(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
 {
   tw_eventq_debug(q);

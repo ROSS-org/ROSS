@@ -49,7 +49,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
 {
         tw_pe *pe = (tw_pe *) tw_calloc(TW_LOC, "Local PE", sizeof(*pe), 1);
 	tw_petype no_type;
-	
+
 	memset(&no_type, 0, sizeof(no_type));
 
 	pe->id = gid;
