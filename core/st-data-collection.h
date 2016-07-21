@@ -35,8 +35,6 @@ typedef struct {
     tw_stat s_pe_event_ties;
 
     tw_stat s_ngvts;  
-    tw_stat fwd_events;
-    tw_stat rev_events;
 } st_event_counters;
 
 typedef struct {
@@ -56,8 +54,6 @@ extern MPI_File gvt_file;
 extern MPI_File interval_file;
 extern MPI_Comm  stats_comm;
 extern int g_st_disable_out;
-extern tw_stat g_st_forward_events;
-extern tw_stat g_st_reverse_events;
 
 st_cycle_counters last_cycle_counters;
 st_event_counters last_event_counters;

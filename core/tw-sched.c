@@ -220,8 +220,6 @@ static void tw_sched_batch(tw_pe * me) {
 	  }
     if (g_st_time_interval)
         st_tree_root = stat_increment(st_tree_root, cev->recv_ts, FORWARD_EV, st_tree_root, 1);
-    if (g_st_real_time_samp)
-        g_st_forward_events++;
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
