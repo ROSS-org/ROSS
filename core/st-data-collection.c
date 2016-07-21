@@ -434,11 +434,18 @@ void st_collect_event_counters(tw_pe *pe, char *data)
         t[3] += kp->s_rb_secondary;
     }
 
-    for (i = 0; i < 4; i++)
-    {
-        memcpy(&data[index], &t[i], sizeof(tw_stat)); 
-        index += sizeof(tw_stat);
-    }
+    tmp = t[0] - last_event_counters.s_nevent_processed;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+    tmp = t[1] - last_event_counters.s_e_rbs;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+    tmp = t[2] - last_event_counters.s_rb_total;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
+    tmp = t[3] - last_event_counters.s_rb_secondary;
+    memcpy(&data[index], &tmp, sizeof(tw_stat)); 
+    index += sizeof(tw_stat);
 
 	tmp = t[0] - t[1] - last_event_counters.s_net_events;
     memcpy(&data[index], &tmp, sizeof(tw_stat)); 

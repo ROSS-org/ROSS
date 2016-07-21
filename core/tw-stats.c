@@ -45,7 +45,6 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 	if (0 == g_tw_sim_started)
 		return;
 
-	bzero(s, sizeof(*s));
 
 	for(pe = NULL; (pe = tw_pe_next(pe));)
 	{
@@ -104,6 +103,7 @@ void
 tw_stats(tw_pe *me)
 {
     tw_statistics s;
+	bzero(&s, sizeof(s));
 	size_t m_alloc, m_waste;
 	tw_calloc_stats(&m_alloc, &m_waste);
     tw_lp *lp = NULL;

@@ -207,6 +207,7 @@ tw_gvt_step2(tw_pe *me)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_statistics s;
+        bzero(&s, sizeof(s));
         tw_get_stats(me, &s);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 		tw_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);

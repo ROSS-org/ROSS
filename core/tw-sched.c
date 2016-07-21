@@ -619,7 +619,10 @@ void tw_scheduler_optimistic(tw_pe * me) {
     if (g_st_stats_enabled)
         st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
     if (g_st_real_time_samp)
+    {
+        st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    }
     if (g_st_ev_rb_collect)
         st_buffer_finalize(g_st_buffer_evrb, EV_RB_COL);
 
