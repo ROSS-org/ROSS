@@ -1,9 +1,9 @@
 ## README for ROSS data collection
 
-Currenty 3 different types of data collection have been added to ROSS: GVT, virtual time sampling, 
-and real time sampling.  
-At the moment, only the GVT and real time sampling should be used.  Virtual time sampling still 
-needs a lot of work to actually be used.
+Currenty 2 different types of data collection have been added to ROSS: GVT and real time sampling.  
+There is also a virtual time sampling that maybe available in the future, but I removed the calls
+for it, since it needs a lot of work before it can really be used. 
+
 Both the GVT and real time collections can be used independently or together.  The options for 
 the data collection show under the title "ROSS Stats" when you run --help with a ROSS/CODES model.
 
@@ -30,7 +30,7 @@ of ROSS (e.g., for event processing, computing gvt, fossil collection, etc),
 amount of virtual time that LPs/KPs are ahead of GVT, and memory usage.  
 
 ### Virtual Time Sampling
-NOTE: This data collection does not run very well.
+NOTE: Function calls related to this data collection have been commented out for now.
 
 This collects data for virtual time steps specified by the user.  This is turned on using 
 --time-interval=n where n is some integer for the size of the time steps you want.  
@@ -64,9 +64,6 @@ There is a basic reader for both types of output being developed in the
 CODES-vis repo (ross-reader branch).  
 In the future we may switch to an already established file format (perhaps something like XDMF), 
 or just further develop what is being used currently.  
-
-Currently the virtual time collection is output as a human-readable csv and data can be written 
-out at any GVT.  It will eventually be changed to use the buffer and output in binary as well.
 
 ### Other notes
 There are a couple of other options that show up in the ROSS stats options.

@@ -82,7 +82,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
         //tw_gvt_stats_file_setup(gid);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
-    if (g_st_time_interval)
+    /*if (g_st_time_interval)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_interval_stats_file_setup(gid);
@@ -94,7 +94,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
         tmp = stat_find_max(st_tree_root);
         g_st_max_bin = tmp->key;
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-    }
+    }*/
     if (g_st_real_time_samp)
     {
         g_st_real_time_samp = g_st_real_time_samp * g_tw_clock_rate / 1000;
