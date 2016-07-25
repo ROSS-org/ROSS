@@ -1,7 +1,7 @@
 #include <ross.h>
 
 int g_st_ev_rb_collect = 0;
-static int buf_size = sizeof(tw_lpid) + sizeof(tw_peid) + sizeof(tw_stime) * 2; 
+static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2; 
 
 // collect src LP, dest LP, virtual time stamp, real time start
 void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
@@ -12,7 +12,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     int index = 0;
     char buffer[buf_size];
     
-    memcpy(&buffer[index], &(cev->send_pe), sizeof(tw_peid));
+    memcpy(&buffer[index], &(cev->send_lp), sizeof(tw_peid));
     index += sizeof(tw_lpid);
     memcpy(&buffer[index], &cev->dest_lp->gid, sizeof(tw_lpid));
     index += sizeof(tw_lpid);

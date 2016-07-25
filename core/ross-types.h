@@ -319,6 +319,7 @@ struct tw_event {
     tw_stime     recv_ts;           /**< @brief Actual time to be received */
 
     tw_peid      send_pe;
+    tw_lpid      send_lp;           /**< @brief sending LP ID for data collection uses */
 
 #ifdef ROSS_MEMORY
     tw_memory   *memory;

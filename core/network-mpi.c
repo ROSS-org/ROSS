@@ -510,6 +510,7 @@ send_begin(tw_pe *me)
 	e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
+      e->send_lp = e->src_lp->gid;
 
 #if ROSS_MEMORY
       // pack pointers
