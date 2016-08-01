@@ -357,6 +357,8 @@ struct tw_lp {
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
+    struct st_event_collect *ev_types;
+
   /* tw_suspend variables */
   tw_event    *suspend_event;
   tw_stime     suspend_time;

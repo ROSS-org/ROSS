@@ -110,6 +110,19 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
+void rb_event_collect(phold_message *m)
+{
+
+}
+
+st_event_collect event_types[] = {
+    {(rbev_col_f) rb_event_collect,
+     0,
+     (ev_col_f) NULL,
+     0},
+    {0}
+};
+
 const tw_optdef app_opt[] =
 {
 	TWOPT_GROUP("PHOLD Model"),
@@ -155,7 +168,10 @@ main(int argc, char **argv, char **env)
 	tw_define_lps(nlp_per_pe, sizeof(phold_message));
 
 	for(i = 0; i < g_tw_nlp; i++)
+    {
 		tw_lp_settype(i, &mylps[0]);
+        st_evcol_settype(i, &event_types[0]);
+    }
 
         if( g_tw_mynode == 0 )
 	  {
