@@ -1,6 +1,7 @@
 #include <ross.h>
 
 int g_st_ev_rb_collect = 0;
+int g_st_ev_collect = 0;
 st_event_collect *g_st_event_types = NULL;
 
 static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
@@ -27,8 +28,11 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     // add in callback function to be implemented by user so we can get event type (and potentially other data the user may want)
     int index = 0;
     int usr_sz = 0;
-    if (cev->dest_lp->ev_types)
+    if (g_st_ev_rb_collect && cev->dest_lp->ev_types)
         usr_sz = cev->dest_lp->ev_types->rbev_sz;
+    else if (g_st_ev_collect && cev->dest_lp->ev_types)
+        usr_sz = cev->dest_lp->ev_types->ev_sz;
+
     int total_sz = buf_size + usr_sz;
     char buffer[total_sz];
 
@@ -44,7 +48,12 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     if (index != buf_size)
         printf("WARNING: size of data being pushed to buffer is incorrect!");
     if (usr_sz > 0)
-        (*cev->dest_lp->ev_types->rbev_col)(tw_event_data(cev), &buffer[index]);
+    {
+        if (g_st_ev_rb_collect)
+            (*cev->dest_lp->ev_types->rbev_col)(tw_event_data(cev), &buffer[index]);
+        else if (g_st_ev_collect)
+            (*cev->dest_lp->ev_types->ev_col)(tw_event_data(cev), &buffer[index]);
+    }
 
     st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
 }
