@@ -223,6 +223,7 @@ static void tw_sched_batch(tw_pe * me) {
     //if (g_st_time_interval)
     //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, FORWARD_EV, st_tree_root, 1);
 	ckp->s_nevent_processed++;
+    clp->event_counters->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We

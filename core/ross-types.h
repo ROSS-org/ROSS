@@ -357,7 +357,10 @@ struct tw_lp {
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
+    /* for ROSS instrumentation */
     struct st_event_collect *ev_types;
+    struct st_lp_counters *event_counters;
+    struct st_lp_counters *prev_event_counters;
 
   /* tw_suspend variables */
   tw_event    *suspend_event;
@@ -399,6 +402,8 @@ struct tw_kp {
     long s_e_rbs; /**< @brief Number of events rolled back by this LP */
     long s_rb_total; /**< @brief Number of total rollbacks by this LP */
     long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
+    long last_s_rb_total; /**< @brief Number of total rollbacks by this LP */
+    long last_s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
 
 #ifdef ROSS_MEMORY
     tw_memoryq *pmemory_q; /**< @brief TW processed memory buffer queues */

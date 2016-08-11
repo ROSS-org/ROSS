@@ -359,6 +359,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
   dest_pe = e->dest_lp->pe;
+  e->dest_lp->event_counters->s_nread_network++;
 
   if(e->send_pe > tw_nnodes()-1)
     tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
@@ -603,6 +604,7 @@ static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
+  e->src_lp->event_counters->s_nsend_network++;
   //if (g_st_time_interval)
   //    st_tree_root = stat_increment(st_tree_root, e->recv_ts, REMOTE_SEND, st_tree_root, 1);
 
@@ -845,7 +847,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
     if (MPI_Reduce(&stat_write_cycle_counter,
         &me->stats.s_stat_write,
         1,
