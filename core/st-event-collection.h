@@ -1,7 +1,7 @@
 #include <ross.h>
 
-typedef void (*rbev_col_f) (void *msg, char *buffer);
-typedef void (*ev_col_f) (void *msg, char *buffer);
+typedef void (*rbev_col_f) (void *msg, tw_lp *lp, char *buffer);
+typedef void (*ev_col_f) (void *msg, tw_lp *lp, char *buffer);
 typedef struct st_event_collect st_event_collect;
 
 // each LP type needs to have this

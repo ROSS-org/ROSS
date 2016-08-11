@@ -110,7 +110,7 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
-void rb_event_collect(phold_message *m)
+void rb_event_collect(phold_message *m, tw_lp *lp, char *buffer)
 {
 
 }
@@ -118,7 +118,7 @@ void rb_event_collect(phold_message *m)
 st_event_collect event_types[] = {
     {(rbev_col_f) rb_event_collect,
      0,
-     (ev_col_f) NULL,
+     (ev_col_f) rb_event_collect,
      0},
     {0}
 };

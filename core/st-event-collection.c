@@ -32,6 +32,8 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
         usr_sz = cev->dest_lp->ev_types->rbev_sz;
     else if (g_st_ev_collect && cev->dest_lp->ev_types)
         usr_sz = cev->dest_lp->ev_types->ev_sz;
+    //else
+    //    printf("usr_sz == 0\n");
 
     int total_sz = buf_size + usr_sz;
     char buffer[total_sz];
@@ -50,10 +52,14 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     if (usr_sz > 0)
     {
         if (g_st_ev_rb_collect)
-            (*cev->dest_lp->ev_types->rbev_col)(tw_event_data(cev), &buffer[index]);
+            (*cev->dest_lp->ev_types->rbev_col)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
         else if (g_st_ev_collect)
-            (*cev->dest_lp->ev_types->ev_col)(tw_event_data(cev), &buffer[index]);
+            (*cev->dest_lp->ev_types->ev_col)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
+    //    else
+    //        printf("shouldn't happen: usr_sz > 0 but didn't call event\n");
     }
+    //else
+    //    printf("shouldn't happen: usr_sz <= 0\n");
 
     st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
 }

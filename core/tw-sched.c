@@ -214,10 +214,10 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-	    (*clp->type->event)(clp->cur_state, &cev->cv,
-				tw_event_data(cev), clp);
         if (g_st_ev_collect)
             st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate );
+	    (*clp->type->event)(clp->cur_state, &cev->cv,
+				tw_event_data(cev), clp);
         cev->critical_path = prev_cp;
 	  }
     //if (g_st_time_interval)
