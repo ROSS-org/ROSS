@@ -303,15 +303,15 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     {
         kp = tw_getkp(i);
 
-        tmp = kp->s_rb_total - kp->last_s_rb_total;
+        tmp = kp->s_rb_total - kp->last_s_rb_total_gvt;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        kp->last_s_rb_total = kp->s_rb_total;
+        kp->last_s_rb_total_gvt = kp->s_rb_total;
 
-        tmp = kp->s_rb_secondary - kp->last_s_rb_secondary;
+        tmp = kp->s_rb_secondary - kp->last_s_rb_secondary_gvt;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        kp->last_s_rb_secondary = kp->s_rb_secondary;
+        kp->last_s_rb_secondary_gvt = kp->s_rb_secondary;
     }
 
     /* LP granularity */
@@ -319,32 +319,32 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     {
         lp = tw_getlp(i);
 
-        tmp = lp->event_counters->s_nevent_processed - lp->prev_event_counters->s_nevent_processed;
+        tmp = lp->event_counters->s_nevent_processed - lp->prev_event_counters_gvt->s_nevent_processed;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        lp->prev_event_counters->s_nevent_processed = lp->event_counters->s_nevent_processed;
+        lp->prev_event_counters_gvt->s_nevent_processed = lp->event_counters->s_nevent_processed;
 
-        tmp = lp->event_counters->s_e_rbs - lp->prev_event_counters->s_e_rbs;
+        tmp = lp->event_counters->s_e_rbs - lp->prev_event_counters_gvt->s_e_rbs;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        lp->prev_event_counters->s_e_rbs = lp->event_counters->s_e_rbs;
+        lp->prev_event_counters_gvt->s_e_rbs = lp->event_counters->s_e_rbs;
 
-        tmp = lp->event_counters->s_nsend_network - lp->prev_event_counters->s_nsend_network;
+        tmp = lp->event_counters->s_nsend_network - lp->prev_event_counters_gvt->s_nsend_network;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        lp->prev_event_counters->s_nsend_network = lp->event_counters->s_nsend_network;
+        lp->prev_event_counters_gvt->s_nsend_network = lp->event_counters->s_nsend_network;
 
-        tmp = lp->event_counters->s_nread_network - lp->prev_event_counters->s_nread_network;
+        tmp = lp->event_counters->s_nread_network - lp->prev_event_counters_gvt->s_nread_network;
         memcpy(&buffer[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
-        lp->prev_event_counters->s_nread_network = lp->event_counters->s_nread_network;
+        lp->prev_event_counters_gvt->s_nread_network = lp->event_counters->s_nread_network;
 
         // next stat not guaranteed to always be non-decreasing
         // can't use tw_stat (unsigned long long) for negative number
-        tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters->s_nsend_net_remote;
+        tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters_gvt->s_nsend_net_remote;
         memcpy(&buffer[index], &tmp2, sizeof(long long));
         index += sizeof(long long);
-        lp->prev_event_counters->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
+        lp->prev_event_counters_gvt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
 
     }
     if (index != buf_size)
@@ -376,9 +376,16 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     st_collect_cycle_counters(pe, &data_cycles[0]);
     total_size += data_size;
 
-    data_size = sizeof(st_event_counters);
+    if (g_st_granularity == 0)
+        data_size = sizeof(st_event_counters);
+    else
+        data_size = sizeof(tw_stat) * 5 + sizeof(tw_stat) * 2 * g_tw_nkp + (sizeof(tw_stat) * 4 + sizeof(long long)) * g_tw_nlp;
+
     char data_events[data_size];
-    st_collect_event_counters(pe, &data_events[0]);
+    if (g_st_granularity == 0)
+        st_collect_event_counters_pes(pe, &data_events[0]);
+    else
+        st_collect_event_counters_lps(pe, &data_events[0]);
     total_size += data_size;
 
     data_size = sizeof(size_t) * 2;
@@ -493,9 +500,8 @@ void st_collect_cycle_counters(tw_pe *pe, char *data)
     last_cycle_counters.s_lz4 = pe->stats.s_lz4;
 }
 
-void st_collect_event_counters(tw_pe *pe, char *data)
+void st_collect_event_counters_pes(tw_pe *pe, char *data)
 {
-    //TODO need to add in collection for LP/KP level granularity
     int i, index = 0;
     tw_kp *kp;
     tw_stat tmp;
@@ -590,97 +596,87 @@ void st_collect_event_counters(tw_pe *pe, char *data)
 
 void st_collect_event_counters_lps(tw_pe *pe, char *data)
 {
-    //TODO need to add in collection for LP/KP level granularity
     int i, index = 0;
     tw_kp *kp;
+    tw_lp *lp;
     tw_stat tmp;
+    long long tmp2;
 
+    /* PE granularity */
     tmp = pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort;
     memcpy(&data[index], &tmp, sizeof(tw_stat));
     index += sizeof(tw_stat);
+    last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
 
     tmp = tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
     memcpy(&data[index], &tmp, sizeof(tw_stat));
     index += sizeof(tw_stat);
-
-    tmp = pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-
-    tmp = pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-
-    tmp = pe->stats.s_nsend_network - last_event_counters.s_nsend_network;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-
-    tmp = pe->stats.s_nread_network - last_event_counters.s_nread_network;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-
-    tmp = pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
 
     tmp = pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties;
     memcpy(&data[index], &tmp, sizeof(tw_stat));
     index += sizeof(tw_stat);
+    last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
 
     tmp = g_tw_fossil_attempts - last_event_counters.s_fc_attempts;
     memcpy(&data[index], &tmp, sizeof(tw_stat));
     index += sizeof(tw_stat);
+    last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
 
     tmp = g_tw_gvt_done - last_event_counters.s_ngvts;
     memcpy(&data[index], &tmp, sizeof(tw_stat));
     index += sizeof(tw_stat);
+    last_event_counters.s_ngvts = g_tw_gvt_done;
 
-    tw_stat t[4] = {0};
+    /* KP granularity */
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
-        t[0] += kp->s_nevent_processed;
-        t[1] += kp->s_e_rbs;
-        t[2] += kp->s_rb_total;
-        t[3] += kp->s_rb_secondary;
+
+        tmp = kp->s_rb_total - kp->last_s_rb_total_rt;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        kp->last_s_rb_total_rt = kp->s_rb_total;
+
+        tmp = kp->s_rb_secondary - kp->last_s_rb_secondary_rt;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        kp->last_s_rb_secondary_rt = kp->s_rb_secondary;
     }
 
-    tmp = t[0] - last_event_counters.s_nevent_processed;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[1] - last_event_counters.s_e_rbs;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[2] - last_event_counters.s_rb_total;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[3] - last_event_counters.s_rb_secondary;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
 
-	tmp = t[0] - t[1] - last_event_counters.s_net_events;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-	tmp = t[2] - t[3] - last_event_counters.s_rb_primary;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    /* LP granularity */
+    for (i=0; i < g_tw_nlp; i++)
+    {
+        lp = tw_getlp(i);
 
-    last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
-    last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
-    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
-    last_event_counters.s_nsend_network = pe->stats.s_nsend_network;
-    last_event_counters.s_nread_network = pe->stats.s_nread_network;
-    last_event_counters.s_nsend_remote_rb = pe->stats.s_nsend_remote_rb;
-    last_event_counters.s_nsend_loc_remote = pe->stats.s_nsend_loc_remote;
-    last_event_counters.s_nsend_net_remote = pe->stats.s_nsend_net_remote;
-    last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
-    last_event_counters.s_ngvts = g_tw_gvt_done;
-    last_event_counters.s_nevent_processed = t[0];
-    last_event_counters.s_e_rbs = t[1];
-    last_event_counters.s_rb_total = t[2];
-    last_event_counters.s_rb_secondary = t[3];
-    last_event_counters.s_net_events = t[0] - t[1];
-    last_event_counters.s_rb_primary = t[2] - t[3];
+        tmp = lp->event_counters->s_nevent_processed - lp->prev_event_counters_rt->s_nevent_processed;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        lp->prev_event_counters_rt->s_nevent_processed = lp->event_counters->s_nevent_processed;
+
+        tmp = lp->event_counters->s_e_rbs - lp->prev_event_counters_rt->s_e_rbs;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        lp->prev_event_counters_rt->s_e_rbs = lp->event_counters->s_e_rbs;
+
+        tmp = lp->event_counters->s_nsend_network - lp->prev_event_counters_rt->s_nsend_network;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        lp->prev_event_counters_rt->s_nsend_network = lp->event_counters->s_nsend_network;
+
+        tmp = lp->event_counters->s_nread_network - lp->prev_event_counters_rt->s_nread_network;
+        memcpy(&data[index], &tmp, sizeof(tw_stat));
+        index += sizeof(tw_stat);
+        lp->prev_event_counters_rt->s_nread_network = lp->event_counters->s_nread_network;
+
+        // next stat not guaranteed to always be non-decreasing
+        // can't use tw_stat (unsigned long long) for negative number
+        tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters_rt->s_nsend_net_remote;
+        memcpy(&data[index], &tmp2, sizeof(long long));
+        index += sizeof(long long);
+        lp->prev_event_counters_rt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
+    }
 }
 
 void st_collect_memory_usage(char *data)

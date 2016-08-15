@@ -99,7 +99,8 @@ tw_init_lps(tw_pe * me)
         //if (g_st_stats_enabled || g_st_real_time_samp)
         {
             lp->event_counters = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
-            lp->prev_event_counters = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
+            lp->prev_event_counters_gvt = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
+            lp->prev_event_counters_rt = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
         }
 
 #ifndef USE_RIO
