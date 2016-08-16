@@ -310,6 +310,9 @@ unsigned instList[] = {
 void tw_run(void) {
     tw_pe *me;
 
+    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_rb_collect || g_st_ev_collect)
+        st_stats_init();
+
     late_sanity_check();
 
     me = setup_pes();
@@ -333,7 +336,7 @@ void tw_run(void) {
     Bgpm_Apply(hEvtSet);
     Bgpm_Start(hEvtSet);
 #endif
-    
+
     tw_sched_init(me);
 
     switch(g_tw_synchronization_protocol) {
@@ -455,7 +458,7 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        printf("\t%-50s %11llu\n", "Total LPs", 
+        printf("\t%-50s %11llu\n", "Total LPs",
 	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
         fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 

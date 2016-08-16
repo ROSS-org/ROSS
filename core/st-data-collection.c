@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <sys/stat.h>
+#include <inttypes.h>
 
 char g_st_stats_out[128] = {0};
 int g_st_stats_enabled = 0;
@@ -45,12 +46,17 @@ const tw_optdef *tw_stats_setup(void)
 
 void st_stats_init()
 {
+    int i;
+    int npe = tw_nnodes();
+    tw_lpid nlp_per_pe[npe];
+    MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
     // Need to call after st_buffer_init()!
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
         char filename[128];
         sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
         file = fopen(filename, "w");
+
         fprintf(file, "Info for ROSS run.\n\n");
 #if HAVE_CTIME
         time_t raw_time;
@@ -64,6 +70,14 @@ void st_stats_init()
         //fprintf(file, "MODEL Version:\t%s\n", model_version);
         fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
         tw_opt_settings(file);
+        fprintf(file, "LPs per PE\n");
+        for (i = 0; i < npe; i++)
+        {
+            if (i == npe - 1)
+                fprintf(file, "%"PRIu64"\n", nlp_per_pe[i]);
+            else
+                fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
+        }
         fclose(file);
     }
 }
@@ -339,14 +353,19 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
         index += sizeof(tw_stat);
         lp->prev_event_counters_gvt->s_nread_network = lp->event_counters->s_nread_network;
 
+    }
+
+    for (i=0; i < g_tw_nlp; i++)
+    {
+        lp = tw_getlp(i);
         // next stat not guaranteed to always be non-decreasing
         // can't use tw_stat (unsigned long long) for negative number
         tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters_gvt->s_nsend_net_remote;
         memcpy(&buffer[index], &tmp2, sizeof(long long));
         index += sizeof(long long);
         lp->prev_event_counters_gvt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
-
     }
+
     if (index != buf_size)
         printf("WARNING: size of data being pushed to buffer is incorrect!");
 
@@ -669,7 +688,10 @@ void st_collect_event_counters_lps(tw_pe *pe, char *data)
         memcpy(&data[index], &tmp, sizeof(tw_stat));
         index += sizeof(tw_stat);
         lp->prev_event_counters_rt->s_nread_network = lp->event_counters->s_nread_network;
-
+    }
+    for (i=0; i < g_tw_nlp; i++)
+    {
+        lp = tw_getlp(i);
         // next stat not guaranteed to always be non-decreasing
         // can't use tw_stat (unsigned long long) for negative number
         tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters_rt->s_nsend_net_remote;
