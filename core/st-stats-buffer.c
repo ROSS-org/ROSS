@@ -58,9 +58,12 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
         {
             printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
             buffer_overflow_warned = 1;
+            printf("tw_now() = %f\n", tw_now(g_tw_lp[0]));
         }
-        missed_bytes += size - st_buffer_free_space(buffer);
-        size = st_buffer_free_space(buffer);
+        //missed_bytes += size - st_buffer_free_space(buffer);
+        //size = st_buffer_free_space(buffer);
+        missed_bytes += size;
+        size = 0; // if we can't push it all, don't push anything to buffer
     }
 
     if (size)
@@ -75,8 +78,8 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
         {
             size2 = size - size1;
             memcpy(st_buffer_write_ptr(buffer), data, size1);
-            memcpy(buffer->buffer, data + size1 + 1, size2);
-            buffer->write_pos += size2;
+            memcpy(buffer->buffer, data + size1, size2);
+            buffer->write_pos = size2;
         }
     }
     buffer->count += size;
@@ -147,6 +150,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         buffer->write_pos = 0;
         buffer->read_pos = 0;
         buffer->count = 0;
+        buffer_overflow_warned = 0;
     }
 }
 

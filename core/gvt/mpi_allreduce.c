@@ -217,14 +217,16 @@ tw_gvt_step2(tw_pe *me)
         // increment appropriate bin for gvt comp
         st_tree_root = stat_increment(st_tree_root, gvt, NUM_GVT, st_tree_root, 1);
         st_tree_root = stat_increment(st_tree_root, gvt, NUM_ALLREDUCE, st_tree_root, tmp_all_red_cnt);
-        
+
         st_tree_root = gvt_write_bins(NULL, st_tree_root, gvt);
     }*/
 
     if (!g_st_disable_out && g_st_stats_enabled)
-        st_buffer_write(g_st_buffer_gvt, 0, GVT_COL); 
+        st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);
     if (!g_st_disable_out && g_st_real_time_samp)
-        st_buffer_write(g_st_buffer_rt, 0, RT_COL); 
+        st_buffer_write(g_st_buffer_rt, 0, RT_COL);
+    if (!g_st_disable_out && (g_st_ev_rb_collect || g_st_ev_collect))
+        st_buffer_write(g_st_buffer_evrb, 0, EV_RB_COL);
 
 	g_tw_gvt_done++;
 
