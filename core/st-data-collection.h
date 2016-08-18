@@ -17,36 +17,36 @@ typedef struct {
 } st_cycle_counters;
 
 typedef struct {
-    tw_stat s_net_events;
-    tw_stat s_nevent_processed;
-    tw_stat s_nevent_abort;
-    tw_stat s_e_rbs;
+    unsigned int s_net_events;
+    unsigned int s_nevent_processed;
+    unsigned int s_nevent_abort;
+    unsigned int s_e_rbs;
 
-    tw_stat s_rb_total;
-    tw_stat s_rb_primary;
-    tw_stat s_rb_secondary;
-    tw_stat s_fc_attempts;
+    unsigned int s_rb_total;
+    unsigned int s_rb_primary;
+    unsigned int s_rb_secondary;
+    unsigned int s_fc_attempts;
 
-    tw_stat s_pq_qsize;
-    tw_stat s_nsend_network;
-    tw_stat s_nread_network;
-    tw_stat s_nsend_remote_rb;
+    unsigned int s_pq_qsize;
+    unsigned int s_nsend_network;
+    unsigned int s_nread_network;
+    unsigned int s_nsend_remote_rb;
 
-    tw_stat s_nsend_loc_remote;
-    tw_stat s_nsend_net_remote;
-    tw_stat s_pe_event_ties;
+    unsigned int s_nsend_loc_remote;
+    unsigned int s_nsend_net_remote;
+    unsigned int s_pe_event_ties;
 
-    tw_stat s_ngvts;
+    unsigned int s_ngvts;
 } st_event_counters;
 
 struct st_lp_counters{
-    tw_stat s_nevent_processed;
-    tw_stat s_e_rbs;
+    unsigned int s_nevent_processed;
+    unsigned int s_e_rbs;
 
-    tw_stat s_nsend_network;
-    tw_stat s_nread_network;
+    unsigned int s_nsend_network;
+    unsigned int s_nread_network;
 
-    tw_stat s_nsend_net_remote;
+    unsigned int s_nsend_net_remote;
 };
 
 typedef struct {

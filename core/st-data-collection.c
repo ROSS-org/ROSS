@@ -393,9 +393,11 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
 void st_collect_data(tw_pe *pe, tw_stime current_rt)
 {
     int index = 0;
-    int total_size = sizeof(tw_peid) + sizeof(tw_stime)*2;
-    int data_size = (g_tw_nkp/* + g_tw_nlp*/) * sizeof(tw_stime);
+    int total_size = sizeof(unsigned short) + sizeof(float)*2;
+    int data_size = g_tw_nkp * sizeof(float);
     char data_gvt[data_size];
+    unsigned short id = (unsigned short)pe->id;
+    float ts;
 
     st_collect_time_ahead_GVT(pe, &data_gvt[0]);
     total_size += data_size;
@@ -408,7 +410,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     if (g_st_granularity == 0)
         data_size = sizeof(st_event_counters);
     else
-        data_size = sizeof(tw_stat) * 5 + sizeof(tw_stat) * 2 * g_tw_nkp + (sizeof(tw_stat) * 4 + sizeof(long long)) * g_tw_nlp;
+        data_size = sizeof(unsigned int) * 5 + sizeof(unsigned int) * 2 * g_tw_nkp + (sizeof(unsigned int) * 4 + sizeof(int)) * g_tw_nlp;
 
     char data_events[data_size];
     if (g_st_granularity == 0)
@@ -417,26 +419,28 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
         st_collect_event_counters_lps(pe, &data_events[0]);
     total_size += data_size;
 
-    data_size = sizeof(size_t) * 2;
-    char data_mem[data_size];
-    st_collect_memory_usage(&data_mem[0]);
-    total_size += data_size;
+    //data_size = sizeof(size_t) * 2;
+    //char data_mem[data_size];
+    //st_collect_memory_usage(&data_mem[0]);
+    //total_size += data_size;
 
     char final_data[total_size];
-    memcpy(&final_data[index], &pe->id, sizeof(tw_peid));
-    index += sizeof(tw_peid);
-    memcpy(&final_data[index], &current_rt, sizeof(tw_stime));
-    index += sizeof(tw_stime);
-    memcpy(&final_data[index], &pe->GVT, sizeof(tw_stime));
-    index += sizeof(tw_stime);
+    memcpy(&final_data[index], &id, sizeof(id));
+    index += sizeof(id);
+    ts = (float) current_rt;
+    memcpy(&final_data[index], &ts, sizeof(ts));
+    index += sizeof(ts);
+    ts = (float)pe->GVT;
+    memcpy(&final_data[index], &ts, sizeof(ts));
+    index += sizeof(ts);
     memcpy(&final_data[index], &data_gvt[0], sizeof(data_gvt));
     index += sizeof(data_gvt);
     memcpy(&final_data[index], &data_cycles[0], sizeof(data_cycles));
     index += sizeof(data_cycles);
     memcpy(&final_data[index], &data_events[0], sizeof(data_events));
     index += sizeof(data_events);
-    memcpy(&final_data[index], &data_mem[0], sizeof(data_mem));
-    index += sizeof(data_mem);
+    //memcpy(&final_data[index], &data_mem[0], sizeof(data_mem));
+    //index += sizeof(data_mem);
     st_buffer_push(g_st_buffer_rt, final_data, total_size);
 }
 
@@ -444,27 +448,19 @@ void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
 {
     tw_kp *kp;
     tw_lp *lp;
-    tw_stime time;
+    float time;
     int i, index = 0;
 
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
         if (pe->GVT <= g_tw_ts_end)
-            time = kp->last_time - pe->GVT;
+            time = (float)(kp->last_time - pe->GVT);
         else
             time = -1.0; // so we can filter out
-        memcpy(&data[index], &time, sizeof(tw_stime));
-        index += sizeof(tw_stime);
+        memcpy(&data[index], &time, sizeof(time));
+        index += sizeof(time);
     }
-    /*for(i = 0; i < g_tw_nlp; i++)
-    {
-        lp = tw_getlp(i);
-        time = lp->last_time - pe->GVT;
-        memcpy(&data[index], &time, sizeof(tw_stime));
-        index += sizeof(tw_stime);
-
-    }*/
 }
 
 void st_collect_cycle_counters(tw_pe *pe, char *data)
@@ -535,47 +531,47 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     tw_kp *kp;
     tw_stat tmp;
 
-    tmp = pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_nsend_network - last_event_counters.s_nsend_network;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nsend_network - last_event_counters.s_nsend_network);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_nread_network - last_event_counters.s_nread_network;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nread_network - last_event_counters.s_nread_network);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = g_tw_fossil_attempts - last_event_counters.s_fc_attempts;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(g_tw_fossil_attempts - last_event_counters.s_fc_attempts);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tmp = g_tw_gvt_done - last_event_counters.s_ngvts;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(g_tw_gvt_done - last_event_counters.s_ngvts);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-    tw_stat t[4] = {0};
+    unsigned int t[4] = {0};
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
@@ -585,25 +581,25 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
         t[3] += kp->s_rb_secondary;
     }
 
-    tmp = t[0] - last_event_counters.s_nevent_processed;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[1] - last_event_counters.s_e_rbs;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[2] - last_event_counters.s_rb_total;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-    tmp = t[3] - last_event_counters.s_rb_secondary;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = t[0] - (unsigned int)last_event_counters.s_nevent_processed;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
+    tmp = t[1] - (unsigned int)last_event_counters.s_e_rbs;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
+    tmp = t[2] - (unsigned int)last_event_counters.s_rb_total;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
+    tmp = t[3] - (unsigned int)last_event_counters.s_rb_secondary;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
-	tmp = t[0] - t[1] - last_event_counters.s_net_events;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
-	tmp = t[2] - t[3] - last_event_counters.s_rb_primary;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+	tmp = t[0] - t[1] - (unsigned int)last_event_counters.s_net_events;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
+	tmp = t[2] - t[3] - (unsigned int)last_event_counters.s_rb_primary;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
 
     last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
     last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
@@ -628,33 +624,33 @@ void st_collect_event_counters_lps(tw_pe *pe, char *data)
     int i, index = 0;
     tw_kp *kp;
     tw_lp *lp;
-    tw_stat tmp;
-    long long tmp2;
+    unsigned int tmp;
+    int tmp2;
 
     /* PE granularity */
-    tmp = pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
     last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
 
-    tmp = tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
     last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
 
-    tmp = pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
     last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
 
-    tmp = g_tw_fossil_attempts - last_event_counters.s_fc_attempts;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(g_tw_fossil_attempts - last_event_counters.s_fc_attempts);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
     last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
 
-    tmp = g_tw_gvt_done - last_event_counters.s_ngvts;
-    memcpy(&data[index], &tmp, sizeof(tw_stat));
-    index += sizeof(tw_stat);
+    tmp = (unsigned int)(g_tw_gvt_done - last_event_counters.s_ngvts);
+    memcpy(&data[index], &tmp, sizeof(unsigned int));
+    index += sizeof(unsigned int);
     last_event_counters.s_ngvts = g_tw_gvt_done;
 
     /* KP granularity */
@@ -662,14 +658,14 @@ void st_collect_event_counters_lps(tw_pe *pe, char *data)
     {
         kp = tw_getkp(i);
 
-        tmp = kp->s_rb_total - kp->last_s_rb_total_rt;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(kp->s_rb_total - kp->last_s_rb_total_rt);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         kp->last_s_rb_total_rt = kp->s_rb_total;
 
-        tmp = kp->s_rb_secondary - kp->last_s_rb_secondary_rt;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(kp->s_rb_secondary - kp->last_s_rb_secondary_rt);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         kp->last_s_rb_secondary_rt = kp->s_rb_secondary;
     }
 
@@ -679,34 +675,34 @@ void st_collect_event_counters_lps(tw_pe *pe, char *data)
     {
         lp = tw_getlp(i);
 
-        tmp = lp->event_counters->s_nevent_processed - lp->prev_event_counters_rt->s_nevent_processed;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(lp->event_counters->s_nevent_processed - lp->prev_event_counters_rt->s_nevent_processed);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         lp->prev_event_counters_rt->s_nevent_processed = lp->event_counters->s_nevent_processed;
 
-        tmp = lp->event_counters->s_e_rbs - lp->prev_event_counters_rt->s_e_rbs;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(lp->event_counters->s_e_rbs - lp->prev_event_counters_rt->s_e_rbs);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         lp->prev_event_counters_rt->s_e_rbs = lp->event_counters->s_e_rbs;
 
-        tmp = lp->event_counters->s_nsend_network - lp->prev_event_counters_rt->s_nsend_network;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(lp->event_counters->s_nsend_network - lp->prev_event_counters_rt->s_nsend_network);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         lp->prev_event_counters_rt->s_nsend_network = lp->event_counters->s_nsend_network;
 
-        tmp = lp->event_counters->s_nread_network - lp->prev_event_counters_rt->s_nread_network;
-        memcpy(&data[index], &tmp, sizeof(tw_stat));
-        index += sizeof(tw_stat);
+        tmp = (unsigned int)(lp->event_counters->s_nread_network - lp->prev_event_counters_rt->s_nread_network);
+        memcpy(&data[index], &tmp, sizeof(unsigned int));
+        index += sizeof(unsigned int);
         lp->prev_event_counters_rt->s_nread_network = lp->event_counters->s_nread_network;
     }
     for (i=0; i < g_tw_nlp; i++)
     {
         lp = tw_getlp(i);
         // next stat not guaranteed to always be non-decreasing
-        // can't use tw_stat (unsigned long long) for negative number
-        tmp2 = (long long)lp->event_counters->s_nsend_net_remote - (long long)lp->prev_event_counters_rt->s_nsend_net_remote;
-        memcpy(&data[index], &tmp2, sizeof(long long));
-        index += sizeof(long long);
+        // can't use unsigned int (unsigned long long) for negative number
+        tmp2 = (int)lp->event_counters->s_nsend_net_remote - (int)lp->prev_event_counters_rt->s_nsend_net_remote;
+        memcpy(&data[index], &tmp2, sizeof(int));
+        index += sizeof(int);
         lp->prev_event_counters_rt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
     }
 }
