@@ -71,7 +71,7 @@ the data in the buffer and the I/O.  The benefit to this is that the user can ch
 and ROSS will handle this as well.  It's important to remember that this data collection will result in a lot of output, since it's happening per event.  
 
 This is implemented similarly to how the LP type function pointers are implemented.  (As a side note, it is a different
-struct, so that non-instrumented ROSS can still be run without requiring any additions to models).
+struct, so that non-instrumented ROSS can still be run without requiring any additions to models).  Once you have functions implemented and their pointers set to be registered with ROSS, you can turn on the event tracing with either `--event-trace=1` for full event trace or `--event-trace=2` for tracing only events that cause rollbacks. 
 
 ##### Function pointers:
 ```C
