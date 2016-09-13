@@ -1,35 +1,67 @@
 ## README for ROSS data collection
 
-Currently several different types of data collection have been added to ROSS: GVT, real time sampling, and event-level collection.  
-There is also a virtual time sampling that may be available in the future, but I removed the calls
-for it within ROSS, since it needs a lot of work before it can really be used. 
+Currently several different types of instrumentation have been added to ROSS: GVT-based, real time sampling, and event tracing.  
+All 3 instrumentation types can be used independently or together.  The options for 
+the data collection show under the title "ROSS Stats" when you run `--help` with a ROSS/CODES model.  The GVT-based and real time sampling require no changes to the model-level code.  Just make sure you've built ROSS using the Vis2 branch and then rebuild your model (including CODES if necessary).  The event tracing does require some minor changes to model code in order to work and is described in the event tracing section below.
 
-Both the GVT and real time collections can be used independently or together.  The options for 
-the data collection show under the title "ROSS Stats" when you run `--help` with a ROSS/CODES model.
-
-For all data collection types, you can use `--stats-filename` option to set a prefix for the output files.  
+For all instrumentation types, you can use `--stats-filename` option to set a prefix for the output files.  
 All of the output files are stored in a directory named `stats-output` that is created in the running directory.
 
-### GVT data collection
-This collects data after each GVT. The data is currently collected per PE, but eventually there 
-will also be some data collected at KP and LP granularities.  
-So far the following data is collected per PE at each GVT (in order of output):
+### GVT-based Instrumentation
+This collects data immediately after each GVT and can be turned on by using `--enable-gvt-stats=1` at runtime. By default, the data is collected on a PE basis, but some metrics can be changed to tracking on a KP or LP basis (depending on the metric).  To turn on instrumentation for the KP/LP granularity, use `--granularity=1`.    
 
-PE_ID, GVT, all_reduce_count, events_processed, events_aborted, events_rolled_back, event_ties, total_rollbacks, 
-primary_rollbacks, secondary_rollbacks, fossil_collects, network_sends, network_recvs, remote_events, net_events, efficiency
+When collecting only on a PE basis (i.e., `--granularity=0`), this is the format of the data:
 
-This collection can be turned on by using `--enable-gvt-stats=1` at runtime.
+```
+PE_ID, GVT, all_reduce_count, events_processed, events_aborted, events_rolled_back, event_ties, 
+total_rollbacks, primary_rollbacks, secondary_rollbacks, fossil_collects, network_sends,
+network_recvs, remote_events, net_events, efficiency
+```
+
+When collecting on a KP/LP basis, this is the format:
+
+```
+PE_ID, GVT, all_reduce_count, events_aborted, event_ties, fossil_collect, net_events, efficiency, 
+total_rollbacks_KP0, secondary_rollbacks_KP0, ..., total_rollbacks_KPi, secondary_rollbacks_KPi, 
+events_processed_LP0, events_rolled_back_LP0, network_sends_LP0, network_recvs_LP0,
+..., events_processed_LPj, events_rolled_back_LPj, network_sends_LPj,network_recvs_LPj,
+remote_events_LP0, ..., remote_events_LPj
+```
+
+where i,j are the total number of KPs and LPs for the PE, respectively.  
 
 ### Real Time Sampling
 This collects data at real time intervals specified by the user.  It is turned on using 
 `--real-time-samp=n`, where n is the number of milliseconds per interval.  
-Right now this collects a lot of information about events (such as total events, net events, 
-rollbacks, remote events), number of GVTs computed, cycle counters for all of the components 
-of ROSS (e.g., for event processing, computing gvt, fossil collection, etc), 
-amount of virtual time that LPs/KPs are ahead of GVT, and memory usage.  
+This collects all of the same data as the GVT-based instrumentation, as well as some other metrics, which is the difference in GVT and virtual time for each KP and cycle counters for the PEs.
+The granularity can be switched as described in the section on the GVT-based instrumentation.
 
-### Event-level data collection
-There are two ways to collect events.  One is to collect data only about events that are causing rollbacks.
+When collecting on a PE basis, this is the data format:
+
+```
+PE_ID, current_real_time, current_GVT, time_ahead_GVT_KP0, ..., time_ahead_GVT_KPi,
+network_read_CC, gvt_CC, fossil_collect_CC, event_abort_CC, event_processing_CC,
+priority_queue_CC, rollbacks_CC, cancelq_CC, avl_CC, buddy_CC, lz4_CC,
+events_aborted, pq_size, remote_events, network_sends, network_recvs,
+event_ties, fossil_collects, num_GVT, events_processed, events_rolled_back,
+total_rollbacks, secondary_rollbacks, net_events, primary_rollbacks
+```
+
+For the KP/LP granularity:
+```
+PE_ID, current_real_time, current_GVT, time_ahead_GVT_KP0, ..., time_ahead_GVT_KPi,
+network_read_CC, gvt_CC, fossil_collect_CC, event_abort_CC, event_processing_CC,
+priority_queue_CC, rollbacks_CC, cancelq_CC, avl_CC, buddy_CC, lz4_CC,
+events_aborted, pq_size, event_ties, fossil_collects, num_GVT,
+total_rollbacks_KP0, secondary_rollbacks_KP0, ..., total_rollbacks_KPi, secondary_rollbacks_KPi,
+events_processed_LP0, events_rolled_back_LP0, network_sends_LP0, network_recvs_LP0,
+..., events_processed_LPj, events_rolled_back_LPj, network_sends_LPj,network_recvs_LPj,
+remote_events_LP0, ..., remote_events_LPj
+```
+
+
+### Event Tracing
+There are two ways to collect the event trace.  One is to collect data only about events that are causing rollbacks.
 When an event that should have been processed in the past is received, data about this event is collected (described below).  The other event collection is for all events, which can be turned on for only specific LP types.  
 For this collection, ROSS can directly access the source and destination LP IDs for each event, as well as the 
 received virtual timestamp of the event.  It will also record the real time that the event is computed at.
@@ -43,65 +75,68 @@ struct, so that non-instrumented ROSS can still be run without requiring any add
 
 ##### Function pointers:
 ```C
-typedef void (*rbev_col_f) (void *msg, char *buffer);
-typedef void (*ev_col_f) (void *msg, char *buffer);
+typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer);
+typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer);
 ```
-`msg` is the message being passed.  `buffer` is the pointer to where the data needs to be copied for ROSS to manage.
+`msg` is the message being passed, `lp` is the LP pointer.  `buffer` is the pointer to where the data needs to be copied for ROSS to manage.
 For instance in the dragonfly CODES model, we can do:
 ```C
-  int type = (int) msg->type;
-  memcpy(buffer, &type, sizeof(type));
+void dragonfly_event_trace(terminal_message *msg, tw_lp *lp, char *buffer)
+{
+    int type = (int) msg->type;
+    memcpy(buffer, &type, sizeof(type));
+}
 ```
 This is just a simple example; we could of course get more complicated with this and save other data.
 
 ##### Event type struct for function pointers
 ```C
-typedef struct st_event_collect st_event_collect;
-struct st_event_collect{
-    rbev_col_f rbev_col; /* function pointer to collect data about events causing rollbacks */
-    size_t rbev_sz;      /* size of data collected from model about events causing rollbacks */
-    ev_col_f ev_col;     /* function pointer to collect data about all events for given LP */
-    size_t ev_sz;        /* size of data collected from model for each event */
+typedef struct st_event_trace st_event_trace;
+struct st_event_trace{
+    rbev_trace_f rbev_trace; /* function pointer to collect data about events causing rollbacks */
+    size_t rbev_sz;          /* size of data collected from model about events causing rollbacks */
+    ev_trace_f ev_trace;     /* function pointer to collect data about all events for given LP */
+    size_t ev_sz;            /* size of data collected from model for each event */
 };
 ```
 This is the struct where we provide the function pointers to ROSS.  
-`rbev_col_f` is the pointer for the event collection for only events causing rollbacks, while `ev_col_f` is for
+`rbev_trace_f` is the pointer for the event collection for only events causing rollbacks, while `ev_trace_f` is for
 the full event collection.  
 `rbev_sz` and `ev_sz` are the sizes of the data that need to be pushed to the buffer for the rollback causing events, or for all events, respectively.
 
-### Virtual Time Sampling
-NOTE: Function calls related to this data collection have been commented out for now.
+Going back to the CODES dragonfly example, we could implement the event tracing functions with:
 
-This collects data for virtual time steps specified by the user.  This is turned on using 
-`--time-interval=n` where n is some integer for the size of the time steps you want.  
-It bins simulation time based on the specified time interval and collects statistics for each time step.  
-The data for a time step is output when the full time step falls below GVT. 
-This is essentially working correctly, but still needs a lot of optimization in regards to both memory 
-management and computation. This data collection is a bit more complex than the other two, 
-so it is on hold at the moment.  
+```C
+st_event_trace event_types[] = {
+    {(rbev_trace_f) NULL,
+    0,
+    (ev_trace_f) dragonfly_event_trace,
+    sizeof(int)},
+    {0}
+};
+```
+This example assumes that we want to use the same `dragonfly_event_trace()` for both the terminal and router LPs in the dragonfly model.  
 
-For each time step, the following is output to file:
-PE id, interval, forward events, reverse events, number of GVT comps, all reduce calls, events aborted, 
-event ties detected in PE queues, remote events, network sends, network recvs, events rolled back, 
-primary rollbacks, secondary roll backs, fossil collect attempts
+To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_event_trace *event_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  If your model is apart of CODES, the CODES mapping will handle this for you.  Right now the model net base LPs, the dragonfly router and terminal LPs, and dragonfly synthetic workload LPs have this implemented, but it's in my [forked CODES repo](https://xgitlab.cels.anl.gov/caitlinross/codes) (event-collection branch) at the moment.  See that repo for more details on making event tracing changes on CODES models.  
+
 
 ### Output formatting
-The GVT and real time collections are pushed to a buffer as they are collected, in order to reduce 
-the amount of I/O accesses.  Currently the buffer is per PE.  If both GVT and real time sampling
-are used, each has it's own buffer.  
+All collected data is pushed to a buffer as it is collected, in order to reduce 
+the amount of I/O accesses.  Currently the buffer is per PE.  If multiple instrumentation types
+are used, each has its own buffer.  
 The default buffer size is 8 MB but this can be changed using `--buffer-size=n`, where n is the size 
 of the buffer in bytes.  
 After GVT, the buffer's free space is checked.  By default, if there is less than 15% free space, 
 then it is dumped to file in a binary format.  This can be changed using `--buffer-free=n`, where n 
 is the percentage of free space it checks for before writing out.  
 
-The output is in binary and right now it outputs one file per simulation per type of data collection 
-(e.g., if you run both GVT and real time collections, you get a file with the GVT data and a 2nd file
+The output is in binary and right now it outputs one file per simulation per instrumentation type 
+(e.g., if you run both GVT and real time instrumentation, you get a file with the GVT data and a 2nd file
 for the real time sampling). ROSS will create a directory called stats-output that these files will be
 placed in.
 
 There is a basic reader for both types of output being developed in the 
-CODES-vis repo (ross-reader branch).  
+[CODES-vis repo](https://xgitlab.cels.anl.gov/codes/codes-vis) (ross-reader branch).  
 In the future we may switch to an already established file format (perhaps something like XDMF), 
 or just further develop what is being used currently.  
 
@@ -111,13 +146,8 @@ One is `--disable-output=1`.  This is for use when examining the perturbation of
 on the simulation.  
 It means that data (for GVT and real time collections) will be pushed to the buffer, but the buffer 
 will never be dumped, so it will just keep overwriting data.  
-This is so we can measure the effects of the computation of data collection itself without the I/O.
+This is so we can measure the effects of the computation of data collection itself without the I/O, otherwise
+you'll want to leave this turned off.  At some point in the future, this will probably be converted into allowing
+data to be streamed to an in situ analysis system.  
 
-Another option listed is `--pe-per-file`.  
-Now this is only relevant for the virtual time data collection and will be removed soon, 
-so it can be ignored.  
-
-Work in progress:
-- Add in event level data collection
-- Optimize memory usage and computation time for virtual time data collection, and make it work with buffer, output in binary
 
