@@ -59,7 +59,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
-                        if (g_st_ev_rb_collect)
+                        if (g_st_ev_trace == RB_TRACE)
                            st_collect_event_data(cev, start / g_tw_clock_rate );
                         //if (g_st_time_interval)
                         //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
@@ -198,7 +198,6 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 	ckp->last_time = cev->recv_ts;
-	clp->last_time = cev->recv_ts;
 
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
@@ -214,7 +213,7 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-        if (g_st_ev_collect)
+        if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate );
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
@@ -540,7 +539,6 @@ void tw_scheduler_conservative(tw_pe * me) {
                 ckp->last_time, cev->recv_ts, clp->gid );
             }
             ckp->last_time = cev->recv_ts;
-            clp->last_time = cev->recv_ts;
 
             start = tw_clock_read();
             reset_bitfields(cev);
@@ -624,8 +622,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
         st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
     }
-    if (g_st_ev_collect || g_st_ev_rb_collect)
-        st_buffer_finalize(g_st_buffer_evrb, EV_RB_COL);
+    if (g_st_ev_trace)
+        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
 
     tw_stats(me);
 }
@@ -712,7 +710,6 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         me->cur_event = cev;
         ckp->last_time = cev->recv_ts;
-        clp->last_time = cev->recv_ts;
 
         /* don't update GVT */
         reset_bitfields(cev);

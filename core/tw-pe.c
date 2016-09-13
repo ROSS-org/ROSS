@@ -104,10 +104,10 @@ tw_pe_init(tw_peid id, tw_peid gid)
         g_st_buffer_rt = st_buffer_init(suffix, &g_st_rt_fh);
         //st_stats_init();
     }
-    if (g_st_ev_collect || g_st_ev_rb_collect)
+    if (g_st_ev_trace)
     {
         char suffix[5];
-        sprintf(suffix, "evrb");
+        sprintf(suffix, "evtrace");
         g_st_buffer_evrb = st_buffer_init(suffix, &g_st_evrb_fh);
         //st_stats_init();
     }

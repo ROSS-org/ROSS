@@ -353,12 +353,11 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
-    tw_stime last_time;
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
     /* for ROSS instrumentation */
-    struct st_event_collect *ev_types;
+    struct st_event_trace *trace_types;
     struct st_lp_counters *event_counters;
     struct st_lp_counters *prev_event_counters_gvt;
     struct st_lp_counters *prev_event_counters_rt;

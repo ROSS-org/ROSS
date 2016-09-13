@@ -110,15 +110,15 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
-void rb_event_collect(phold_message *m, tw_lp *lp, char *buffer)
+void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer)
 {
 
 }
 
-st_event_collect event_types[] = {
-    {(rbev_col_f) rb_event_collect,
+st_event_trace event_types[] = {
+    {(rbev_trace_f) rb_event_trace,
      0,
-     (ev_col_f) rb_event_collect,
+     (ev_trace_f) rb_event_trace,
      0},
     {0}
 };
@@ -170,7 +170,7 @@ main(int argc, char **argv, char **env)
 	for(i = 0; i < g_tw_nlp; i++)
     {
 		tw_lp_settype(i, &mylps[0]);
-        st_evcol_settype(i, &event_types[0]);
+        st_evtrace_settype(i, &event_types[0]);
     }
 
         if( g_tw_mynode == 0 )

@@ -7,8 +7,14 @@
 typedef enum{
     GVT_COL,
     RT_COL,
-    EV_RB_COL
+    EV_TRACE
 } collection_types;
+
+typedef enum{
+    NO_TRACE,
+    FULL_TRACE,
+    RB_TRACE
+} traces_enum;
 
 typedef struct{
     char *buffer;

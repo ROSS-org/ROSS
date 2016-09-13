@@ -1,25 +1,24 @@
 #include <ross.h>
 
-int g_st_ev_rb_collect = 0;
-int g_st_ev_collect = 0;
-st_event_collect *g_st_event_types = NULL;
+int g_st_ev_trace = 0;
+st_event_trace *g_st_trace_types = NULL;
 
 static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
 
 // if model uses tw_lp_setup_types() to set lp->type, it will also call
 // this function to set up the functions types for event collection
 // because this can make use of the already defined type mapping
-void st_evcol_setup_types(tw_lp *lp)
+void st_evtrace_setup_types(tw_lp *lp)
 {
-    lp->ev_types = &g_st_event_types[g_tw_lp_typemap(lp->gid)];
+    lp->trace_types = &g_st_trace_types[g_tw_lp_typemap(lp->gid)];
 }
 
 // if model uses tw_lp_settypes(), model will also need to call
 // this function to set up function types for event collection
-void st_evcol_settype(tw_lpid i, st_event_collect *event_types)
+void st_evtrace_settype(tw_lpid i, st_event_trace *trace_types)
 {
     tw_lp *lp = g_tw_lp[i];
-    lp->ev_types = event_types;
+    lp->trace_types = trace_types;
 }
 
 // collect src LP, dest LP, virtual time stamp, real time start
@@ -28,10 +27,10 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     // add in callback function to be implemented by user so we can get event type (and potentially other data the user may want)
     int index = 0;
     int usr_sz = 0;
-    if (g_st_ev_rb_collect && cev->dest_lp->ev_types)
-        usr_sz = cev->dest_lp->ev_types->rbev_sz;
-    else if (g_st_ev_collect && cev->dest_lp->ev_types)
-        usr_sz = cev->dest_lp->ev_types->ev_sz;
+    if (g_st_ev_trace == RB_TRACE && cev->dest_lp->trace_types)
+        usr_sz = cev->dest_lp->trace_types->rbev_sz;
+    else if (g_st_ev_trace == FULL_TRACE && cev->dest_lp->trace_types)
+        usr_sz = cev->dest_lp->trace_types->ev_sz;
     //else
     //    printf("usr_sz == 0\n");
 
@@ -51,10 +50,10 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
         printf("WARNING: size of data being pushed to buffer is incorrect!");
     if (usr_sz > 0)
     {
-        if (g_st_ev_rb_collect)
-            (*cev->dest_lp->ev_types->rbev_col)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
-        else if (g_st_ev_collect)
-            (*cev->dest_lp->ev_types->ev_col)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
+        if (g_st_ev_trace == RB_TRACE)
+            (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
+        else if (g_st_ev_trace == FULL_TRACE)
+            (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
     //    else
     //        printf("shouldn't happen: usr_sz > 0 but didn't call event\n");
     }

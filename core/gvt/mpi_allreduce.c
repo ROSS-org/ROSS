@@ -225,8 +225,8 @@ tw_gvt_step2(tw_pe *me)
         st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);
     if (!g_st_disable_out && g_st_real_time_samp)
         st_buffer_write(g_st_buffer_rt, 0, RT_COL);
-    if (!g_st_disable_out && (g_st_ev_rb_collect || g_st_ev_collect))
-        st_buffer_write(g_st_buffer_evrb, 0, EV_RB_COL);
+    if (!g_st_disable_out && (g_st_ev_trace))
+        st_buffer_write(g_st_buffer_evrb, 0, EV_TRACE);
 
 	g_tw_gvt_done++;
 

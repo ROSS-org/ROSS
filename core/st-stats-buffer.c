@@ -16,7 +16,7 @@ MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
 
-/* initialize circular buffer for stats collection 
+/* initialize circular buffer for stats collection
  * basically the read position marks the beginning of used space in the buffer
  * while the write postion marks the end of used space in the buffer
  */
@@ -45,11 +45,11 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     return buffer;
 }
 
-/* write stats to buffer 
+/* write stats to buffer
  * currently does not overwrite in cases of overflow, just records the amount of overflow in bytes
  * for later reporting
  */
-void st_buffer_push(st_stats_buffer *buffer, char *data, int size) 
+void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
 {
     int size1, size2;
     if (!g_st_disable_out && st_buffer_free_space(buffer) < size)
@@ -83,7 +83,7 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
         }
     }
     buffer->count += size;
-    //printf("wrote %d bytes to buffer; %d bytes of free space left\n", size, st_buffer_free_space(buffer)); 
+    //printf("wrote %d bytes to buffer; %d bytes of free space left\n", size, st_buffer_free_space(buffer));
 }
 
 /* determine whether to dump buffer to file */
@@ -97,7 +97,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
     int i;
     int write_sizes[tw_nnodes()];
 
-    if (type == GVT_COL) 
+    if (type == GVT_COL)
     {
         offset = prev_offset_gvt;
         fh = &g_st_gvt_fh;
@@ -107,7 +107,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         offset = prev_offset_rt;
         fh = &g_st_rt_fh;
     }
-    else if (type == EV_RB_COL)
+    else if (type == EV_TRACE)
     {
         offset = prev_offset_evrb;
         fh = &g_st_evrb_fh;
@@ -130,7 +130,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
             prev_offset_gvt += write_sizes[i];
         else if (type == RT_COL)
             prev_offset_rt += write_sizes[i];
-        else if (type == EV_RB_COL)
+        else if (type == EV_TRACE)
             prev_offset_evrb += write_sizes[i];
     };
     //MPI_Exscan(&my_write_size, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -163,13 +163,13 @@ void st_buffer_finalize(st_stats_buffer *buffer, int type)
 
     if (g_tw_mynode == g_tw_masternode)
         printf("There were %ld bytes of data missed because of buffer overflow\n", missed_bytes);
-    
+
     // close MPI file
-    if (type == GVT_COL) 
+    if (type == GVT_COL)
         fh = &g_st_gvt_fh;
     else if (type == RT_COL)
         fh = &g_st_rt_fh;
-    else if (type == EV_RB_COL)
+    else if (type == EV_TRACE)
         fh = &g_st_evrb_fh;
     MPI_File_close(fh);
 

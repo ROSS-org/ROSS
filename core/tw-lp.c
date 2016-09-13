@@ -22,8 +22,8 @@ void tw_lp_setup_types () {
 		tw_lp *lp = g_tw_lp[i];
 		lp->type = &g_tw_lp_types[g_tw_lp_typemap(lp->gid)];
 
-        if (g_st_ev_collect || g_st_ev_rb_collect)
-            st_evcol_setup_types(lp);
+        if (g_st_ev_trace)
+            st_evtrace_setup_types(lp);
 	}
 
 }
