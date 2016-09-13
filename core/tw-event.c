@@ -44,6 +44,7 @@ void tw_event_send(tw_event * event) {
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
