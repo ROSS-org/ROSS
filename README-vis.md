@@ -33,7 +33,7 @@ where i,j are the total number of KPs and LPs for the PE, respectively.
 ### Real Time Sampling
 This collects data at real time intervals specified by the user.  It is turned on using 
 `--real-time-samp=n`, where n is the number of milliseconds per interval.  
-This collects all of the same data as the GVT-based instrumentation, as well as some other metrics, which is the difference in GVT and virtual time for each KP and cycle counters for the PEs.
+This collects all of the same data as the GVT-based instrumentation, as well as some other metrics, which is the difference in GVT and virtual time for each KP and cycle counters for the PEs. The difference in GVT and KP virtual time is always recorded per KP, regardless of how `--granularity` is set.
 The granularity can be switched as described in the section on the GVT-based instrumentation.
 
 When collecting on a PE basis, this is the data format:
