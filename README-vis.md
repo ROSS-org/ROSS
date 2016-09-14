@@ -91,8 +91,8 @@ This is just a simple example; we could of course get more complicated with this
 
 ##### Event type struct for function pointers
 ```C
-typedef struct st_event_trace st_event_trace;
-struct st_event_trace{
+typedef struct st_trace_type st_trace_type;
+struct st_trace_type {
     rbev_trace_f rbev_trace; /* function pointer to collect data about events causing rollbacks */
     size_t rbev_sz;          /* size of data collected from model about events causing rollbacks */
     ev_trace_f ev_trace;     /* function pointer to collect data about all events for given LP */
@@ -107,7 +107,7 @@ the full event collection.
 Going back to the CODES dragonfly example, we could implement the event tracing functions with:
 
 ```C
-st_event_trace event_types[] = {
+st_trace_type trace_types[] = {
     {(rbev_trace_f) NULL,
     0,
     (ev_trace_f) dragonfly_event_trace,
@@ -115,17 +115,17 @@ st_event_trace event_types[] = {
     {0}
 };
 ```
-This example assumes that we want to use the same `dragonfly_event_trace()` for both the terminal and router LPs in the dragonfly model.  
+This example assumes that we want to use the same `dragonfly_event_trace()` for both the terminal and router LPs in the dragonfly model and we'll use trace_types[0], when registering the trace types for both LP types.  
 
-To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_event_trace *event_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  If your model is apart of CODES, the CODES mapping will handle this for you.  Right now the model net base LPs, the dragonfly router and terminal LPs, and dragonfly synthetic workload LPs have this implemented, but it's in my [forked CODES repo](https://xgitlab.cels.anl.gov/caitlinross/codes) (event-collection branch) at the moment.  See that repo for more details on making event tracing changes on CODES models.  
+To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  If your model is apart of CODES, the CODES mapping will handle this for you.  Right now the model net base LPs, the dragonfly router and terminal LPs, and dragonfly synthetic workload LPs have this implemented, but it's in my [forked CODES repo](https://xgitlab.cels.anl.gov/caitlinross/codes) (event-collection branch) at the moment.  See that repo for more details on making event tracing changes on CODES models.  
 
 
 ### Output formatting
 All collected data is pushed to a buffer as it is collected, in order to reduce 
 the amount of I/O accesses.  Currently the buffer is per PE.  If multiple instrumentation types
-are used, each has its own buffer.  
+are used, each has its own buffer.
 The default buffer size is 8 MB but this can be changed using `--buffer-size=n`, where n is the size 
-of the buffer in bytes.  
+of the buffer in bytes. 
 After GVT, the buffer's free space is checked.  By default, if there is less than 15% free space, 
 then it is dumped to file in a binary format.  This can be changed using `--buffer-free=n`, where n 
 is the percentage of free space it checks for before writing out.  

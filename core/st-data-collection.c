@@ -542,9 +542,9 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
 
-    tmp = (unsigned int)(pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
+    //tmp = (unsigned int)(pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote);
+    //memcpy(&data[index], &tmp, sizeof(unsigned int));
+    //index += sizeof(unsigned int);
 
     tmp = (unsigned int)(pe->stats.s_nsend_network - last_event_counters.s_nsend_network);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
@@ -554,9 +554,9 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
 
-    tmp = (unsigned int)(pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
+    //tmp = (unsigned int)(pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb);
+    //memcpy(&data[index], &tmp, sizeof(unsigned int));
+    //index += sizeof(unsigned int);
 
     tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
     memcpy(&data[index], &tmp, sizeof(unsigned int));

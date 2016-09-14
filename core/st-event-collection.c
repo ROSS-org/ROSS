@@ -1,13 +1,14 @@
 #include <ross.h>
 
 int g_st_ev_trace = 0;
-st_event_trace *g_st_trace_types = NULL;
+st_trace_type *g_st_trace_types = NULL;
 
 static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
 
 // if model uses tw_lp_setup_types() to set lp->type, it will also call
 // this function to set up the functions types for event collection
 // because this can make use of the already defined type mapping
+// TODO I don't think g_st_trace_types is ever initialized
 void st_evtrace_setup_types(tw_lp *lp)
 {
     lp->trace_types = &g_st_trace_types[g_tw_lp_typemap(lp->gid)];
@@ -15,7 +16,7 @@ void st_evtrace_setup_types(tw_lp *lp)
 
 // if model uses tw_lp_settypes(), model will also need to call
 // this function to set up function types for event collection
-void st_evtrace_settype(tw_lpid i, st_event_trace *trace_types)
+void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
 {
     tw_lp *lp = g_tw_lp[i];
     lp->trace_types = trace_types;
