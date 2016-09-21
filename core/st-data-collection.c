@@ -22,6 +22,15 @@ st_event_counters last_event_counters = {0};
 st_mem_usage last_mem_usage = {0};
 int g_st_granularity = 0;
 
+static int num_gvt_vals = 11;
+static int num_gvt_vals_pe = 4;
+static int num_gvt_vals_kp = 2;
+static int num_gvt_vals_lp = 4;
+static int num_cycle_ctrs = 11;
+static int num_ev_ctrs = 14;
+static int num_ev_ctrs_pe = 5;
+static int num_ev_ctrs_kp = 2;
+static int num_ev_ctrs_lp = 4;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
@@ -45,17 +54,60 @@ const tw_optdef *tw_stats_setup(void)
 
 void st_stats_init()
 {
+    // Need to call after st_buffer_init()!
     int i;
     int npe = tw_nnodes();
     tw_lpid nlp_per_pe[npe];
     MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
-    // Need to call after st_buffer_init()!
+
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
         char filename[128];
         sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
         file = fopen(filename, "w");
 
+        /* start of metadata info for binary reader */
+        fprintf(file, "GRANULARITY=%d\n", g_st_granularity);
+        fprintf(file, "NUM_PE=%d\n", tw_nnodes());
+        fprintf(file, "NUM_KP=%lu\n", g_tw_nkp);
+
+        fprintf(file, "LP_PER_PE=");
+        for (i = 0; i < npe; i++)
+        {
+            if (i == npe - 1)
+                fprintf(file, "%"PRIu64"\n", nlp_per_pe[i]);
+            else
+                fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
+        }
+
+        if (g_st_stats_enabled)
+        {
+            if (g_st_granularity)
+            {
+                fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals_pe);
+                fprintf(file, "NUM_GVT_VALS_KP=%d\n", num_gvt_vals_kp);
+                fprintf(file, "NUM_GVT_VALS_LP=%d\n", num_gvt_vals_lp);
+            }
+            else
+                fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals);
+        }
+
+        if (g_st_real_time_samp)
+        {
+            fprintf(file, "NUM_CYCLE_CTRS=%d\n", num_cycle_ctrs);
+            if (g_st_granularity)
+            {
+                fprintf(file, "NUM_EV_CTRS_PE=%d\n", num_ev_ctrs_pe);
+                fprintf(file, "NUM_EV_CTRS_KP=%d\n", num_ev_ctrs_kp);
+                fprintf(file, "NUM_EV_CTRS_LP=%d\n", num_ev_ctrs_lp);
+            }
+            else
+                fprintf(file, "NUM_EV_CTRS_PE=%d\n", num_ev_ctrs);
+        }
+
+        fprintf(file, "END\n\n");
+
+        /* end of metadata info for binary reader */
         fprintf(file, "Info for ROSS run.\n\n");
 #if HAVE_CTIME
         time_t raw_time;
@@ -69,93 +121,39 @@ void st_stats_init()
         //fprintf(file, "MODEL Version:\t%s\n", model_version);
         fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
         tw_opt_settings(file);
-        fprintf(file, "LPs per PE\n");
-        for (i = 0; i < npe; i++)
-        {
-            if (i == npe - 1)
-                fprintf(file, "%"PRIu64"\n", nlp_per_pe[i]);
-            else
-                fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
-        }
         fclose(file);
     }
 }
 
 /** write header line to stats output files */
 /*
- *void tw_gvt_stats_file_setup(tw_peid id)
+ *void tw_interval_stats_file_setup(tw_peid id)
  *{
  *    int max_files_directory = 100;
  *    char directory_path[128];
  *    char filename[256];
  *    if (g_st_stats_out[0])
  *    {
- *        sprintf(directory_path, "%s-gvt-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
+ *        sprintf(directory_path, "%s-interval-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
  *        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
- *        sprintf(filename, "%s/%s-%d-gvt.txt", directory_path, g_st_stats_out, g_st_my_file_id);
+ *        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_st_stats_out, g_st_my_file_id);
  *    }
  *    else
  *    {
- *        sprintf(directory_path, "ross-gvt-%d", g_st_my_file_id/max_files_directory);
+ *        sprintf(directory_path, "ross-interval-%d", g_st_my_file_id/max_files_directory);
  *        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
- *        sprintf( filename, "%s/ross-gvt-stats-%d.txt", directory_path, g_st_my_file_id);
+ *        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_st_my_file_id);
  *    }
  *
- *    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &gvt_file);
+ *    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
  *
  *    char buffer[1024];
- *    sprintf(buffer, "PE,GVT,Total All Reduce Calls,"
- *        "total events processed,events aborted,events rolled back,event ties detected in PE queues,"
- *        "efficiency,total remote network events processed,"
- *        "total rollbacks,primary rollbacks,secondary roll backs,fossil collect attempts,"
- *        "net events processed,remote sends,remote recvs\n");
- *    MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
+ *    sprintf(buffer, "PE,interval,forward events,reverse events,number of GVT comps,all reduce calls,"
+ *        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs,"
+ *        "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
+ *    MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
  *}
  */
-
-/** write header line to stats output files */
-void tw_interval_stats_file_setup(tw_peid id)
-{
-/*    tw_stat forward_events;
-    tw_stat reverse_events;
-    tw_stat num_gvts;
-    tw_stat all_reduce_calls;
-    tw_stat events_aborted;
-    tw_stat pe_event_ties;
-
-    tw_stat nevents_remote;
-    tw_stat nsend_network;
-    tw_stat nread_network;
-
-    tw_stat events_rbs;
-    tw_stat rb_primary;
-    tw_stat rb_secondary;
-    tw_stat fc_attempts;
-    */
-    int max_files_directory = 100;
-    char directory_path[128];
-    char filename[256];
-    if (g_st_stats_out[0])
-    {
-        sprintf(directory_path, "%s-interval-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
-        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_st_stats_out, g_st_my_file_id);
-    }
-    else
-    {
-        sprintf(directory_path, "ross-interval-%d", g_st_my_file_id/max_files_directory);
-        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
-        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_st_my_file_id);
-    }
-
-    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
-
-    char buffer[1024];
-	sprintf(buffer, "PE,interval,forward events,reverse events,number of GVT comps,all reduce calls,"
-        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs,"
-        "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
-    MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-}
 
 /* wrapper to call gvt log functions depending on which granularity to use */
 void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
@@ -169,14 +167,9 @@ void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all
 
 void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
-	// GVT,Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
-    // total events processed, events aborted, events rolled back, event ties detected in PE queues
-    // efficiency, total remote network events processed, percent remote events
-    // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
-    // net events processed, remote sends, remote recvs
     tw_clock start_cycle_time = tw_clock_read();
     //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
-    int buf_size = sizeof(unsigned int) * 11 + sizeof(unsigned short) + sizeof(float) + sizeof(float) + sizeof(int) *2;
+    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) + sizeof(float) + sizeof(int) *2;
     int index = 0;
     char buffer[buf_size];
     //tw_stat tmp;
@@ -197,7 +190,7 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     memcpy(&buffer[index], &tmp, sizeof(tmp));
     index += sizeof(tmp);
 
-    tmp = (unsigned int)( s->s_nevent_processed-last_stats.s_nevent_processed );
+    tmp = (unsigned int)( s->s_nevent_processed-last_stats.s_nevent_processed);
     memcpy(&buffer[index], &tmp, sizeof(tmp));
     index += sizeof(tmp);
 
@@ -213,7 +206,7 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     memcpy(&buffer[index], &tmp, sizeof(tmp));
     index += sizeof(tmp);
 
-    tmp = (unsigned int)( s->s_rb_total-last_stats.s_rb_total );
+    tmp = (unsigned int)( s->s_rb_total-last_stats.s_rb_total);
     memcpy(&buffer[index], &tmp, sizeof(tmp));
     index += sizeof(tmp);
 
@@ -255,11 +248,6 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
         printf("WARNING: size of data being pushed to buffer is incorrect!\n");
 
     st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
-    //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-    //start_cycle_time = tw_clock_read();
-    //MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-    //stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
-    //start_cycle_time = tw_clock_read();
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
     stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
@@ -267,16 +255,11 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
 
 void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
-	// GVT,Forced GVT, Total GVT Computations, Total All Reduce Calls, Average Reduction / GVT
-    // total events processed, events aborted, events rolled back, event ties detected in PE queues
-    // efficiency, total remote network events processed, percent remote events
-    // total rollbacks, primary rollbacks, secondary roll backs, fossil collect attempts
-    // net events processed, remote sends, remote recvs
     tw_clock start_cycle_time = tw_clock_read();
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
-    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * 4 + sizeof(float) + sizeof(int) +
-        sizeof(unsigned int) * 2 * g_tw_nkp + sizeof(unsigned int) * 4 * g_tw_nlp + sizeof(int) * g_tw_nlp;
+    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(float) +
+        sizeof(unsigned int) * num_gvt_vals_kp * g_tw_nkp + sizeof(unsigned int) * num_gvt_vals_lp * g_tw_nlp + sizeof(int) * g_tw_nlp;
     int index = 0, i;
     char buffer[buf_size];
     unsigned int tmp;
@@ -311,11 +294,11 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     memcpy(&buffer[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
 
-    // next two stats not guaranteed to always be non-decreasing
+    // next stat not guaranteed to always be non-decreasing
     // can't use unsigned int
-    tmp2 = (int)s->s_net_events-(int)last_stats.s_net_events;
-    memcpy(&buffer[index], &tmp2, sizeof(int));
-    index += sizeof(int);
+    //tmp2 = (int)s->s_net_events-(int)last_stats.s_net_events;
+    //memcpy(&buffer[index], &tmp2, sizeof(int));
+    //index += sizeof(int);
 
     eff = (float)100.0 * (1.0 - ((float) (s->s_e_rbs-last_stats.s_e_rbs)/(float) (s->s_net_events-last_stats.s_net_events)));
     memcpy(&buffer[index], &eff, sizeof(float));
@@ -401,7 +384,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     st_collect_time_ahead_GVT(pe, &data_gvt[0]);
     total_size += data_size;
 
-    data_size = 11 * sizeof(tw_clock);
+    data_size = num_cycle_ctrs * sizeof(tw_clock);
     char data_cycles[data_size];
     st_collect_cycle_counters(pe, &data_cycles[0]);
     total_size += data_size;
@@ -409,7 +392,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     if (g_st_granularity == 0)
         data_size = sizeof(st_event_counters);
     else
-        data_size = sizeof(unsigned int) * 5 + sizeof(unsigned int) * 2 * g_tw_nkp + (sizeof(unsigned int) * 4 + sizeof(int)) * g_tw_nlp;
+        data_size = sizeof(unsigned int) * num_ev_ctrs_pe + sizeof(unsigned int) * num_ev_ctrs_kp * g_tw_nkp + (sizeof(unsigned int) * num_ev_ctrs_lp + sizeof(int)) * g_tw_nlp;
 
     char data_events[data_size];
     if (g_st_granularity == 0)
@@ -534,17 +517,13 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
 
-    tmp = (unsigned int)tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize);
+    tmp = (unsigned int)tw_pq_get_size(pe->pq);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
 
     tmp = (unsigned int)(pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
-
-    //tmp = (unsigned int)(pe->stats.s_nsend_loc_remote - last_event_counters.s_nsend_loc_remote);
-    //memcpy(&data[index], &tmp, sizeof(unsigned int));
-    //index += sizeof(unsigned int);
 
     tmp = (unsigned int)(pe->stats.s_nsend_network - last_event_counters.s_nsend_network);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
@@ -553,10 +532,6 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     tmp = (unsigned int)(pe->stats.s_nread_network - last_event_counters.s_nread_network);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
-
-    //tmp = (unsigned int)(pe->stats.s_nsend_remote_rb - last_event_counters.s_nsend_remote_rb);
-    //memcpy(&data[index], &tmp, sizeof(unsigned int));
-    //index += sizeof(unsigned int);
 
     tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
@@ -605,8 +580,6 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data)
     last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
     last_event_counters.s_nsend_network = pe->stats.s_nsend_network;
     last_event_counters.s_nread_network = pe->stats.s_nread_network;
-    last_event_counters.s_nsend_remote_rb = pe->stats.s_nsend_remote_rb;
-    last_event_counters.s_nsend_loc_remote = pe->stats.s_nsend_loc_remote;
     last_event_counters.s_nsend_net_remote = pe->stats.s_nsend_net_remote;
     last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
     last_event_counters.s_ngvts = g_tw_gvt_done;
@@ -632,7 +605,7 @@ void st_collect_event_counters_lps(tw_pe *pe, char *data)
     index += sizeof(unsigned int);
     last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
 
-    tmp = (unsigned int)tw_pq_get_size(pe->pq);// - last_event_counters.s_pq_qsize;
+    tmp = (unsigned int)tw_pq_get_size(pe->pq);
     memcpy(&data[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
     last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);

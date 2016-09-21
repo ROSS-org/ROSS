@@ -1,4 +1,4 @@
-## README for ROSS data collection
+## README for ROSS Instrumentation
 
 Currently several different types of instrumentation have been added to ROSS: GVT-based, real time sampling, and event tracing.  
 All 3 instrumentation types can be used independently or together.  The options for 
@@ -21,7 +21,7 @@ network_recvs, remote_events, net_events, efficiency
 When collecting on a KP/LP basis, this is the format:
 
 ```
-PE_ID, GVT, all_reduce_count, events_aborted, event_ties, fossil_collect, net_events, efficiency, 
+PE_ID, GVT, all_reduce_count, events_aborted, event_ties, fossil_collect, efficiency, 
 total_rollbacks_KP0, secondary_rollbacks_KP0, ..., total_rollbacks_KPi, secondary_rollbacks_KPi, 
 events_processed_LP0, events_rolled_back_LP0, network_sends_LP0, network_recvs_LP0,
 ..., events_processed_LPj, events_rolled_back_LPj, network_sends_LPj,network_recvs_LPj,
@@ -138,7 +138,10 @@ placed in.
 There is a basic reader for both types of output being developed in the 
 [CODES-vis repo](https://xgitlab.cels.anl.gov/codes/codes-vis) (ross-reader branch).  
 In the future we may switch to an already established file format (perhaps something like XDMF), 
-or just further develop what is being used currently.  
+or just further develop what is being used currently.  For the time being, ROSS will output a README file in 
+the stats-output directory with the given filename prefix.  The file contains some general information about 
+values of input parameters, but also has data that the reader in the CODES-vis repo can use to correctly read the
+instrumentation data.
 
 ### Other notes
 There are a couple of other options that show up in the ROSS stats options.

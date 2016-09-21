@@ -30,9 +30,7 @@ typedef struct {
     unsigned int s_pq_qsize;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
-    unsigned int s_nsend_remote_rb;
 
-    unsigned int s_nsend_loc_remote;
     unsigned int s_nsend_net_remote;
     unsigned int s_pe_event_ties;
 
