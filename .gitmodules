@@ -3,7 +3,7 @@
 	url = https://github.com/gonsie/ROSSIO.git
 [submodule "models/template-model"]
 	path = models/template-model
-	url = https://github.com/gonsie/template-model.git
+	url = https://github.com/nmcglohon/template-model.git
 [submodule "models/ROSS-Models"]
 	path = models/ROSS-Models
 	url = https://github.com/carothersc/ROSS-Models

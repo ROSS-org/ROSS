@@ -1,7 +1,7 @@
 # Welcome to Modeling!
 
 The ROSS repository currently links to two model repositories:
-- [A Template Model](http://github.com/gonsie/template-model) that can be used as a starting point for any new model.
+- [A Template Model](http://github.com/nmcglohon/template-model) that can be used as a starting point for any new model.
 - [A Suite of Stable Models](http://github.com/carothersc/ROSS-Models) which contains several completed models.
 
 ## Building Existing Models
