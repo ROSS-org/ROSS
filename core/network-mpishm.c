@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <mpi.h>
+#include <pthread.h>
 
 static long id_tmp;
 
@@ -46,6 +47,40 @@ static const tw_optdef mpi_opts[] = {
 	     "network send buffer size in # of events"),
   TWOPT_END()
 };
+
+// Variables needed for shared memory pool init
+#define NETWORK_MPISHM_MAX_CPUS 64
+
+MPI_Comm network_mpishm_comm = MPI_COMM_WORLD;
+int network_mpishm_comm_size=0;
+MPI_Comm network_mpishm_shmcomm = MPI_COMM_WORLD;    /* shm communicator  */ 
+int network_mpishm_shmcomm_size = 0;                 /* shmcomm size */
+int network_mpishm_ranks_per_node = 8;
+int network_mpishm_color = 0;
+int network_mpishm_group = 0;
+int network_mpishm_group_counter = 0;
+int network_mpishm_key = 0;
+int network_mpishm_rank = 0 ;
+int network_mpishm_shmcomm_rank = 0;
+
+int network_mpishm_num_cpus_per_node = 8;
+cpu_set_t network_mpishm_cpu_set[NETWORK_MPISHM_MAX_CPUS];
+int network_mpishm_my_cpu = -1;
+
+void *network_mpishm_start_shared_memory_pool_address=(void *)((unsigned long long)0x00007fffff000000 - 
+							       (unsigned long long) (1<<30));
+void *network_mpishm_shared_memory_pool = NULL;      /* shm memory to be allocated on each node */
+key_t network_mpishm_shared_memory_key = 0;      
+unsigned long long network_mpishm_shared_memory_size = (size_t)(1<<30);       /* 1 GB; */
+int network_mpishm_shared_memory_create_flag = (IPC_CREAT | 0600);
+int network_mpishm_shared_memory_locate_flag = 0600;
+int network_mpishm_shared_memory_id = 0;
+
+char network_mpishm_ipcrm_command_string[80];
+
+pthread_mutexattr_t network_mpishm_attr_mutex;
+pthread_mutex_t *network_mpishm_shared_memory_pool_lock=NULL;
+long long *network_mpishm_shared_memory_counter=NULL;
 
 const tw_optdef *
 tw_net_init(int *argc, char ***argv)

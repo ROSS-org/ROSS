@@ -14,6 +14,7 @@ typedef struct tw_lptype tw_lptype;
 typedef struct tw_petype tw_petype;
 typedef struct tw_bf tw_bf;
 typedef struct tw_eventq tw_eventq;
+typedef struct tw_shm_pool tw_shm_pool;
 typedef struct tw_event tw_event;
 typedef struct tw_lp tw_lp;
 typedef struct tw_kp tw_kp;
@@ -305,6 +306,8 @@ struct tw_event {
 
     tw_peid      send_pe;
 
+    unsigned int shm_pool_id;
+
 #ifdef ROSS_MEMORY
     tw_memory   *memory;
 #endif
@@ -384,6 +387,16 @@ struct tw_kp {
 };
 
 /**
+ * tw_pe @brief Shared memory pool data structure
+ *
+ */
+struct tw_shm_pool {
+    tw_eventq event_q; /**< @brief Linked list of N SHM events sent to this PE */
+    tw_eventq free_q; /**< @brief Linked list of free SHM tw_events */
+    tw_eventq return_q; /**< @brief Linked list of SHM tw_events returned by other recv local ranks */
+};
+
+/**
  * tw_pe @brief Holds the entire PE state
  *
  */
@@ -401,7 +414,9 @@ struct tw_pe {
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
     tw_event *cur_event; /**< @brief Current event being processed */
-    tw_eventq sevent_q; /**< @brief events already sent over the network */
+    // =================== NEVER USED!! ========================================
+    // tw_eventq sevent_q; /**< @brief events already sent over the network */
+    // =========================================================================
 
     unsigned char *delta_buffer[3]; /**< @brief buffers used for delta encoding */
 
@@ -438,14 +453,28 @@ struct tw_pe {
 
     tw_statistics stats; /**< @brief per PE counters */
 
-#ifndef ROSS_NETWORK_none
-    void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/
+
+// YES - MPI and MPISHM ARE THE SAME BUT CPP IS BROKEN AND DOES NOT DO ORS or  ELSEIF VERY WELL!! SO LEAVE AS IS, PLEASE!!!
 #ifdef ROSS_NETWORK_mpi
+#define HAVE_NETWORK
+    void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/
     tw_eventid     seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
-#else
-    tw_eventid    *seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
 #endif
+    
+#ifdef ROSS_NETWORK_mpishm
+#define HAVE_NETWORK
+    void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/
+    tw_eventid     seq_num; /**< @brief Array of remote send counters for hashing on, size == g_tw_npe */
 #endif
+
+// "none" network is NOT a valid option anymore in the Cmake configuration.
+    
+/* #ifndef ROSS_NETWORK_none */
+/* #ifndef HAVE_NETWORK     */
+/*     void           *hash_t; /\**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*\/ */
+/*     tw_eventid    *seq_num; /\**< @brief Array of remote send counters for hashing on, size == g_tw_npe *\/ */
+/* #endif */
+/* #endif */
 
     tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
 };

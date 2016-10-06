@@ -207,6 +207,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
     event->prev = event_prev;
     event_prev = event;
     event->next = (tw_event *) tw_calloc(TW_LOC, "events", event_len, 1);
+    event->shm_pool_id = -1;
     event = event->next;
   }
   event->prev = event_prev;
@@ -217,12 +218,14 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
     event->state.owner = TW_pe_free_q;
     event->prev = (tw_event *) (((char *)event) - event_len);
     event->next = (tw_event *) (((char *)event) + event_len);
+    event->shm_pool_id = -1;
     event = event->next;
   }
   event->prev = (tw_event *) (((char *)event) - event_len);
 #endif
 
   event->state.owner = TW_pe_free_q;
+  event->shm_pool_id = -1;
   q->head->prev = event->next = NULL;
   q->tail = event;
 }

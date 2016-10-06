@@ -106,7 +106,10 @@ extern "C" {
 #include "config.h"
 
 #include <errno.h>
+#include <sched.h>
 #include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/mman.h>
 #include <math.h>
 #include <limits.h>
 #include <stdlib.h>

@@ -29,7 +29,8 @@ SET(RAND clcg4)
 # tcp option removed
 
 # SET(NETWORK mpi)
-SET(NETWORK mpishm)
+SET(NETWORK mpishm CACHE STRING "Communication type chosen by user at config time")
+SET_PROPERTY(CACHE NETWORK PROPERTY STRINGS mpishm mpi)
 
 # GVT algorithm option
 #SET(GVT 7oclock)
