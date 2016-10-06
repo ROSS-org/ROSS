@@ -48,7 +48,7 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_END()
 };
 
-// Variables needed for shared memory pool init
+// Variables needed for shared memory pool init - global to only this module.
 #define NETWORK_MPISHM_MAX_CPUS 64
 
 MPI_Comm network_mpishm_comm = MPI_COMM_WORLD;
@@ -79,13 +79,13 @@ int network_mpishm_shared_memory_id = 0;
 char network_mpishm_ipcrm_command_string[80];
 
 pthread_mutexattr_t network_mpishm_attr_mutex;
-pthread_mutex_t *network_mpishm_shared_memory_pool_lock=NULL;
+pthread_mutex_t *network_mpishm_shared_memory_pool_lock[NETWORK_MPISHM_MAX_CPUS];
 long long *network_mpishm_shared_memory_counter=NULL;
 
 const tw_optdef *
 tw_net_init(int *argc, char ***argv)
 {
-  int my_rank;
+    int my_rank, i;
 
   if (MPI_Init(argc, argv) != MPI_SUCCESS)
     tw_error(TW_LOC, "MPI_Init failed.");
@@ -95,6 +95,36 @@ tw_net_init(int *argc, char ***argv)
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
 
+  // shm init
+  network_mpishm_color =  my_rank / network_mpishm_ranks_per_node;
+  network_mpishm_group = network_mpishm_color+1;
+  network_mpishm_key = my_rank % network_mpishm_ranks_per_node; 
+  network_mpishm_shared_memory_key = network_mpishm_color+1;
+
+  // setup cpu bindings
+  CPU_ZERO( network_mpishm_cpu_set );
+  network_mpishm_my_cpu = my_rank % network_mpishm_num_cpus_per_node;
+  CPU_SET( network_mpishm_my_cpu, network_mpishm_cpu_set);
+
+    if ( sched_setaffinity(getpid(), NETWORK_MPISHM_MAX_CPUS, network_mpishm_cpu_set) == 0 )
+       {
+	   printf("Rank %d, pid %d is now bound to cpu %d, confirmed by sched_getcpu = %d \n", 
+		  my_rank, getpid(), network_mpishm_my_cpu, sched_getcpu() );
+       }
+    else
+       {
+	   perror("sched_setaffinity failed: ");
+	   exit(-1);
+       }
+  
+    MPI_Comm_split(network_mpishm_comm, network_mpishm_color, network_mpishm_key, &network_mpishm_shmcomm); 
+    MPI_Comm_size (network_mpishm_shmcomm, &network_mpishm_shmcomm_size);
+    MPI_Comm_rank (network_mpishm_shmcomm, &network_mpishm_shmcomm_rank);
+    
+    printf ("I'm Comm World Rank = %d, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
+	    my_rank, network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
+    fflush(stdout);
+  
   return mpi_opts;
 }
 
@@ -191,6 +221,8 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
+
+    
   if (MPI_Finalize() != MPI_SUCCESS)
     tw_error(TW_LOC, "Failed to finalize MPI");
 }
