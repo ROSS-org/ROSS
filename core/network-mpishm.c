@@ -44,6 +44,21 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_END()
 };
 
+struct tw_network_pe
+{
+    tw_eventq free_q;               /**< @brief Linked list of free SHM tw_events */
+    tw_eventq event_q;              /**< @brief Linked list of N SHM events sent to this PE */
+    pthread_mutex_t *event_q_lock;  /**< @brief event q mutex lock */
+    tw_eventq cancel_q;             /**< @brief Linked list of N SHM cancel events sent to this PE */
+    pthread_mutex_t *cancel_q_lock; /**< @brief cancel q mutex lock */
+    tw_eventq return_q;             /**< @brief Linked list of SHM tw_events returned by other recv local ranks */
+    pthread_mutex_t *return_q_lock; /**< @brief return q mutex lock */
+};
+
+typedef struct tw_network_pe tw_network_pe;
+
+tw_network_pe *g_tw_network_pe = NULL;
+
 // Variables needed for shared memory pool init - global to only this module.
 #define NETWORK_MPISHM_MAX_CPUS 64
 
@@ -66,6 +81,8 @@ int network_mpishm_my_cpu = -1;
 void *network_mpishm_start_shared_memory_pool_address=(void *)((unsigned long long)0x00007fffff000000 - 
 							       (unsigned long long) (1<<30));
 void *network_mpishm_shared_memory_pool = NULL;      /* shm memory to be allocated on each node */
+
+
 key_t network_mpishm_shared_memory_key = 0;      
 unsigned long long network_mpishm_shared_memory_size = (size_t)(1<<30);       /* 1 GB; */
 int network_mpishm_shared_memory_create_flag = (IPC_CREAT | 0600);
