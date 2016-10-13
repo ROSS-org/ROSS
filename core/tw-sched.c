@@ -248,12 +248,7 @@ static void tw_sched_batch(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            //get_time_ahead_GVT(me, current_rt / g_tw_clock_rate);
             st_collect_data(me, current_rt / g_tw_clock_rate);
-            /*if (me->node == 0)
-            {
-                printf("RT sampling: current time %lf\n", current_rt / g_tw_clock_rate);
-            }*/
             g_st_real_samp_start_cycles = tw_clock_read();
         }
     }
@@ -609,6 +604,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
         st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
     if (g_st_real_time_samp)
     {
+        // collect data one final time to account for time between last sample and sim end time
         st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
     }

@@ -61,7 +61,6 @@ extern int g_st_pe_per_file;
 extern int g_st_my_file_id;
 extern MPI_File gvt_file;
 extern MPI_File interval_file;
-extern MPI_Comm  stats_comm;
 extern int g_st_disable_out;
 extern int g_st_granularity;
 extern tw_clock stat_write_cycle_counter;

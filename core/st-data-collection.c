@@ -122,36 +122,6 @@ void st_stats_init()
     }
 }
 
-/** write header line to stats output files */
-/*
- *void tw_interval_stats_file_setup(tw_peid id)
- *{
- *    int max_files_directory = 100;
- *    char directory_path[128];
- *    char filename[256];
- *    if (g_st_stats_out[0])
- *    {
- *        sprintf(directory_path, "%s-interval-%d", g_st_stats_out, g_st_my_file_id/max_files_directory);
- *        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
- *        sprintf(filename, "%s/%s-%d-interval.txt", directory_path, g_st_stats_out, g_st_my_file_id);
- *    }
- *    else
- *    {
- *        sprintf(directory_path, "ross-interval-%d", g_st_my_file_id/max_files_directory);
- *        mkdir(directory_path, S_IRUSR | S_IWUSR | S_IXUSR);
- *        sprintf( filename, "%s/ross-interval-stats-%d.txt", directory_path, g_st_my_file_id);
- *    }
- *
- *    MPI_File_open(stats_comm, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &interval_file);
- *
- *    char buffer[1024];
- *    sprintf(buffer, "PE,interval,forward events,reverse events,number of GVT comps,all reduce calls,"
- *        "events aborted,event ties detected in PE queues,remote events,network sends,network recvs,"
- *        "events rolled back,primary rollbacks,secondary roll backs,fossil collect attempts\n");
- *    MPI_File_write(interval_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
- *}
- */
-
 /* wrapper to call gvt log functions depending on which granularity to use */
 void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {

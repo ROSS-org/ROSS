@@ -109,7 +109,6 @@ tw_gvt_step2(tw_pe *me)
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
-    int tmp_all_red_cnt = 0;
 	while(1)
 	  {
 	    tw_net_read(me);
@@ -117,7 +116,6 @@ tw_gvt_step2(tw_pe *me)
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;
 	    all_reduce_cnt++;
-        tmp_all_red_cnt++;
 	    if(MPI_Allreduce(
 			     &local_white,
 			     &total_white,
@@ -141,7 +139,6 @@ tw_gvt_step2(tw_pe *me)
 		lvt = net_min;
 
 	all_reduce_cnt++;
-    tmp_all_red_cnt++;
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
