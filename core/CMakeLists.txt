@@ -58,12 +58,12 @@ tw-signal.c
 tw-stats.c
 tw-util.c
 
-st-stats-buffer.h
-st-stats-buffer.c
-st-data-collection.h
-st-data-collection.c
-st-event-collection.h
-st-event-collection.c)
+instrumentation/st-stats-buffer.h
+instrumentation/st-stats-buffer.c
+instrumentation/st-data-collection.h
+instrumentation/st-data-collection.c
+instrumentation/st-event-collection.h
+instrumentation/st-event-collection.c)
 
 
 # ROSS VERSION INFORMATION
