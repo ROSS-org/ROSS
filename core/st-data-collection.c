@@ -4,14 +4,11 @@
 
 char g_st_stats_out[128] = {0};
 int g_st_stats_enabled = 0;
-long g_st_time_interval = 0;
 long g_st_current_interval = 0;
 tw_clock g_st_real_time_samp = 0;
 tw_clock g_st_real_samp_start_cycles = 0;
 int g_st_pe_per_file = 1;
 int g_st_my_file_id = 0;
-tw_stat_list *g_st_stat_head = NULL;
-tw_stat_list *g_st_stat_tail = NULL;
 MPI_File gvt_file;
 MPI_File interval_file;
 static tw_statistics last_stats = {0};
@@ -21,6 +18,8 @@ st_cycle_counters last_cycle_counters = {0};
 st_event_counters last_event_counters = {0};
 st_mem_usage last_mem_usage = {0};
 int g_st_granularity = 0;
+tw_clock stat_write_cycle_counter = 0;
+tw_clock stat_comp_cycle_counter = 0;
 
 static int num_gvt_vals = 11;
 static int num_gvt_vals_pe = 4;
@@ -35,12 +34,10 @@ static int num_ev_ctrs_lp = 4;
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
-    //TWOPT_UINT("time-interval", g_st_time_interval, "collect stats for specified sim time interval"),
     TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"),
     TWOPT_UINT("granularity", g_st_granularity, "collect on PE basis only, or also KP/LP basis, 0 for PE, 1 for KP/LP"),
     TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks"),
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
-    //TWOPT_UINT("pe-per-file", g_st_pe_per_file, "how many PEs to output per file"),
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
     TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"),

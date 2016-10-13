@@ -350,8 +350,6 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 #endif
 
   me->stats.s_nread_network++;
-  //if (g_st_time_interval)
-  //    st_tree_root = stat_increment(st_tree_root, e->recv_ts, REMOTE_RECV, st_tree_root, 1);
   me->s_nwhite_recv++;
 
   //  printf("recv_finish: remote event [cancel %u] FROM: LP %lu, PE %lu, TO: LP %lu, PE %lu at TS %lf \n",
@@ -605,8 +603,6 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
   e->src_lp->event_counters->s_nsend_network++;
-  //if (g_st_time_interval)
-  //    st_tree_root = stat_increment(st_tree_root, e->recv_ts, REMOTE_SEND, st_tree_root, 1);
 
   if (e->state.owner == TW_net_asend) {
     if (e->state.cancel_asend) {

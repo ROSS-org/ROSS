@@ -57,7 +57,6 @@ extern void tw_gvt_stats_file_setup(tw_peid id);
 extern void tw_interval_stats_file_setup(tw_peid id);
 extern char g_st_stats_out[128];
 extern int g_st_stats_enabled;
-extern long g_st_time_interval;
 extern int g_st_pe_per_file;
 extern int g_st_my_file_id;
 extern MPI_File gvt_file;
@@ -65,6 +64,10 @@ extern MPI_File interval_file;
 extern MPI_Comm  stats_comm;
 extern int g_st_disable_out;
 extern int g_st_granularity;
+extern tw_clock stat_write_cycle_counter;
+extern tw_clock stat_comp_cycle_counter;
+extern tw_clock g_st_real_time_samp;
+extern tw_clock g_st_real_samp_start_cycles;
 
 st_cycle_counters last_cycle_counters;
 st_event_counters last_event_counters;

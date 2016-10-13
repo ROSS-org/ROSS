@@ -61,8 +61,6 @@ static void tw_sched_event_q(tw_pe * me) {
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
                            st_collect_event_data(cev, start / g_tw_clock_rate );
-                        //if (g_st_time_interval)
-                        //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_PRIMARY, st_tree_root, 1);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -133,8 +131,6 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     */
                     tw_kp_rollback_event(cev);
                     tw_event_free(me, cev);
-                    //if (g_st_time_interval)
-                    //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, RB_SECONDARY, st_tree_root, 1);
                     break;
 
                 default:
@@ -189,8 +185,6 @@ static void tw_sched_batch(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - start;
         if(cev->recv_ts == tw_pq_minimum(me->pq)) {
             me->stats.s_pe_event_ties++;
-            //if (g_st_time_interval)
-            //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, PE_EVENT_TIES, st_tree_root, 1);
         }
 
         clp = cev->dest_lp;
@@ -219,8 +213,6 @@ static void tw_sched_batch(tw_pe * me) {
 				tw_event_data(cev), clp);
         cev->critical_path = prev_cp;
 	  }
-    //if (g_st_time_interval)
-    //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, FORWARD_EV, st_tree_root, 1);
 	ckp->s_nevent_processed++;
     clp->event_counters->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
@@ -245,8 +237,6 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
-        //if (g_st_time_interval)
-        //    st_tree_root = stat_increment(st_tree_root, cev->recv_ts, EVENTS_ABORTED, st_tree_root, 1);
 
 	    break;
 	  } // END ABORT CHECK
