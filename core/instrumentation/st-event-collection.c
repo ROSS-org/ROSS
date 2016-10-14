@@ -39,48 +39,48 @@ void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
 // model can implement callback function to collect model level data, e.g. event type
 void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
 {
+    int index = 0;
+    int usr_sz = 0;
+    int collect_flag = 1;
+
     if (!cev->dest_lp->trace_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
     {
         fprintf(stderr, "WARNING: node: %ld: error: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
         fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
         evtype_warned = 1;
     }
-    int index = 0;
-    int usr_sz = 0;
     if (g_st_ev_trace == RB_TRACE && cev->dest_lp->trace_types)
         usr_sz = cev->dest_lp->trace_types->rbev_sz;
     else if (g_st_ev_trace == FULL_TRACE && cev->dest_lp->trace_types)
         usr_sz = cev->dest_lp->trace_types->ev_sz;
-    //else
-    //    printf("usr_sz == 0\n");
 
     int total_sz = buf_size + usr_sz;
     char buffer[total_sz];
 
-    memcpy(&buffer[index], &(cev->send_lp), sizeof(tw_lpid));
-    index += sizeof(tw_lpid);
-    memcpy(&buffer[index], &cev->dest_lp->gid, sizeof(tw_lpid));
-    index += sizeof(tw_lpid);
-    memcpy(&buffer[index], &cev->recv_ts, sizeof(tw_stime));
-    index += sizeof(tw_stime);
-    memcpy(&buffer[index], &recv_rt, sizeof(tw_stime));
-    index += sizeof(tw_stime);
-
-    if (index != buf_size)
-        printf("WARNING: size of data being pushed to buffer is incorrect!");
     if (usr_sz > 0)
     {
         if (g_st_ev_trace == RB_TRACE)
-            (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
+            (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[buf_size], &collect_flag);
         else if (g_st_ev_trace == FULL_TRACE)
-            (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[index]);
-    //    else
-    //        printf("shouldn't happen: usr_sz > 0 but didn't call event\n");
+            (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[buf_size], &collect_flag);
     }
-    //else
-    //    printf("shouldn't happen: usr_sz <= 0\n");
+    
+    if (collect_flag)
+    {
+        memcpy(&buffer[index], &(cev->send_lp), sizeof(tw_lpid));
+        index += sizeof(tw_lpid);
+        memcpy(&buffer[index], &cev->dest_lp->gid, sizeof(tw_lpid));
+        index += sizeof(tw_lpid);
+        memcpy(&buffer[index], &cev->recv_ts, sizeof(tw_stime));
+        index += sizeof(tw_stime);
+        memcpy(&buffer[index], &recv_rt, sizeof(tw_stime));
+        index += sizeof(tw_stime);
 
-    st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
+        if (index != buf_size)
+            printf("WARNING: size of data being pushed to buffer is incorrect!");
+
+        st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
+    }
 }
 
 // for now we're just collecting data about what events are causing rollbacks

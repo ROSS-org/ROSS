@@ -110,9 +110,9 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
-void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer)
+void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
 {
-
+    return;
 }
 
 st_trace_type trace_types[] = {

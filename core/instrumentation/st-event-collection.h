@@ -1,7 +1,8 @@
 #include <ross.h>
 
-typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer);
-typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer);
+// collect_flag allows for specific events to be turned on/off in tracing
+typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_flag);
+typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_flag);
 typedef struct st_trace_type st_trace_type;
 
 // each LP type needs to have this
