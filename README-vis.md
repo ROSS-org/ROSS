@@ -2,7 +2,8 @@
 
 Currently several different types of instrumentation have been added to ROSS: GVT-based, real time sampling, and event tracing.  
 All 3 instrumentation types can be used independently or together.  The options for 
-the data collection show under the title "ROSS Stats" when you run `--help` with a ROSS/CODES model.  The GVT-based and real time sampling require no changes to the model-level code.  Just make sure you've built ROSS using the Vis2 branch and then rebuild your model (including CODES if necessary).  The event tracing does require some minor changes to model code in order to work and is described in the event tracing section below.
+the data collection show under the title "ROSS Stats" when you run `--help` with a ROSS/CODES model.  
+No instrumentation type requires changes to the model-level code in order to run.  Just make sure you've built ROSS using the Vis2 branch and then rebuild your model (including CODES if necessary).  However, the event tracing does require some minor changes to model code in order to collect event type information.  The details are described in the event tracing section below.
 
 For all instrumentation types, you can use `--stats-filename` option to set a prefix for the output files.  
 All of the output files are stored in a directory named `stats-output` that is created in the running directory.
@@ -62,7 +63,7 @@ remote_events_LP0, ..., remote_events_LPj
 
 ### Event Tracing
 There are two ways to collect the event trace.  One is to collect data only about events that are causing rollbacks.
-When an event that should have been processed in the past is received, data about this event is collected (described below).  The other event collection is for all events, which can be turned on for only specific LP types.  
+When an event that should have been processed in the past is received, data about this event is collected (described below).  The other event collection is for all events.  
 For this collection, ROSS can directly access the source and destination LP IDs for each event, as well as the 
 received virtual timestamp of the event.  It will also record the real time that the event is computed at.
 Because event types are determined by the model developer, ROSS cannot directly access this.
@@ -75,13 +76,15 @@ struct, so that non-instrumented ROSS can still be run without requiring any add
 
 ##### Function pointers:
 ```C
-typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer);
-typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer);
+typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_flag);
+typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_flag);
 ```
 `msg` is the message being passed, `lp` is the LP pointer.  `buffer` is the pointer to where the data needs to be copied for ROSS to manage.
+`collect_flag` is a pointer to a ROSS flag.  By default `*collect_flag == 1`.  This means that the event will be collected.  Change the value to 0 for any events you do not want to show in the trace.  This means even the ROSS level data will not be collected (e.g., src_LP, dest_LP, etc).  
+
 For instance in the dragonfly CODES model, we can do:
 ```C
-void dragonfly_event_trace(terminal_message *msg, tw_lp *lp, char *buffer)
+void dragonfly_event_trace(terminal_message *msg, tw_lp *lp, char *buffer, int *collect_flag)
 {
     int type = (int) msg->type;
     memcpy(buffer, &type, sizeof(type));
@@ -117,7 +120,10 @@ st_trace_type trace_types[] = {
 ```
 This example assumes that we want to use the same `dragonfly_event_trace()` for both the terminal and router LPs in the dragonfly model and we'll use trace_types[0], when registering the trace types for both LP types.  
 
-To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  If your model is apart of CODES, the CODES mapping will handle this for you.  Right now the model net base LPs, the dragonfly router and terminal LPs, and dragonfly synthetic workload LPs have this implemented, but it's in my [forked CODES repo](https://xgitlab.cels.anl.gov/caitlinross/codes) (event-collection branch) at the moment.  See that repo for more details on making event tracing changes on CODES models.  
+To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  You can also choose to turn event tracing on for only certain LPs.  To do this, you only need to call `st_evtrace_settype()` with the appropriate agruments for the LPs you want event tracing turned on.
+
+If your model is a part of CODES, the CODES mapping will handle this for you.  Right now the model net base LPs, the dragonfly router and terminal LPs, and dragonfly synthetic workload LPs have this implemented, but it's in my [forked CODES repo](https://xgitlab.cels.anl.gov/caitlinross/codes) (event-collection branch) at the moment.  See that repo for more details on making event tracing changes on CODES models.  
+
 
 
 ### Output formatting
