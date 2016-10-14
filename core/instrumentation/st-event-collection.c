@@ -22,14 +22,29 @@ void st_evtrace_setup_types(tw_lp *lp)
 // this function to set up function types for event collection
 void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
 {
-    tw_lp *lp = g_tw_lp[i];
-    lp->trace_types = trace_types;
+    if (trace_types)
+    {
+        tw_lp *lp = g_tw_lp[i];
+        lp->trace_types = trace_types;
+    }
+    else if (!evtype_warned && g_tw_mynode == g_tw_masternode)
+    {
+        fprintf(stderr, "WARNING: node: %ld: error: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
+        fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
+        evtype_warned = 1;
+    }
 }
 
 // collect src LP, dest LP, virtual time stamp, real time start
 // model can implement callback function to collect model level data, e.g. event type
 void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
 {
+    if (!cev->dest_lp->trace_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
+    {
+        fprintf(stderr, "WARNING: node: %ld: error: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
+        fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
+        evtype_warned = 1;
+    }
     int index = 0;
     int usr_sz = 0;
     if (g_st_ev_trace == RB_TRACE && cev->dest_lp->trace_types)
