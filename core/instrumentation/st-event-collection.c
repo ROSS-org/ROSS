@@ -4,6 +4,7 @@ int g_st_ev_trace = 0;
 st_trace_type *g_st_trace_types = NULL;
 
 static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
+static short evtype_warned = 0;
 
 // if model uses tw_lp_setup_types() to set lp->type, it will also call
 // this function to set up the functions types for event collection
@@ -11,7 +12,10 @@ static int buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
 // TODO I don't think g_st_trace_types is ever initialized
 void st_evtrace_setup_types(tw_lp *lp)
 {
-    lp->trace_types = &g_st_trace_types[g_tw_lp_typemap(lp->gid)];
+    if (g_st_trace_types)
+        lp->trace_types = &g_st_trace_types[g_tw_lp_typemap(lp->gid)];
+    else
+        tw_error(TW_LOC, "g_st_trace_types needs to be defined!\n");
 }
 
 // if model uses tw_lp_settypes(), model will also need to call
@@ -23,9 +27,9 @@ void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
 }
 
 // collect src LP, dest LP, virtual time stamp, real time start
+// model can implement callback function to collect model level data, e.g. event type
 void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
 {
-    // add in callback function to be implemented by user so we can get event type (and potentially other data the user may want)
     int index = 0;
     int usr_sz = 0;
     if (g_st_ev_trace == RB_TRACE && cev->dest_lp->trace_types)

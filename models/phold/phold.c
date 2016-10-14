@@ -170,7 +170,7 @@ main(int argc, char **argv, char **env)
 	for(i = 0; i < g_tw_nlp; i++)
     {
 		tw_lp_settype(i, &mylps[0]);
-        st_evtrace_settype(i, &trace_types[0]);
+        //st_evtrace_settype(i, &trace_types[0]);
     }
 
         if( g_tw_mynode == 0 )
