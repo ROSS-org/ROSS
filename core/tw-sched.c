@@ -60,7 +60,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
-                           st_collect_event_data(cev, start / g_tw_clock_rate );
+                           st_collect_event_data(cev, start / g_tw_clock_rate, 0);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -149,6 +149,7 @@ static void tw_sched_batch(tw_pe * me) {
     const int max_alloc_fail_count = 20;
 
     tw_clock     start;
+    tw_clock ev_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -207,10 +208,11 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-        if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate );
+        ev_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;

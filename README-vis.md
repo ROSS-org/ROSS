@@ -65,7 +65,7 @@ remote_events_LP0, ..., remote_events_LPj
 There are two ways to collect the event trace.  One is to collect data only about events that are causing rollbacks.
 When an event that should have been processed in the past is received, data about this event is collected (described below).  The other event collection is for all events.  
 For this collection, ROSS can directly access the source and destination LP IDs for each event, as well as the 
-received virtual timestamp of the event.  It will also record the real time that the event is computed at.
+received virtual timestamp and real time duration of the event.  It will also record the real time that the event is computed at.
 Because event types are determined by the model developer, ROSS cannot directly access this.
 The user can create a callback function that ROSS will use to collect the event type, and ROSS will then handle storing
 the data in the buffer and the I/O.  The benefit to this is that the user can choose to collect other data about the event,

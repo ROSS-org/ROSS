@@ -19,4 +19,4 @@ extern st_trace_type *g_st_trace_types;
 
 void st_evtrace_setup_types(tw_lp *lp);
 void st_evtrace_settype(tw_lpid i, st_trace_type *event_types);
-void st_collect_event_data(tw_event *cev, tw_stime recv_rt);
+void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration);
