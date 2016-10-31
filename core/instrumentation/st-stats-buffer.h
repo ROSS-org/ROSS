@@ -30,6 +30,7 @@ extern st_stats_buffer *g_st_buffer_evrb;
 extern char g_st_directory[13];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
+extern time_t g_st_uniq_suffix;
 extern MPI_File g_st_gvt_fh;
 extern MPI_File g_st_rt_fh;
 extern MPI_File g_st_evrb_fh;

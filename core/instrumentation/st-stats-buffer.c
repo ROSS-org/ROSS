@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <sys/stat.h>
+#include <time.h>
 
 st_stats_buffer *g_st_buffer_gvt = NULL;
 st_stats_buffer *g_st_buffer_rt = NULL;
@@ -12,6 +13,7 @@ char g_st_directory[13];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
+time_t g_st_uniq_suffix = 0;
 MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
@@ -22,6 +24,7 @@ MPI_File g_st_evrb_fh;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
+    int rc = 0;
     st_stats_buffer *buffer = tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
@@ -34,12 +37,18 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     {
         sprintf(g_st_directory, "stats-output");
         mkdir(g_st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        char filename[128];
+        char filename[256];
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
             //sprintf(filename, "%s/ross-stats.bin", g_st_directory);
         sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
-        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        while (rc != MPI_SUCCESS)
+        {
+            g_st_uniq_suffix = time(NULL);
+            sprintf(filename, "%s/%s-%s-%ld.bin", g_st_directory, g_st_stats_out, suffix, g_st_uniq_suffix);
+            rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        }
     }
 
     return buffer;
