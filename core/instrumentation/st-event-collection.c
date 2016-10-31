@@ -99,8 +99,3 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
     }
 }
 
-// for now we're just collecting data about what events are causing rollbacks
-// so probably don't want ever roll this back
-//void st_collect_event_data_rc()
-//{
-//}

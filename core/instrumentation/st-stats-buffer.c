@@ -37,7 +37,7 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     {
         sprintf(g_st_directory, "stats-output");
         mkdir(g_st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        char filename[256];
+        char filename[MAX_LENGTH];
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
             //sprintf(filename, "%s/ross-stats.bin", g_st_directory);

@@ -78,8 +78,6 @@ tw_pe_init(tw_peid id, tw_peid gid)
         char suffix[4];
         sprintf(suffix, "gvt");
         g_st_buffer_gvt = st_buffer_init(suffix, &g_st_gvt_fh);
-        //st_stats_init();
-        //tw_gvt_stats_file_setup(gid);
         stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
     if (g_st_real_time_samp)
@@ -89,14 +87,12 @@ tw_pe_init(tw_peid id, tw_peid gid)
         char suffix[3];
         sprintf(suffix, "rt");
         g_st_buffer_rt = st_buffer_init(suffix, &g_st_rt_fh);
-        //st_stats_init();
     }
     if (g_st_ev_trace)
     {
         char suffix[5];
         sprintf(suffix, "evtrace");
         g_st_buffer_evrb = st_buffer_init(suffix, &g_st_evrb_fh);
-        //st_stats_init();
     }
 }
 

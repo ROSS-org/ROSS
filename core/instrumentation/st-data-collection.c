@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include <inttypes.h>
 
-char g_st_stats_out[128] = {0};
+char g_st_stats_out[MAX_LENGTH] = {0};
 int g_st_stats_enabled = 0;
 long g_st_current_interval = 0;
 tw_clock g_st_real_time_samp = 0;
@@ -59,7 +59,7 @@ void st_stats_init()
 
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
-        char filename[128];
+        char filename[MAX_LENGTH];
         if (g_st_uniq_suffix)
             sprintf(filename, "%s/%s-README-%ld.txt", g_st_directory, g_st_stats_out, g_st_uniq_suffix);
         else

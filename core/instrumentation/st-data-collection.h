@@ -1,5 +1,7 @@
 #include <ross.h>
 
+#define MAX_LENGTH 1024
+
 typedef struct st_lp_counters st_lp_counters;
 
 typedef struct {
@@ -53,9 +55,7 @@ typedef struct {
 } st_mem_usage;
 
 extern const tw_optdef *tw_stats_setup();
-extern void tw_gvt_stats_file_setup(tw_peid id);
-extern void tw_interval_stats_file_setup(tw_peid id);
-extern char g_st_stats_out[128];
+extern char g_st_stats_out[MAX_LENGTH];
 extern int g_st_stats_enabled;
 extern int g_st_pe_per_file;
 extern int g_st_my_file_id;
