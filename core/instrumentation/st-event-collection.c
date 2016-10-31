@@ -53,6 +53,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
     int usr_sz = 0;
     int collect_flag = 1;
     int total_sz = buf_size;
+    tw_clock start_cycle_time = tw_clock_read();
 
     if (!cev->dest_lp->trace_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
     {
@@ -97,5 +98,6 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
 
         st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
     }
+    g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 }
 

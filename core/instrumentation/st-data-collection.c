@@ -7,10 +7,6 @@ int g_st_stats_enabled = 0;
 long g_st_current_interval = 0;
 tw_clock g_st_real_time_samp = 0;
 tw_clock g_st_real_samp_start_cycles = 0;
-int g_st_pe_per_file = 1;
-int g_st_my_file_id = 0;
-MPI_File gvt_file;
-MPI_File interval_file;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
@@ -18,8 +14,8 @@ st_cycle_counters last_cycle_counters = {0};
 st_event_counters last_event_counters = {0};
 st_mem_usage last_mem_usage = {0};
 int g_st_granularity = 0;
-tw_clock stat_write_cycle_counter = 0;
-tw_clock stat_comp_cycle_counter = 0;
+tw_clock g_st_stat_write_ctr = 0;
+tw_clock g_st_stat_comp_ctr = 0;
 
 static int num_gvt_vals = 11;
 static int num_gvt_vals_pe = 4;
@@ -126,7 +122,7 @@ void st_stats_init()
 }
 
 /* wrapper to call gvt log functions depending on which granularity to use */
-void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     if (g_st_granularity == 0)
         st_gvt_log_pes(f, me, gvt, s, all_reduce_cnt);
@@ -137,7 +133,6 @@ void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all
 
 void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
-    tw_clock start_cycle_time = tw_clock_read();
     //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
     int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) + sizeof(float) + sizeof(int) *2;
     int index = 0;
@@ -220,12 +215,10 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 }
 
 void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
-    tw_clock start_cycle_time = tw_clock_read();
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
     int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(float) +
@@ -332,18 +325,13 @@ void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
         printf("WARNING: size of data being pushed to buffer is incorrect!");
 
     st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
-    //stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-    //start_cycle_time = tw_clock_read();
-    //MPI_File_write(gvt_file, buffer, strlen(buffer), MPI_CHAR, MPI_STATUS_IGNORE);
-    //stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
-    //start_cycle_time = tw_clock_read();
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
-    stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
 }
 
 void st_collect_data(tw_pe *pe, tw_stime current_rt)
 {
+    tw_clock start_cycle_time = tw_clock_read();
     int index = 0;
     int total_size = sizeof(unsigned short) + sizeof(float)*2;
     int data_size = g_tw_nkp * sizeof(float);
@@ -394,6 +382,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     //memcpy(&final_data[index], &data_mem[0], sizeof(data_mem));
     //index += sizeof(data_mem);
     st_buffer_push(g_st_buffer_rt, final_data, total_size);
+    g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 }
 
 void st_collect_time_ahead_GVT(tw_pe *pe, char *data)

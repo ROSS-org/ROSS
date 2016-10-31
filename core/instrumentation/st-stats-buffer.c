@@ -153,7 +153,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
         tw_clock start_cycle_time = tw_clock_read();;
         MPI_File_write_at(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
-        stat_write_cycle_counter += tw_clock_read() - start_cycle_time;
+        g_st_stat_write_ctr += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
         buffer->write_pos = 0;

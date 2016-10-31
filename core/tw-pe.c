@@ -74,11 +74,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
     // print out header for stats file
     if (g_st_stats_enabled)
     {
-        tw_clock start_cycle_time = tw_clock_read();
         char suffix[4];
         sprintf(suffix, "gvt");
         g_st_buffer_gvt = st_buffer_init(suffix, &g_st_gvt_fh);
-        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
     }
     if (g_st_real_time_samp)
     {

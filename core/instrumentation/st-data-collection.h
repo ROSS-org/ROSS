@@ -57,14 +57,10 @@ typedef struct {
 extern const tw_optdef *tw_stats_setup();
 extern char g_st_stats_out[MAX_LENGTH];
 extern int g_st_stats_enabled;
-extern int g_st_pe_per_file;
-extern int g_st_my_file_id;
-extern MPI_File gvt_file;
-extern MPI_File interval_file;
 extern int g_st_disable_out;
 extern int g_st_granularity;
-extern tw_clock stat_write_cycle_counter;
-extern tw_clock stat_comp_cycle_counter;
+extern tw_clock g_st_stat_write_ctr;
+extern tw_clock g_st_stat_comp_ctr;
 extern tw_clock g_st_real_time_samp;
 extern tw_clock g_st_real_samp_start_cycles;
 
@@ -79,6 +75,6 @@ void st_collect_event_counters_pes(tw_pe *pe, char *data);
 void st_collect_event_counters_lps(tw_pe *pe, char *data);
 void st_collect_memory_usage(char *data);
 void st_stats_init();
-void tw_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
+void st_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
 void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
 void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);

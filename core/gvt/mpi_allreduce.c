@@ -204,8 +204,8 @@ tw_gvt_step2(tw_pe *me)
         tw_statistics s;
         bzero(&s, sizeof(s));
         tw_get_stats(me, &s);
-        stat_comp_cycle_counter += tw_clock_read() - start_cycle_time;
-		tw_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);
+		st_gvt_log(NULL, me, gvt, &s, all_reduce_cnt);
+        g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
     }
 
     if (!g_st_disable_out && g_st_stats_enabled)

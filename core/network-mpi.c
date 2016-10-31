@@ -835,7 +835,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-    if (MPI_Reduce(&stat_comp_cycle_counter,
+    if (MPI_Reduce(&g_st_stat_comp_ctr,
         &me->stats.s_stat_comp,
         1,
         MPI_UNSIGNED_LONG_LONG,
@@ -844,7 +844,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-    if (MPI_Reduce(&stat_write_cycle_counter,
+    if (MPI_Reduce(&g_st_stat_write_ctr,
         &me->stats.s_stat_write,
         1,
         MPI_UNSIGNED_LONG_LONG,
