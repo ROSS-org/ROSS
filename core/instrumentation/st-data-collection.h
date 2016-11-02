@@ -49,11 +49,6 @@ struct st_lp_counters{
     unsigned int s_nsend_net_remote;
 };
 
-typedef struct {
-    size_t mem_allocated;
-    size_t mem_wasted;
-} st_mem_usage;
-
 extern const tw_optdef *tw_stats_setup();
 extern char g_st_stats_out[MAX_LENGTH];
 extern int g_st_stats_enabled;
@@ -66,14 +61,12 @@ extern tw_clock g_st_real_samp_start_cycles;
 
 st_cycle_counters last_cycle_counters;
 st_event_counters last_event_counters;
-st_mem_usage last_mem_usage;
 
 extern void st_collect_data(tw_pe *pe, tw_stime current_rt);
 void st_collect_time_ahead_GVT(tw_pe *me, char *data_size);
 void st_collect_cycle_counters(tw_pe *pe, char *data);
 void st_collect_event_counters_pes(tw_pe *pe, char *data);
 void st_collect_event_counters_lps(tw_pe *pe, char *data);
-void st_collect_memory_usage(char *data);
 void st_stats_init();
 void st_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
 void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
