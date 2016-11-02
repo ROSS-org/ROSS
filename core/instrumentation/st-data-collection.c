@@ -379,52 +379,51 @@ void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
 
 void st_collect_cycle_counters(tw_pe *pe, char *data)
 {
-    // TODO divide by clock rate before moving to buffer?
     int index = 0;
-    tw_clock tmp;
+    float tmp;
 
-    tmp = pe->stats.s_net_read - last_cycle_counters.s_net_read;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_net_read - last_cycle_counters.s_net_read) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_gvt - last_cycle_counters.s_gvt;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_gvt - last_cycle_counters.s_gvt) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_fossil_collect - last_cycle_counters.s_fossil_collect;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_fossil_collect - last_cycle_counters.s_fossil_collect) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_event_abort - last_cycle_counters.s_event_abort;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_event_abort - last_cycle_counters.s_event_abort) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_event_process - last_cycle_counters.s_event_process;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_event_process - last_cycle_counters.s_event_process) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_pq - last_cycle_counters.s_pq;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_pq - last_cycle_counters.s_pq) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_rollback - last_cycle_counters.s_rollback;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_rollback - last_cycle_counters.s_rollback) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_cancel_q - last_cycle_counters.s_cancel_q;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_cancel_q - last_cycle_counters.s_cancel_q) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_avl - last_cycle_counters.s_avl;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_avl - last_cycle_counters.s_avl) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_buddy - last_cycle_counters.s_buddy;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
-    index += sizeof(tw_clock);
+    tmp = (float)(pe->stats.s_buddy - last_cycle_counters.s_buddy) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
+    index += sizeof(tw_stime);
 
-    tmp = pe->stats.s_lz4 - last_cycle_counters.s_lz4;
-    memcpy(&data[index], &tmp, sizeof(tw_clock));
+    tmp = (float)(pe->stats.s_lz4 - last_cycle_counters.s_lz4) / g_tw_clock_rate;
+    memcpy(&data[index], &tmp, sizeof(tw_stime));
 
     last_cycle_counters.s_net_read = pe->stats.s_net_read;
     last_cycle_counters.s_gvt = pe->stats.s_gvt;
