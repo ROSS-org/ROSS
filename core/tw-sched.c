@@ -475,6 +475,7 @@ void tw_scheduler_sequential(tw_pe * me) {
 
 void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
+    tw_clock ev_start;
     unsigned int msg_i;
 
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
@@ -541,7 +542,10 @@ void tw_scheduler_conservative(tw_pe * me) {
             start = tw_clock_read();
             reset_bitfields(cev);
             clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+            ev_start = tw_clock_read();
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            if (g_st_ev_trace == FULL_TRACE)
+                st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
             if (*clp->type->commit) {
                 (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
             }
@@ -554,6 +558,13 @@ void tw_scheduler_conservative(tw_pe * me) {
             }
 
             tw_event_free(me, cev);
+
+            if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+                st_collect_data(me, current_rt / g_tw_clock_rate);
+                g_st_real_samp_start_cycles = tw_clock_read();
+            }
         }
     }
 
@@ -568,6 +579,17 @@ void tw_scheduler_conservative(tw_pe * me) {
 
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_st_stats_enabled)
+        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
+    if (g_st_real_time_samp)
+    {
+        // collect data one final time to account for time between last sample and sim end time
+        st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
+        st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    }
+    if (g_st_ev_trace)
+        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
 
     tw_stats(me);
 }
