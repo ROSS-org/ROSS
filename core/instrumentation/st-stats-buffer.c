@@ -24,7 +24,6 @@ MPI_File g_st_evrb_fh;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
-    int rc = 0;
     st_stats_buffer *buffer = tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
@@ -40,15 +39,8 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
         char filename[MAX_LENGTH];
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
-            //sprintf(filename, "%s/ross-stats.bin", g_st_directory);
         sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
-        rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
-        while (rc != MPI_SUCCESS)
-        {
-            g_st_uniq_suffix = time(NULL);
-            sprintf(filename, "%s/%s-%s-%ld.bin", g_st_directory, g_st_stats_out, suffix, g_st_uniq_suffix);
-            rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
-        }
+        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
     }
 
     return buffer;
@@ -69,8 +61,6 @@ void st_buffer_push(st_stats_buffer *buffer, char *data, int size)
             buffer_overflow_warned = 1;
             printf("tw_now() = %f\n", tw_now(g_tw_lp[0]));
         }
-        //missed_bytes += size - st_buffer_free_space(buffer);
-        //size = st_buffer_free_space(buffer);
         missed_bytes += size;
         size = 0; // if we can't push it all, don't push anything to buffer
     }
@@ -142,7 +132,6 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         else if (type == EV_TRACE)
             prev_offset_evrb += write_sizes[i];
     };
-    //MPI_Exscan(&my_write_size, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     if (write_to_file)
     {
