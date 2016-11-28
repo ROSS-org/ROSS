@@ -88,7 +88,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
     }
     if (g_st_ev_trace)
     {
-        char suffix[5];
+        char suffix[8];
         sprintf(suffix, "evtrace");
         g_st_buffer_evrb = st_buffer_init(suffix, &g_st_evrb_fh);
     }

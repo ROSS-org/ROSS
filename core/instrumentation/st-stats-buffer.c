@@ -29,7 +29,7 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     buffer->write_pos = 0;
     buffer->read_pos = 0;
     buffer->count = 0;
-    buffer->buffer = tw_calloc(TW_LOC, "statistics collection (buffer)", 1, buffer->size);
+    buffer->buffer = (char*) tw_calloc(TW_LOC, "statistics collection (buffer)", 1, buffer->size);
 
     // set up MPI File
     if (!g_st_disable_out)
