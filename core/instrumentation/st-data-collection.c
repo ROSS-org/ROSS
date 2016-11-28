@@ -56,10 +56,7 @@ void st_stats_init()
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
         char filename[MAX_LENGTH];
-        if (g_st_uniq_suffix)
-            sprintf(filename, "%s/%s-README-%ld.txt", g_st_directory, g_st_stats_out, g_st_uniq_suffix);
-        else
-            sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
+        sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
         file = fopen(filename, "w");
 
         /* start of metadata info for binary reader */

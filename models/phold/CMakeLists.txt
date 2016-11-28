@@ -38,3 +38,5 @@ add_test(PholdConsInstrumentationPE mpirun -np 2 ./phold --synch=2 --real-time-s
 add_test(PholdConsInstrumentationLP mpirun -np 2 ./phold --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
 
 add_test(PholdInstDisableOutput mpirun -np 2 ./phold --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --disable-output=1)
+add_test(PholdInstForceOverflow mpirun -np 2 ./phold --synch=3 --event-trace=1 --buffer-free=0)
+add_test(PholdInstRBEventTrace mpirun -np 2 ./phold --synch=3 --event-trace=2)

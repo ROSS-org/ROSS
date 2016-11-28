@@ -13,7 +13,6 @@ char g_st_directory[13];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
-time_t g_st_uniq_suffix = 0;
 MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
