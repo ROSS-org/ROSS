@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <sys/stat.h>
+#define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
 
 char g_st_stats_out[MAX_LENGTH] = {0};
