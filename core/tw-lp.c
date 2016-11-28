@@ -96,9 +96,9 @@ tw_init_lps(tw_pe * me)
 			lp->cur_state = tw_calloc(TW_LOC, "state vector", lp->type->state_sz, 1);
 		}
 
-        lp->event_counters = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
-        lp->prev_event_counters_gvt = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
-        lp->prev_event_counters_rt = tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
+        lp->event_counters = (st_lp_counters*) tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
+        lp->prev_event_counters_gvt = (st_lp_counters*) tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
+        lp->prev_event_counters_rt = (st_lp_counters*) tw_calloc(TW_LOC, "lp instrumentation", sizeof(st_lp_counters), 1);
 
 #ifndef USE_RIO
 		if (lp->type->init)
