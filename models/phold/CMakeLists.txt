@@ -28,8 +28,11 @@ add_test(PholdRealtime mpirun -np 2 ./phold --synch=5 --gvt-interval=1 --clock-r
 add_test(PholdOptDebug phold --synch=4 --nkp=1 --extramem=1000000)
 
 # Testing instrumentation
-add_test(PholdOptInstrumentation mpirun -np 2 ./phold --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+add_test(PholdOptInstrumentationPE mpirun -np 2 ./phold --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
+add_test(PholdOptInstrumentationLP mpirun -np 2 ./phold --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
 
-add_test(PholdRTOptInstrumentation mpirun -np 2 ./phold --synch=5 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+add_test(PholdRTOptInstrumentationPE mpirun -np 2 ./phold --synch=5 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
+add_test(PholdRTOptInstrumentationLP mpirun -np 2 ./phold --synch=5 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
 
-add_test(PholdConsInstrumentation mpirun -np 2 ./phold --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+add_test(PholdConsInstrumentationPE mpirun -np 2 ./phold --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
+add_test(PholdConsInstrumentationLP mpirun -np 2 ./phold --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
