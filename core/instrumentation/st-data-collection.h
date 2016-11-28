@@ -59,8 +59,8 @@ extern tw_clock g_st_stat_comp_ctr;
 extern tw_clock g_st_real_time_samp;
 extern tw_clock g_st_real_samp_start_cycles;
 
-st_cycle_counters last_cycle_counters;
-st_event_counters last_event_counters;
+extern st_cycle_counters last_cycle_counters;
+extern st_event_counters last_event_counters;
 
 extern void st_collect_data(tw_pe *pe, tw_stime current_rt);
 void st_collect_time_ahead_GVT(tw_pe *me, char *data_size);
