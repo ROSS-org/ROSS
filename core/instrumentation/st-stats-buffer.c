@@ -24,7 +24,7 @@ MPI_File g_st_evrb_fh;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
-    st_stats_buffer *buffer = tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
+    st_stats_buffer *buffer = (st_stats_buffer*) tw_calloc(TW_LOC, "statistifcs collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
     buffer->read_pos = 0;
