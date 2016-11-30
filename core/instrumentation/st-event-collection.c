@@ -29,7 +29,7 @@ void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
     }
     else if (!evtype_warned && g_tw_mynode == g_tw_masternode)
     {
-        fprintf(stderr, "WARNING: node: %ld: error: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
+        fprintf(stderr, "WARNING: node: %ld: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
         fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
         evtype_warned = 1;
     }
@@ -47,7 +47,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
 
     if (!cev->dest_lp->trace_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
     {
-        fprintf(stderr, "WARNING: node: %ld: error: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
+        fprintf(stderr, "WARNING: node: %ld: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
         fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
         evtype_warned = 1;
     }

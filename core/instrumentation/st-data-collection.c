@@ -199,7 +199,7 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     index += sizeof(float);
 
     if (index != buf_size)
-        printf("WARNING: size of data being pushed to buffer is incorrect!\n");
+        tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
     st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
@@ -300,7 +300,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     }
 
     if (index != buf_size)
-        printf("WARNING: size of data being pushed to buffer is incorrect!\n");
+        tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
     st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
