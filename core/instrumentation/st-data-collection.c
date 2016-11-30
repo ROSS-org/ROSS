@@ -119,16 +119,16 @@ void st_stats_init()
 }
 
 /* wrapper to call gvt log functions depending on which granularity to use */
-void st_gvt_log(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_gvt_log(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     if (g_st_granularity == 0)
-        st_gvt_log_pes(f, me, gvt, s, all_reduce_cnt);
+        st_gvt_log_pes(me, gvt, s, all_reduce_cnt);
     else
-        st_gvt_log_lps(f, me, gvt, s, all_reduce_cnt);
+        st_gvt_log_lps(me, gvt, s, all_reduce_cnt);
 
 }
 
-void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
     int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 2  + sizeof(int);
@@ -206,7 +206,7 @@ void st_gvt_log_pes(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat
     last_all_reduce_cnt = all_reduce_cnt;
 }
 
-void st_gvt_log_lps(FILE * f, tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
