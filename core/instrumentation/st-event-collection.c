@@ -3,13 +3,12 @@
 int g_st_ev_trace = 0;
 st_trace_type *g_st_trace_types = NULL;
 
-static int buf_size = 0;
+int g_st_buf_size = 0;
 static short evtype_warned = 0;
 
 // if model uses tw_lp_setup_types() to set lp->type, it will also call
 // this function to set up the functions types for event collection
 // because this can make use of the already defined type mapping
-// TODO I don't think g_st_trace_types is ever initialized
 void st_evtrace_setup_types(tw_lp *lp)
 {
     if (g_st_trace_types)
@@ -17,10 +16,6 @@ void st_evtrace_setup_types(tw_lp *lp)
     else
         tw_error(TW_LOC, "g_st_trace_types needs to be defined!\n");
     
-    if (g_st_ev_trace == RB_TRACE)
-        buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
-    else if (g_st_ev_trace == FULL_TRACE)
-        buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
 }
 
 // if model uses tw_lp_settypes(), model will also need to call
@@ -38,11 +33,6 @@ void st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)
         fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
         evtype_warned = 1;
     }
-    
-    if (g_st_ev_trace == RB_TRACE)
-        buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
-    else if (g_st_ev_trace == FULL_TRACE)
-        buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
 }
 
 // collect src LP, dest LP, virtual time stamp, real time start
@@ -52,7 +42,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
     int index = 0;
     int usr_sz = 0;
     int collect_flag = 1;
-    int total_sz = buf_size;
+    int total_sz = g_st_buf_size;
     tw_clock start_cycle_time = tw_clock_read();
 
     if (!cev->dest_lp->trace_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
@@ -72,9 +62,9 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
     if (usr_sz > 0)
     {
         if (g_st_ev_trace == RB_TRACE)
-            (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[buf_size], &collect_flag);
+            (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[g_st_buf_size], &collect_flag);
         else if (g_st_ev_trace == FULL_TRACE)
-            (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[buf_size], &collect_flag);
+            (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[g_st_buf_size], &collect_flag);
     }
     
     if (collect_flag)
@@ -93,8 +83,8 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
             index += sizeof(tw_stime);
         }
 
-        if (index != buf_size)
-            printf("WARNING: size of data being pushed to buffer is incorrect!");
+        if (index != g_st_buf_size)
+            printf("WARNING: size of data being pushed to buffer is incorrect!\n");
 
         st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
     }

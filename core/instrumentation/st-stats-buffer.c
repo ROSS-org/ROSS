@@ -42,6 +42,13 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
         MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
     }
 
+    if (strcmp(suffix, "evtrace") == 0)
+    {
+        if (g_st_ev_trace == RB_TRACE)
+            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
+        else if (g_st_ev_trace == FULL_TRACE)
+            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
+    }
     return buffer;
 }
 

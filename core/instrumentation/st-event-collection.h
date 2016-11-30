@@ -16,6 +16,7 @@ struct st_trace_type {
 
 extern int g_st_ev_trace;
 extern st_trace_type *g_st_trace_types;
+extern int g_st_buf_size;
 
 void st_evtrace_setup_types(tw_lp *lp);
 void st_evtrace_settype(tw_lpid i, st_trace_type *event_types);
