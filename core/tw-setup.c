@@ -56,6 +56,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+    tw_opt_add(tw_stats_setup());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
@@ -304,6 +305,9 @@ unsigned instList[] = {
 void tw_run(void) {
     tw_pe *me;
 
+    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace)
+        st_stats_init();
+
     late_sanity_check();
 
     me = setup_pes();
@@ -448,7 +452,7 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        printf("\t%-50s %11llu\n", "Total LPs", 
+        printf("\t%-50s %11llu\n", "Total LPs",
 	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
         fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 

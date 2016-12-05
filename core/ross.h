@@ -216,6 +216,10 @@ typedef uint64_t tw_lpid;
 
 #include "ross-inline.h"
 
+#include "instrumentation/st-stats-buffer.h"
+#include "instrumentation/st-data-collection.h"
+#include "instrumentation/st-event-collection.h"
+
 #ifdef __cplusplus
 }
 #endif

@@ -109,7 +109,6 @@ tw_gvt_step2(tw_pe *me)
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
-
 	while(1)
 	  {
 	    tw_net_read(me);
@@ -173,7 +172,8 @@ tw_gvt_step2(tw_pe *me)
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
+	{
 		gvt_print(gvt);
 	}
 
@@ -197,6 +197,23 @@ tw_gvt_step2(tw_pe *me)
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
+
+    if (g_st_stats_enabled && gvt <= g_tw_ts_end)
+    {
+        tw_clock start_cycle_time = tw_clock_read();
+        tw_statistics s;
+        bzero(&s, sizeof(s));
+        tw_get_stats(me, &s);
+		st_gvt_log(me, gvt, &s, all_reduce_cnt);
+        g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
+    }
+
+    if (!g_st_disable_out && g_st_stats_enabled)
+        st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);
+    if (!g_st_disable_out && g_st_real_time_samp)
+        st_buffer_write(g_st_buffer_rt, 0, RT_COL);
+    if (!g_st_disable_out && (g_st_ev_trace))
+        st_buffer_write(g_st_buffer_evrb, 0, EV_TRACE);
 
 	g_tw_gvt_done++;
 

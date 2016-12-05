@@ -56,7 +56,14 @@ tw-sched.c
 tw-setup.c
 tw-signal.c
 tw-stats.c
-tw-util.c)
+tw-util.c
+
+instrumentation/st-stats-buffer.h
+instrumentation/st-stats-buffer.c
+instrumentation/st-data-collection.h
+instrumentation/st-data-collection.c
+instrumentation/st-event-collection.h
+instrumentation/st-event-collection.c)
 
 
 # ROSS VERSION INFORMATION

@@ -357,6 +357,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
   dest_pe = e->dest_lp->pe;
+  e->dest_lp->event_counters->s_nread_network++;
 
   if(e->send_pe > tw_nnodes()-1)
     tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
@@ -508,6 +509,7 @@ send_begin(tw_pe *me)
 	e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
+      e->send_lp = e->src_lp->gid;
 
 #if ROSS_MEMORY
       // pack pointers
@@ -600,6 +602,7 @@ static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
+  e->src_lp->event_counters->s_nsend_network++;
 
   if (e->state.owner == TW_net_asend) {
     if (e->state.cancel_asend) {
@@ -828,6 +831,24 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         1,
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
+        (int)g_tw_masternode,
+        MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
+    if (MPI_Reduce(&g_st_stat_comp_ctr,
+        &me->stats.s_stat_comp,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
+        (int)g_tw_masternode,
+        MPI_COMM_WORLD) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
+    if (MPI_Reduce(&g_st_stat_write_ctr,
+        &me->stats.s_stat_write,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
         (int)g_tw_masternode,
         MPI_COMM_WORLD) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");

@@ -44,6 +44,7 @@ void tw_event_send(tw_event * event) {
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
@@ -74,6 +75,7 @@ void tw_event_send(tw_event * event) {
         * for processing.
         */
         send_pe->stats.s_nsend_net_remote++;
+        event->src_lp->event_counters->s_nsend_net_remote++;
         event->state.owner = TW_net_asend;
         tw_net_send(event);
     }
@@ -101,6 +103,7 @@ static inline void event_cancel(tw_event * event) {
         */
         tw_net_cancel(event);
         send_pe->stats.s_nsend_net_remote--;
+        event->src_lp->event_counters->s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
             send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
@@ -214,4 +217,5 @@ jump_over_rc_event_handler:
     event->caused_by_me = NULL;
 
     dest_lp->kp->s_e_rbs++;
+    dest_lp->event_counters->s_e_rbs++;
 }
