@@ -19,13 +19,11 @@ typedef struct {
 } st_cycle_counters;
 
 typedef struct {
-    unsigned int s_net_events;
     unsigned int s_nevent_processed;
     unsigned int s_nevent_abort;
     unsigned int s_e_rbs;
 
     unsigned int s_rb_total;
-    unsigned int s_rb_primary;
     unsigned int s_rb_secondary;
     unsigned int s_fc_attempts;
 
