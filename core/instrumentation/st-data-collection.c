@@ -210,7 +210,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
 {
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
-    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(float) +
+    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(int) + sizeof(float) +
         sizeof(unsigned int) * num_gvt_vals_kp * g_tw_nkp + sizeof(unsigned int) * num_gvt_vals_lp * g_tw_nlp + sizeof(int) * g_tw_nlp;
     int index = 0, i;
     char buffer[buf_size];
@@ -245,6 +245,10 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tmp = (unsigned int)(s->s_fc_attempts-last_stats.s_fc_attempts);
     memcpy(&buffer[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
+
+    tmp2 = (int)((long long)s->s_net_events-(long long)last_stats.s_net_events);
+    memcpy(&buffer[index], &tmp2, sizeof(int));
+    index += sizeof(int);
 
     eff = (float)100.0 * (1.0 - ((float) (s->s_e_rbs-last_stats.s_e_rbs)/(float) (s->s_net_events-last_stats.s_net_events)));
     memcpy(&buffer[index], &eff, sizeof(float));
