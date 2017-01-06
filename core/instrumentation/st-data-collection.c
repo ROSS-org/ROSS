@@ -131,7 +131,7 @@ void st_gvt_log(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cn
 void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
-    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 2  + sizeof(int);
+    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 3  + sizeof(int);
     int index = 0;
     char buffer[buf_size];
     //tw_stat tmp;
@@ -139,12 +139,17 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     int tmp2;
     float eff;
     unsigned short nodeid;
+    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
 
     nodeid = (unsigned short) g_tw_mynode;
     memcpy(&buffer[index], &nodeid, sizeof(nodeid));
     index += sizeof(nodeid);
 
     eff = (float)gvt;
+    memcpy(&buffer[index], &eff, sizeof(eff));
+    index += sizeof(eff);
+
+    eff = (float) current_rt;
     memcpy(&buffer[index], &eff, sizeof(eff));
     index += sizeof(eff);
 
@@ -210,7 +215,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
 {
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
-    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(int) + sizeof(float) +
+    int buf_size = sizeof(unsigned short) + sizeof(float) * 2 + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(int) + sizeof(float) +
         sizeof(unsigned int) * num_gvt_vals_kp * g_tw_nkp + sizeof(unsigned int) * num_gvt_vals_lp * g_tw_nlp + sizeof(int) * g_tw_nlp;
     int index = 0, i;
     char buffer[buf_size];
@@ -220,6 +225,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tw_kp *kp;
     tw_lp *lp;
     unsigned short nodeid;
+    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
 
     /* PE granularity */
     nodeid = (unsigned short) g_tw_mynode;
@@ -229,6 +235,10 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     eff = (float)gvt;
     memcpy(&buffer[index], &eff, sizeof(float));
     index += sizeof(float);
+
+    eff = (float) current_rt;
+    memcpy(&buffer[index], &eff, sizeof(eff));
+    index += sizeof(eff);
 
     tmp = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
     memcpy(&buffer[index], &tmp, sizeof(unsigned int));
