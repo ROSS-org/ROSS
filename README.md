@@ -35,9 +35,11 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
 
 1. Clone the repository to your local machine:
   ```
-  git clone git@github.com:carothersc/ROSS.git
+  git clone -b master --single-branch git@github.com:carothersc/ROSS.git
   cd ROSS
   ```
+  Since the ROSS repostiory is quite large, it is recommended that you only clone the master branch.
+  To speed up the clone command even more, use the `--depth=1` argument.
 
 2. *Optional* Install the submodules:
   ```
