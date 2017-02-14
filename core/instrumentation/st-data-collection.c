@@ -139,7 +139,7 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     int tmp2;
     float eff;
     unsigned short nodeid;
-    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     nodeid = (unsigned short) g_tw_mynode;
     memcpy(&buffer[index], &nodeid, sizeof(nodeid));
@@ -225,7 +225,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tw_kp *kp;
     tw_lp *lp;
     unsigned short nodeid;
-    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     /* PE granularity */
     nodeid = (unsigned short) g_tw_mynode;
