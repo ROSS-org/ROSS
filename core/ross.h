@@ -208,6 +208,10 @@ typedef uint64_t tw_lpid;
 #  include "tw-memory.h"
 #endif
 
+#include "instrumentation/st-stats-buffer.h"
+#include "instrumentation/st-data-collection.h"
+#include "instrumentation/st-event-collection.h"
+
 #include "tw-eventq.h"
 
 #ifdef USE_RIO
@@ -216,9 +220,6 @@ typedef uint64_t tw_lpid;
 
 #include "ross-inline.h"
 
-#include "instrumentation/st-stats-buffer.h"
-#include "instrumentation/st-data-collection.h"
-#include "instrumentation/st-event-collection.h"
 
 #ifdef __cplusplus
 }

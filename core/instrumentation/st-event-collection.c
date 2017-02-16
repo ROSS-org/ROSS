@@ -51,7 +51,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
         fprintf(stderr, "The struct st_trace_type has not been defined! No model level data will be collected\n");
         evtype_warned = 1;
     }
-    if (g_st_ev_trace == RB_TRACE && cev->dest_lp->trace_types)
+    if ((g_st_ev_trace == RB_TRACE || g_st_ev_trace == COMMIT_TRACE) && cev->dest_lp->trace_types)
         usr_sz = cev->dest_lp->trace_types->rbev_sz;
     else if (g_st_ev_trace == FULL_TRACE && cev->dest_lp->trace_types)
         usr_sz = cev->dest_lp->trace_types->ev_sz;
@@ -61,7 +61,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
 
     if (usr_sz > 0)
     {
-        if (g_st_ev_trace == RB_TRACE)
+        if (g_st_ev_trace == RB_TRACE || g_st_ev_trace == COMMIT_TRACE)
             (*cev->dest_lp->trace_types->rbev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[g_st_buf_size], &collect_flag);
         else if (g_st_ev_trace == FULL_TRACE)
             (*cev->dest_lp->trace_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[g_st_buf_size], &collect_flag);
