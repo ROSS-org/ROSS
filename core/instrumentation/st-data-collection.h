@@ -50,6 +50,7 @@ struct st_lp_counters{
 extern const tw_optdef *tw_stats_setup();
 extern char g_st_stats_out[MAX_LENGTH];
 extern int g_st_stats_enabled;
+extern int g_st_num_gvt;
 extern int g_st_disable_out;
 extern int g_st_granularity;
 extern tw_clock g_st_stat_write_ctr;
