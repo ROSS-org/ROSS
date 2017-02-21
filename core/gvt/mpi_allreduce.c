@@ -3,6 +3,8 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
@@ -122,7 +124,7 @@ tw_gvt_step2(tw_pe *me)
 			     1,
 			     MPI_LONG_LONG,
 			     MPI_SUM,
-			     MPI_COMM_WORLD) != MPI_SUCCESS)
+			     MPI_COMM_ROSS) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	    if(total_white == 0)
@@ -145,7 +147,7 @@ tw_gvt_step2(tw_pe *me)
 			1,
 			MPI_DOUBLE,
 			MPI_MIN,
-			MPI_COMM_WORLD) != MPI_SUCCESS)
+			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	gvt = ROSS_MIN(gvt, me->GVT_prev);
