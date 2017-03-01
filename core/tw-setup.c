@@ -20,6 +20,7 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
     TWOPT_UINT("buddy-size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
     TWOPT_UINT("lz4-knob", g_tw_lz4_knob, "LZ4 acceleration factor (higher = faster)"),
+    TWOPT_ULONGLONG("max-opt-lookahead", g_tw_max_opt_lookahead, "Optimistic simulation: maximum lookahead allowed in virtual clock time"),
 #ifdef AVL_TREE
     TWOPT_UINT("avl-size", g_tw_avl_node_count, "AVL Tree contains 2^avl-size nodes"),
 #endif
