@@ -198,7 +198,7 @@ tw_gvt_step2(tw_pe *me)
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
 
-    if (g_st_stats_enabled && gvt <= g_tw_ts_end)
+    if (g_st_stats_enabled && g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_statistics s;

@@ -60,7 +60,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
-                           st_collect_event_data(cev, start / g_tw_clock_rate, 0);
+                           st_collect_event_data(cev, (double)start / g_tw_clock_rate, 0);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -212,7 +212,7 @@ static void tw_sched_batch(tw_pe * me) {
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
@@ -250,7 +250,7 @@ static void tw_sched_batch(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, current_rt / g_tw_clock_rate);
+            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
             g_st_real_samp_start_cycles = tw_clock_read();
         }
     }
@@ -327,7 +327,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
@@ -370,7 +370,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, current_rt / g_tw_clock_rate);
+            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
             g_st_real_samp_start_cycles = tw_clock_read();
         }
     }
@@ -545,7 +545,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             ev_start = tw_clock_read();
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
             if (g_st_ev_trace == FULL_TRACE)
-                st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
+                st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
             if (*clp->type->commit) {
                 (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
             }
@@ -562,7 +562,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
             {
                 tw_clock current_rt = tw_clock_read();
-                st_collect_data(me, current_rt / g_tw_clock_rate);
+                st_collect_data(me, (double)current_rt / g_tw_clock_rate);
                 g_st_real_samp_start_cycles = tw_clock_read();
             }
         }
@@ -585,7 +585,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     if (g_st_real_time_samp)
     {
         // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
     }
     if (g_st_ev_trace)
@@ -640,7 +640,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     if (g_st_real_time_samp)
     {
         // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
     }
     if (g_st_ev_trace)
@@ -700,7 +700,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     if (g_st_real_time_samp)
     {
         // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, tw_clock_read() / g_tw_clock_rate);
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
         st_buffer_finalize(g_st_buffer_rt, RT_COL);
     }
     if (g_st_ev_trace)

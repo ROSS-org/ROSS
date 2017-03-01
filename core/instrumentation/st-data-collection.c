@@ -16,6 +16,7 @@ st_event_counters last_event_counters = {0};
 int g_st_granularity = 0;
 tw_clock g_st_stat_write_ctr = 0;
 tw_clock g_st_stat_comp_ctr = 0;
+int g_st_num_gvt = 10;
 
 static int num_gvt_vals = 10;
 static int num_gvt_vals_pe = 4;
@@ -30,9 +31,10 @@ static int num_ev_ctrs_lp = 4;
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
+    TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
     TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"),
     TWOPT_UINT("granularity", g_st_granularity, "collect on PE basis only, or also KP/LP basis, 0 for PE, 1 for KP/LP"),
-    TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks"),
+    TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
     TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
@@ -139,7 +141,7 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     int tmp2;
     float eff;
     unsigned short nodeid;
-    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     nodeid = (unsigned short) g_tw_mynode;
     memcpy(&buffer[index], &nodeid, sizeof(nodeid));
@@ -225,7 +227,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tw_kp *kp;
     tw_lp *lp;
     unsigned short nodeid;
-    tw_clock current_rt = tw_clock_read() / g_tw_clock_rate;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     /* PE granularity */
     nodeid = (unsigned short) g_tw_mynode;
