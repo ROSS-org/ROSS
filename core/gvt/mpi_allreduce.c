@@ -65,7 +65,7 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
-		++gvt_cnt < g_tw_gvt_interval)
+		(++gvt_cnt < g_tw_gvt_interval && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
 		return;
 
 	me->gvt_status = TW_GVT_COMPUTE;
@@ -77,7 +77,8 @@ tw_gvt_step1_realtime(tw_pe *me)
   unsigned long long current_rt;
 
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
-      ( (current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval))
+      ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
+          && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
     {
       /* if( me->node == 0 ) */
       /* 	{ */
