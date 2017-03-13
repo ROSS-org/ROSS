@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 st_stats_buffer *g_st_buffer_gvt = NULL;
 st_stats_buffer *g_st_buffer_rt = NULL;
 st_stats_buffer *g_st_buffer_evrb = NULL;
@@ -39,7 +41,7 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
         sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
-        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
     }
 
     if (strcmp(suffix, "evtrace") == 0)
@@ -126,7 +128,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         write_to_file = 1;
     }
 
-    MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_ROSS);
     for (i = 0; i < tw_nnodes(); i++)
     {
         if (i < g_tw_mynode)
@@ -145,7 +147,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         // dump buffer to file
         MPI_Status status;
 
-        //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
+        //MPI_Comm_split(MPI_COMM_ROSS, file_number, file_position, &file_comm);
         tw_clock start_cycle_time = tw_clock_read();;
         MPI_File_write_at(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
         g_st_stat_write_ctr += tw_clock_read() - start_cycle_time;

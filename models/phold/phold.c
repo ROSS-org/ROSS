@@ -141,6 +141,23 @@ const tw_optdef app_opt[] =
 int
 main(int argc, char **argv, char **env)
 {
+
+#ifdef TEST_COMM_ROSS
+    // Init outside of ROSS
+    MPI_Init(&argc, &argv);
+    // Split COMM_WORLD in half even/odd
+    int mpi_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm split_comm;
+    MPI_Comm_split(MPI_COMM_WORLD, mpi_rank%2, mpi_rank, &split_comm);
+    if(mpi_rank%2 == 1){
+        // tests should catch any MPI_COMM_WORLD collectives
+        MPI_Finalize();
+    }
+    // Allows ROSS to function as normal
+    tw_comm_set(split_comm);
+#endif
+
 	int		 i;
 
         // get rid of error if compiled w/ MEMORY queues
