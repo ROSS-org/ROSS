@@ -2,7 +2,7 @@
 FUNCTION(ROSS_TEST_SCHEDULERS target_name)
 	ADD_TEST(${target_name}_SCHED_Sequential ${target_name} --synch=1)
 	ADD_TEST(${target_name}_SCHED_Conservative mpirun -np 2 ./${target_name} --synch=2)
-	ADD_TEST(${target_name}_SCHED_Optimistic mpirun -np 2 ./${target_name} --synch=3)
+	ADD_TEST(${target_name}_SCHED_Optimistic mpirun -np 2 ./${target_name} --synch=3 --extramem=100000)
 	ADD_TEST(${target_name}_SCHED_Realtime mpirun -np 2 ./${target_name} --synch=5 --gvt-interval=1 --clock-rate=$ENV{CLOCK_SPEED})
 	ADD_TEST(${target_name}_SCHED_OptDebug ${target_name} --synch=4 --nkp=1 --extramem=1000000)
 
@@ -17,18 +17,18 @@ ENDFUNCTION(ROSS_TEST_SCHEDULERS)
 
 ## INSTRUMENTATION TESTS
 FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
-	ADD_TEST(${target_name}_INST_OptPE mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
-	ADD_TEST(${target_name}_INST_OptLP mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+	ADD_TEST(${target_name}_INST_OptPE mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --extramem=100000)
+	ADD_TEST(${target_name}_INST_OptLP mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
 
-	ADD_TEST(${target_name}_INST_RTOptPE mpirun -np 2 ./${target_name} --synch=5 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
-	ADD_TEST(${target_name}_INST_RTOptLP mpirun -np 2 ./${target_name} --synch=5 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+	ADD_TEST(${target_name}_INST_RTOptPE mpirun -np 2 ./${target_name} --synch=5 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --extramem=100000)
+	ADD_TEST(${target_name}_INST_RTOptLP mpirun -np 2 ./${target_name} --synch=5 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
 
-	ADD_TEST(${target_name}_INST_ConsPE mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1)
-	ADD_TEST(${target_name}_INST_ConsLP mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --granularity=1)
+	ADD_TEST(${target_name}_INST_ConsPE mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --extramem=100000)
+	ADD_TEST(${target_name}_INST_ConsLP mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
 
-	ADD_TEST(${target_name}_INST_DisableOutput mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=100 --enable-gvt-stats=1 --event-trace=1 --disable-output=1)
-	ADD_TEST(${target_name}_INST_ForceOverflow mpirun -np 2 ./${target_name} --synch=3 --event-trace=1 --buffer-free=0)
-	ADD_TEST(${target_name}_INST_RBEventTrace mpirun -np 2 ./${target_name} --synch=3 --event-trace=2)
+	ADD_TEST(${target_name}_INST_DisableOutput mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --disable-output=1 --extramem=100000)
+	ADD_TEST(${target_name}_INST_ForceOverflow mpirun -np 2 ./${target_name} --synch=3 --event-trace=1 --buffer-free=0 --extramem=100000)
+	ADD_TEST(${target_name}_INST_RBEventTrace mpirun -np 2 ./${target_name} --synch=3 --event-trace=2 --extramem=100000)
 
 	SET(inst_tests
 		${target_name}_INST_OptPE
