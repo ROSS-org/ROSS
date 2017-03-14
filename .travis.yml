@@ -1,3 +1,5 @@
+dist: trusty
+sudo: required
 language: cpp
 compiler:
   - clang
@@ -16,6 +18,7 @@ before_install:
  - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
  - echo $CLOCK_SPEED
  - sh ./conf/travis-install-mpi.sh mpich2
+ - mpirun --version
 script:
  - mkdir cxx-build && cd cxx-build
  - ARCH=x86_64 CC=mpicc cmake -DCMAKE_BUILD_TYPE=Release ..
