@@ -1,4 +1,7 @@
 INCLUDE_DIRECTORIES(${ROSS_BINARY_DIR})
+IF(USE_DAMARIS)
+    INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include ${DAMARIS_DIR}/lib)
+ENDIF(USE_DAMARIS)
 IF(BGPM)
 	INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${BGPM_LIB})
 ELSE(NOT(BGPM))
@@ -8,6 +11,7 @@ ENDIF(BGPM)
 SET(phold_srcs
 phold.c		phold.h)
 
+
 ADD_EXECUTABLE(phold ${phold_srcs})
 ADD_EXECUTABLE(phold_test ${phold_srcs})
 
@@ -15,8 +19,14 @@ IF(BGPM)
 	TARGET_LINK_LIBRARIES(phold ROSS imp_bgpm m)
 	TARGET_LINK_LIBRARIES(phold_test ROSS imp_bgpm m)
 ELSE(NOT(BGPM))
-	TARGET_LINK_LIBRARIES(phold ROSS m)
-	TARGET_LINK_LIBRARIES(phold_test ROSS m)
+    IF(USE_DAMARIS)
+        SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lmpi_cxx -lrt -ldl")
+        TARGET_LINK_LIBRARIES(phold ROSS ${DAMARIS_LINKER_FLAGS} ${DAMARIS_LIB} m)
+        TARGET_LINK_LIBRARIES(phold_test ROSS ${DAMARIS_LINKER_FLAGS} ${DAMARIS_LIB} m)
+    ELSE(NOT(USE_DAMARIS))
+        TARGET_LINK_LIBRARIES(phold ROSS m)
+        TARGET_LINK_LIBRARIES(phold_test ROSS m)
+    ENDIF(USE_DAMARIS)
 ENDIF(BGPM)
 
 ROSS_TEST_SCHEDULERS(phold)

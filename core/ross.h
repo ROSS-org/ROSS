@@ -116,6 +116,10 @@ extern "C" {
 #include <stdarg.h>
 #include <stdint.h>
 
+#ifdef USE_DAMARIS
+#include "Damaris.h"
+#endif
+
 #if !defined(DBL_MAX)
 #include <float.h>
 #endif

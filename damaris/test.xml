@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<simulation name ="ROSS test"
+    language="c" xmlns="http://damaris.gforge.inria.fr/damaris/model">
+    <architecture>
+        <domains count="1"/>
+        <dedicated cores="1" nodes="0"/>
+        <buffer name="buffer" size="67108864"/>
+        <queue name="queue" size="100"/>
+    </architecture>
+    <data>
+    </data>
+    <actions>
+    </actions>
+</simulation>
+

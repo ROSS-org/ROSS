@@ -3,6 +3,7 @@
 
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
+int g_tw_is_ross_rank = 0; // for use with damaris
 
 static long id_tmp;
 
@@ -56,17 +57,42 @@ void tw_comm_set(MPI_Comm comm)
 	custom_communicator = 1;
 }
 
-const tw_optdef *
-tw_net_init(int *argc, char ***argv)
+const tw_optdef *tw_get_mpi_opts()
+{
+    return mpi_opts;
+}
+
+void tw_net_init(int *argc, char ***argv)
 {
   int my_rank;
-
+#ifdef USE_DAMARIS
+  int err;
+  MPI_Comm ross_comm;
+#endif
   int initialized;
   MPI_Initialized(&initialized);
 
   if (!initialized) {
     if (MPI_Init(argc, argv) != MPI_SUCCESS)
       tw_error(TW_LOC, "MPI_Init failed.");
+#ifdef USE_DAMARIS
+    //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    // TODO don't hardcode Damaris config file
+    err = damaris_initialize("/home/rossc3/ROSS-Vis/damaris/test.xml", MPI_COMM_WORLD);
+    damaris_start(&g_tw_is_ross_rank);
+    //printf("GLOBAL rank %d g_tw_is_ross_rank = %d\n", my_rank, g_tw_is_ross_rank); 
+    if(g_tw_is_ross_rank) // ROSS ranks only
+    {
+        //get ROSS sub comm
+        damaris_client_comm_get(&ross_comm);  
+        tw_comm_set(ross_comm);
+    }
+    else // Damaris ranks only
+    {
+        //printf("damaris rank leaving tw_net_init: GLOBAL rank %d g_tw_is_ross_rank = %d\n", my_rank, g_tw_is_ross_rank); 
+        return; // model needs to make sure g_tw_is_ross_rank > 0 to call tw_run.
+    }
+#endif
   }
   if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
@@ -74,8 +100,11 @@ tw_net_init(int *argc, char ***argv)
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
 
-  return mpi_opts;
+//#ifdef USE_DAMARIS
+//  printf("Rank %d g_tw_is_ross_rank = %d\n", my_rank, g_tw_is_ross_rank); 
+//#endif
 }
+
 
 static void
 init_q(struct act_q *q, const char *name)
@@ -170,10 +199,19 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
+#ifdef USE_DAMARIS
+    int my_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    //printf("just before damaris_finalize: Rank %d g_tw_is_ross_rank = %d\n", my_rank, g_tw_is_ross_rank); 
+    damaris_finalize();
+    if (MPI_Finalize() != MPI_SUCCESS)
+      tw_error(TW_LOC, "Failed to finalize MPI");
+#else
   if (!custom_communicator) {
     if (MPI_Finalize() != MPI_SUCCESS)
       tw_error(TW_LOC, "Failed to finalize MPI");
   }
+#endif
 }
 
 void

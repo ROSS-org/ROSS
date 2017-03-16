@@ -33,8 +33,24 @@ void tw_init(int *argc, char ***argv) {
     time_t raw_time;
 #endif
 
-    tw_opt_add(tw_net_init(argc, argv));
+    tw_opt_add(tw_get_mpi_opts());
 
+    tw_opt_add(kernel_options);
+    tw_opt_add(tw_gvt_setup());
+    tw_opt_add(tw_clock_setup());
+    tw_opt_add(tw_stats_setup());
+#ifdef USE_RIO
+    tw_opt_add(io_opts);
+#endif
+
+    // by now all options must be in
+    tw_opt_parse(argc, argv);
+
+    tw_net_init(argc, argv);
+#ifdef USE_DAMARIS
+    if(g_tw_is_ross_rank)
+    {
+#endif
     // Print out the command-line so we know what we passed in
     if (tw_ismaster()) {
         for (i = 0; i < *argc; i++) {
@@ -54,16 +70,6 @@ void tw_init(int *argc, char ***argv) {
     }
 #endif
 
-    tw_opt_add(kernel_options);
-    tw_opt_add(tw_gvt_setup());
-    tw_opt_add(tw_clock_setup());
-    tw_opt_add(tw_stats_setup());
-#ifdef USE_RIO
-    tw_opt_add(io_opts);
-#endif
-
-    // by now all options must be in
-    tw_opt_parse(argc, argv);
 
     if(tw_ismaster() && NULL == (g_tw_csv = fopen("ross.csv", "a"))) {
         tw_error(TW_LOC, "Unable to open: ross.csv\n");
@@ -73,6 +79,9 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
+#ifdef USE_DAMARIS
+    } // end of if(g_tw_is_ross_rank)
+#endif
 }
 
 static void early_sanity_check(void) {
@@ -377,13 +386,28 @@ void tw_run(void) {
         printf("================================= \n");
     }
 #endif
+
+#ifdef USE_DAMARIS
+    if(g_tw_is_ross_rank)
+    {
+        //printf("Sim over (just before damaris_stop: Rank %d g_tw_is_ross_rank = %d\n", g_tw_mynode, g_tw_is_ross_rank); 
+        damaris_stop();
+    }
+#endif
 }
 
 void tw_end(void) {
+#ifdef USE_DAMARIS
+    if(g_tw_is_ross_rank)
+    {
+#endif
     if(tw_ismaster()) {
         fprintf(g_tw_csv, "\n");
         fclose(g_tw_csv);
     }
+#ifdef USE_DAMARIS
+    }
+#endif
 
     tw_net_stop();
 }

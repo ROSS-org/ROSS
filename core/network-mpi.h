@@ -4,4 +4,6 @@
 typedef unsigned int tw_eventid;
 typedef long tw_node;
 
+extern int g_tw_is_ross_rank;
+
 #endif

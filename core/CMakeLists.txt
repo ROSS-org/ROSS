@@ -97,6 +97,10 @@ IF(USE_RIO)
 	SET(ross_srcs ${ross_srcs} ${RIO_SOURCE_DIR}/io.h)
 ENDIF(USE_RIO)
 
+if (USE_DAMARIS)
+    INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include)
+ENDIF(USE_DAMARIS)
+
 # Use debugging-friendly memory allocation
 OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 
