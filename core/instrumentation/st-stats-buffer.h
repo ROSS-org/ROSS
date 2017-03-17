@@ -13,7 +13,8 @@ typedef enum{
 typedef enum{
     NO_TRACE,
     FULL_TRACE,
-    RB_TRACE
+    RB_TRACE,
+    COMMIT_TRACE
 } traces_enum;
 
 typedef struct{

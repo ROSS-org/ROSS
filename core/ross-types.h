@@ -399,13 +399,13 @@ struct tw_kp {
     tw_stime last_time; /**< @brief Time of the current event being processed */
     tw_stat s_nevent_processed; /**< @brief Number of events processed */
 
-    long s_e_rbs; /**< @brief Number of events rolled back by this LP */
-    long s_rb_total; /**< @brief Number of total rollbacks by this LP */
-    long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
-    long last_s_rb_total_gvt; /**< @brief Number of total rollbacks by this LP */
-    long last_s_rb_secondary_gvt; /**< @brief Number of secondary rollbacks by this LP */
-    long last_s_rb_total_rt; /**< @brief Number of total rollbacks by this LP */
-    long last_s_rb_secondary_rt; /**< @brief Number of secondary rollbacks by this LP */
+    tw_stat s_e_rbs; /**< @brief Number of events rolled back by this LP */
+    tw_stat s_rb_total; /**< @brief Number of total rollbacks by this LP */
+    tw_stat s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
+    tw_stat last_s_rb_total_gvt; /**< @brief Number of total rollbacks by this LP */
+    tw_stat last_s_rb_secondary_gvt; /**< @brief Number of secondary rollbacks by this LP */
+    tw_stat last_s_rb_total_rt; /**< @brief Number of total rollbacks by this LP */
+    tw_stat last_s_rb_secondary_rt; /**< @brief Number of secondary rollbacks by this LP */
 
 #ifdef ROSS_MEMORY
     tw_memoryq *pmemory_q; /**< @brief TW processed memory buffer queues */
