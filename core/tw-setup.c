@@ -200,6 +200,10 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_nlp = nlp;
 
+#ifdef USE_DAMARIS
+    st_set_damaris_parameters(nlp);
+#endif
+
 #ifdef ROSS_MEMORY
     g_tw_memory_sz = sizeof(tw_memory);
 #endif

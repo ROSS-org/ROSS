@@ -99,6 +99,7 @@ ENDIF(USE_RIO)
 
 if (USE_DAMARIS)
     INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include)
+    SET(ross_srcs ${ross_srcs} damaris/damaris.c)
 ENDIF(USE_DAMARIS)
 
 # Use debugging-friendly memory allocation

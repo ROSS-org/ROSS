@@ -207,7 +207,12 @@ tw_gvt_step2(tw_pe *me)
         tw_statistics s;
         bzero(&s, sizeof(s));
         tw_get_stats(me, &s);
+#ifdef USE_DAMARIS
+        st_expose_gvt_data_damaris(me, gvt, &s, all_reduce_cnt);
+        damaris_end_iteration();
+#else
 		st_gvt_log(me, gvt, &s, all_reduce_cnt);
+#endif
         g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
     }
 

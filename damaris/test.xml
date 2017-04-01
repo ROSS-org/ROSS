@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<simulation name ="ROSS test"
+<simulation name ="ROSS_test"
     language="c" xmlns="http://damaris.gforge.inria.fr/damaris/model">
     <architecture>
         <domains count="1"/>
@@ -7,7 +7,48 @@
         <buffer name="buffer" size="67108864"/>
         <queue name="queue" size="100"/>
     </architecture>
+    <visit>
+        <path>/home/rossc3/visit/visit2.12.1/src</path>
+        <options> -debug 5 </options>
+    </visit>
     <data>
+        <parameter name="num_lp" type="int" value="0" />
+        <parameter name="num_pe" type="int" value="0" />
+
+        <!-- TODO will need to handle cases where LP counts differ among PEs -->
+        <layout name="pe_id_layout" type="double" dimensions="num_pe+1" /> 
+        <layout name="lp_id_layout" type="double" dimensions="num_lp+1" /> 
+        <layout name="lp_long_layout" type="long" dimensions="num_pe, num_lp" />
+        <layout name="lp_double_layout" type="double" dimensions="num_pe, num_lp" />
+
+        <mesh name="mesh2d" type="rectilinear" topology="2">
+            <coord name="ross/pes/pe_id" unit="pe_id" label="PE ID" />
+            <coord name="ross/lps/lp_id" unit="lp_id" label="LP ID" />
+        </mesh>
+
+        <!---        <layout name="kp_long_layout" type="long" dimensions="nkp" />
+        <layout name="kp_double_layout" type="double" dimensions="nkp" />
+        -->
+
+        <group name="ross">
+            <!---<variable name="gvt" layout="double" visualizable="false" time-varying="true" />
+            <variable name="rt" layout="double" visualizable="false" time-varying="true" />-->
+            <group name="pes">
+                <variable name="net_events" layout="lp_long_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d" centering="zonal" />
+                <variable name="efficiency" layout="lp_double_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d" centering="zonal" />
+                <variable name="pe_id" layout="pe_id_layout" visualizable="false" time-varying="false" />
+                <!--- <variable name="event_ties" layout="long" visualizable="false" time-varying="true" />
+                <variable name="events_aborted" layout="long" visualizable="false" time-varying="true" />
+                <variable name="all_reduce_count" layout="long" visualizable="false" time-varying="true" />
+                <variable name="fc_attempts" layout="long" visualizable="false" time-varying="true" />-->
+            </group>
+            <!-- <group name="kps">
+                <variable name="kp_id" layout="long" visualizable="false" time-varying="false" />
+            </group>-->
+            <group name="lps">
+                <variable name="lp_id" layout="lp_id_layout" visualizable="false" time-varying="false" />
+            </group>
+        </group>
     </data>
     <actions>
     </actions>
