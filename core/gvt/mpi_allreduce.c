@@ -208,7 +208,7 @@ tw_gvt_step2(tw_pe *me)
         bzero(&s, sizeof(s));
         tw_get_stats(me, &s);
 #ifdef USE_DAMARIS
-        st_expose_gvt_data_damaris(me, gvt, &s, all_reduce_cnt);
+        st_expose_gvt_data_damaris(me, gvt, &s);
         damaris_end_iteration();
 #else
 		st_gvt_log(me, gvt, &s, all_reduce_cnt);

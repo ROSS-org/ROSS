@@ -14,39 +14,63 @@
     <data>
         <parameter name="num_lp" type="int" value="0" />
         <parameter name="num_pe" type="int" value="0" />
+        <parameter name="num_kp" type="int" value="0" />
 
         <!-- TODO will need to handle cases where LP counts differ among PEs -->
         <layout name="pe_id_layout" type="double" dimensions="num_pe+1" /> 
-        <layout name="lp_id_layout" type="double" dimensions="num_lp+1" /> 
-        <layout name="lp_long_layout" type="long" dimensions="num_pe, num_lp" />
-        <layout name="lp_double_layout" type="double" dimensions="num_pe, num_lp" />
+        <layout name="pe_int_layout" type="int" dimensions="num_pe, 1" />
+        <layout name="pe_float_layout" type="float" dimensions="num_pe, 1" />
 
-        <mesh name="mesh2d" type="rectilinear" topology="2">
-            <coord name="ross/pes/pe_id" unit="pe_id" label="PE ID" />
+        <layout name="dummy_layout" type="double" dimensions="2" />
+
+        <layout name="lp_id_layout" type="double" dimensions="num_lp+1" /> 
+        <layout name="lp_long_layout" type="long" dimensions="num_lp, num_pe" />
+        <layout name="lp_int_layout" type="int" dimensions="num_lp, num_pe" />
+        <layout name="lp_double_layout" type="double" dimensions="num_lp, num_pe" />
+
+        <layout name="kp_id_layout" type="double" dimensions="num_kp+1" /> 
+        <layout name="kp_int_layout" type="int" dimensions="num_kp, num_pe" />
+
+        <mesh name="mesh2d_lp" type="rectilinear" topology="2">
             <coord name="ross/lps/lp_id" unit="lp_id" label="LP ID" />
+            <coord name="ross/pes/pe_id" unit="pe_id" label="PE ID" />
         </mesh>
 
-        <!---        <layout name="kp_long_layout" type="long" dimensions="nkp" />
-        <layout name="kp_double_layout" type="double" dimensions="nkp" />
-        -->
+        <mesh name="mesh2d_kp" type="rectilinear" topology="2">
+            <coord name="ross/kps/kp_id" unit="kp_id" label="KP ID" />
+            <coord name="ross/pes/pe_id" unit="pe_id" label="PE ID" />
+        </mesh>
+
+        <mesh name="mesh2d_pe" type="rectilinear" topology="2">
+            <coord name="ross/pes/dummy" unit=" " label=" " />
+            <coord name="ross/pes/pe_id" unit="pe_id" label="PE ID" />
+        </mesh>
 
         <group name="ross">
             <!---<variable name="gvt" layout="double" visualizable="false" time-varying="true" />
             <variable name="rt" layout="double" visualizable="false" time-varying="true" />-->
             <group name="pes">
-                <variable name="net_events" layout="lp_long_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d" centering="zonal" />
-                <variable name="efficiency" layout="lp_double_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d" centering="zonal" />
                 <variable name="pe_id" layout="pe_id_layout" visualizable="false" time-varying="false" />
-                <!--- <variable name="event_ties" layout="long" visualizable="false" time-varying="true" />
-                <variable name="events_aborted" layout="long" visualizable="false" time-varying="true" />
-                <variable name="all_reduce_count" layout="long" visualizable="false" time-varying="true" />
-                <variable name="fc_attempts" layout="long" visualizable="false" time-varying="true" />-->
+                <variable name="dummy" layout="dummy_layout" visualizable="false" time-varying="false" />
+                <variable name="pq_qsize" layout="pe_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                <variable name="event_ties" layout="pe_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                <variable name="fc_attempts" layout="pe_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                <variable name="efficiency" layout="pe_float_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
             </group>
-            <!-- <group name="kps">
-                <variable name="kp_id" layout="long" visualizable="false" time-varying="false" />
-            </group>-->
+            <group name="kps">
+                <variable name="kp_id" layout="kp_id_layout" visualizable="false" time-varying="false" />
+                <variable name="total_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+                <variable name="primary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+                <variable name="secondary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+            </group>
             <group name="lps">
                 <variable name="lp_id" layout="lp_id_layout" visualizable="false" time-varying="false" />
+                <variable name="events_processed" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                <variable name="events_rb" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                <variable name="net_events" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                <variable name="network_sends" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                <variable name="network_recvs" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                <variable name="remote_events" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
             </group>
         </group>
     </data>
