@@ -15,14 +15,15 @@ So far this is being tested with Phold, so that model is set.  The basic instruc
 Add the following commands to your `CMakeLists.txt` file in your model directory.
 ```
 IF(USE_DAMARIS)
-  INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include ${DAMARIS_DIR}/lib)
+  INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include)
 ENDIF(USE_DAMARIS)
 ```
 
 After you've created the executable for your model in `CMakeLists.txt` (e.g., phold uses `ADD_EXECUTABLE`), you'll need to add the following lines (replacing `phold` with the name of your model executable):
 ```
 IF(USE_DAMARIS)
-  SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lmpi_cxx -lrt -ldl")
+  SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive \
+    -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lmpi_cxx -lrt -ldl")
   TARGET_LINK_LIBRARIES(phold ROSS ${DAMARIS_LINKER_FLAGS} ${DAMARIS_LIB} m)
 ENDIF(USE_DAMARIS)
 ```
@@ -43,5 +44,38 @@ mpirun -np 4 ./phold --synch=3
 ```
 Damaris is configured to run in dedicated-core mode, so for this example run on a single node system, 1 rank will be dedicated to Damaris and 3 ranks dedicated to run ROSS.  If you run on more than one node, 1 rank/node will be dedicated to Damaris and the remaining ranks will be dedicated to ROSS.
 ROSS ranks make use of the `MPI_COMM_ROSS` sub communicator.  
+
+### Setting up ROSS/Damaris with VisIt
+My current setup is running simulations on a remote system, so I had to install VisIt on that system as well as my local system (need to make sure they are the same version).  
+We're using VisIt version 2.12.1. [VisIt can be downloaded here](https://wci.llnl.gov/simulation/computer-codes/visit/downloads)
+For the local system, I just downloaded the VisIt executable available for my OS.  
+For the remote system, it's best to download the source so we can change some of the configuration.  You should be able to just download the `build_visit` script for the version you want, which will actually download the VisIt source for you.
+This is the configuration I used for building VisIt:
+```
+./build_visit2_12_1 --parallel --mesa --server-components-only --makeflags '-j 16'
+```
+If you're setting up on your local system, you probably want to remove the --server-components-only arg.  The build can take a couple of hours because the script downloads and installs dependencies.  
+
+Now that VisIt is set up, you need to rebuild Damaris.  See the Damaris User Guide for building with VisIt support.  
+Now you can build and link your model, but you'll need to add libsimV2 to `DAMARIS_LINKER_FLAGS`:
+```
+SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive \
+  -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lpthread -lmpi_cxx -lrt -ldl \ 
+  -L/path/to/visit2.12.1/src/lib -lsimV2")
+```
+
+## Running ROSS with Damaris and VisIt
+In the `ROSS-Vis/damaris` directory, there is a test.xml file.  This describes the data to Damaris.  The only thing you need to check here is that the path listed for VisIt is correct.  It should look like:
+```
+<visit>
+    <path>/path/to/visit2.12.1/src</path>
+</visit>
+```
+On your local system, you need to set up a host profile so you can connect to VisIt on the remote system.  Go to Options and then Host Profiles.  Fill out Remote Host name, Path to Visit, Username, and check tunnel data connections through SSH.  Then click launch profiles tab.  Set a profile name and then on the Parallel tab, I checked Launch parallel engine along with setting Parallel launch method to mpirun.  You can then set number of desired processors/nodes.  Click Apply and then Dismiss.
+
+On the VisIt window, click Open under Sources.  Change Host to the Host you just created a profile for.  Enter your password when prompted and the path should change to your home directory on that system. It will also start the VisIt processes running on the remote system. Go into the .visit/simulations Directory.  The file list will be empty at this point.  Now you can run your simulation as described above for running with Damaris, but we need to turn on instrumentation (see next paragraph).  Click the refresh button on the File open window and there should be a file that starts with some number followed by `ROSS_test.sim2`.  Click on that and then OK.  Now you can try out different visualizations and choose the variables you want to examine.  
+
+Right now the command line arguments for turning on instrumentation are the same as before (if you have ROSS built to use Damaris, it just exposes the data to Damaris instead of writing out any data to file).  At the moment, only GVT-based instrumentation has been integrated so the relevant options are `--enable-gvt-stats=1` and `--num-gvt=n` where n is the number of GVT computations performed between each time Damaris collects the data.  Setting this between 100 and 500 has worked well for the PHOLD model. (This has not yet been tested with CODES.)
+
 
 
