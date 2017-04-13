@@ -35,4 +35,6 @@ static inline int  tw_gvt_inprogress(tw_pe * pe);
 
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);
+
+void tw_gvt_reset(void);
 #endif

@@ -500,3 +500,47 @@ static tw_pe * setup_pes(void) {
 tw_lpid map_onetype (tw_lpid gid) {
     return 0;
 }
+
+/* resets ROSS state so a simulation can run multiple times
+ * when using this functionality, tw_init() should only be called once, before the 1st simulation
+ * call only tw_reset before subsequent simulations */
+void tw_reset(void)
+{
+    tw_free();
+    // first reset all globals
+    g_tw_avl_node_count = 18;
+    g_tw_fossil_attempts = 0;
+    g_tw_nRNG_per_lp = 1;
+    g_tw_rng_default = 1;
+    g_tw_rng_seed = NULL;
+	g_tw_sim_started = 0;
+    g_tw_msg_sz;
+    g_tw_delta_sz = 0;
+    g_tw_buddy_alloc = 0; /**< Allocation for buddy system */
+    g_tw_buddy_master = 0;
+    g_tw_avl_node_count = 18;
+    g_tw_lz4_knob = 17;
+
+#if ROSS_MEMORY
+    g_tw_memory_nqueues = 64;
+#else
+    g_tw_memory_nqueues = 0;
+#endif
+
+    g_tw_memory_sz = 0;
+    g_tw_event_msg_sz = 0;
+    g_tw_lookahead=0.005;
+
+    g_tw_min_detected_offset=DBL_MAX;
+    g_tw_gvt_interval_start_cycles = 0;
+    tw_stime     g_tw_ts_end = 100000.0;
+    g_tw_npe = 1;
+    g_tw_gvt_threshold = 1000;
+    g_tw_gvt_done = 0;
+
+    g_tw_net_device_size = 0;
+    g_tw_mynode = -1;
+    g_tw_masternode = -1;
+
+    tw_gvt_reset();
+}

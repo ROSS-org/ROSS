@@ -64,6 +64,8 @@ extern FILE		*g_tw_csv;
 extern tw_lptype * g_tw_lp_types;
 extern tw_typemap_f g_tw_lp_typemap;
 
+extern MPI_Comm MPI_COMM_ROSS;
+
         /*
 	 * Cycle Counter variables
 	 */
@@ -143,6 +145,7 @@ extern void tw_define_lps(tw_lpid nlp, size_t msg_sz);
 extern void tw_run(void);
 extern void tw_end(void);
 extern tw_lpid map_onetype (tw_lpid gid);
+extern void tw_reset(void);
 
 /*
  * tw-sched.c
@@ -191,5 +194,6 @@ extern void tw_error(const char *file, int line, const char *fmt, ...) NORETURN;
 extern void tw_printf(const char *file, int line, const char *fmt, ...);
 extern void tw_calloc_stats(size_t *alloc, size_t *waste);
 extern void* tw_calloc(const char *file, int line, const char *for_who, size_t e_sz, size_t n);
+extern void tw_free();
 
 #endif

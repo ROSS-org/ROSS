@@ -3,7 +3,6 @@
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
 
-extern MPI_Comm MPI_COMM_ROSS;
 
 char g_st_stats_out[MAX_LENGTH] = {0};
 int g_st_stats_enabled = 0;

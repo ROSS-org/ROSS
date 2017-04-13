@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-extern MPI_Comm MPI_COMM_ROSS;
 
 st_stats_buffer *g_st_buffer_gvt = NULL;
 st_stats_buffer *g_st_buffer_rt = NULL;

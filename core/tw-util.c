@@ -219,7 +219,32 @@ tw_calloc(
 	return r;
 }
 
+
 #endif
+
+#undef free
+/* should only be used in tw_reset!! */
+void tw_free(void)
+{
+    struct mem_pool *p, *del;
+
+    p = main_pool;
+
+    while (p)
+    {
+        del = p;
+        p = p->next_pool;
+        malloc_calls--;
+        free(del);
+    }
+    
+    main_pool = NULL;
+    if (malloc_calls)
+        printf("tw_free: WARNING we didn't undo all malloc calls(malloc_calls == %d); may have memory leaks\n", malloc_calls);
+
+    total_allocated = 0;
+
+}
 
 #undef malloc
 static void*
