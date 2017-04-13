@@ -94,6 +94,7 @@ struct mem_pool
 }__attribute__((aligned(8)));
 
 static struct mem_pool *main_pool;
+static struct mem_pool *secondary_pool;
 
 //static const size_t pool_size = 512 * 1024 - sizeof(struct mem_pool);
 static const size_t pool_size = (512 * 1024) - 32;
@@ -145,7 +146,7 @@ tw_calloc(
 static void*
 pool_alloc(size_t len)
 {
-	struct mem_pool *p;
+	struct mem_pool *p, *f;
 	void *r;
 
 	for (p = main_pool; p; p = p->next_pool)
@@ -154,7 +155,17 @@ pool_alloc(size_t len)
 
 	if (!p) {
 		if (len >= pool_size) {
-			r = my_malloc(len);
+            f = (struct mem_pool *) my_malloc(len + 32);
+            if (!f){
+                r = NULL;
+                goto ret;
+            }
+            f->next_pool = secondary_pool;
+            f->next_free = (char*)((size_t)32 + (size_t)f);
+            f->end_free = f->next_free + len;
+            secondary_pool = f;
+            r = f->next_free;
+			//r = my_malloc(len);
 			goto ret;
 		}
 
@@ -239,6 +250,19 @@ void tw_free(void)
     }
     
     main_pool = NULL;
+
+    p = secondary_pool;
+
+    while (p)
+    {
+        del = p;
+        p = p->next_pool;
+        malloc_calls--;
+        free(del);
+    }
+
+    secondary_pool = NULL;
+    
     if (malloc_calls)
         printf("tw_free: WARNING we didn't undo all malloc calls(malloc_calls == %d); may have memory leaks\n", malloc_calls);
 
