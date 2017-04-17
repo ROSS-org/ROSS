@@ -18,6 +18,7 @@ static int buffer_overflow_warned = 0;
 MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
+FILE *seq_ev_trace;
 
 /* initialize circular buffer for stats collection
  * basically the read position marks the beginning of used space in the buffer
@@ -25,6 +26,7 @@ MPI_File g_st_evrb_fh;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
+    char filename[MAX_LENGTH];
     st_stats_buffer *buffer = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
@@ -37,11 +39,14 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     {
         sprintf(g_st_directory, "stats-output");
         mkdir(g_st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        char filename[MAX_LENGTH];
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
         sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
-        MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        if (g_tw_synchronization_protocol != SEQUENTIAL)
+            MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        else if (strcmp(suffix, "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
+            seq_ev_trace = fopen(filename, "w");
+        
     }
 
     if (strcmp(suffix, "evtrace") == 0)
@@ -49,7 +54,7 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
         if (g_st_ev_trace == RB_TRACE)
             g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
         else if (g_st_ev_trace == FULL_TRACE)
-            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
+            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 4;
     }
     return buffer;
 }

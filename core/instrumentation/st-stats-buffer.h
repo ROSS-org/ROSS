@@ -33,6 +33,7 @@ extern int g_st_buffer_free_percent;
 extern MPI_File g_st_gvt_fh;
 extern MPI_File g_st_rt_fh;
 extern MPI_File g_st_evrb_fh;
+extern FILE *seq_ev_trace;
 
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh);
 void st_buffer_push(st_stats_buffer *buffer, char *data, int size);
