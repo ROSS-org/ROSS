@@ -17,6 +17,7 @@ int g_st_granularity = 0;
 tw_clock g_st_stat_write_ctr = 0;
 tw_clock g_st_stat_comp_ctr = 0;
 int g_st_num_gvt = 10;
+int g_st_model_stats = 0;
 
 static int num_gvt_vals = 10;
 static int num_gvt_vals_pe = 4;
@@ -30,6 +31,7 @@ static int num_ev_ctrs_lp = 4;
 
 static const tw_optdef stats_options[] = {
     TWOPT_GROUP("ROSS Stats"),
+    TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 both"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
     TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"),

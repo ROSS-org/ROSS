@@ -207,6 +207,8 @@ tw_gvt_step2(tw_pe *me)
 		st_gvt_log(me, gvt, &s, all_reduce_cnt);
         g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
     }
+    if ((g_st_model_stats == MODEL_GVT || g_st_model_stats == MODEL_BOTH) && g_tw_gvt_done % g_st_num_gvt == 0)
+        st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_GVT);
 
     if (!g_st_disable_out && g_st_stats_enabled)
         st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);
@@ -214,6 +216,8 @@ tw_gvt_step2(tw_pe *me)
         st_buffer_write(g_st_buffer_rt, 0, RT_COL);
     if (!g_st_disable_out && (g_st_ev_trace))
         st_buffer_write(g_st_buffer_evrb, 0, EV_TRACE);
+    if (!g_st_disable_out && (g_st_model_stats))
+        st_buffer_write(g_st_buffer_model, 0, MODEL_COL);
 
 	g_tw_gvt_done++;
 

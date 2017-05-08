@@ -5,10 +5,12 @@
 st_stats_buffer *g_st_buffer_gvt = NULL;
 st_stats_buffer *g_st_buffer_rt = NULL;
 st_stats_buffer *g_st_buffer_evrb = NULL;
+st_stats_buffer *g_st_buffer_model = NULL;
 static long missed_bytes = 0;
 static MPI_Offset prev_offset_gvt = 0;
 static MPI_Offset prev_offset_rt = 0;
 static MPI_Offset prev_offset_evrb = 0;
+static MPI_Offset prev_offset_model = 0;
 char g_st_directory[13];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
@@ -16,6 +18,7 @@ static int buffer_overflow_warned = 0;
 MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
+MPI_File g_st_model_fh;
 
 /* initialize circular buffer for stats collection
  * basically the read position marks the beginning of used space in the buffer
@@ -117,6 +120,11 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         offset = prev_offset_evrb;
         fh = &g_st_evrb_fh;
     }
+    else if (type == MODEL_COL)
+    {
+        offset = prev_offset_model;
+        fh = &g_st_model_fh;
+    }
 
 
     if ((double) st_buffer_free_space(buffer) / g_st_buffer_size < g_st_buffer_free_percent / 100.0 || end_of_sim)
@@ -137,6 +145,8 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
             prev_offset_rt += write_sizes[i];
         else if (type == EV_TRACE)
             prev_offset_evrb += write_sizes[i];
+        else if (type == MODEL_COL)
+            prev_offset_model += write_sizes[i];
     };
 
     if (write_to_file)
@@ -175,6 +185,8 @@ void st_buffer_finalize(st_stats_buffer *buffer, int type)
         fh = &g_st_rt_fh;
     else if (type == EV_TRACE)
         fh = &g_st_evrb_fh;
+    else if (type == MODEL_COL)
+        fh = &g_st_model_fh;
     MPI_File_close(fh);
 
 }

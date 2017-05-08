@@ -63,7 +63,9 @@ instrumentation/st-stats-buffer.c
 instrumentation/st-data-collection.h
 instrumentation/st-data-collection.c
 instrumentation/st-event-collection.h
-instrumentation/st-event-collection.c)
+instrumentation/st-event-collection.c
+instrumentation/st-model-collection.h
+instrumentation/st-model-collection.c)
 
 
 # ROSS VERSION INFORMATION

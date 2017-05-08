@@ -211,6 +211,7 @@ typedef uint64_t tw_lpid;
 #include "instrumentation/st-stats-buffer.h"
 #include "instrumentation/st-data-collection.h"
 #include "instrumentation/st-event-collection.h"
+#include "instrumentation/st-model-collection.h"
 
 #include "tw-eventq.h"
 

@@ -305,7 +305,7 @@ unsigned instList[] = {
 void tw_run(void) {
     tw_pe *me;
 
-    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace)
+    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats)
         st_stats_init();
 
     late_sanity_check();

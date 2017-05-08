@@ -250,9 +250,12 @@ static void tw_sched_batch(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
+            st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
             g_st_real_samp_start_cycles = tw_clock_read();
         }
+        if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+            st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
     }
 }
 
@@ -370,9 +373,11 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
+            st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
             g_st_real_samp_start_cycles = tw_clock_read();
         }
+        if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+            st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
     }
 }
 
@@ -562,9 +567,11 @@ void tw_scheduler_conservative(tw_pe * me) {
             if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
             {
                 tw_clock current_rt = tw_clock_read();
-                st_collect_data(me, (double)current_rt / g_tw_clock_rate);
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
                 g_st_real_samp_start_cycles = tw_clock_read();
             }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
         }
     }
 
@@ -590,6 +597,9 @@ void tw_scheduler_conservative(tw_pe * me) {
     }
     if (g_st_ev_trace)
         st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
+
 
     tw_stats(me);
 }
@@ -645,6 +655,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
     }
     if (g_st_ev_trace)
         st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
 
     tw_stats(me);
 }
@@ -705,6 +717,8 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     }
     if (g_st_ev_trace)
         st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
 
     tw_stats(me);
 }
