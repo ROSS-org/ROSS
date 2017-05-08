@@ -247,14 +247,18 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
-            tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            if (g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
             g_st_real_samp_start_cycles = tw_clock_read();
         }
-        if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
-            st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
 
     }
 }
@@ -370,14 +374,18 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    break; // leave the batch function
 	  }
 
-        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
-            tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            if (g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
             g_st_real_samp_start_cycles = tw_clock_read();
         }
-        if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
-            st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
     }
 }
 
@@ -564,14 +572,18 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             tw_event_free(me, cev);
 
-            if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+            if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
             {
-                tw_clock current_rt = tw_clock_read();
-                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                if (g_st_real_time_samp)
+                {
+                    tw_clock current_rt = tw_clock_read();
+                    st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                }
+                if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                    st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
                 g_st_real_samp_start_cycles = tw_clock_read();
             }
-            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
-                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
         }
     }
 
