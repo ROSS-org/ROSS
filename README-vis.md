@@ -100,14 +100,14 @@ There are two ways of registering your pointer functions with ROSS depending on 
 ###### Method 1
 If you call the `tw_lp_settype()` for LP type registration with ROSS, you should follow this method.
 
-To register the function pointers with ROSS, call `st_evtrace_settype(tw_lpid i, st_trace_type *trace_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  You can also choose to turn event tracing on for only certain LPs.  To do this, you only need to call `st_evtrace_settype()` with the appropriate arguments for the LPs you want event tracing turned on.
+To register the function pointers with ROSS, call `st_model_settype(tw_lpid i, st_trace_type *trace_types)` right after you call the `tw_lp_settype()` function when initializing your LPs.  You can also choose to turn event tracing on for only certain LPs.  To do this, you only need to call `st_model_settype()` with the appropriate arguments for the LPs you want event tracing turned on.
 
 For example, here is how it is done in PHOLD in `main()`:
 ```C
 for (i = 0; i < g_tw_nlp; i++)
 {
     tw_lp_settype(i, &mylps[0]);
-    st_evtrace_settype(i, &model_types[0]);
+    st_model_settype(i, &model_types[0]);
 }
 ```
 
