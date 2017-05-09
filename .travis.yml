@@ -9,7 +9,7 @@ notifications:
     on_success: change
     on_failure: always
 env:
- - secure: "0kkcYHaW88jKB9/nvZKJIsmDv4KALyy4DrcWs3wncRa4rAp0Wk4Ge/2o5GgubcowswiX9EZFawVRoM3h8nOf+awPu/gO6OkZx1LhYwQa/5lo7/LYq5Bzf2NNM+1xmNSgRKP+84/gi8pm/Ytv81+4hDmlN2APSMMq9u6UMzQCkVM="
+ - secure: "BbB1KVY0Yb6DJwxdfFDF1PJwSx9euNfNX94oDKftiH8LE0nEzfS6xZc2sBkWTWOThHml9ttBkDIx/NhxEThOjyVcX6uv4kibP6moV5EqxqC+kLoZSEZnVuAdTJfGRKBdzmRp66R5a/GiMzzz/F3+smdVFMb6XR06sPQa5TQZjEc="
 before_install:
  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
  - sudo apt-get update -q
