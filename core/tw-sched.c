@@ -433,6 +433,7 @@ void tw_sched_init(tw_pe * me) {
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
+    tw_clock ev_start;
     tw_stime gvt = 0.0;
 
     if(tw_nnodes() > 1) {
@@ -464,7 +465,10 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        ev_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }

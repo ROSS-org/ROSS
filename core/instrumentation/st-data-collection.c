@@ -3,6 +3,8 @@
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 char g_st_stats_out[MAX_LENGTH] = {0};
 int g_st_stats_enabled = 0;
 long g_st_current_interval = 0;
@@ -55,7 +57,7 @@ void st_stats_init()
     int i;
     int npe = tw_nnodes();
     tw_lpid nlp_per_pe[npe];
-    MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+    MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_ROSS);
 
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;

@@ -3,6 +3,8 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
@@ -65,7 +67,7 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
-		++gvt_cnt < g_tw_gvt_interval)
+		(++gvt_cnt < g_tw_gvt_interval && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
 		return;
 
 	me->gvt_status = TW_GVT_COMPUTE;
@@ -77,7 +79,8 @@ tw_gvt_step1_realtime(tw_pe *me)
   unsigned long long current_rt;
 
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
-      ( (current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval))
+      ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
+          && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
     {
       /* if( me->node == 0 ) */
       /* 	{ */
@@ -122,7 +125,7 @@ tw_gvt_step2(tw_pe *me)
 			     1,
 			     MPI_LONG_LONG,
 			     MPI_SUM,
-			     MPI_COMM_WORLD) != MPI_SUCCESS)
+			     MPI_COMM_ROSS) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	    if(total_white == 0)
@@ -145,7 +148,7 @@ tw_gvt_step2(tw_pe *me)
 			1,
 			MPI_DOUBLE,
 			MPI_MIN,
-			MPI_COMM_WORLD) != MPI_SUCCESS)
+			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	gvt = ROSS_MIN(gvt, me->GVT_prev);

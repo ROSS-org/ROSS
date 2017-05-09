@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 st_stats_buffer *g_st_buffer_gvt = NULL;
 st_stats_buffer *g_st_buffer_rt = NULL;
 st_stats_buffer *g_st_buffer_evrb = NULL;
@@ -19,6 +21,7 @@ MPI_File g_st_gvt_fh;
 MPI_File g_st_rt_fh;
 MPI_File g_st_evrb_fh;
 MPI_File g_st_model_fh;
+FILE *seq_ev_trace;
 
 /* initialize circular buffer for stats collection
  * basically the read position marks the beginning of used space in the buffer
@@ -26,6 +29,7 @@ MPI_File g_st_model_fh;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
+    char filename[MAX_LENGTH];
     st_stats_buffer *buffer = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;
@@ -38,11 +42,14 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
     {
         sprintf(g_st_directory, "stats-output");
         mkdir(g_st_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        char filename[MAX_LENGTH];
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
         sprintf(filename, "%s/%s-%s.bin", g_st_directory, g_st_stats_out, suffix);
-        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        if (g_tw_synchronization_protocol != SEQUENTIAL)
+            MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+        else if (strcmp(suffix, "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
+            seq_ev_trace = fopen(filename, "w");
+        
     }
 
     if (strcmp(suffix, "evtrace") == 0)
@@ -50,7 +57,7 @@ st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
         if (g_st_ev_trace == RB_TRACE || g_st_ev_trace == COMMIT_TRACE)
             g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
         else if (g_st_ev_trace == FULL_TRACE)
-            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
+            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 4;
     }
     return buffer;
 }
@@ -134,7 +141,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         write_to_file = 1;
     }
 
-    MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_ROSS);
     for (i = 0; i < tw_nnodes(); i++)
     {
         if (i < g_tw_mynode)
@@ -155,7 +162,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         // dump buffer to file
         MPI_Status status;
 
-        //MPI_Comm_split(MPI_COMM_WORLD, file_number, file_position, &file_comm);
+        //MPI_Comm_split(MPI_COMM_ROSS, file_number, file_position, &file_comm);
         tw_clock start_cycle_time = tw_clock_read();;
         MPI_File_write_at(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
         g_st_stat_write_ctr += tw_clock_read() - start_cycle_time;
