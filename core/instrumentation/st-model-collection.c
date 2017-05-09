@@ -11,8 +11,12 @@ void st_model_setup_types(tw_lp *lp)
 {
     if (g_st_model_types)
         lp->model_types = &g_st_model_types[g_tw_lp_typemap(lp->gid)];
-    else
-        tw_error(TW_LOC, "g_st_model_types needs to be defined!\n");
+    else if (!model_type_warned && g_tw_mynode == g_tw_masternode)
+    {
+        fprintf(stderr, "WARNING: node: %ld: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
+        fprintf(stderr, "The g_st_model_types has not been defined! No model level data will be collected\n");
+        model_type_warned = 1;
+    }
     
 }
 
@@ -38,7 +42,6 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
  * Loop through all LPs on this PE and collect stats
  */
-// TODO  whoops need to change to take PE and then loop through all LPs on the PE
 void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
 {
     int index, lpid = 0;
@@ -82,7 +85,6 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
             if (index != initial_sz)
                 printf("WARNING: size of data being pushed to buffer is incorrect!\n");
             (*clp->model_types->model_stat_fn)(clp->cur_state, clp, &buffer[index]);
-            //memcpy(&buffer[index], &model_buffer[0], model_sz);
 
             st_buffer_push(g_st_buffer_model, &buffer[0], total_sz);
         }

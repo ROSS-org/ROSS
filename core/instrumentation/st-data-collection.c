@@ -30,7 +30,7 @@ static int num_ev_ctrs_kp = 2;
 static int num_ev_ctrs_lp = 4;
 
 static const tw_optdef stats_options[] = {
-    TWOPT_GROUP("ROSS Stats"),
+    TWOPT_GROUP("ROSS Instrumentation"),
     TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 both"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
