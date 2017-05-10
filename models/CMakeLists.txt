@@ -28,7 +28,7 @@ FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
 
     ADD_TEST(${target_name}_INST_Seq ./${target_name} --synch=1 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
 
-    ADD_TEST(${target_name}_INST_Model mpirun -np 2 ./${target_name} --synch=3 --model-stats=2 --extramem=100000)
+    ADD_TEST(${target_name}_INST_Model mpirun -np 2 ./${target_name} --synch=3 --model-stats=3 --extramem=100000)
 
 	ADD_TEST(${target_name}_INST_DisableOutput mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --disable-output=1 --extramem=100000)
 	ADD_TEST(${target_name}_INST_ForceOverflow mpirun -np 2 ./${target_name} --synch=3 --event-trace=1 --buffer-free=0 --extramem=100000)

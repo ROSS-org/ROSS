@@ -115,12 +115,17 @@ void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag
     return;
 }
 
+void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
+{
+    return;
+}
+
 st_model_types model_types[] = {
     {(rbev_trace_f) rb_event_trace,
      0,
      (ev_trace_f) rb_event_trace,
      0,
-    NULL,
+    (model_stat_f) phold_stats_collect,
     0},
     {0}
 };
