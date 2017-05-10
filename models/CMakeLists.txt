@@ -26,6 +26,10 @@ FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
 	ADD_TEST(${target_name}_INST_ConsPE mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --extramem=100000)
 	ADD_TEST(${target_name}_INST_ConsLP mpirun -np 2 ./${target_name} --synch=2 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
 
+    ADD_TEST(${target_name}_INST_Seq ./${target_name} --synch=1 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --granularity=1 --extramem=100000)
+
+    ADD_TEST(${target_name}_INST_Model mpirun -np 2 ./${target_name} --synch=3 --model-stats=2 --extramem=100000)
+
 	ADD_TEST(${target_name}_INST_DisableOutput mpirun -np 2 ./${target_name} --synch=3 --real-time-samp=1000 --enable-gvt-stats=1 --event-trace=1 --disable-output=1 --extramem=100000)
 	ADD_TEST(${target_name}_INST_ForceOverflow mpirun -np 2 ./${target_name} --synch=3 --event-trace=1 --buffer-free=0 --extramem=100000)
 	ADD_TEST(${target_name}_INST_RBEventTrace mpirun -np 2 ./${target_name} --synch=3 --event-trace=2 --extramem=100000)
@@ -37,6 +41,8 @@ FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
 		${target_name}_INST_RTOptLP
 		${target_name}_INST_ConsPE
 		${target_name}_INST_ConsLP
+		${target_name}_INST_Seq
+		${target_name}_INST_Model
 		${target_name}_INST_DisableOutput
 		${target_name}_INST_ForceOverflow
 		${target_name}_INST_RBEventTrace)
