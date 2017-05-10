@@ -131,8 +131,8 @@ After GVT, the buffer's free space is checked.  By default, if there is less tha
 
 The output is in binary and right now it outputs one file per simulation per instrumentation type (e.g., if you run both GVT-based and real time instrumentation, you get a file with the GVT data and a 2nd file for the real time sampling). ROSS will create a directory called stats-output that these files will be placed in.
 
-There is a basic reader for all of the instrumentation modes being developed in the 
-[CODES-vis repo](https://xgitlab.cels.anl.gov/codes/codes-vis) (ross-reader branch). For the time being, ROSS will output a README file in the stats-output directory with the given filename prefix.  The file contains some general information about values of input parameters, but also has data that the reader in the CODES-vis repo can use to correctly read the instrumentation data.
+There is a basic binary reader for all of the instrumentation modes being developed in the 
+[ROSS Binary Reader repo](https://github.com/caitlinross/ross-binary-reader). For the time being, ROSS will output a README file in the stats-output directory with the given filename prefix.  The file contains some general information about values of input parameters, but also has data that the reader can use to correctly read the instrumentation data.
 
 ### Other notes
 There are a couple of other options that show up in the ROSS stats options. One is `--disable-output=1`.  This is for use when examining the perturbation of the data collection on the simulation.  It means that data (for GVT and real time collections) will be pushed to the buffer, but the buffer will never be dumped, so it will just keep overwriting data. This is so we can measure the effects of the instrumentation layer itself without the I/O, otherwise you'll want to leave this turned off.  At some point in the future, this will probably be converted into allowing data to be streamed to an in situ analysis system.  
