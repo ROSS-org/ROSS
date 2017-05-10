@@ -66,6 +66,7 @@ the data in the buffer and the I/O.  The benefit to this is that the user can ch
 and ROSS will handle this as well.  It's important to remember that this data collection will result in a lot of output, since it's happening per event.  The details on using event tracing with model-level data is described in the next section on Model-level sampling
 
 ### Model-level data sampling
+To turn on the model-level data sampling, you need to use `--model-stats=n`.  You can turn it on for the GVT-based sampling (`--model-stats=1`), real time sampling (`--model-stats=2`), or both (`--model-stats=3`).  It will sample the model data at the same time as the simulation engine data, depending on the modes you have turned on.  You do not actually need to turn on the simulation engine instrumentation though.  For instance, setting `--model-stats=1` with no other ROSS instrumentation options specified, will sample model data at each GVT, but will not sample the simulation engine data.  We have plans to add sampling on a virtual time basis (i.e., the user specifies the virtual time interval instead of sampling at GVT) in the future.
 
 Registering the function pointers necessary for the callback functions required for the model-level sampling is implemented similarly to how the LP type function pointers are implemented.  (As a side note, it is a different struct, so that non-instrumented ROSS can still be run without requiring any additions to models).  
 
