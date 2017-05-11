@@ -208,13 +208,22 @@ tw_gvt_step2(tw_pe *me)
         bzero(&s, sizeof(s));
         tw_get_stats(me, &s);
 #ifdef USE_DAMARIS
-        st_expose_gvt_data_damaris(me, gvt, &s);
+        st_expose_data_damaris(me, gvt, &s, GVT_COL);
         damaris_end_iteration();
+        reset_block_counter();
 #else
 		st_gvt_log(me, gvt, &s, all_reduce_cnt);
 #endif
         g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
     }
+#ifdef USE_DAMARIS
+    // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
+    if (!g_st_stats_enabled && g_st_real_time_samp) //need to make sure if one PE enters this, all do; otherwise deadlock
+    {
+        damaris_end_iteration();
+        reset_block_counter();
+    }
+#endif
 
     if (!g_st_disable_out && g_st_stats_enabled)
         st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);

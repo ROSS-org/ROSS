@@ -250,7 +250,14 @@ static void tw_sched_batch(tw_pe * me) {
         if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
         {
             tw_clock current_rt = tw_clock_read();
+#ifdef USE_DAMARIS
+            tw_statistics s;
+            bzero(&s, sizeof(s));
+            tw_get_stats(me, &s);
+            st_expose_data_damaris(me, me->GVT, &s, RT_COL);
+#else
             st_collect_data(me, (double)current_rt / g_tw_clock_rate);
+#endif
             g_st_real_samp_start_cycles = tw_clock_read();
         }
     }

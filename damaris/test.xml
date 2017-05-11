@@ -2,7 +2,7 @@
 <simulation name ="ROSS_test"
     language="c" xmlns="http://damaris.gforge.inria.fr/damaris/model">
     <architecture>
-        <domains count="1"/>
+        <domains count="100"/>
         <dedicated cores="1" nodes="0"/>
         <buffer name="buffer" size="67108864"/>
         <queue name="queue" size="100"/>
@@ -32,40 +32,62 @@
         <layout name="kp_int_layout" type="int" dimensions="num_kp" />
 
         <mesh name="mesh2d_lp" type="rectilinear" topology="2">
-            <coord name="ross/gvt_inst/lps/lp_id" unit="lp_id" label="LP ID" />
-            <coord name="ross/gvt_inst/pes/pe_id" unit="pe_id" label="PE ID" />
+            <coord name="ross/lp_id" unit="lp_id" label="LP ID" />
+            <coord name="ross/pe_id" unit="pe_id" label="PE ID" />
         </mesh>
 
         <mesh name="mesh2d_kp" type="rectilinear" topology="2">
-            <coord name="ross/gvt_inst/kps/kp_id" unit="kp_id" label="KP ID" />
-            <coord name="ross/gvt_inst/pes/pe_id" unit="pe_id" label="PE ID" />
+            <coord name="ross/kp_id" unit="kp_id" label="KP ID" />
+            <coord name="ross/pe_id" unit="pe_id" label="PE ID" />
         </mesh>
 
         <mesh name="mesh2d_pe" type="rectilinear" topology="2">
-            <coord name="ross/gvt_inst/pes/dummy" unit=" " label=" " />
-            <coord name="ross/gvt_inst/pes/pe_id" unit="pe_id" label="PE ID" />
+            <coord name="ross/dummy" unit=" " label=" " />
+            <coord name="ross/pe_id" unit="pe_id" label="PE ID" />
         </mesh>
 
         <group name="ross">
             <!---<variable name="gvt" layout="double" visualizable="false" time-varying="true" />
             <variable name="rt" layout="double" visualizable="false" time-varying="true" />-->
+            <variable name="pe_id" layout="pe_id_layout" visualizable="false" time-varying="false" />
+            <variable name="kp_id" layout="kp_id_layout" visualizable="false" time-varying="false" />
+            <variable name="lp_id" layout="lp_id_layout" visualizable="false" time-varying="false" />
+            <variable name="dummy" layout="dummy_layout" visualizable="false" time-varying="false" />
             <group name="gvt_inst">
                 <group name="pes">
-                    <variable name="pe_id" layout="pe_id_layout" visualizable="false" time-varying="false" />
-                    <variable name="dummy" layout="dummy_layout" visualizable="false" time-varying="false" />
                     <variable name="pq_qsize" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
                     <variable name="event_ties" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
                     <variable name="fc_attempts" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
                     <variable name="efficiency" layout="float" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
                 </group>
                 <group name="kps">
-                    <variable name="kp_id" layout="kp_id_layout" visualizable="false" time-varying="false" />
                     <variable name="total_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
                     <variable name="primary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
                     <variable name="secondary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
                 </group>
                 <group name="lps">
-                    <variable name="lp_id" layout="lp_id_layout" visualizable="false" time-varying="false" />
+                    <variable name="events_processed" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                    <variable name="events_rb" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                    <variable name="net_events" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                    <variable name="network_sends" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                    <variable name="network_recvs" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                    <variable name="remote_events" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
+                </group>
+            </group>
+
+            <group name="rt_inst">
+                <group name="pes">
+                    <variable name="pq_qsize" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                    <variable name="event_ties" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                    <variable name="fc_attempts" layout="int" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                    <variable name="efficiency" layout="float" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_pe" centering="zonal" />
+                </group>
+                <group name="kps">
+                    <variable name="total_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+                    <variable name="primary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+                    <variable name="secondary_rb" layout="kp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_kp" centering="zonal" />
+                </group>
+                <group name="lps">
                     <variable name="events_processed" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
                     <variable name="events_rb" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
                     <variable name="net_events" layout="lp_int_layout" visualizable="true" time-varying="true" type="scalar" mesh="mesh2d_lp" centering="zonal" />
