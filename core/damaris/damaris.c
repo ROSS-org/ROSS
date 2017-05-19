@@ -159,6 +159,9 @@ void st_expose_data_damaris(tw_pe *me, tw_stime gvt, tw_statistics *s, int inst_
         rt_block_counter++;
 
     memcpy(&last_stats, s, sizeof(tw_statistics));
+
+    if ((err = damaris_signal("test")) != DAMARIS_OK)
+        damaris_error(TW_LOC, err, "test");
 }
 
 /**

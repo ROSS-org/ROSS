@@ -99,6 +99,7 @@
         </group>
     </data>
     <actions>
+        <event name="test" action="aggregate_data" library="libROSS_Damaris.so" scope="group" />
     </actions>
 </simulation>
 
