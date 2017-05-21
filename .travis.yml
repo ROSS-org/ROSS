@@ -36,6 +36,12 @@ script:
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
+ - cd ..
+ - mkdir build2 && cd build2
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - make
+ - CTEST_OUTPUT_ON_FAILURE=1 make test
+ - make coveralls
 branches:
   only: master
 after_success:
