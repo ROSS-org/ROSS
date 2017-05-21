@@ -1,5 +1,7 @@
 # Welcome to Simplified ROSS!
 
+[![Join the chat at https://gitter.im/carothersc/ROSS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/carothersc/ROSS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Welcome to a leaner, meaner, *faster* version of ROSS.
 While the entire history of ROSS has been preserved in this repository, a major change in the directory structure has made getting the full history of a file somewhat of a pain.
 You may find the now-deprecated version at the [ROSS-Legacy tag](https://github.com/carothersc/ROSS/releases/tag/Legacy) in this repository.
