@@ -50,12 +50,14 @@ struct st_lp_counters{
 extern const tw_optdef *tw_stats_setup();
 extern char g_st_stats_out[MAX_LENGTH];
 extern int g_st_stats_enabled;
+extern int g_st_num_gvt;
 extern int g_st_disable_out;
 extern int g_st_granularity;
 extern tw_clock g_st_stat_write_ctr;
 extern tw_clock g_st_stat_comp_ctr;
 extern tw_clock g_st_real_time_samp;
 extern tw_clock g_st_real_samp_start_cycles;
+extern int g_st_model_stats;
 
 extern st_cycle_counters last_cycle_counters;
 extern st_event_counters last_event_counters;

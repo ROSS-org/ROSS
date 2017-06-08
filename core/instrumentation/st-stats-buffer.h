@@ -7,13 +7,15 @@
 typedef enum{
     GVT_COL,
     RT_COL,
-    EV_TRACE
+    EV_TRACE,
+    MODEL_COL
 } collection_types;
 
 typedef enum{
     NO_TRACE,
     FULL_TRACE,
-    RB_TRACE
+    RB_TRACE,
+    COMMIT_TRACE
 } traces_enum;
 
 typedef struct{
@@ -27,12 +29,14 @@ typedef struct{
 extern st_stats_buffer *g_st_buffer_gvt;
 extern st_stats_buffer *g_st_buffer_rt;
 extern st_stats_buffer *g_st_buffer_evrb;
+extern st_stats_buffer *g_st_buffer_model;
 extern char g_st_directory[13];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
 extern MPI_File g_st_gvt_fh;
 extern MPI_File g_st_rt_fh;
 extern MPI_File g_st_evrb_fh;
+extern MPI_File g_st_model_fh;
 extern FILE *seq_ev_trace;
 
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh);

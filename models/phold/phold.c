@@ -115,11 +115,18 @@ void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag
     return;
 }
 
-st_trace_type trace_types[] = {
+void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
+{
+    return;
+}
+
+st_model_types model_types[] = {
     {(rbev_trace_f) rb_event_trace,
      0,
      (ev_trace_f) rb_event_trace,
-     0},
+     0,
+    (model_stat_f) phold_stats_collect,
+    0},
     {0}
 };
 
@@ -187,7 +194,7 @@ main(int argc, char **argv, char **env)
 	for(i = 0; i < g_tw_nlp; i++)
     {
 		tw_lp_settype(i, &mylps[0]);
-        st_evtrace_settype(i, &trace_types[0]);
+        st_model_settype(i, &model_types[0]);
     }
 
         if( g_tw_mynode == 0 )
