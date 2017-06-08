@@ -71,7 +71,7 @@ tw_pe_init(tw_peid id, tw_peid gid)
 
 	g_tw_pe[id]->rng = tw_rand_init(31, 41);
 
-    // print out header for stats file
+    // set up files and buffers for necessary instrumentation modes
     if (g_st_stats_enabled)
     {
         char suffix[4];
@@ -91,6 +91,12 @@ tw_pe_init(tw_peid id, tw_peid gid)
         char suffix[8];
         sprintf(suffix, "evtrace");
         g_st_buffer_evrb = st_buffer_init(suffix, &g_st_evrb_fh);
+    }
+    if (g_st_model_stats)
+    {
+        char suffix[6];
+        sprintf(suffix, "model");
+        g_st_buffer_model = st_buffer_init(suffix, &g_st_model_fh);
     }
 }
 

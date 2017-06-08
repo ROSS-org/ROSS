@@ -358,7 +358,7 @@ struct tw_lp {
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
     /* for ROSS instrumentation */
-    struct st_trace_type *trace_types;
+    struct st_model_types *model_types;
     struct st_lp_counters *event_counters;
     struct st_lp_counters *prev_event_counters_gvt;
     struct st_lp_counters *prev_event_counters_rt;

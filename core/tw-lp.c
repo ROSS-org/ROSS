@@ -23,7 +23,7 @@ void tw_lp_setup_types () {
 		lp->type = &g_tw_lp_types[g_tw_lp_typemap(lp->gid)];
 
         if (g_st_ev_trace)
-            st_evtrace_setup_types(lp);
+            st_model_setup_types(lp);
 	}
 
 }

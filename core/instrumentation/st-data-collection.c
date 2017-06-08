@@ -18,6 +18,8 @@ st_event_counters last_event_counters = {0};
 int g_st_granularity = 0;
 tw_clock g_st_stat_write_ctr = 0;
 tw_clock g_st_stat_comp_ctr = 0;
+int g_st_num_gvt = 10;
+int g_st_model_stats = 0;
 
 static int num_gvt_vals = 10;
 static int num_gvt_vals_pe = 4;
@@ -30,11 +32,13 @@ static int num_ev_ctrs_kp = 2;
 static int num_ev_ctrs_lp = 4;
 
 static const tw_optdef stats_options[] = {
-    TWOPT_GROUP("ROSS Stats"),
+    TWOPT_GROUP("ROSS Instrumentation"),
+    TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 both"),
     TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
+    TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
     TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"),
     TWOPT_UINT("granularity", g_st_granularity, "collect on PE basis only, or also KP/LP basis, 0 for PE, 1 for KP/LP"),
-    TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks"),
+    TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
     TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
@@ -133,7 +137,7 @@ void st_gvt_log(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cn
 void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
 {
     //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
-    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 2  + sizeof(int);
+    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 3  + sizeof(int);
     int index = 0;
     char buffer[buf_size];
     //tw_stat tmp;
@@ -141,12 +145,17 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     int tmp2;
     float eff;
     unsigned short nodeid;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     nodeid = (unsigned short) g_tw_mynode;
     memcpy(&buffer[index], &nodeid, sizeof(nodeid));
     index += sizeof(nodeid);
 
     eff = (float)gvt;
+    memcpy(&buffer[index], &eff, sizeof(eff));
+    index += sizeof(eff);
+
+    eff = (float) current_rt;
     memcpy(&buffer[index], &eff, sizeof(eff));
     index += sizeof(eff);
 
@@ -212,7 +221,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
 {
     //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
     //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
-    int buf_size = sizeof(unsigned short) + sizeof(float) + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(float) +
+    int buf_size = sizeof(unsigned short) + sizeof(float) * 2 + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(int) + sizeof(float) +
         sizeof(unsigned int) * num_gvt_vals_kp * g_tw_nkp + sizeof(unsigned int) * num_gvt_vals_lp * g_tw_nlp + sizeof(int) * g_tw_nlp;
     int index = 0, i;
     char buffer[buf_size];
@@ -222,6 +231,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tw_kp *kp;
     tw_lp *lp;
     unsigned short nodeid;
+    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
 
     /* PE granularity */
     nodeid = (unsigned short) g_tw_mynode;
@@ -231,6 +241,10 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     eff = (float)gvt;
     memcpy(&buffer[index], &eff, sizeof(float));
     index += sizeof(float);
+
+    eff = (float) current_rt;
+    memcpy(&buffer[index], &eff, sizeof(eff));
+    index += sizeof(eff);
 
     tmp = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
     memcpy(&buffer[index], &tmp, sizeof(unsigned int));
@@ -247,6 +261,10 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     tmp = (unsigned int)(s->s_fc_attempts-last_stats.s_fc_attempts);
     memcpy(&buffer[index], &tmp, sizeof(unsigned int));
     index += sizeof(unsigned int);
+
+    tmp2 = (int)((long long)s->s_net_events-(long long)last_stats.s_net_events);
+    memcpy(&buffer[index], &tmp2, sizeof(int));
+    index += sizeof(int);
 
     eff = (float)100.0 * (1.0 - ((float) (s->s_e_rbs-last_stats.s_e_rbs)/(float) (s->s_net_events-last_stats.s_net_events)));
     memcpy(&buffer[index], &eff, sizeof(float));
