@@ -28,13 +28,9 @@ typedef struct{
 extern char g_st_directory[13];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
-extern MPI_File g_st_gvt_fh;
-extern MPI_File g_st_rt_fh;
-extern MPI_File g_st_evrb_fh;
-extern MPI_File g_st_model_fh;
 extern FILE *seq_ev_trace;
 
-st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh);
+st_stats_buffer *st_buffer_init(int type);
 void st_buffer_push(st_stats_buffer *buffer, char *data, int size);
 void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type);
 void st_buffer_finalize(st_stats_buffer *buffer, int type);

@@ -31,31 +31,17 @@ void st_inst_init(void)
     g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
     // set up files and buffers for necessary instrumentation modes
     if (g_st_stats_enabled)
-    {
-        char suffix[4];
-        sprintf(suffix, "gvt");
-        g_st_buffer[GVT_COL] = st_buffer_init(suffix, &g_st_gvt_fh);
-    }
+        g_st_buffer[GVT_COL] = st_buffer_init(GVT_COL);
     if (g_st_real_time_samp)
     {
         g_st_real_time_samp = g_st_real_time_samp * g_tw_clock_rate / 1000;
         g_st_real_samp_start_cycles = tw_clock_read();
-        char suffix[3];
-        sprintf(suffix, "rt");
-        g_st_buffer[RT_COL] = st_buffer_init(suffix, &g_st_rt_fh);
+        g_st_buffer[RT_COL] = st_buffer_init(RT_COL);
     }
     if (g_st_ev_trace)
-    {
-        char suffix[8];
-        sprintf(suffix, "evtrace");
-        g_st_buffer[EV_TRACE] = st_buffer_init(suffix, &g_st_evrb_fh);
-    }
+        g_st_buffer[EV_TRACE] = st_buffer_init(EV_TRACE);
     if (g_st_model_stats)
-    {
-        char suffix[6];
-        sprintf(suffix, "model");
-        g_st_buffer[MODEL_COL] = st_buffer_init(suffix, &g_st_model_fh);
-    }
+        g_st_buffer[MODEL_COL] = st_buffer_init(MODEL_COL);
 
     if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats)
         st_stats_init();
