@@ -4,10 +4,6 @@
 
 extern MPI_Comm MPI_COMM_ROSS;
 
-st_stats_buffer *g_st_buffer_gvt = NULL;
-st_stats_buffer *g_st_buffer_rt = NULL;
-st_stats_buffer *g_st_buffer_evrb = NULL;
-st_stats_buffer *g_st_buffer_model = NULL;
 static long missed_bytes = 0;
 static MPI_Offset prev_offset_gvt = 0;
 static MPI_Offset prev_offset_rt = 0;
@@ -29,7 +25,7 @@ FILE *seq_ev_trace;
  */
 st_stats_buffer *st_buffer_init(char *suffix, MPI_File *fh)
 {
-    char filename[MAX_LENGTH];
+    char filename[INST_MAX_LENGTH];
     st_stats_buffer *buffer = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer->size  = g_st_buffer_size;
     buffer->write_pos = 0;

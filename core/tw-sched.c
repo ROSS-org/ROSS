@@ -603,19 +603,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
-
+    st_inst_finalize(me);
 
     tw_stats(me);
 }
@@ -661,18 +649,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
+    st_inst_finalize(me);
 
     tw_stats(me);
 }
@@ -723,18 +700,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
+    st_inst_finalize(me);
 
     tw_stats(me);
 }

@@ -37,6 +37,13 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
     }
 }
 
+void st_model_data_init()
+{
+    // set a default value for if sampling model data and not simulation engine data at real time points
+    if (!g_st_real_time_samp && (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH))
+        g_st_real_time_samp = 1000; 
+}
+
 /*
  * This function allows for ROSS to collect model level data.
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
@@ -86,7 +93,7 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
                 printf("WARNING: size of data being pushed to buffer is incorrect!\n");
             (*clp->model_types->model_stat_fn)(clp->cur_state, clp, &buffer[index]);
 
-            st_buffer_push(g_st_buffer_model, &buffer[0], total_sz);
+            st_buffer_push(g_st_buffer[MODEL_COL], &buffer[0], total_sz);
         }
     }
     g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
