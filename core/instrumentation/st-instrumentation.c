@@ -4,7 +4,7 @@
 extern MPI_Comm MPI_COMM_ROSS;
 
 st_stats_buffer **g_st_buffer;
-
+int g_st_instrumentation = 0;
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 
 static const tw_optdef inst_options[] = {
@@ -29,6 +29,10 @@ const tw_optdef *st_inst_opts(void)
 
 void st_inst_init(void)
 {
+    if (!(g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats))
+        return;
+
+    g_st_instrumentation = 1;
     g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
 
     // setup directory for instrumentation output
@@ -60,8 +64,7 @@ void st_inst_init(void)
     if (g_st_model_stats)
         g_st_buffer[MODEL_COL] = st_buffer_init(MODEL_COL);
 
-    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats)
-        st_stats_init();
+    st_stats_init();
 }
 
 void st_stats_init()
@@ -70,7 +73,10 @@ void st_stats_init()
     int i;
     int npe = tw_nnodes();
     tw_lpid nlp_per_pe[npe];
-    MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_ROSS);
+    if (g_tw_synchronization_protocol = SEQUENTIAL)
+        MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_ROSS);
+    else
+        nlp_per_pe[0] = g_tw_nlp;
 
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;

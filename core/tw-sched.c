@@ -479,6 +479,18 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         ckp->s_nevent_processed++;
         tw_event_free(me, cev);
+
+        if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        {
+            if (g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+            }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
+            g_st_real_samp_start_cycles = tw_clock_read();
+        }
     }
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;

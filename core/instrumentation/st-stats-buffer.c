@@ -11,7 +11,7 @@ int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
 static const char *file_suffix[NUM_COL_TYPES];
-FILE *seq_ev_trace;
+FILE *seq_ev_trace, *seq_model;
 
 /* initialize circular buffer for stats collection
  * basically the read position marks the beginning of used space in the buffer
@@ -53,6 +53,8 @@ st_stats_buffer *st_buffer_init(int type)
             MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, &buffer_fh[type]);
         else if (strcmp(file_suffix[type], "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_ev_trace = fopen(filename, "w");
+        else if (strcmp(file_suffix[type], "model") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
+            seq_model = fopen(filename, "w");
         
     }
 

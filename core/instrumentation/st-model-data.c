@@ -93,7 +93,10 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
                 printf("WARNING: size of data being pushed to buffer is incorrect!\n");
             (*clp->model_types->model_stat_fn)(clp->cur_state, clp, &buffer[index]);
 
-            st_buffer_push(g_st_buffer[MODEL_COL], &buffer[0], total_sz);
+            if (g_tw_synchronization_protocol != SEQUENTIAL)
+                st_buffer_push(g_st_buffer[MODEL_COL], &buffer[0], total_sz);
+            else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
+                fwrite(buffer, total_sz, 1, seq_model);
         }
     }
     g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
