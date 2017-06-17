@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <sys/stat.h>
 
 extern MPI_Comm MPI_COMM_ROSS;
 
@@ -29,6 +30,22 @@ const tw_optdef *st_inst_opts(void)
 void st_inst_init(void)
 {
     g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
+
+    // setup directory for instrumentation output
+    int rc;
+    if (g_tw_mynode == g_tw_masternode)
+    {
+        rc = mkdir("stats-output", S_IRUSR | S_IWUSR | S_IXUSR);
+        if (rc == -1)
+        {
+            sprintf(stats_directory, "%s-%ld-%ld", "stats-output", (long)getpid(), (long)time(NULL));
+            mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
+        }
+        else
+            sprintf(stats_directory, "stats-output");
+    }
+    MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
+
     // set up files and buffers for necessary instrumentation modes
     if (g_st_stats_enabled)
         g_st_buffer[GVT_COL] = st_buffer_init(GVT_COL);

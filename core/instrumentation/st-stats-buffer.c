@@ -1,5 +1,4 @@
 #include <ross.h>
-#include <sys/stat.h>
 #include <time.h>
 
 extern MPI_Comm MPI_COMM_ROSS;
@@ -20,7 +19,7 @@ FILE *seq_ev_trace;
  */
 st_stats_buffer *st_buffer_init(int type)
 {
-    int i, rc;
+    int i;
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";
     file_suffix[1] = "rt";
@@ -47,18 +46,6 @@ st_stats_buffer *st_buffer_init(int type)
     // set up MPI File
     if (!g_st_disable_out)
     {
-        if (g_tw_mynode == g_tw_masternode)
-        {
-            rc = mkdir("stats-output", S_IRUSR | S_IWUSR | S_IXUSR);
-            if (rc == -1)
-            {
-                sprintf(stats_directory, "%s-%ld-%ld", "stats-output", (long)getpid(), (long)time(NULL));
-                mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-            }
-            else
-                sprintf(stats_directory, "stats-output");
-        }
-        MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
         sprintf(filename, "%s/%s-%s.bin", stats_directory, g_st_stats_out, file_suffix[type]);
