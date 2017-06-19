@@ -37,13 +37,6 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
     }
 }
 
-void st_model_data_init()
-{
-    // set a default value for if sampling model data and not simulation engine data at real time points
-    if (!g_st_real_time_samp && (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH))
-        g_st_real_time_samp = 1000; 
-}
-
 /*
  * This function allows for ROSS to collect model level data.
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).

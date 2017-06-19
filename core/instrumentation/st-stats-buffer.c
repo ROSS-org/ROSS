@@ -61,7 +61,7 @@ st_stats_buffer *st_buffer_init(int type)
     if (strcmp(file_suffix[type], "evtrace") == 0)
     {
         if (g_st_ev_trace == RB_TRACE || g_st_ev_trace == COMMIT_TRACE)
-            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 2;
+            g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 3;
         else if (g_st_ev_trace == FULL_TRACE)
             g_st_buf_size = sizeof(tw_lpid) * 2 + sizeof(tw_stime) * 4;
     }

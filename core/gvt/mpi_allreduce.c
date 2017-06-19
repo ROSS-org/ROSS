@@ -201,7 +201,8 @@ tw_gvt_step2(tw_pe *me)
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
 
-    if (g_st_stats_enabled && g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
+    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS) && 
+            g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
         tw_clock start_cycle_time = tw_clock_read();
         tw_statistics s;
@@ -210,8 +211,8 @@ tw_gvt_step2(tw_pe *me)
 		st_gvt_log(me, gvt, &s, all_reduce_cnt);
         g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
     }
-    if ((g_st_model_stats == MODEL_GVT || g_st_model_stats == MODEL_BOTH) && g_tw_gvt_done % g_st_num_gvt == 0)
-        st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_GVT);
+    if ((g_st_model_stats == GVT_STATS || g_st_model_stats == BOTH_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
+        st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, GVT_STATS);
     
     st_inst_dump();
 

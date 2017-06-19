@@ -2,10 +2,8 @@
 #include <sys/stat.h>
 #define __STDC_FORMAT_MACROS 1
 
-int g_st_stats_enabled = 0;
 long g_st_current_interval = 0;
-tw_clock g_st_real_time_samp = 0;
-tw_clock g_st_real_samp_start_cycles = 0;
+tw_clock g_st_rt_samp_start_cycles = 0;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
@@ -14,8 +12,6 @@ st_event_counters last_event_counters = {0};
 int g_st_granularity = 0;
 tw_clock g_st_stat_write_ctr = 0;
 tw_clock g_st_stat_comp_ctr = 0;
-int g_st_num_gvt = 10;
-int g_st_model_stats = 0;
 
 static int num_gvt_vals = 10;
 static int num_gvt_vals_pe = 4;
@@ -29,7 +25,7 @@ static int num_ev_ctrs_lp = 4;
 
 void print_sim_engine_metadata(FILE *file)
 {
-        if (g_st_stats_enabled)
+        if (g_st_engine_stats && g_st_gvt_sampling)
         {
             if (g_st_granularity)
             {
@@ -41,7 +37,7 @@ void print_sim_engine_metadata(FILE *file)
                 fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals);
         }
 
-        if (g_st_real_time_samp)
+        if (g_st_engine_stats && g_st_rt_sampling)
         {
             fprintf(file, "NUM_CYCLE_CTRS=%d\n", num_cycle_ctrs);
             if (g_st_granularity)

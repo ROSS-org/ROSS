@@ -48,6 +48,7 @@ typedef enum{
 
 extern st_stats_buffer **g_st_buffer;
 extern int g_st_instrumentation;
+extern int g_st_engine_stats;
 
 extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
@@ -106,14 +107,15 @@ struct st_lp_counters{
 };
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
-extern int g_st_stats_enabled;
+extern int g_st_gvt_sampling;
 extern int g_st_num_gvt;
+extern int g_st_rt_sampling;
 extern int g_st_disable_out;
 extern int g_st_granularity;
 extern tw_clock g_st_stat_write_ctr;
 extern tw_clock g_st_stat_comp_ctr;
-extern tw_clock g_st_real_time_samp;
-extern tw_clock g_st_real_samp_start_cycles;
+extern tw_clock g_st_rt_interval;
+extern tw_clock g_st_rt_samp_start_cycles;
 extern int g_st_model_stats;
 
 extern st_cycle_counters last_cycle_counters;
@@ -169,11 +171,11 @@ struct st_model_types {
 };
 
 typedef enum{
-    NO_MODEL_STATS,
-    MODEL_GVT,
-    MODEL_RT,
-    MODEL_BOTH
-} model_stats_enum;
+    NO_STATS,
+    GVT_STATS,
+    RT_STATS,
+    BOTH_STATS
+} stats_types_enum;
 
 extern st_model_types *g_st_model_types;
 
