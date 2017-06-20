@@ -74,7 +74,6 @@ void tw_init(int *argc, char ***argv) {
     tw_net_start();
     tw_gvt_start();
 
-    st_inst_init(); 
 }
 
 static void early_sanity_check(void) {
@@ -311,6 +310,9 @@ void tw_run(void) {
     late_sanity_check();
 
     me = setup_pes();
+
+    // init instrumentation
+    st_inst_init(); 
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);

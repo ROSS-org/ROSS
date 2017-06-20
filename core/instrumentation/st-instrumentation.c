@@ -94,8 +94,8 @@ void st_stats_init()
     int i;
     int npe = tw_nnodes();
     tw_lpid nlp_per_pe[npe];
-    if (g_tw_synchronization_protocol == SEQUENTIAL)
-        MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_ROSS);
+    if (g_tw_synchronization_protocol != SEQUENTIAL)
+        MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, g_tw_masternode, MPI_COMM_ROSS);
     else
         nlp_per_pe[0] = g_tw_nlp;
 
