@@ -32,17 +32,12 @@ show_4f(const char *name, double v)
 #endif
 
 void
-tw_stats(tw_pe * me)
+tw_get_stats(tw_pe * me, tw_statistics *s)
 {
-	tw_statistics s;
-
 	tw_pe	*pe;
 	tw_kp	*kp;
-	tw_lp	*lp = NULL;
 
 	int	 i;
-
-	size_t m_alloc, m_waste;
 
 	if (me != g_tw_pe[0])
 		return;
@@ -50,8 +45,6 @@ tw_stats(tw_pe * me)
 	if (0 == g_tw_sim_started)
 		return;
 
-	tw_calloc_stats(&m_alloc, &m_waste);
-	bzero(&s, sizeof(s));
 
 	for(pe = NULL; (pe = tw_pe_next(pe));)
 	{
@@ -59,54 +52,69 @@ tw_stats(tw_pe * me)
 
 		tw_wall_sub(&rt, &pe->end_time, &pe->start_time);
 
-		s.s_max_run_time = ROSS_MAX(s.s_max_run_time, tw_wall_to_double(&rt));
-		s.s_nevent_abort += pe->stats.s_nevent_abort;
-		s.s_pq_qsize += tw_pq_get_size(me->pq);
+		s->s_max_run_time = ROSS_MAX(s->s_max_run_time, tw_wall_to_double(&rt));
+		s->s_nevent_abort += pe->stats.s_nevent_abort;
+		s->s_pq_qsize += tw_pq_get_size(me->pq);
 
-		s.s_nsend_net_remote += pe->stats.s_nsend_net_remote;
-		s.s_nsend_loc_remote += pe->stats.s_nsend_loc_remote;
+		s->s_nsend_net_remote += pe->stats.s_nsend_net_remote;
+		s->s_nsend_loc_remote += pe->stats.s_nsend_loc_remote;
 
-		s.s_nsend_network += pe->stats.s_nsend_network;
-		s.s_nread_network += pe->stats.s_nread_network;
-		s.s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
+		s->s_nsend_network += pe->stats.s_nsend_network;
+		s->s_nread_network += pe->stats.s_nread_network;
+		s->s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
-		s.s_total += pe->stats.s_total;
-		s.s_net_read += pe->stats.s_net_read;
-		s.s_gvt += pe->stats.s_gvt;
-		s.s_fossil_collect += pe->stats.s_fossil_collect;
-		s.s_event_abort += pe->stats.s_event_abort;
-		s.s_event_process += pe->stats.s_event_process;
-		s.s_pq += pe->stats.s_pq;
-		s.s_rollback += pe->stats.s_rollback;
-		s.s_cancel_q += pe->stats.s_cancel_q;
-        s.s_pe_event_ties += pe->stats.s_pe_event_ties;
-        s.s_min_detected_offset = g_tw_min_detected_offset;
-        s.s_avl += pe->stats.s_avl;
-        s.s_buddy += pe->stats.s_buddy;
-        s.s_lz4 += pe->stats.s_lz4;
-        s.s_events_past_end += pe->stats.s_events_past_end;
+		s->s_total += pe->stats.s_total;
+		s->s_net_read += pe->stats.s_net_read;
+		s->s_gvt += pe->stats.s_gvt;
+		s->s_fossil_collect += pe->stats.s_fossil_collect;
+		s->s_event_abort += pe->stats.s_event_abort;
+		s->s_event_process += pe->stats.s_event_process;
+		s->s_pq += pe->stats.s_pq;
+		s->s_rollback += pe->stats.s_rollback;
+		s->s_cancel_q += pe->stats.s_cancel_q;
+        s->s_pe_event_ties += pe->stats.s_pe_event_ties;
+        s->s_min_detected_offset = g_tw_min_detected_offset;
+        s->s_avl += pe->stats.s_avl;
+        s->s_buddy += pe->stats.s_buddy;
+        s->s_lz4 += pe->stats.s_lz4;
+        s->s_events_past_end += pe->stats.s_events_past_end;
+#ifdef USE_RIO
+        s->s_rio_load += pe->stats.s_rio_load;
+        s->s_rio_lp_init += pe->stats.s_rio_lp_init;
+#endif
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
 			kp = tw_getkp(i);
-			s.s_nevent_processed += kp->s_nevent_processed;
-			s.s_e_rbs += kp->s_e_rbs;
-			s.s_rb_total += kp->s_rb_total;
-			s.s_rb_secondary += kp->s_rb_secondary;
+			s->s_nevent_processed += kp->s_nevent_processed;
+			s->s_e_rbs += kp->s_e_rbs;
+			s->s_rb_total += kp->s_rb_total;
+			s->s_rb_secondary += kp->s_rb_secondary;
 		}
 
-		for(i = 0; i < g_tw_nlp; i++)
-		{
-			lp = tw_getlp(i);
-			if (lp->type->final)
-				(*lp->type->final) (lp->cur_state, lp);
-		}
 	}
 
-	s.s_fc_attempts = g_tw_fossil_attempts;
-	s.s_net_events = s.s_nevent_processed - s.s_e_rbs;
-	s.s_rb_primary = s.s_rb_total - s.s_rb_secondary;
+	s->s_fc_attempts = g_tw_fossil_attempts;
+	s->s_net_events = s->s_nevent_processed - s->s_e_rbs;
+	s->s_rb_primary = s->s_rb_total - s->s_rb_secondary;
+}
 
+void
+tw_stats(tw_pe *me)
+{
+    tw_statistics s;
+	bzero(&s, sizeof(s));
+	size_t m_alloc, m_waste;
+	tw_calloc_stats(&m_alloc, &m_waste);
+    tw_lp *lp = NULL;
+    int i;
+    for(i = 0; i < g_tw_nlp; i++)
+    {
+        lp = tw_getlp(i);
+        if (lp->type->final)
+            (*lp->type->final) (lp->cur_state, lp);
+    }
+    tw_get_stats(me, &s);
 	s = *(tw_net_statistics(me, &s));
 
 	if (!tw_ismaster())
@@ -123,7 +131,7 @@ tw_stats(tw_pe * me)
 	show_lld("Event Ties Detected in PE Queues", s.s_pe_event_ties);
         if(g_tw_synchronization_protocol == CONSERVATIVE)
             printf("\t%-50s %11.9lf\n",
-               "Minimum TS Offset Detected in Conservative Mode",  
+               "Minimum TS Offset Detected in Conservative Mode",
                (double) s.s_min_detected_offset);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) s.s_e_rbs / (double) s.s_net_events)));
 	show_lld("Total Remote (shared mem) Events Processed", s.s_nsend_loc_remote);
@@ -158,7 +166,7 @@ tw_stats(tw_pe * me)
 	);
 
         show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
-        
+
 	printf("\nTW Memory Statistics:\n");
 	show_lld("Events Allocated",(1+g_tw_events_per_pe+g_tw_events_per_pe_extra) * g_tw_npe);
 	show_lld("Memory Allocated", m_alloc / 1024);
@@ -187,6 +195,10 @@ tw_stats(tw_pe * me)
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
     show_4f("Buddy system", (double) s.s_buddy / g_tw_clock_rate);
+#ifdef USE_RIO
+    show_4f("RIO Loading", (double) s.s_rio_load / g_tw_clock_rate);
+    show_4f("RIO LP Init", (double) s.s_rio_lp_init / g_tw_clock_rate);
+#endif
 	show_4f("Event Processing", (double) s.s_event_process / g_tw_clock_rate);
 	show_4f("Event Cancel", (double) s.s_cancel_q / g_tw_clock_rate);
 	show_4f("Event Abort", (double) s.s_event_abort / g_tw_clock_rate);
@@ -195,6 +207,8 @@ tw_stats(tw_pe * me)
 	show_4f("Fossil Collect", (double) s.s_fossil_collect / g_tw_clock_rate);
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
+	show_4f("Statistics Computation", (double) s.s_stat_comp / g_tw_clock_rate);
+	show_4f("Statistics Write", (double) s.s_stat_write / g_tw_clock_rate);
 	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);
 #endif
 

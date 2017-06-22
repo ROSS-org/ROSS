@@ -17,8 +17,8 @@ phold_init(phold_state * s, tw_lp * lp)
 	    for (i = 0; i < g_phold_start_events; i++)
 	      {
 		tw_event_send(
-			      tw_event_new(lp->gid, 
-					   tw_rand_exponential(lp->rng, mean) + lookahead + (tw_stime)(lp->gid % (unsigned int)g_tw_ts_end), 
+			      tw_event_new(lp->gid,
+					   tw_rand_exponential(lp->rng, mean) + lookahead + (tw_stime)(lp->gid % (unsigned int)g_tw_ts_end),
 					   lp));
 	      }
 	  }
@@ -27,8 +27,8 @@ phold_init(phold_state * s, tw_lp * lp)
 	    for (i = 0; i < g_phold_start_events; i++)
 	      {
 		tw_event_send(
-			      tw_event_new(lp->gid, 
-					   tw_rand_exponential(lp->rng, mean) + lookahead, 
+			      tw_event_new(lp->gid,
+					   tw_rand_exponential(lp->rng, mean) + lookahead,
 					   lp));
 	      }
 	  }
@@ -88,6 +88,10 @@ phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * l
 		tw_rand_reverse_unif(lp->rng);
 }
 
+void phold_commit(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
+{
+}
+
 void
 phold_finish(phold_state * s, tw_lp * lp)
 {
@@ -99,10 +103,31 @@ tw_lptype       mylps[] = {
      (pre_run_f) NULL,
 	 (event_f) phold_event_handler,
 	 (revent_f) phold_event_handler_rc,
+	 (commit_f) phold_commit,
 	 (final_f) phold_finish,
 	 (map_f) phold_map,
 	sizeof(phold_state)},
 	{0},
+};
+
+void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
+{
+    return;
+}
+
+void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
+{
+    return;
+}
+
+st_model_types model_types[] = {
+    {(rbev_trace_f) rb_event_trace,
+     0,
+     (ev_trace_f) rb_event_trace,
+     0,
+    (model_stat_f) phold_stats_collect,
+    0},
+    {0}
 };
 
 const tw_optdef app_opt[] =
@@ -123,6 +148,23 @@ const tw_optdef app_opt[] =
 int
 main(int argc, char **argv, char **env)
 {
+
+#ifdef TEST_COMM_ROSS
+    // Init outside of ROSS
+    MPI_Init(&argc, &argv);
+    // Split COMM_WORLD in half even/odd
+    int mpi_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm split_comm;
+    MPI_Comm_split(MPI_COMM_WORLD, mpi_rank%2, mpi_rank, &split_comm);
+    if(mpi_rank%2 == 1){
+        // tests should catch any MPI_COMM_WORLD collectives
+        MPI_Finalize();
+    }
+    // Allows ROSS to function as normal
+    tw_comm_set(split_comm);
+#endif
+
 	int		 i;
 
         // get rid of error if compiled w/ MEMORY queues
@@ -142,7 +184,7 @@ main(int argc, char **argv, char **env)
 
 	offset_lpid = g_tw_mynode * nlp_per_pe;
 	ttl_lps = tw_nnodes() * g_tw_npe * nlp_per_pe;
-	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) + 
+	g_tw_events_per_pe = (mult * nlp_per_pe * g_phold_start_events) +
 				optimistic_memory;
 	//g_tw_rng_default = TW_FALSE;
 	g_tw_lookahead = lookahead;
@@ -150,7 +192,10 @@ main(int argc, char **argv, char **env)
 	tw_define_lps(nlp_per_pe, sizeof(phold_message));
 
 	for(i = 0; i < g_tw_nlp; i++)
+    {
 		tw_lp_settype(i, &mylps[0]);
+        st_model_settype(i, &model_types[0]);
+    }
 
         if( g_tw_mynode == 0 )
 	  {

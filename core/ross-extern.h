@@ -6,7 +6,8 @@ extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
 /*
  * tw-stats.c
  */
-extern void tw_stats(tw_pe * me);
+extern void tw_get_stats(tw_pe * me, tw_statistics *s);
+extern void tw_stats(tw_pe *me);
 
 /*
  * ross-global.c
@@ -26,6 +27,7 @@ extern tw_lpid		g_tw_rng_default;
 extern tw_seed		g_tw_rng_seed;
 extern unsigned int	g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
+extern unsigned long long g_tw_max_opt_lookahead;
 extern unsigned long long g_tw_gvt_realtime_interval;
 extern unsigned long long g_tw_gvt_interval_start_cycles;
 extern tw_stime		g_tw_ts_end;
@@ -93,6 +95,7 @@ extern void		 tw_event_rollback(tw_event * event);
  */
 static inline void  tw_event_free(tw_pe *, tw_event *);
 static inline void  tw_free_output_messages(tw_event *e, int print_message);
+static inline void * tw_event_data(tw_event * event);
 
 /*
  * tw-lp.c

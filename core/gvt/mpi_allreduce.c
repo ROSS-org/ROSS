@@ -3,6 +3,8 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
@@ -65,7 +67,7 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
-		++gvt_cnt < g_tw_gvt_interval)
+		(++gvt_cnt < g_tw_gvt_interval && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
 		return;
 
 	me->gvt_status = TW_GVT_COMPUTE;
@@ -77,7 +79,8 @@ tw_gvt_step1_realtime(tw_pe *me)
   unsigned long long current_rt;
 
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
-      ( (current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval))
+      ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
+          && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
     {
       /* if( me->node == 0 ) */
       /* 	{ */
@@ -109,7 +112,6 @@ tw_gvt_step2(tw_pe *me)
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
-
 	while(1)
 	  {
 	    tw_net_read(me);
@@ -123,7 +125,7 @@ tw_gvt_step2(tw_pe *me)
 			     1,
 			     MPI_LONG_LONG,
 			     MPI_SUM,
-			     MPI_COMM_WORLD) != MPI_SUCCESS)
+			     MPI_COMM_ROSS) != MPI_SUCCESS)
 	      tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	    if(total_white == 0)
@@ -146,7 +148,7 @@ tw_gvt_step2(tw_pe *me)
 			1,
 			MPI_DOUBLE,
 			MPI_MIN,
-			MPI_COMM_WORLD) != MPI_SUCCESS)
+			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
 	gvt = ROSS_MIN(gvt, me->GVT_prev);
@@ -173,7 +175,8 @@ tw_gvt_step2(tw_pe *me)
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
+	{
 		gvt_print(gvt);
 	}
 
@@ -197,6 +200,27 @@ tw_gvt_step2(tw_pe *me)
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
+
+    if (g_st_stats_enabled && g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
+    {
+        tw_clock start_cycle_time = tw_clock_read();
+        tw_statistics s;
+        bzero(&s, sizeof(s));
+        tw_get_stats(me, &s);
+		st_gvt_log(me, gvt, &s, all_reduce_cnt);
+        g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
+    }
+    if ((g_st_model_stats == MODEL_GVT || g_st_model_stats == MODEL_BOTH) && g_tw_gvt_done % g_st_num_gvt == 0)
+        st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_GVT);
+
+    if (!g_st_disable_out && g_st_stats_enabled)
+        st_buffer_write(g_st_buffer_gvt, 0, GVT_COL);
+    if (!g_st_disable_out && g_st_real_time_samp)
+        st_buffer_write(g_st_buffer_rt, 0, RT_COL);
+    if (!g_st_disable_out && (g_st_ev_trace))
+        st_buffer_write(g_st_buffer_evrb, 0, EV_TRACE);
+    if (!g_st_disable_out && (g_st_model_stats))
+        st_buffer_write(g_st_buffer_model, 0, MODEL_COL);
 
 	g_tw_gvt_done++;
 

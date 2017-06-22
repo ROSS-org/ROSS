@@ -59,6 +59,8 @@ static void tw_sched_event_q(tw_pe * me) {
                         start = tw_clock_read();
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
+                        if (g_st_ev_trace == RB_TRACE)
+                           st_collect_event_data(cev, (double)start / g_tw_clock_rate, 0);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -147,6 +149,7 @@ static void tw_sched_batch(tw_pe * me) {
     const int max_alloc_fail_count = 20;
 
     tw_clock     start;
+    tw_clock ev_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -202,10 +205,18 @@ static void tw_sched_batch(tw_pe * me) {
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
+        // state-save and update the LP's critical path
+        unsigned int prev_cp = clp->critical_path;
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        ev_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+        cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
+    clp->event_counters->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
@@ -228,12 +239,27 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
+
 	    break;
 	  } // END ABORT CHECK
 
 	/* Thread current event into processed queue of kp */
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
+
+        if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        {
+            if (g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
+            g_st_real_samp_start_cycles = tw_clock_read();
+        }
+
     }
 }
 
@@ -244,6 +270,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
     const int max_alloc_fail_count = 20;
 
     tw_clock     start;
+    tw_clock ev_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -300,8 +327,15 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
 	  {
+        // state-save and update the LP's critical path
+        unsigned int prev_cp = clp->critical_path;
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        ev_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+        cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
@@ -339,6 +373,19 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    tw_gvt_force_update_realtime(me);
 	    break; // leave the batch function
 	  }
+
+        if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        {
+            if (g_st_real_time_samp)
+            {
+                tw_clock current_rt = tw_clock_read();
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            }
+            if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
+            g_st_real_samp_start_cycles = tw_clock_read();
+        }
     }
 }
 
@@ -356,7 +403,9 @@ void tw_sched_init(tw_pe * me) {
     tw_net_barrier(me);
 
 #ifdef USE_RIO
+    tw_clock start = tw_clock_read();
     io_load_events(me);
+    me->stats.s_rio_load += (tw_clock_read() - start);
     tw_net_barrier(me);
 #endif
 
@@ -384,6 +433,7 @@ void tw_sched_init(tw_pe * me) {
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
+    tw_clock ev_start;
     tw_stime gvt = 0.0;
 
     if(tw_nnodes() > 1) {
@@ -395,6 +445,7 @@ void tw_scheduler_sequential(tw_pe * me) {
     printf("*** START SEQUENTIAL SIMULATION ***\n\n");
 
     tw_wall_now(&me->start_time);
+    me->stats.s_total = tw_clock_read();
 
     while ((cev = tw_pq_dequeue(me->pq))) {
         tw_lp *clp = cev->dest_lp;
@@ -413,7 +464,14 @@ void tw_scheduler_sequential(tw_pe * me) {
         }
 
         reset_bitfields(cev);
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        ev_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        }
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
@@ -423,6 +481,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         tw_event_free(me, cev);
     }
     tw_wall_now(&me->end_time);
+    me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
     printf("*** END SIMULATION ***\n\n");
 
@@ -433,6 +492,7 @@ void tw_scheduler_sequential(tw_pe * me) {
 
 void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
+    tw_clock ev_start;
     unsigned int msg_i;
 
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
@@ -498,7 +558,14 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             start = tw_clock_read();
             reset_bitfields(cev);
+            clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+            ev_start = tw_clock_read();
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            if (g_st_ev_trace == FULL_TRACE)
+                st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+            if (*clp->type->commit) {
+                (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+            }
 
             ckp->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
@@ -508,6 +575,19 @@ void tw_scheduler_conservative(tw_pe * me) {
             }
 
             tw_event_free(me, cev);
+
+            if(tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+            {
+                if (g_st_real_time_samp)
+                {
+                    tw_clock current_rt = tw_clock_read();
+                    st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                }
+                if (g_st_model_stats == MODEL_RT || g_st_model_stats == MODEL_BOTH)
+                    st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, MODEL_RT);
+
+                g_st_real_samp_start_cycles = tw_clock_read();
+            }
         }
     }
 
@@ -522,6 +602,20 @@ void tw_scheduler_conservative(tw_pe * me) {
 
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_st_stats_enabled)
+        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
+    if (g_st_real_time_samp)
+    {
+        // collect data one final time to account for time between last sample and sim end time
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
+        st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    }
+    if (g_st_ev_trace)
+        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
+
 
     tw_stats(me);
 }
@@ -558,14 +652,27 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 
-    tw_net_barrier(me);
-
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_st_stats_enabled)
+        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
+    if (g_st_real_time_samp)
+    {
+        // collect data one final time to account for time between last sample and sim end time
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
+        st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    }
+    if (g_st_ev_trace)
+        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
 
     tw_stats(me);
 }
@@ -607,14 +714,27 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
+    tw_net_barrier(me);
+
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** END SIMULATION ***\n\n");
     }
 
-    tw_net_barrier(me);
-
     // call the model PE finalize function
     (*me->type.final)(me);
+
+    if (g_st_stats_enabled)
+        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
+    if (g_st_real_time_samp)
+    {
+        // collect data one final time to account for time between last sample and sim end time
+        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
+        st_buffer_finalize(g_st_buffer_rt, RT_COL);
+    }
+    if (g_st_ev_trace)
+        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    if (g_st_model_stats)
+        st_buffer_finalize(g_st_buffer_model, MODEL_COL);
 
     tw_stats(me);
 }
@@ -635,7 +755,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     printf(" 2) One 1 KP is used.\n");
     printf("    NOTE: use the --nkp=1 argument to the simulation to ensure that\n");
     printf("          it only uses 1 KP.\n");
-    printf(" 3) Events ARE NEVER RECLAIMED.\n");
+    printf(" 3) Events ARE NEVER RECLAIMED (LP Commit Functions are not called).\n");
     printf(" 4) Executes til out of memory (16 events left) and \n    injects rollback to first before primodal init event.\n");
     printf(" 5) g_tw_rollback_time = %13.12lf \n", g_tw_rollback_time);
     printf("/***************************************************************************/\n");
@@ -655,7 +775,12 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         /* don't update GVT */
         reset_bitfields(cev);
+
+        // state-save and update the LP's critical path
+        unsigned int prev_cp = clp->critical_path;
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        cev->critical_path = prev_cp;
 
         ckp->s_nevent_processed++;
 

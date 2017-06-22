@@ -56,7 +56,16 @@ tw-sched.c
 tw-setup.c
 tw-signal.c
 tw-stats.c
-tw-util.c)
+tw-util.c
+
+instrumentation/st-stats-buffer.h
+instrumentation/st-stats-buffer.c
+instrumentation/st-data-collection.h
+instrumentation/st-data-collection.c
+instrumentation/st-event-collection.h
+instrumentation/st-event-collection.c
+instrumentation/st-model-collection.h
+instrumentation/st-model-collection.c)
 
 
 # ROSS VERSION INFORMATION
@@ -121,7 +130,7 @@ if (COVERALLS)
     # Create the coveralls target.
     coveralls_setup(
         "${COVERAGE_SRCS}" # The source files.
-        ON)                # If we should upload.
+        OFF)               # If we should upload.
 
 endif()
 

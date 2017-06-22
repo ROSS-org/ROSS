@@ -24,6 +24,7 @@ void tw_event_send(tw_event * event) {
 #ifdef USE_RIO
     // rio saves events scheduled past end time
      if (recv_ts >= g_tw_ts_end) {
+        link_causality(event, send_pe->cur_event);
         return;
     }
 #endif
@@ -43,6 +44,7 @@ void tw_event_send(tw_event * event) {
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
@@ -73,6 +75,7 @@ void tw_event_send(tw_event * event) {
         * for processing.
         */
         send_pe->stats.s_nsend_net_remote++;
+        event->src_lp->event_counters->s_nsend_net_remote++;
         event->state.owner = TW_net_asend;
         tw_net_send(event);
     }
@@ -100,6 +103,7 @@ static inline void event_cancel(tw_event * event) {
         */
         tw_net_cancel(event);
         send_pe->stats.s_nsend_net_remote--;
+        event->src_lp->event_counters->s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
             send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
@@ -107,6 +111,13 @@ static inline void event_cancel(tw_event * event) {
 
         return;
     }
+
+#ifdef USE_RIO
+    if (event->state.owner == IO_buffer) {
+        io_event_cancel(event);
+        return;
+    }
+#endif
 
     dest_peid = event->dest_lp->pe->id;
 
@@ -157,7 +168,7 @@ void tw_event_rollback(tw_event * event) {
     dest_lp->kp->last_time = event->recv_ts;
 
     if( dest_lp->suspend_flag &&
-	dest_lp->suspend_event == event && 
+	dest_lp->suspend_event == event &&
 	// Must test time stamp since events are reused once GVT sweeps by
 	dest_lp->suspend_time == event->recv_ts)
       {
@@ -172,7 +183,7 @@ void tw_event_rollback(tw_event * event) {
 	    goto jump_over_rc_event_handler;
 	  }
 	else
-	  { // reset 
+	  { // reset
 	    dest_lp->suspend_do_orig_event_rc = 0;
 	    // note, should fall thru and process reverse events
 	  }
@@ -183,6 +194,9 @@ void tw_event_rollback(tw_event * event) {
       }
 
     (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
+
+    // reset critical path
+    dest_lp->critical_path = event->critical_path;
 
 jump_over_rc_event_handler:
     if (event->delta_buddy) {
@@ -203,4 +217,5 @@ jump_over_rc_event_handler:
     event->caused_by_me = NULL;
 
     dest_lp->kp->s_e_rbs++;
+    dest_lp->event_counters->s_e_rbs++;
 }

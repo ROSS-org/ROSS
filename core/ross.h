@@ -215,12 +215,19 @@ typedef uint64_t tw_lpid;
 #  include "tw-memory.h"
 #endif
 
+#include "instrumentation/st-stats-buffer.h"
+#include "instrumentation/st-data-collection.h"
+#include "instrumentation/st-event-collection.h"
+#include "instrumentation/st-model-collection.h"
+
 #include "tw-eventq.h"
-#include "ross-inline.h"
 
 #ifdef USE_RIO
 #include "../IO/io.h"
 #endif
+
+#include "ross-inline.h"
+
 
 #ifdef __cplusplus
 }

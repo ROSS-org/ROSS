@@ -20,6 +20,7 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
     TWOPT_UINT("buddy-size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
     TWOPT_UINT("lz4-knob", g_tw_lz4_knob, "LZ4 acceleration factor (higher = faster)"),
+    TWOPT_ULONGLONG("max-opt-lookahead", g_tw_max_opt_lookahead, "Optimistic simulation: maximum lookahead allowed in virtual clock time"),
 #ifdef AVL_TREE
     TWOPT_UINT("avl-size", g_tw_avl_node_count, "AVL Tree contains 2^avl-size nodes"),
 #endif
@@ -56,6 +57,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+    tw_opt_add(tw_stats_setup());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
@@ -304,6 +306,9 @@ unsigned instList[] = {
 void tw_run(void) {
     tw_pe *me;
 
+    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats)
+        st_stats_init();
+
     late_sanity_check();
 
     me = setup_pes();
@@ -429,9 +434,11 @@ static tw_pe * setup_pes(void) {
         tw_eventq_alloc(&pe->free_q, num_events_per_pe);
         pe->abort_event = tw_eventq_shift(&pe->free_q);
 #ifdef USE_RIO
+        tw_clock start = tw_clock_read();
         for (i = 0; i < g_io_events_buffered_per_rank; i++) {
             tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
         }
+        pe->stats.s_rio_load = (tw_clock_read() - start);
 #endif
     }
 
@@ -446,7 +453,7 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        printf("\t%-50s %11llu\n", "Total LPs", 
+        printf("\t%-50s %11llu\n", "Total LPs",
 	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
         fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 

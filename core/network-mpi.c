@@ -1,6 +1,9 @@
 #include <ross.h>
 #include <mpi.h>
 
+MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
+int custom_communicator = 0;
+
 static long id_tmp;
 
 struct act_q
@@ -47,15 +50,26 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_END()
 };
 
+void tw_comm_set(MPI_Comm comm)
+{
+	MPI_COMM_ROSS = comm;
+	custom_communicator = 1;
+}
+
 const tw_optdef *
 tw_net_init(int *argc, char ***argv)
 {
   int my_rank;
 
-  if (MPI_Init(argc, argv) != MPI_SUCCESS)
-    tw_error(TW_LOC, "MPI_Init failed.");
-  if (MPI_Comm_rank(MPI_COMM_WORLD, &my_rank) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_WORLD)");
+  int initialized;
+  MPI_Initialized(&initialized);
+
+  if (!initialized) {
+    if (MPI_Init(argc, argv) != MPI_SUCCESS)
+      tw_error(TW_LOC, "MPI_Init failed.");
+  }
+  if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
 
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
@@ -104,8 +118,8 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
-  if (MPI_Comm_size(MPI_COMM_WORLD, &world_size) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_WORLD)");
+  if (MPI_Comm_size(MPI_COMM_ROSS, &world_size) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_ROSS)");
 
   if( g_tw_mynode == 0)
     {
@@ -149,21 +163,23 @@ tw_net_start(void)
 void
 tw_net_abort(void)
 {
-  MPI_Abort(MPI_COMM_WORLD, 1);
+  MPI_Abort(MPI_COMM_ROSS, 1);
   exit(1);
 }
 
 void
 tw_net_stop(void)
 {
-  if (MPI_Finalize() != MPI_SUCCESS)
-    tw_error(TW_LOC, "Failed to finalize MPI");
+  if (!custom_communicator) {
+    if (MPI_Finalize() != MPI_SUCCESS)
+      tw_error(TW_LOC, "Failed to finalize MPI");
+  }
 }
 
 void
 tw_net_barrier(tw_pe * pe)
 {
-  if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS)
+  if (MPI_Barrier(MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Failed to wait for MPI_Barrier");
 }
 
@@ -280,7 +296,7 @@ recv_begin(tw_pe *me)
 
       MPI_Iprobe(MPI_ANY_SOURCE,
 		 MPI_ANY_TAG,
-		 MPI_COMM_WORLD,
+		 MPI_COMM_ROSS,
 		 &flag,
 		 &status);
 
@@ -299,22 +315,22 @@ recv_begin(tw_pe *me)
 	}
 
 #if ROSS_MEMORY
-      if(!flag || 
+      if(!flag ||
 	 MPI_Irecv(posted_recvs.buffers[id],
 		   EVENT_SIZE(e),
 		   MPI_BYTE,
 		   MPI_ANY_SOURCE,
 		   EVENT_TAG,
-		   MPI_COMM_WORLD,
+		   MPI_COMM_ROSS,
 		   &posted_recvs.req_list[id]) != MPI_SUCCESS)
 #else
-	if(!flag || 
+	if(!flag ||
 	   MPI_Irecv(e,
 		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
 		     MPI_ANY_SOURCE,
 		     EVENT_TAG,
-		     MPI_COMM_WORLD,
+		     MPI_COMM_ROSS,
 		     &posted_recvs.req_list[id]) != MPI_SUCCESS)
 #endif
 	  {
@@ -357,6 +373,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
   dest_pe = e->dest_lp->pe;
+  e->dest_lp->event_counters->s_nread_network++;
 
   if(e->send_pe > tw_nnodes()-1)
     tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
@@ -368,7 +385,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
 
   if(e->recv_ts < me->GVT)
-    tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)", 
+    tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)",
 	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me))
@@ -382,7 +399,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
       // NOTE: it is possible to cancel the event we
       // are currently processing at this PE since this
-      // MPI module lets me read cancel events during 
+      // MPI module lets me read cancel events during
       // event sends over the network.
 
       cancel->state.cancel_q = 1;
@@ -448,7 +465,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   if (me->node == dest_pe->node) {
     /* Slower, but still local send, so put into top
-     * of dest_pe->event_q. 
+     * of dest_pe->event_q.
      */
     e->state.owner = TW_pe_event_q;
     tw_eventq_push(&dest_pe->event_q, e);
@@ -508,6 +525,7 @@ send_begin(tw_pe *me)
 	e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
+      e->send_lp = e->src_lp->gid;
 
 #if ROSS_MEMORY
       // pack pointers
@@ -566,7 +584,7 @@ send_begin(tw_pe *me)
 		    MPI_BYTE,
 		    *dest_node,
 		    EVENT_TAG,
-		    MPI_COMM_WORLD,
+		    MPI_COMM_ROSS,
 		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
 	return changed;
       }
@@ -576,7 +594,7 @@ send_begin(tw_pe *me)
 		    MPI_BYTE,
 		    (int)*dest_node,
 		    EVENT_TAG,
-		    MPI_COMM_WORLD,
+		    MPI_COMM_ROSS,
 		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
 	return changed;
       }
@@ -600,6 +618,7 @@ static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
+  e->src_lp->event_counters->s_nsend_network++;
 
   if (e->state.owner == TW_net_asend) {
     if (e->state.cancel_asend) {
@@ -751,58 +770,58 @@ tw_net_cancel(tw_event *e)
 tw_statistics	*
 tw_net_statistics(tw_pe * me, tw_statistics * s)
 {
-  if(MPI_Reduce(&(s->s_max_run_time), 
+  if(MPI_Reduce(&(s->s_max_run_time),
 		&me->stats.s_max_run_time,
 		1,
 		MPI_DOUBLE,
 		MPI_MAX,
 		(int)g_tw_masternode,
-		MPI_COMM_WORLD) != MPI_SUCCESS)
+		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&(s->s_net_events), 
+  if(MPI_Reduce(&(s->s_net_events),
 		&me->stats.s_net_events,
 		16,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_SUM,
 		(int)g_tw_masternode,
-		MPI_COMM_WORLD) != MPI_SUCCESS)
+		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&s->s_total, 
+  if(MPI_Reduce(&s->s_total,
 		&me->stats.s_total,
 		8,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_MAX,
 		(int)g_tw_masternode,
-		MPI_COMM_WORLD) != MPI_SUCCESS)
+		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
   if(MPI_Reduce(&s->s_pe_event_ties,
         &me->stats.s_pe_event_ties,
         1,
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-     
+
   if(MPI_Reduce(&s->s_min_detected_offset,
         &me->stats.s_min_detected_offset,
         1,
         MPI_DOUBLE,
         MPI_MIN,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
   if(MPI_Reduce(&s->s_avl,
         &me->stats.s_avl,
         1,
         MPI_UNSIGNED_LONG_LONG,
         MPI_MAX,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
     if (MPI_Reduce(&s->s_buddy,
@@ -811,7 +830,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_UNSIGNED_LONG_LONG,
         MPI_MAX,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
     if (MPI_Reduce(&s->s_lz4,
@@ -820,7 +839,7 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_UNSIGNED_LONG_LONG,
         MPI_MAX,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
     if (MPI_Reduce(&s->s_events_past_end,
@@ -829,8 +848,45 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
         (int)g_tw_masternode,
-        MPI_COMM_WORLD) != MPI_SUCCESS)
+        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
-    
+
+    if (MPI_Reduce(&g_st_stat_comp_ctr,
+        &me->stats.s_stat_comp,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
+        (int)g_tw_masternode,
+        MPI_COMM_ROSS) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
+    if (MPI_Reduce(&g_st_stat_write_ctr,
+        &me->stats.s_stat_write,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_MAX,
+        (int)g_tw_masternode,
+        MPI_COMM_ROSS) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
+#ifdef USE_RIO
+    if (MPI_Reduce(&s->s_rio_load,
+            &me->stats.s_rio_load,
+            1,
+            MPI_UNSIGNED_LONG_LONG,
+            MPI_MAX,
+            (int)g_tw_masternode,
+            MPI_COMM_ROSS) != MPI_SUCCESS)
+        tw_error(TW_LOC, "Unable to reduce statistics!");
+    if (MPI_Reduce(&s->s_rio_lp_init,
+            &me->stats.s_rio_lp_init,
+            1,
+            MPI_UNSIGNED_LONG_LONG,
+            MPI_MAX,
+            (int)g_tw_masternode,
+            MPI_COMM_ROSS) != MPI_SUCCESS)
+        tw_error(TW_LOC, "Unable to reduce statistics!");
+#endif
+
   return &me->stats;
 }
