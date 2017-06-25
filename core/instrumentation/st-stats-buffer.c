@@ -132,7 +132,10 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
         if (i < g_tw_mynode)
             offset += write_sizes[i];
         prev_offsets[type] += write_sizes[i];
-    };
+
+        if ((double) write_sizes[i] / g_st_buffer_size >= g_st_buffer_free_percent / 100.0)
+            write_to_file = 1;
+    }
 
     if (write_to_file)
     {
@@ -142,7 +145,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
 
         //MPI_Comm_split(MPI_COMM_ROSS, file_number, file_position, &file_comm);
         tw_clock start_cycle_time = tw_clock_read();;
-        MPI_File_write_at(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
+        MPI_File_write_at_all(*fh, offset, st_buffer_read_ptr(buffer), my_write_size, MPI_BYTE, &status);
         g_st_stat_write_ctr += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
