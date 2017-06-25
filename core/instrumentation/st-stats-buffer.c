@@ -156,7 +156,7 @@ void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type)
 void st_buffer_finalize(st_stats_buffer *buffer, int type)
 {
     // check if any data needs to be written out
-    if (!g_st_disable_out && buffer->count)
+    if (!g_st_disable_out)
         st_buffer_write(buffer, 1, type);
 
     if (g_tw_mynode == g_tw_masternode)
