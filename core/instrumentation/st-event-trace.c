@@ -36,7 +36,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
         else if (g_st_ev_trace == FULL_TRACE)
             (*cev->dest_lp->model_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[g_st_buf_size], &collect_flag);
     }
-    
+
     if (collect_flag)
     {
         memcpy(&buffer[index], &(cev->send_lp), sizeof(tw_lpid));
@@ -59,11 +59,10 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
             printf("WARNING: size of data being pushed to buffer is incorrect!\n");
 
         if (g_tw_synchronization_protocol != SEQUENTIAL)
-            st_buffer_push(g_st_buffer_evrb, &buffer[0], total_sz);
+            st_buffer_push(g_st_buffer[EV_TRACE], &buffer[0], total_sz);
         else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
             fwrite(buffer, total_sz, 1, seq_ev_trace);
 
     }
     g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 }
-
