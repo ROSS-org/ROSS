@@ -1,5 +1,4 @@
 #include "ross.h"
-#include "io-config.h"
 
 size_t io_lp_serialize (tw_lp *lp, void *buffer) {
     int i, j;

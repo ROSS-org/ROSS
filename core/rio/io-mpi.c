@@ -2,12 +2,8 @@
 //Rensselaer Polytechnic Institute
 //Decemeber 13, 2013
 
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
-#include "mpi.h"
 #include "ross.h"
-#include "io-config.h"
 
 //#define RIO_DEBUG
 
