@@ -117,11 +117,8 @@ ENDIF(NOT VALID_ARCH)
 # ROSS Core code
 ADD_SUBDIRECTORY(core)
 
-# Submodules
-OPTION(USE_RIO "Build RIO checkpointing library?" OFF)
-IF(USE_RIO)
-  ADD_SUBDIRECTORY(IO)
-ENDIF(USE_RIO)
+# RIO: Restart IO
+OPTION(USE_RIO "Enable RIO checkpointing library?" OFF)
 
 # ROSS Models directory
 OPTION(ROSS_BUILD_MODELS "Build ROSS models?" OFF)

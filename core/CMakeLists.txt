@@ -68,6 +68,10 @@ instrumentation/ross-lps/analysis-lp.h
 instrumentation/ross-lps/analysis-lp.c
 instrumentation/ross-lps/specialized-lps.c)
 
+IF(USE_RIO)
+  SET(ross_srcs ${ross_srcs} rio/io-mpi.c rio/io-serialize.c)
+  INCLUDE_DIRECTORIES(rio)
+ENDIF(USE_RIO)
 
 # ROSS VERSION INFORMATION
 ## Print Date and Time at top of ROSS output
