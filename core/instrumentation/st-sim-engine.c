@@ -1,15 +1,9 @@
 #include <ross.h>
 #include <sys/stat.h>
 #define __STDC_FORMAT_MACROS 1
-#include <inttypes.h>
 
-extern MPI_Comm MPI_COMM_ROSS;
-
-char g_st_stats_out[MAX_LENGTH] = {0};
-int g_st_stats_enabled = 0;
 long g_st_current_interval = 0;
-tw_clock g_st_real_time_samp = 0;
-tw_clock g_st_real_samp_start_cycles = 0;
+tw_clock g_st_rt_samp_start_cycles = 0;
 static tw_statistics last_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
 int g_st_disable_out = 0;
@@ -18,7 +12,6 @@ st_event_counters last_event_counters = {0};
 int g_st_granularity = 0;
 tw_clock g_st_stat_write_ctr = 0;
 tw_clock g_st_stat_comp_ctr = 0;
-int g_st_num_gvt = 10;
 
 static int num_gvt_vals = 10;
 static int num_gvt_vals_pe = 4;
@@ -30,54 +23,9 @@ static int num_ev_ctrs_pe = 5;
 static int num_ev_ctrs_kp = 2;
 static int num_ev_ctrs_lp = 4;
 
-static const tw_optdef stats_options[] = {
-    TWOPT_GROUP("ROSS Stats"),
-    TWOPT_UINT("enable-gvt-stats", g_st_stats_enabled, "Collect data after each GVT; 0 no stats, 1 for stats"),
-    TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
-    TWOPT_ULONGLONG("real-time-samp", g_st_real_time_samp, "real time sampling interval in ms"),
-    TWOPT_UINT("granularity", g_st_granularity, "collect on PE basis only, or also KP/LP basis, 0 for PE, 1 for KP/LP"),
-    TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
-    TWOPT_CHAR("stats-filename", g_st_stats_out, "prefix for filename(s) for stats output"),
-    TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
-    TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
-    TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"),
-    TWOPT_END()
-};
-
-const tw_optdef *tw_stats_setup(void)
+void print_sim_engine_metadata(FILE *file)
 {
-	return stats_options;
-}
-
-void st_stats_init()
-{
-    // Need to call after st_buffer_init()!
-    int i;
-    int npe = tw_nnodes();
-    tw_lpid nlp_per_pe[npe];
-    MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, 0, MPI_COMM_ROSS);
-
-    if (!g_st_disable_out && g_tw_mynode == 0) {
-        FILE *file;
-        char filename[MAX_LENGTH];
-        sprintf(filename, "%s/%s-README.txt", g_st_directory, g_st_stats_out);
-        file = fopen(filename, "w");
-
-        /* start of metadata info for binary reader */
-        fprintf(file, "GRANULARITY=%d\n", g_st_granularity);
-        fprintf(file, "NUM_PE=%d\n", tw_nnodes());
-        fprintf(file, "NUM_KP=%lu\n", g_tw_nkp);
-
-        fprintf(file, "LP_PER_PE=");
-        for (i = 0; i < npe; i++)
-        {
-            if (i == npe - 1)
-                fprintf(file, "%"PRIu64"\n", nlp_per_pe[i]);
-            else
-                fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
-        }
-
-        if (g_st_stats_enabled)
+        if (g_st_engine_stats && g_st_gvt_sampling)
         {
             if (g_st_granularity)
             {
@@ -89,7 +37,7 @@ void st_stats_init()
                 fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals);
         }
 
-        if (g_st_real_time_samp)
+        if (g_st_engine_stats && g_st_rt_sampling)
         {
             fprintf(file, "NUM_CYCLE_CTRS=%d\n", num_cycle_ctrs);
             if (g_st_granularity)
@@ -101,25 +49,6 @@ void st_stats_init()
             else
                 fprintf(file, "NUM_EV_CTRS_PE=%d\n", num_ev_ctrs);
         }
-
-        fprintf(file, "END\n\n");
-
-        /* end of metadata info for binary reader */
-        fprintf(file, "Info for ROSS run.\n\n");
-#if HAVE_CTIME
-        time_t raw_time;
-        time(&raw_time);
-        fprintf(file, "Date Created:\t%s\n", ctime(&raw_time));
-#endif
-        fprintf(file, "## BUILD CONFIGURATION\n\n");
-#ifdef ROSS_VERSION
-        fprintf(file, "ROSS Version:\t%s\n", ROSS_VERSION);
-#endif
-        //fprintf(file, "MODEL Version:\t%s\n", model_version);
-        fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
-        tw_opt_settings(file);
-        fclose(file);
-    }
 }
 
 /* wrapper to call gvt log functions depending on which granularity to use */
@@ -210,7 +139,7 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
+    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
 }
@@ -320,7 +249,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer_gvt, &buffer[0], buf_size);
+    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
 }
@@ -370,7 +299,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     index += sizeof(data_cycles);
     memcpy(&final_data[index], &data_events[0], sizeof(data_events));
     index += sizeof(data_events);
-    st_buffer_push(g_st_buffer_rt, final_data, total_size);
+    st_buffer_push(g_st_buffer[RT_COL], final_data, total_size);
     g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 }
 

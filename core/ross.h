@@ -212,9 +212,7 @@ typedef uint64_t tw_lpid;
 #  include "tw-memory.h"
 #endif
 
-#include "instrumentation/st-stats-buffer.h"
-#include "instrumentation/st-data-collection.h"
-#include "instrumentation/st-event-collection.h"
+#include "instrumentation/st-instrumentation.h"
 
 #ifdef USE_DAMARIS
 #include "damaris/damaris.h"

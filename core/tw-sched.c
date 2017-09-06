@@ -247,7 +247,8 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        if(g_st_rt_sampling && 
+                tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
 #ifdef USE_DAMARIS
@@ -256,10 +257,14 @@ static void tw_sched_batch(tw_pe * me) {
             tw_get_stats(me, &s);
             st_expose_data_damaris(me, me->GVT, &s, RT_COL);
 #else
-            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
+            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 #endif
-            g_st_real_samp_start_cycles = tw_clock_read();
+            g_st_rt_samp_start_cycles = tw_clock_read();
         }
+
     }
 }
 
@@ -374,11 +379,16 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    break; // leave the batch function
 	  }
 
-        if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+        if(g_st_rt_sampling && 
+                tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
-            st_collect_data(me, (double)current_rt / g_tw_clock_rate);
-            g_st_real_samp_start_cycles = tw_clock_read();
+            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
+                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+
+            g_st_rt_samp_start_cycles = tw_clock_read();
         }
     }
 }
@@ -427,6 +437,7 @@ void tw_sched_init(tw_pe * me) {
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
+    tw_clock ev_start;
     tw_stime gvt = 0.0;
 
     if(tw_nnodes() > 1) {
@@ -458,7 +469,10 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        ev_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
@@ -469,6 +483,16 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         ckp->s_nevent_processed++;
         tw_event_free(me, cev);
+
+        if(g_st_rt_sampling && 
+                tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
+        {
+            tw_clock current_rt = tw_clock_read();
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+
+            g_st_rt_samp_start_cycles = tw_clock_read();
+        }
     }
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
@@ -566,11 +590,16 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             tw_event_free(me, cev);
 
-            if(g_st_real_time_samp && tw_clock_read() - g_st_real_samp_start_cycles > g_st_real_time_samp)
+            if(g_st_rt_sampling && 
+                    tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
             {
                 tw_clock current_rt = tw_clock_read();
-                st_collect_data(me, (double)current_rt / g_tw_clock_rate);
-                g_st_real_samp_start_cycles = tw_clock_read();
+                if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
+                    st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+                    st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+
+                g_st_rt_samp_start_cycles = tw_clock_read();
             }
         }
     }
@@ -587,16 +616,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    st_inst_finalize(me);
 
     tw_stats(me);
 }
@@ -642,16 +662,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    st_inst_finalize(me);
 
     tw_stats(me);
 }
@@ -702,16 +713,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     // call the model PE finalize function
     (*me->type.final)(me);
 
-    if (g_st_stats_enabled)
-        st_buffer_finalize(g_st_buffer_gvt, GVT_COL);
-    if (g_st_real_time_samp)
-    {
-        // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer_rt, RT_COL);
-    }
-    if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer_evrb, EV_TRACE);
+    st_inst_finalize(me);
 
     tw_stats(me);
 }
