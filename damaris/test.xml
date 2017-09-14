@@ -2,7 +2,7 @@
 <simulation name ="ROSS_test"
     language="c" xmlns="http://damaris.gforge.inria.fr/damaris/model">
     <architecture>
-        <domains count="100"/>
+        <domains count="1"/>
         <dedicated cores="1" nodes="0"/>
         <buffer name="buffer" size="67108864"/>
         <queue name="queue" size="100"/>
@@ -10,7 +10,7 @@
     <visit>
         <path>/home/rossc3/visit/visit2.12.1/src</path>
         <!--<options> -debug 5 </options>-->
-    </visit>
+        </visit>
     <data>
         <parameter name="num_lp" type="int" value="0" />
         <parameter name="num_pe" type="int" value="0" />
@@ -99,7 +99,7 @@
         </group>
     </data>
     <actions>
-        <event name="test" action="aggregate_data" library="libROSS_Damaris.so" scope="group" />
+        <!--<event name="test" action="aggregate_data" library="libROSS_Damaris.so" scope="group" />-->
     </actions>
 </simulation>
 

@@ -219,7 +219,8 @@ tw_gvt_step2(tw_pe *me)
     }
 #ifdef USE_DAMARIS
     // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
-    if (!g_st_stats_enabled && g_st_real_time_samp) //need to make sure if one PE enters this, all do; otherwise deadlock
+    //if (!g_st_stats_enabled && g_st_real_time_samp) //need to make sure if one PE enters this, all do; otherwise deadlock
+    if (g_st_engine_stats == RT_STATS || g_st_model_stats == RT_STATS)
     {
         damaris_end_iteration();
         reset_block_counter();
