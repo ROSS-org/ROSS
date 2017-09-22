@@ -1,7 +1,6 @@
 #include <ross.h>
 #include <sys/stat.h>
 
-extern MPI_Comm MPI_COMM_ROSS;
 int g_st_instrumentation = 0;
 int g_st_engine_stats = 0;
 int g_st_rt_sampling = 0;

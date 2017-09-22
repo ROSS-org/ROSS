@@ -3,8 +3,6 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
-extern MPI_Comm MPI_COMM_ROSS;
-
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;

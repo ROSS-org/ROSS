@@ -1,8 +1,6 @@
 #include <ross.h>
 #include <time.h>
 
-extern MPI_Comm MPI_COMM_ROSS;
-
 static long missed_bytes = 0;
 static MPI_Offset *prev_offsets = NULL;
 static MPI_File *buffer_fh = NULL;
