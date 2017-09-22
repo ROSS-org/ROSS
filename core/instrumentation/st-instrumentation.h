@@ -30,10 +30,11 @@ extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
 extern FILE *seq_ev_trace, *seq_model;
 
-st_stats_buffer *st_buffer_init(int type);
-void st_buffer_push(st_stats_buffer *buffer, char *data, int size);
-void st_buffer_write(st_stats_buffer *buffer, int end_of_sim, int type);
-void st_buffer_finalize(st_stats_buffer *buffer, int type);
+void st_buffer_allocate();
+void st_buffer_init(int type);
+void st_buffer_push(int type, char *data, int size);
+void st_buffer_write(int end_of_sim, int type);
+void st_buffer_finalize(int type);
 
 /*
  * st-instrumentation.c
@@ -46,7 +47,7 @@ typedef enum{
     NUM_COL_TYPES
 } collection_types;
 
-extern st_stats_buffer **g_st_buffer;
+//extern st_stats_buffer **g_st_buffer;
 extern int g_st_instrumentation;
 extern int g_st_engine_stats;
 

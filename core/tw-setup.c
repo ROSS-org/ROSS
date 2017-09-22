@@ -198,6 +198,8 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_msg_sz = msg_sz;
 
+    st_buffer_allocate();
+
     early_sanity_check();
 
     /*

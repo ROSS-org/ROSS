@@ -59,7 +59,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration)
             printf("WARNING: size of data being pushed to buffer is incorrect!\n");
 
         if (g_tw_synchronization_protocol != SEQUENTIAL)
-            st_buffer_push(g_st_buffer[EV_TRACE], &buffer[0], total_sz);
+            st_buffer_push(EV_TRACE, &buffer[0], total_sz);
         else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
             fwrite(buffer, total_sz, 1, seq_ev_trace);
 

@@ -2,8 +2,6 @@
 #include <sys/stat.h>
 
 extern MPI_Comm MPI_COMM_ROSS;
-
-st_stats_buffer **g_st_buffer;
 int g_st_instrumentation = 0;
 int g_st_engine_stats = 0;
 int g_st_rt_sampling = 0;
@@ -40,7 +38,6 @@ void st_inst_init(void)
         return;
 
     g_st_instrumentation = 1;
-    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
 
     // setup directory for instrumentation output
     int rc;
@@ -62,12 +59,12 @@ void st_inst_init(void)
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS)
     {
         g_st_gvt_sampling = 1;
-        g_st_buffer[GVT_COL] = st_buffer_init(GVT_COL);
+        st_buffer_init(GVT_COL);
     }
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
     {
         g_st_rt_sampling = 1;
-        g_st_buffer[RT_COL] = st_buffer_init(RT_COL);
+        st_buffer_init(RT_COL);
     }
     if (g_st_model_stats == GVT_STATS || g_st_model_stats == BOTH_STATS)
         g_st_gvt_sampling = 1;
@@ -81,9 +78,9 @@ void st_inst_init(void)
     }
 
     if (g_st_ev_trace)
-        g_st_buffer[EV_TRACE] = st_buffer_init(EV_TRACE);
+        st_buffer_init(EV_TRACE);
     if (g_st_model_stats)
-        g_st_buffer[MODEL_COL] = st_buffer_init(MODEL_COL);
+        st_buffer_init(MODEL_COL);
 
     st_stats_init();
 }
@@ -144,28 +141,28 @@ void st_stats_init()
 void st_inst_dump()
 {
     if (!g_st_disable_out && (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS))
-        st_buffer_write(g_st_buffer[GVT_COL], 0, GVT_COL);
+        st_buffer_write(0, GVT_COL);
     if (!g_st_disable_out && (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS))
-        st_buffer_write(g_st_buffer[RT_COL], 0, RT_COL);
+        st_buffer_write(0, RT_COL);
     if (!g_st_disable_out && (g_st_ev_trace))
-        st_buffer_write(g_st_buffer[EV_TRACE], 0, EV_TRACE);
+        st_buffer_write(0, EV_TRACE);
     if (!g_st_disable_out && (g_st_model_stats))
-        st_buffer_write(g_st_buffer[MODEL_COL], 0, MODEL_COL);
+        st_buffer_write(0, MODEL_COL);
 }
 
 void st_inst_finalize(tw_pe *me)
 {
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS)
-        st_buffer_finalize(g_st_buffer[GVT_COL], GVT_COL);
+        st_buffer_finalize(GVT_COL);
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
     {
         // collect data one final time to account for time between last sample and sim end time
         st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
-        st_buffer_finalize(g_st_buffer[RT_COL], RT_COL);
+        st_buffer_finalize(RT_COL);
     }
     if (g_st_ev_trace)
-        st_buffer_finalize(g_st_buffer[EV_TRACE], EV_TRACE);
+        st_buffer_finalize(EV_TRACE);
     if (g_st_model_stats)
-        st_buffer_finalize(g_st_buffer[MODEL_COL], MODEL_COL);
+        st_buffer_finalize(MODEL_COL);
 
 }

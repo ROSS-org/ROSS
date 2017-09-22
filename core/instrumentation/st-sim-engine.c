@@ -139,7 +139,7 @@ void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
+    st_buffer_push(GVT_COL, &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
 }
@@ -249,7 +249,7 @@ void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduc
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
+    st_buffer_push(GVT_COL, &buffer[0], buf_size);
     memcpy(&last_stats, s, sizeof(tw_statistics));
     last_all_reduce_cnt = all_reduce_cnt;
 }
@@ -299,7 +299,7 @@ void st_collect_data(tw_pe *pe, tw_stime current_rt)
     index += sizeof(data_cycles);
     memcpy(&final_data[index], &data_events[0], sizeof(data_events));
     index += sizeof(data_events);
-    st_buffer_push(g_st_buffer[RT_COL], final_data, total_size);
+    st_buffer_push(RT_COL, final_data, total_size);
     g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 }
 
