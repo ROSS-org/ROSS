@@ -1,5 +1,6 @@
 #ifndef INC_ross_kernel_inline_h
 #define INC_ross_kernel_inline_h
+#include "instrumentation/st-instrumentation.h"
 
 #define	ROSS_MAX(a,b)	((a) > (b) ? (a) : (b))
 #define	ROSS_MIN(a,b)	((a) < (b) ? (a) : (b))
@@ -12,6 +13,10 @@ static inline tw_lp *
 
   switch (g_tw_mapping) {
   case CUSTOM:
+      if (g_st_use_analysis_lps && gid >= g_st_total_model_lps)
+      {
+          return g_tw_lp[(gid - g_st_total_model_lps) % g_tw_nkp + g_tw_nlp];
+      }
       return( g_tw_custom_lp_global_to_local_map( gid ) );
   case ROUND_ROBIN:
       id = gid / tw_nnodes();

@@ -39,8 +39,8 @@ tw_lp_settype(tw_lpid id, tw_lptype * type)
 {
 	tw_lp *lp = g_tw_lp[id];
 
-	if(id >= g_tw_nlp)
-		tw_error(TW_LOC, "ID %ld exceeded MAX LPs (%ld)", id, g_tw_nlp);
+	if(id >= g_tw_nlp + g_st_analysis_nlp)
+		tw_error(TW_LOC, "ID %ld exceeded MAX LPs (%ld)", id, g_tw_nlp + g_st_analysis_nlp);
 
 	if(!lp || !lp->pe)
 		tw_error(TW_LOC, "LP %u has no PE assigned.", lp->gid);
@@ -56,7 +56,7 @@ tw_lp_settype(tw_lpid id, tw_lptype * type)
 void
 tw_lp_onpe(tw_lpid id, tw_pe * pe, tw_lpid gid)
 {
-	if(id >= g_tw_nlp)
+	if(id >= g_tw_nlp + g_st_analysis_nlp)
 		tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
 
 	if(g_tw_lp[id])
@@ -84,7 +84,7 @@ tw_init_lps(tw_pe * me)
 {
 	tw_lpid i;
 
-	for(i = 0; i < g_tw_nlp; i++)
+	for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
 	{
 		tw_lp * lp = g_tw_lp[i];
 
@@ -146,7 +146,7 @@ tw_init_lps(tw_pe * me)
 void tw_pre_run_lps (tw_pe * me) {
 	tw_lpid i;
 
-	for(i = 0; i < g_tw_nlp; i++) {
+	for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
 		tw_lp * lp = g_tw_lp[i];
 
 		if (lp->pe != me)

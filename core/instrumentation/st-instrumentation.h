@@ -44,6 +44,7 @@ typedef enum{
     RT_COL,
     EV_TRACE,
     MODEL_COL,
+    ANALYSIS_LP,
     NUM_COL_TYPES
 } collection_types;
 
@@ -153,6 +154,20 @@ extern int g_st_buf_size;
 void st_collect_event_data(tw_event *cev, tw_stime recv_rt, tw_stime duration);
 
 /*
+ * ross-lps/analysis-lp.c
+ */
+typedef void (*sample_event_f)(void *state, tw_bf *b, tw_lp *lp, void *sample);
+typedef void (*sample_revent_f)(void *state, tw_bf *b, tw_lp *lp, void *sample);
+extern void specialized_lp_setup();
+extern void specialized_lp_init_mapping();
+extern const tw_optdef *st_special_lp_opts(void);
+extern int g_st_use_analysis_lps;
+extern tw_lpid g_st_analysis_nlp;
+extern tw_stime g_st_vt_interval;
+extern tw_stime g_st_sampling_end;
+extern tw_lpid g_st_total_model_lps;
+
+/*
  * st-model-data.c
  */
 // function to be implemented in LP for collection of model level stats
@@ -169,6 +184,9 @@ struct st_model_types {
     size_t ev_sz;            /**< @brief size of data collected from model for each event */
     model_stat_f model_stat_fn;            /**< @brief function pointer to collect model level data */
     size_t mstat_sz;         /**< @brief size of data collected from model at sampling points */
+    sample_event_f sample_event_fn;
+    sample_revent_f sample_revent_fn;
+    size_t sample_struct_sz;
 };
 
 typedef enum{

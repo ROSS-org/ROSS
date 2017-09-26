@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <time.h>
+#include <sys/stat.h>
 
 static long missed_bytes = 0;
 static MPI_Offset *prev_offsets = NULL;
@@ -14,8 +15,41 @@ static st_stats_buffer **g_st_buffer;
 
 void st_buffer_allocate()
 {
-    if (g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps)
-        g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
+    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps))
+        return;
+    
+    int i, rc;
+
+    // setup directory for instrumentation output
+    if (g_tw_mynode == g_tw_masternode)
+    {
+        rc = mkdir("stats-output", S_IRUSR | S_IWUSR | S_IXUSR);
+        if (rc == -1)
+        {
+            sprintf(stats_directory, "%s-%ld-%ld", "stats-output", (long)getpid(), (long)time(NULL));
+            mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
+        }
+        else
+            sprintf(stats_directory, "stats-output");
+    }
+
+    MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
+
+    // allocate buffer
+    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
+
+    // setup MPI file offsets
+    if (!prev_offsets)
+    {
+        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_COL_TYPES); 
+        for (i = 0; i < NUM_COL_TYPES; i++)
+            prev_offsets[i] = 0;
+    }
+
+    // set up file handlers
+    if (!buffer_fh)
+        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_File), NUM_COL_TYPES);
+
 }
 
 /* initialize circular buffer for stats collection
@@ -30,6 +64,7 @@ void st_buffer_init(int type)
     file_suffix[1] = "rt";
     file_suffix[2] = "evtrace";
     file_suffix[3] = "model";
+    file_suffix[4] = "analysis-lps";
     
     g_st_buffer[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     g_st_buffer[type]->size  = g_st_buffer_size;
@@ -37,16 +72,6 @@ void st_buffer_init(int type)
     g_st_buffer[type]->read_pos = 0;
     g_st_buffer[type]->count = 0;
     g_st_buffer[type]->buffer = (char*) tw_calloc(TW_LOC, "statistics collection (buffer)", 1, g_st_buffer[type]->size);
-
-    if (!prev_offsets)
-    {
-        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_COL_TYPES); 
-        for (i = 0; i < NUM_COL_TYPES; i++)
-            prev_offsets[i] = 0;
-    }
-
-    if (!buffer_fh)
-        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_File), NUM_COL_TYPES);
 
     // set up MPI File
     if (!g_st_disable_out)

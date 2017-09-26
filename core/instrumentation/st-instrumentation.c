@@ -38,21 +38,6 @@ void st_inst_init(void)
 
     g_st_instrumentation = 1;
 
-    // setup directory for instrumentation output
-    int rc;
-    if (g_tw_mynode == g_tw_masternode)
-    {
-        rc = mkdir("stats-output", S_IRUSR | S_IWUSR | S_IXUSR);
-        if (rc == -1)
-        {
-            sprintf(stats_directory, "%s-%ld-%ld", "stats-output", (long)getpid(), (long)time(NULL));
-            mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
-        }
-        else
-            sprintf(stats_directory, "stats-output");
-    }
-    MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
-
     // setup appropriate flags for various instrumentation modes
     // set up files and buffers for necessary instrumentation modes
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS)

@@ -108,7 +108,7 @@ tw_stats(tw_pe *me)
 	tw_calloc_stats(&m_alloc, &m_waste);
     tw_lp *lp = NULL;
     int i;
-    for(i = 0; i < g_tw_nlp; i++)
+    for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
     {
         lp = tw_getlp(i);
         if (lp->type->final)
