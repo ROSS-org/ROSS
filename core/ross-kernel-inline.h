@@ -40,7 +40,7 @@ static inline tw_lp *
      tw_getlp(tw_lpid id)
 {
 #ifdef ROSS_runtime_checks  
-  if (id >= g_tw_nlp)
+  if (id >= g_tw_nlp + g_st_analysis_nlp)
     tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
   if (id != g_tw_lp[id]->id)
     tw_error(TW_LOC, "Inconsistent LP Mapping");
