@@ -7,6 +7,7 @@ typedef struct analysis_state analysis_state;
 typedef struct analysis_msg analysis_msg;
 //typedef struct sim_engine_data sim_engine_data;
 typedef struct model_sample_data model_sample_data;
+typedef struct lp_metadata lp_metadata;
 
 struct analysis_state
 {
@@ -24,6 +25,13 @@ struct analysis_msg
     tw_lpid src;
     tw_stime timestamp;
 
+};
+
+struct lp_metadata
+{
+    tw_lpid lpid;
+    tw_stime ts;
+    int64_t sample_sz;
 };
 
 //struct sim_engine_data
