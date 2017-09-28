@@ -166,6 +166,7 @@ extern tw_lpid g_st_analysis_nlp;
 extern tw_stime g_st_vt_interval;
 extern tw_stime g_st_sampling_end;
 extern tw_lpid g_st_total_model_lps;
+extern int g_st_sample_count;
 
 /*
  * st-model-data.c

@@ -14,7 +14,9 @@ struct analysis_state
     int num_lps;
     tw_lpid *lp_list; // list of LPs that the analysis LP is responsible for
     model_sample_data *model_samples;
-    model_sample_data *current_sample;
+    int start_sample;
+    int current_sample;
+    unsigned long long sample_sz;
 };
 
 struct analysis_msg
@@ -31,8 +33,6 @@ struct analysis_msg
 
 struct model_sample_data
 {
-    model_sample_data *next; /* pointer to next sample */
-    model_sample_data *prev;
     tw_stime timestamp;
     void **lp_data;          /* data for each LP on the associated KP at this sampling point */
 };

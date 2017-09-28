@@ -12,6 +12,7 @@ int g_st_use_analysis_lps = 0;
 tw_lpid g_st_analysis_nlp = 0;
 tw_stime g_st_vt_interval = 1000000;
 tw_stime g_st_sampling_end = 0;
+int g_st_sample_count = 65536;
 
 tw_lpid analysis_start_gid = 0;
 tw_lpid g_st_total_model_lps = 0;
@@ -22,13 +23,10 @@ void specialized_lp_setup()
         return;
 
     // determine total LPs used by model and assign value to analysis_start_gid
-    // any way of doing without a collective call?
-    // TODO check on types here
     MPI_Allreduce(&g_tw_nlp, &g_st_total_model_lps, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_ROSS);
 
     analysis_start_gid = g_st_total_model_lps;
     g_st_analysis_nlp = g_tw_nkp; // # of analysis LPs per PE
-    //my_local_offset = g_tw_mynode * g_tw_nkp; // num LPs per PE == g_tw_nkp
 
     if (g_st_sampling_end == 0)
         g_st_sampling_end = g_tw_ts_end;
@@ -55,6 +53,7 @@ const tw_optdef special_lp_opt[] =
     TWOPT_UINT("analysis-lps", g_st_use_analysis_lps, "Set to 1 to turn on analysis LPs (1 per KP) for virtual time sampling"),
     TWOPT_STIME("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
     TWOPT_STIME("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
+    TWOPT_UINT("sample-count", g_st_sample_count, "Number of samples to allocate in memory"),
     TWOPT_END()
 };
 

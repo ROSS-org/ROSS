@@ -8,19 +8,18 @@
  * CODES network models
  */
 
-//static model_sample_data *model_samples = NULL;
-//static model_sample_data *current_sample = NULL;
-
 static void st_create_sample_event(tw_lp *lp);
 
 void analysis_init(analysis_state *s, tw_lp *lp)
 {
-    int i, idx = 0;
+    int i, j, idx = 0;
     tw_lp *cur_lp;
 
     // set our id relative to all analysis LPs
     s->analysis_id = lp->gid - analysis_start_gid;
     s->num_lps = ceil((double)g_tw_nlp / g_tw_nkp);
+
+    s->sample_sz = sizeof(model_sample_data);
 
     // create list of LPs this is responsible for
     s->lp_list = tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
@@ -39,6 +38,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
         if (cur_lp->kp->id == s->analysis_id % g_tw_nkp)
         {
             s->lp_list[idx] = cur_lp->gid;
+            s->sample_sz += cur_lp->model_types->sample_struct_sz;
             idx++;
         }
     }
@@ -46,24 +46,33 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     // update num_lps
     s->num_lps = idx;
 
+    // setup memory to use for samples
+    s->model_samples = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
+    for (i = 0; i < g_st_sample_count; i++)
+    {
+        s->model_samples[i].lp_data = (void**) tw_calloc(TW_LOC, "analysis LPs", sizeof(void*), s->num_lps);
+        for (j = 0; j < s->num_lps; j++)
+        {
+            cur_lp = tw_getlocal_lp(s->lp_list[j]);
+            s->model_samples[i].lp_data[j] = (void *) tw_calloc(TW_LOC, "analysis LPs", cur_lp->model_types->sample_struct_sz, 1);
+        }
+    }
+    s->start_sample = 0;
+    s->current_sample = -1;
+
     // schedule 1st sampling event 
     st_create_sample_event(lp);
 }
 
-// TODO need to handle memory better; as is it will create memory leaks
-// look at AVL tree for how it handles memory management?
 void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     int i;
     tw_lp *model_lp;
 
-    // create struct for storing this sample's data 
-    model_sample_data *sample = tw_calloc(TW_LOC, "analysis LPs", sizeof(struct model_sample_data), 1); 
-    sample->next = NULL;
-    sample->prev = NULL;
+    s->current_sample++;
+    model_sample_data *sample = &s->model_samples[s->current_sample];
     sample->timestamp = tw_now(lp);
     m->timestamp = tw_now(lp);
-    sample->lp_data = (void **) tw_calloc(TW_LOC, "analysis LPs", sizeof(void *), s->num_lps);    
 
     // call the sampling function for each LP on this KP
     for (i = 0; i < s->num_lps; i++)
@@ -75,19 +84,9 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         if (model_lp->model_types->sample_struct_sz == 0)
             continue;
 
-        sample->lp_data[i] = (void*)tw_calloc(TW_LOC, "analysis LPs", model_lp->model_types->sample_struct_sz, 1);
         model_lp->model_types->sample_event_fn(model_lp->cur_state, bf, lp, sample->lp_data[i]);
     } 
     
-    // save this sample in the list
-    if (!s->model_samples)
-        s->model_samples = sample;
-    else
-        s->current_sample->next = sample;
-
-    sample->prev = s->current_sample;
-    s->current_sample = sample;
-
     // create next sampling event
     st_create_sample_event(lp);
 }
@@ -95,32 +94,27 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     tw_lp *model_lp;
-    int i;
+    int i, j;
     // need to remove sample associated with this event from the list
     model_sample_data *sample;
     // start at end, because it's most likely closer to the timestamp we're looking for
-    for (sample = s->current_sample; sample != NULL; sample = sample->prev)
-    {
+    for (i = s->current_sample; i >= s->start_sample; i --)
+    { 
+        sample = &s->model_samples[i];
         if (sample->timestamp == m->timestamp)
         {
-            for (i = 0; i < s->num_lps; i++)
+            for (j = 0; j < s->num_lps; j++)
             {
-                if (s->lp_list[i] == ULLONG_MAX)
+                if (s->lp_list[j] == ULLONG_MAX)
                     break;
 
                 // first call the appropriate RC fn, to allow it to undo any state changes
-                model_lp = tw_getlocal_lp(s->lp_list[i]);
-                model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[i]);
+                model_lp = tw_getlocal_lp(s->lp_list[j]);
+                model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
             }
 
-            if (sample->prev)
-                sample->prev->next = sample->next;
-            if (sample->next)
-                sample->next->prev = sample->prev;
-            if (s->current_sample == sample)
-                s->current_sample = sample->prev;
-            if (s->model_samples == sample)
-                s->model_samples = NULL;
+            s->current_sample--;
+
             break;
         }
         else if (sample->timestamp < m->timestamp)
@@ -133,24 +127,23 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     // write committed data to buffer
     model_sample_data *sample;
-    int i;
+    int i, j;
     tw_lp *model_lp;
     // start at beginning
-    for (sample = s->model_samples; sample->next != NULL; sample = sample->next)
+    for (i = s->start_sample; i <= s->current_sample; i++)
     {
+        sample = &s->model_samples[i];
         if (sample->timestamp == m->timestamp)
         {
-            for (i = 0; i < s->num_lps; i++)
+            for (j = 0; j < s->num_lps; j++)
             {
-                model_lp = tw_getlocal_lp(s->lp_list[i]);
-                st_buffer_push(ANALYSIS_LP, sample->lp_data[i], model_lp->model_types->sample_struct_sz); 
+                model_lp = tw_getlocal_lp(s->lp_list[j]);
+                st_buffer_push(ANALYSIS_LP, sample->lp_data[j], model_lp->model_types->sample_struct_sz); 
             }
-            // remove committed data from model_samples
-            s->model_samples = sample->next;
-            s->model_samples->prev = NULL;
+            s->start_sample++;
             break;
         }
-        else if (sample->timestamp < m->timestamp)
+        else if (sample->timestamp > m->timestamp)
             // can stop searching now
             break;
     }
@@ -160,15 +153,16 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
 {
     // write all remaining samples to buffer
     model_sample_data *sample;
-    int i;
+    int i, j;
     tw_lp *model_lp;
     // start at beginning
-    for (sample = s->model_samples; sample->next != NULL; sample = sample->next)
+    for (i = s->start_sample; i <= s->current_sample; i++)
     {
-        for (i = 0; i < s->num_lps; i++)
+        sample = &s->model_samples[i];
+        for (j = 0; j < s->num_lps; j++)
         {
-            model_lp = tw_getlocal_lp(s->lp_list[i]);
-            st_buffer_push(ANALYSIS_LP, sample->lp_data[i], model_lp->model_types->sample_struct_sz); 
+            model_lp = tw_getlocal_lp(s->lp_list[j]);
+            st_buffer_push(ANALYSIS_LP, sample->lp_data[j], model_lp->model_types->sample_struct_sz); 
         }
     }
 
@@ -188,8 +182,6 @@ static void st_create_sample_event(tw_lp *lp)
 /*
  * any specialized ROSS LP should be hidden from the model
  * need to add in these LP after all model LPs
- * Actually: easiest to just throw the specialized LPs at the end of each PE
- * but then provide a ROSS gid and a gid so current models do not break
  */
 tw_peid analysis_map(tw_lpid gid)
 {
