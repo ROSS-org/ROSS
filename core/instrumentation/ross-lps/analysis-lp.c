@@ -138,7 +138,9 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             for (j = 0; j < s->num_lps; j++)
             {
                 model_lp = tw_getlocal_lp(s->lp_list[j]);
-                st_buffer_push(ANALYSIS_LP, sample->lp_data[j], model_lp->model_types->sample_struct_sz); 
+                char buffer[model_lp->model_types->sample_struct_sz];
+                memcpy(&buffer[0], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
+                st_buffer_push(ANALYSIS_LP, &buffer[0], model_lp->model_types->sample_struct_sz); 
             }
             s->start_sample++;
             break;
@@ -162,7 +164,9 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
         for (j = 0; j < s->num_lps; j++)
         {
             model_lp = tw_getlocal_lp(s->lp_list[j]);
-            st_buffer_push(ANALYSIS_LP, sample->lp_data[j], model_lp->model_types->sample_struct_sz); 
+            char buffer[model_lp->model_types->sample_struct_sz];
+            memcpy(&buffer[0], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
+            st_buffer_push(ANALYSIS_LP, &buffer[0], model_lp->model_types->sample_struct_sz); 
         }
     }
 

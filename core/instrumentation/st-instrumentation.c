@@ -132,6 +132,8 @@ void st_inst_dump()
         st_buffer_write(0, EV_TRACE);
     if (!g_st_disable_out && (g_st_model_stats))
         st_buffer_write(0, MODEL_COL);
+    if (!g_st_disable_out && (g_st_use_analysis_lps))
+        st_buffer_write(0, ANALYSIS_LP);
 }
 
 void st_inst_finalize(tw_pe *me)
@@ -148,5 +150,7 @@ void st_inst_finalize(tw_pe *me)
         st_buffer_finalize(EV_TRACE);
     if (g_st_model_stats)
         st_buffer_finalize(MODEL_COL);
+    if (g_st_use_analysis_lps)
+        st_buffer_finalize(ANALYSIS_LP);
 
 }
