@@ -33,6 +33,8 @@ const tw_optdef *st_inst_opts(void)
 
 void st_inst_init(void)
 {
+    specialized_lp_run();
+
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
         return;
 

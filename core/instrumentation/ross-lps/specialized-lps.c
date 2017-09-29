@@ -28,9 +28,6 @@ void specialized_lp_setup()
     analysis_start_gid = g_st_total_model_lps;
     g_st_analysis_nlp = g_tw_nkp; // # of analysis LPs per PE
 
-    if (g_st_sampling_end == 0)
-        g_st_sampling_end = g_tw_ts_end;
-    
     // set up buffers to be used by analysis LPs
     st_buffer_init(ANALYSIS_LP); 
 
@@ -45,6 +42,13 @@ void specialized_lp_init_mapping()
         tw_lp_onkp(g_tw_lp[g_tw_nlp + lpid], g_tw_kp[lpid]); // analysis lpid == kpid
         st_analysis_lp_settype(g_tw_nlp + lpid);
     }
+}
+
+void specialized_lp_run()
+{
+    // has to be set at beginning of tw_run, in case model changes g_tw_ts_end between calling tw_init and tw_run
+    if (g_st_sampling_end == 0)
+        g_st_sampling_end = g_tw_ts_end;
 }
 
 const tw_optdef special_lp_opt[] =

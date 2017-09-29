@@ -160,6 +160,7 @@ typedef void (*sample_event_f)(void *state, tw_bf *b, tw_lp *lp, void *sample);
 typedef void (*sample_revent_f)(void *state, tw_bf *b, tw_lp *lp, void *sample);
 extern void specialized_lp_setup();
 extern void specialized_lp_init_mapping();
+extern void specialized_lp_run();
 extern const tw_optdef *st_special_lp_opts(void);
 extern int g_st_use_analysis_lps;
 extern tw_lpid g_st_analysis_nlp;
