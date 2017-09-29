@@ -180,7 +180,7 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
 
 static void st_create_sample_event(tw_lp *lp)
 {
-    if (tw_now(lp) + g_st_vt_interval < g_st_sampling_end)
+    if (tw_now(lp) + g_st_vt_interval <= g_st_sampling_end)
     {
         tw_event *e = tw_event_new(lp->gid, g_st_vt_interval, lp);
         analysis_msg *m = tw_event_data(e);
