@@ -60,7 +60,9 @@ struct analysis_state
 {
     tw_lpid analysis_id; // id among analysis LPs only
     int num_lps;
+    int num_lps_sim;
     tw_lpid *lp_list; // list of LPs that the analysis LP is responsible for
+    tw_lpid *lp_list_sim;
     model_sample_data *model_samples;
     int start_sample;
     int current_sample;

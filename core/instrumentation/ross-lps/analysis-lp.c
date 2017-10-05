@@ -12,7 +12,7 @@ static void st_create_sample_event(tw_lp *lp);
 
 void analysis_init(analysis_state *s, tw_lp *lp)
 {
-    int i, j, idx = 0;
+    int i, j, idx = 0, sim_idx = 0;
     tw_lp *cur_lp;
 
     // set our id relative to all analysis LPs
@@ -23,20 +23,27 @@ void analysis_init(analysis_state *s, tw_lp *lp)
 
     // create list of LPs this is responsible for
     s->lp_list = tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
+    s->lp_list_sim = tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
     // size of lp_list is max number of LPs this analysis LP is responsible for
     for (i = 0; i < s->num_lps; i++)
+    {
         s->lp_list[i] = ULLONG_MAX;
+        s->lp_list_sim[i] = ULLONG_MAX;
+    }
 
     for (i = 0; i < g_tw_nlp; i++)
     {
         cur_lp = g_tw_lp[i];
 
-        // check if this LP even needs sampling performed
-        if (cur_lp->model_types->sample_struct_sz == 0)
-            continue;
-
         if (cur_lp->kp->id == s->analysis_id % g_tw_nkp)
         {
+            s->lp_list_sim[sim_idx] = cur_lp->gid;
+            sim_idx++;
+
+            // check if this LP even needs sampling performed
+            if (cur_lp->model_types->sample_struct_sz == 0)
+                continue;
+
             s->lp_list[idx] = cur_lp->gid;
             s->sample_sz += cur_lp->model_types->sample_struct_sz;
             idx++;
@@ -45,8 +52,9 @@ void analysis_init(analysis_state *s, tw_lp *lp)
 
     // update num_lps
     s->num_lps = idx;
+    s->num_lps_sim = sim_idx;
 
-    // setup memory to use for samples
+    // setup memory to use for model samples
     s->model_samples = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
     for (i = 0; i < g_st_sample_count; i++)
     {
@@ -65,8 +73,8 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->prev_data_kp.rb_total = 0;
     s->prev_data_kp.rb_secondary = 0;
 
-    s->prev_data_lp = tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps);
-    for (i = 0; i < s->num_lps; i++)
+    s->prev_data_lp = tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
+    for (i = 0; i < s->num_lps_sim; i++)
     {
         s->prev_data_lp[i].nevent_processed = 0; 
         s->prev_data_lp[i].e_rbs = 0;
@@ -88,7 +96,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     sample->timestamp = tw_now(lp);
     m->timestamp = tw_now(lp);
 
-    // call the sampling function for each LP on this KP
+    // call the model sampling function for each LP on this KP
     for (i = 0; i < s->num_lps; i++)
     {
         if (s->lp_list[i] == ULLONG_MAX)
@@ -262,7 +270,7 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     cur_data_kp.rb_total = lp->kp->s_rb_total - s->prev_data_kp.rb_total;
     cur_data_kp.rb_secondary = lp->kp->s_rb_secondary - s->prev_data_kp.rb_secondary;
     s->prev_data_kp.rb_total = lp->kp->s_rb_total;
-    s->prev_data_kp.rb_total = lp->kp->s_rb_secondary;
+    s->prev_data_kp.rb_secondary = lp->kp->s_rb_secondary;
 
     memcpy(&kp_buffer[0], (char*)&metadata, sizeof(lp_metadata));
     memcpy(&kp_buffer[sizeof(lp_metadata)], (char*)&cur_data_kp, sizeof(sim_engine_data_kp));
@@ -272,9 +280,9 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     // lp data
     metadata.sample_sz = sizeof(sim_engine_data_lp);
     metadata.flag = LP_TYPE;
-    for (i = 0; i < s->num_lps; i++)
+    for (i = 0; i < s->num_lps_sim; i++)
     {
-        cur_lp = tw_getlocal_lp(s->lp_list[i]);
+        cur_lp = tw_getlocal_lp(s->lp_list_sim[i]);
 
         metadata.lpid = cur_lp->gid;
 
