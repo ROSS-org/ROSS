@@ -29,6 +29,12 @@ tw_event_grab(tw_pe *pe)
   return e;
 }
 
+static inline tw_event *
+tw_event_pick_event_pool(tw_lpid destlpid, tw_pe *sendpe)
+{
+    return( tw_event_grab(sendpe) );
+}
+
 static inline void
 tw_free_output_messages(tw_event *e, int print_message)
 {
@@ -78,7 +84,8 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 #endif
     send_pe->stats.s_events_past_end++;
   } else {
-    e = tw_event_grab(send_pe);
+      // e = tw_event_grab(send_pe);
+      e = tw_event_pick_event_pool(dest_gid, send_pe);
     if (!e) {
         if (g_tw_synchronization_protocol == CONSERVATIVE
                 || g_tw_synchronization_protocol == SEQUENTIAL) {

@@ -4,4 +4,7 @@
 typedef unsigned int tw_eventid;
 typedef long tw_node;
 
+extern void *network_mpishm_shared_memory_pool;      /* shm memory to be allocated on each node */
+
+
 #endif
