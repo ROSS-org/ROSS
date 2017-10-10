@@ -57,7 +57,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
-    tw_opt_add(tw_stats_setup());
+    tw_opt_add(st_inst_opts());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
@@ -73,6 +73,7 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
+
 }
 
 static void early_sanity_check(void) {
@@ -306,12 +307,12 @@ unsigned instList[] = {
 void tw_run(void) {
     tw_pe *me;
 
-    if (g_st_stats_enabled || g_st_real_time_samp || g_st_ev_trace || g_st_model_stats)
-        st_stats_init();
-
     late_sanity_check();
 
     me = setup_pes();
+
+    // init instrumentation
+    st_inst_init(); 
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);

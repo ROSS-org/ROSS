@@ -117,6 +117,8 @@ void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag
 
 void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
 {
+    int a = 1;
+    memcpy(buffer, &a, sizeof(a));
     return;
 }
 
@@ -126,7 +128,7 @@ st_model_types model_types[] = {
      (ev_trace_f) rb_event_trace,
      0,
     (model_stat_f) phold_stats_collect,
-    0},
+    sizeof(int)},
     {0}
 };
 
