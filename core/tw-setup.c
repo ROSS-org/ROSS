@@ -14,11 +14,11 @@ unsigned int nkp_per_pe = 16;
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
     TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
-    TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
-    TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
-    TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
+    TWOPT_UINT("nkp", nkp_per_pe, "Number of kernel processes (KPs) per PE"),
+    TWOPT_STIME("end", g_tw_ts_end, "Simulation end timestamp"),
+    TWOPT_UINT("batch", g_tw_mblock, "Number of events/messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
-    TWOPT_UINT("buddy-size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
+    TWOPT_UINT("buddy-size", g_tw_buddy_alloc, "Delta encoding buddy system allocation (2^X)"),
     TWOPT_UINT("lz4-knob", g_tw_lz4_knob, "LZ4 acceleration factor (higher = faster)"),
     TWOPT_ULONGLONG("max-opt-lookahead", g_tw_max_opt_lookahead, "Optimistic simulation: maximum lookahead allowed in virtual clock time"),
 #ifdef AVL_TREE

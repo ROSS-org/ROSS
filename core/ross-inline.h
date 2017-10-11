@@ -32,6 +32,10 @@ tw_event_grab(tw_pe *pe)
 static inline tw_event *
 tw_event_pick_event_pool(tw_lpid destlpid, tw_pe *sendpe)
 {
+#ifdef ROSS_NETWORK_mpishm
+    return( tw_event_grab(sendpe) );
+#endif
+
     return( tw_event_grab(sendpe) );
 }
 

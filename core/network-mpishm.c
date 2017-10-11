@@ -36,28 +36,14 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_UINT(
 	     "read-buffer",
 	     read_buffer,
-	     "network read buffer size in # of events"),
+	     "Network read buffer size in number of events"),
   TWOPT_UINT(
 	     "send-buffer",
 	     send_buffer,
-	     "network send buffer size in # of events"),
+	     "Network send buffer size in number of events"),
+  TWOPT_UINT( "sharedmem", g_tw_shm_events_per_pe, "Number of shared memory events per PE/MPI rank"),
   TWOPT_END()
 };
-
-struct tw_network_pe
-{
-    tw_eventq free_q;               /**< @brief Linked list of free SHM tw_events */
-    tw_eventq event_q;              /**< @brief Linked list of N SHM events sent to this PE */
-    pthread_mutex_t *event_q_lock;  /**< @brief event q mutex lock */
-    tw_eventq cancel_q;             /**< @brief Linked list of N SHM cancel events sent to this PE */
-    pthread_mutex_t *cancel_q_lock; /**< @brief cancel q mutex lock */
-    tw_eventq return_q;             /**< @brief Linked list of SHM tw_events returned by other recv local ranks */
-    pthread_mutex_t *return_q_lock; /**< @brief return q mutex lock */
-};
-
-typedef struct tw_network_pe tw_network_pe;
-
-tw_network_pe *g_tw_network_pe = NULL;
 
 // Variables needed for shared memory pool init - global to only this module.
 #define NETWORK_MPISHM_MAX_CPUS 64
@@ -66,7 +52,7 @@ MPI_Comm network_mpishm_comm = MPI_COMM_WORLD;
 int network_mpishm_comm_size=0;
 MPI_Comm network_mpishm_shmcomm = MPI_COMM_WORLD;    /* shm communicator  */ 
 int network_mpishm_shmcomm_size = 0;                 /* shmcomm size */
-int network_mpishm_ranks_per_node = 8;
+unsigned int network_mpishm_ranks_per_node = 1;
 int network_mpishm_color = 0;
 int network_mpishm_group = 0;
 int network_mpishm_group_counter = 0;
@@ -74,14 +60,13 @@ int network_mpishm_key = 0;
 int network_mpishm_rank = 0 ;
 int network_mpishm_shmcomm_rank = 0;
 
-int network_mpishm_num_cpus_per_node = 8;
+unsigned int network_mpishm_num_cpus_per_node = 1;
 cpu_set_t network_mpishm_cpu_set[NETWORK_MPISHM_MAX_CPUS];
 int network_mpishm_my_cpu = -1;
 
 void *network_mpishm_start_shared_memory_pool_address=(void *)((unsigned long long)0x00007fffff000000 - 
 							       (unsigned long long) (1<<30));
 void *network_mpishm_shared_memory_pool = NULL;      /* shm memory to be allocated on each node */
-
 
 key_t network_mpishm_shared_memory_key = 0;      
 unsigned long long network_mpishm_shared_memory_size = (size_t)(1<<30);       /* 1 GB; */
@@ -90,10 +75,6 @@ int network_mpishm_shared_memory_locate_flag = 0600;
 int network_mpishm_shared_memory_id = 0;
 
 char network_mpishm_ipcrm_command_string[80];
-
-pthread_mutexattr_t network_mpishm_attr_mutex;
-pthread_mutex_t *network_mpishm_shared_memory_pool_lock[NETWORK_MPISHM_MAX_CPUS];
-long long *network_mpishm_shared_memory_counter=NULL;
 
 void tw_comm_set(MPI_Comm comm)
 {
@@ -106,199 +87,20 @@ void tw_comm_set(MPI_Comm comm)
 const tw_optdef *
 tw_net_init(int *argc, char ***argv)
 {
-    int my_rank, i;
-    int initialized;
-    MPI_Initialized(&initialized);
-
-    if (!initialized) {
-	if (MPI_Init(argc, argv) != MPI_SUCCESS)
-	    tw_error(TW_LOC, "MPI_Init failed.");
-    }
-    if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
-	tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
-
-    g_tw_masternode = 0;
-    g_tw_mynode = my_rank;
-
-  // shm init
-  network_mpishm_color =  my_rank / network_mpishm_ranks_per_node;
-  network_mpishm_group = network_mpishm_color+1;
-  network_mpishm_key = my_rank % network_mpishm_ranks_per_node; 
-  network_mpishm_shared_memory_key = network_mpishm_color+1;
-
-  // setup cpu bindings
-  CPU_ZERO( network_mpishm_cpu_set );
-  network_mpishm_my_cpu = my_rank % network_mpishm_num_cpus_per_node;
-  CPU_SET( network_mpishm_my_cpu, network_mpishm_cpu_set);
-
-  if ( sched_setaffinity(getpid(), NETWORK_MPISHM_MAX_CPUS, network_mpishm_cpu_set) == 0 )
-  {
-      printf("Rank %d, pid %d is now bound to cpu %d, confirmed by sched_getcpu = %d \n", 
-	     my_rank, getpid(), network_mpishm_my_cpu, sched_getcpu() );
-  }
-  else
-  {
-      perror("sched_setaffinity failed: ");
-      exit(-1);
-  }
-
-  /******************************************************************************************************************/
-  /* Setup SHM Comms*************************************************************************************************/
-  /******************************************************************************************************************/
-
-  MPI_Comm_split(network_mpishm_comm, network_mpishm_color, network_mpishm_key, &network_mpishm_shmcomm); 
-  MPI_Comm_size (network_mpishm_shmcomm, &network_mpishm_shmcomm_size);
-  MPI_Comm_rank (network_mpishm_shmcomm, &network_mpishm_shmcomm_rank);
-  
-  printf ("I'm Comm World Rank = %d, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
-	  my_rank, network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
-  fflush(stdout);
-
- /******************************************************************************************************************/
-  // Create and locate the shared memory segment
-  /******************************************************************************************************************/
-  MPI_Barrier(network_mpishm_comm);
-
-  if( network_mpishm_shmcomm_rank == 0 )
-  {
-      if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
-						    network_mpishm_shared_memory_size,
-						    network_mpishm_shared_memory_create_flag)) < 0)
-      {
-	  perror("create shmget failed: ");
-	  exit(-1);
-      }
-      printf("Rank %d/Shm Rank %d: Created Shm Pool with ID %d \n", my_rank, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
-      MPI_Barrier(network_mpishm_shmcomm);  
-  }
-  else
-  {
-      MPI_Barrier(network_mpishm_shmcomm);  // Complete barrier to ensure shmcomm rank 0 has created the segment
-      
-      if((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
-						   network_mpishm_shared_memory_size,
-						   network_mpishm_shared_memory_locate_flag)) < 0)
-      {
-	  perror("locate shmget failed: ");
-	  exit(-1);
-      }
-      printf("Rank %d/Shm Rank %d: Located Shm Pool with ID %d \n", my_rank, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
-    }
-
-  /******************************************************************************************************************/
-  // Now, let's find a common address to attach to
-  /******************************************************************************************************************/
-  MPI_Barrier(network_mpishm_shmcomm);  
-
-  while(1)
-  {
-      int fd=0, offset=0;
-      void *ret_addr=NULL;
-      int counter=0;
-      int found_valid_address=0;
-      int sum_valid_addresses=0;
-      int attach_succeeded=0;
-      int sum_attach_succeeded=0;
-      
-      // rest each MPI rank test flags
-      found_valid_address = 0;
-      attach_succeeded = 0;
-
-	// start with mmap test
-      if( ((ret_addr = mmap( network_mpishm_start_shared_memory_pool_address, 
-			     network_mpishm_shared_memory_size, 
-			     (PROT_READ | PROT_WRITE), 
-			     (MAP_ANONYMOUS | MAP_SHARED), 
-			     fd, offset)) != MAP_FAILED) &&
-	    (ret_addr == network_mpishm_start_shared_memory_pool_address))
-	{
-	    printf("Rank %d: Mmap try %d found available VM region at address %p \n", 
-		   my_rank, counter, network_mpishm_start_shared_memory_pool_address );
-	    fflush(stdout);
-	    
-	    found_valid_address = 1;
-	    
-	    if( munmap(ret_addr, network_mpishm_shared_memory_size) == -1)
-	    {
-		perror("munmap: ");
-		exit(-1);
-	    }
-	}
-	else
-	{
-	    if( ret_addr != MAP_FAILED )
-	    {
-		if( munmap(ret_addr, network_mpishm_shared_memory_size) == -1)
-		{
-		    perror("munmap: ");
-		    exit(-1);
-		}
-	    }
-	    
-	    printf("Rank %d: Mmap try %d: found no free VM region at address %p, ret addr = %p \n", 
-		   my_rank, counter, network_mpishm_start_shared_memory_pool_address, ret_addr );
-	    fflush(stdout);
-	}
-	
-	MPI_Allreduce( &found_valid_address, &sum_valid_addresses, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
-	
-	if( sum_valid_addresses != network_mpishm_shmcomm_size )
-	{
-	    printf("Rank %d: NOT all ranks agree on address %p, found valid address = %d TRY AGAIN!\n",
-		   my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	    fflush(stdout);
-	    goto continue_address_test;
-	}
-	else
-	{
-	    printf("Rank %d: all ranks agree on address %p, found valid address = %d now try attach test\n",
-		   my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	}
-
-	// test attach the shared memory segment in serial fashion
-	MPI_Barrier(network_mpishm_shmcomm);  
-
-	if( (network_mpishm_shared_memory_pool = shmat( network_mpishm_shared_memory_id,
-							network_mpishm_start_shared_memory_pool_address,
-							SHM_RND)) == (void *)-1 )
-	    {
-		printf("Rank %d: ", my_rank);
-		perror("shmat failed: ");
-		fflush(stdout);
-	    }
-	    else
-	    {
-		printf("Rank %d: Completed shared memory pool attachment at location %p \n", my_rank, network_mpishm_shared_memory_pool );
-		fflush(stdout);
-		attach_succeeded = 1;
-	    }
-
-	MPI_Allreduce( &attach_succeeded, &sum_attach_succeeded, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
-
-	if( sum_attach_succeeded != network_mpishm_shmcomm_size)
-	{
-	    printf("Rank %d: NOT all ranks attach on address %p, attach succeeded = %d TRY AGAIN!\n",
-		   my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	    fflush(stdout);
-	}
-	else
-	{
-	    printf("Rank %d: all ranks attached on address %p, found valid address = %d now try shared segment lock/unlock test\n",
-		   my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	    break;
-	}
-	
-continue_address_test:
-	network_mpishm_start_shared_memory_pool_address = (void *)((unsigned long long) network_mpishm_start_shared_memory_pool_address -
-								   (unsigned long long) network_mpishm_shared_memory_size);
-    }
-
-
-  // Barrier everyone before returing to the initial output looks reasonable.
-  MPI_Barrier(MPI_COMM_ROSS);
-  printf("\n");
-  
-  return mpi_opts;
+   int my_rank, initialized;
+   MPI_Initialized(&initialized);
+   
+   if (!initialized) {
+       if (MPI_Init(argc, argv) != MPI_SUCCESS)
+	   tw_error(TW_LOC, "MPI_Init failed.");
+   }
+   if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
+       tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
+   
+   g_tw_masternode = 0;
+   g_tw_mynode = my_rank;
+   
+   return mpi_opts;
 }
 
 static void
@@ -319,7 +121,8 @@ init_q(struct act_q *q, const char *name)
 
 }
 
-tw_node * tw_net_onnode(tw_peid gid) {
+tw_node * tw_net_onnode(tw_peid gid)
+{
   id_tmp = gid;
   return &id_tmp;
 }
@@ -333,6 +136,8 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
+  int my_rank, i;
+  
   if (MPI_Comm_size(MPI_COMM_ROSS, &world_size) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_ROSS)");
 
@@ -373,27 +178,225 @@ tw_net_start(void)
   init_q(&posted_recvs, "MPI recv queue");
 
   g_tw_net_device_size = read_buffer;
+
+
+  if( g_tw_ranks_per_node == 1 )
+  {
+      return; // No shared memory setup to perform
+  }
+  
+  /******************************************************************************************************************/
+  /* START SHARED MEMORY SETUP **************************************************************************************/
+  /******************************************************************************************************************/
+
+  // used in CPU bindings
+  network_mpishm_num_cpus_per_node = g_tw_ranks_per_node;
+  // used in MPI rank and comm operations
+  network_mpishm_ranks_per_node = g_tw_ranks_per_node;
+  
+  // shm init
+  network_mpishm_color =  my_rank / network_mpishm_ranks_per_node;
+  network_mpishm_group = network_mpishm_color+1;
+  network_mpishm_key = my_rank % network_mpishm_ranks_per_node; 
+  network_mpishm_shared_memory_key = network_mpishm_color+1;
+  
+  // setup cpu bindings
+  CPU_ZERO( network_mpishm_cpu_set );
+  network_mpishm_my_cpu = my_rank % network_mpishm_num_cpus_per_node;
+  CPU_SET( network_mpishm_my_cpu, network_mpishm_cpu_set);
+  
+  if ( sched_setaffinity(getpid(), NETWORK_MPISHM_MAX_CPUS, network_mpishm_cpu_set) == 0 )
+  {
+      printf("Rank %d, pid %d is now bound to cpu %d, confirmed by sched_getcpu = %d \n", 
+	     my_rank, getpid(), network_mpishm_my_cpu, sched_getcpu() );
+  }
+  else
+  {
+      perror("sched_setaffinity failed: ");
+      exit(-1);
+  }
+  
+  /******************************************************************************************************************/
+  /* Setup SHM Comms*************************************************************************************************/
+  /******************************************************************************************************************/
+  
+  MPI_Comm_split(network_mpishm_comm, network_mpishm_color, network_mpishm_key, &network_mpishm_shmcomm); 
+  MPI_Comm_size (network_mpishm_shmcomm, &network_mpishm_shmcomm_size);
+  MPI_Comm_rank (network_mpishm_shmcomm, &network_mpishm_shmcomm_rank);
+  
+  printf ("I'm Comm World Rank = %d, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
+	  my_rank, network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
+  fflush(stdout);
+  
+  /******************************************************************************************************************/
+  // Create and locate the shared memory segment
+  /******************************************************************************************************************/
+  MPI_Barrier(network_mpishm_comm);
+    
+  if( network_mpishm_shmcomm_rank == 0 )
+  {
+      if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
+						    network_mpishm_shared_memory_size,
+						    network_mpishm_shared_memory_create_flag)) < 0)
+      {
+	  perror("create shmget failed: ");
+	  exit(-1);
+      }
+      printf("Rank %d/Shm Rank %d: Created Shm Pool with ID %d \n", my_rank, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
+      MPI_Barrier(network_mpishm_shmcomm);  
+  }
+  else
+  {
+      MPI_Barrier(network_mpishm_shmcomm);  // Complete barrier to ensure shmcomm rank 0 has created the segment
+      
+      if((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
+						   network_mpishm_shared_memory_size,
+						   network_mpishm_shared_memory_locate_flag)) < 0)
+      {
+	  perror("locate shmget failed: ");
+	  exit(-1);
+      }
+      printf("Rank %d/Shm Rank %d: Located Shm Pool with ID %d \n", my_rank, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
+  }
+  
+  /******************************************************************************************************************/
+  // Now, let's find a common address to attach to
+  /******************************************************************************************************************/
+  MPI_Barrier(network_mpishm_shmcomm);  
+  
+  while(1)
+  {
+     int fd=0, offset=0;
+     void *ret_addr=NULL;
+     int counter=0;
+     int found_valid_address=0;
+     int sum_valid_addresses=0;
+     int attach_succeeded=0;
+     int sum_attach_succeeded=0;
+     
+     // rest each MPI rank test flags
+     found_valid_address = 0;
+     attach_succeeded = 0;
+     
+     // start with mmap test
+     if( ((ret_addr = mmap( network_mpishm_start_shared_memory_pool_address, 
+			    network_mpishm_shared_memory_size, 
+			    (PROT_READ | PROT_WRITE), 
+			    (MAP_ANONYMOUS | MAP_SHARED), 
+			    fd, offset)) != MAP_FAILED) &&
+	 (ret_addr == network_mpishm_start_shared_memory_pool_address))
+     {
+	 printf("Rank %d: Mmap try %d found available VM region at address %p \n", 
+		my_rank, counter, network_mpishm_start_shared_memory_pool_address );
+	 fflush(stdout);
+	 
+	 found_valid_address = 1;
+	 
+	 if( munmap(ret_addr, network_mpishm_shared_memory_size) == -1)
+	 {
+	     perror("munmap: ");
+	     exit(-1);
+	 }
+     }
+     else
+     {
+	 if( ret_addr != MAP_FAILED )
+	 {
+	     if( munmap(ret_addr, network_mpishm_shared_memory_size) == -1)
+	     {
+		 perror("munmap: ");
+		 exit(-1);
+	     }
+	 }
+	 
+	 printf("Rank %d: Mmap try %d: found no free VM region at address %p, ret addr = %p \n", 
+		my_rank, counter, network_mpishm_start_shared_memory_pool_address, ret_addr );
+	 fflush(stdout);
+     }
+     
+     MPI_Allreduce( &found_valid_address, &sum_valid_addresses, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
+     
+     if( sum_valid_addresses != network_mpishm_shmcomm_size )
+     {
+	 printf("Rank %d: NOT all ranks agree on address %p, found valid address = %d TRY AGAIN!\n",
+		my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+	 fflush(stdout);
+	 goto continue_address_test;
+     }
+     else
+     {
+	 printf("Rank %d: all ranks agree on address %p, found valid address = %d now try attach test\n",
+		my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+     }
+     
+     // test attach the shared memory segment in serial fashion
+     MPI_Barrier(network_mpishm_shmcomm);  
+     
+     if( (network_mpishm_shared_memory_pool = shmat( network_mpishm_shared_memory_id,
+						     network_mpishm_start_shared_memory_pool_address,
+						     SHM_RND)) == (void *)-1 )
+     {
+	 printf("Rank %d: ", my_rank);
+	 perror("shmat failed: ");
+	 fflush(stdout);
+     }
+     else
+     {
+	 printf("Rank %d: Completed shared memory pool attachment at location %p \n",
+		my_rank, network_mpishm_shared_memory_pool );
+	 fflush(stdout);
+	 attach_succeeded = 1;
+     }
+     
+     MPI_Allreduce( &attach_succeeded, &sum_attach_succeeded, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
+     
+     if( sum_attach_succeeded != network_mpishm_shmcomm_size)
+     {
+	 printf("Rank %d: NOT all ranks attach on address %p, attach succeeded = %d TRY AGAIN!\n",
+		my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+	 fflush(stdout);
+     }
+     else
+     {
+	 printf("Rank %d: all ranks attached on address %p, found valid address = %d now try shared segment lock/unlock test\n",
+		my_rank, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+	 break;
+     }
+     
+  continue_address_test:
+     network_mpishm_start_shared_memory_pool_address =
+	 (void *)((unsigned long long) network_mpishm_start_shared_memory_pool_address -
+		  (unsigned long long) network_mpishm_shared_memory_size);
+  }
+
+  // Barrier everyone before returing to the initial output looks reasonable.
+  MPI_Barrier(MPI_COMM_ROSS);
+  printf("\n");
+
 }
 
 void
 tw_net_abort(void)
 {
-    MPI_Barrier(network_mpishm_shmcomm);
-    // detach segment
-    shmdt( network_mpishm_shared_memory_pool );
-    
-    /******************************************************************************************************************/
-    // Now, let's clean up our shared memory segments
-    /******************************************************************************************************************/
-    MPI_Barrier(network_mpishm_shmcomm);  
-    if( network_mpishm_shmcomm_rank == 0 )
+    if( g_tw_ranks_per_node > 1 )
     {
-	sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
-	system( network_mpishm_ipcrm_command_string );
+	MPI_Barrier(network_mpishm_shmcomm);
+	// detach segment
+	shmdt( network_mpishm_shared_memory_pool );
+	
+	/******************************************************************************************************************/
+	// Now, let's clean up our shared memory segments
+	/******************************************************************************************************************/
+	MPI_Barrier(network_mpishm_shmcomm);  
+	if( network_mpishm_shmcomm_rank == 0 )
+	{
+	    sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
+	    system( network_mpishm_ipcrm_command_string );
+	}
+	/******************************************************************************************************************/
+	// Now LEAVE THE MPI WORLD !!!
+	/******************************************************************************************************************/
     }
-    /******************************************************************************************************************/
-    // Now LEAVE THE MPI WORLD !!!
-    /******************************************************************************************************************/
     
     MPI_Abort(MPI_COMM_ROSS, 1);
     exit(1);
@@ -402,31 +405,35 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
-    MPI_Barrier(network_mpishm_shmcomm);
-    // detach segment
-    shmdt( network_mpishm_shared_memory_pool );
-    
-    /******************************************************************************************************************/
-    // Now, let's clean up our shared memory segments
-    /******************************************************************************************************************/
-    MPI_Barrier(network_mpishm_shmcomm);  
-
-    if( network_mpishm_shmcomm_rank == 0 )
-    {
-	sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
-	system( network_mpishm_ipcrm_command_string );
-	printf("Rank %ld leaving MPI World, cleaned up shm segment id %d \n", g_tw_mynode, network_mpishm_shared_memory_id);
-	fflush(stdout);
-    }
-    /******************************************************************************************************************/
-    // Now LEAVE THE MPI WORLD !!!
-    /******************************************************************************************************************/
-    
-    MPI_Barrier(MPI_COMM_ROSS);
-  if (!custom_communicator) {
-    if (MPI_Finalize() != MPI_SUCCESS)
-      tw_error(TW_LOC, "Failed to finalize MPI");
-  }
+      if( g_tw_ranks_per_node > 1 )
+      {
+	  MPI_Barrier(network_mpishm_shmcomm);
+	  // detach segment
+	  shmdt( network_mpishm_shared_memory_pool );
+	  
+	  /******************************************************************************************************************/
+	  // Now, let's clean up our shared memory segments
+	  /******************************************************************************************************************/
+	  MPI_Barrier(network_mpishm_shmcomm);  
+	  
+	  if( network_mpishm_shmcomm_rank == 0 )
+	  {
+	      sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
+	      system( network_mpishm_ipcrm_command_string );
+	      printf("Rank %ld leaving MPI World, cleaned up shm segment id %d \n", g_tw_mynode, network_mpishm_shared_memory_id);
+	      fflush(stdout);
+	  }
+	  /******************************************************************************************************************/
+	  // Now LEAVE THE MPI WORLD !!!
+	  /******************************************************************************************************************/
+      }
+      
+      MPI_Barrier(MPI_COMM_ROSS);
+      if (!custom_communicator)
+      {
+	  if (MPI_Finalize() != MPI_SUCCESS)
+	      tw_error(TW_LOC, "Failed to finalize MPI");
+      }
 }
 
 void

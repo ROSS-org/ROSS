@@ -50,6 +50,13 @@ extern tw_stime         g_tw_min_detected_offset;
 extern tw_peid  g_tw_npe;
 extern tw_pe **g_tw_pe;
 extern unsigned int      g_tw_events_per_pe;
+
+#ifdef ROSS_NETWORK_mpishm
+extern unsigned int      g_tw_shm_events_per_pe;
+extern unsigned int      g_tw_ranks_per_node;
+extern tw_network_pe    *g_tw_network_pe;
+#endif /* ROSS_NETWORK_mpishm */
+
 extern unsigned int      g_tw_events_per_pe_extra;
 
 extern unsigned int	    g_tw_gvt_threshold;
