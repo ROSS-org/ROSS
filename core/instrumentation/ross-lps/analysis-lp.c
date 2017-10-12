@@ -143,8 +143,6 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
             break;
         }
-        else if (sample->timestamp < m->timestamp)
-            break;
     }
     
 }
@@ -183,9 +181,6 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             s->start_sample++;
             break;
         }
-        else if (sample->timestamp > m->timestamp)
-            // can stop searching now
-            break;
     }
 }
 
