@@ -30,13 +30,40 @@ tw_event_grab(tw_pe *pe)
 }
 
 static inline tw_event *
-tw_event_pick_event_pool(tw_lpid destlpid, tw_pe *sendpe)
+tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 {
+
+    int dest_peid, src_peid;
+    tw_event *e=NULL;
+
+    // call LP remote mapping function to get dest_pe
+    dest_peid = (*src_lp->type->map) ( destlpid );
+    src_peid = src_lp->pe->id;
+
+    
 #ifdef ROSS_NETWORK_mpishm
-    return( tw_event_grab(sendpe) );
+    if( (src_peid != dest_peid) &&
+	(abs((dest_peid - src_peid)) < g_tw_ranks_per_node ))
+	{
+	    // allocated a shared memory event
+	    printf("Error: shared memory allocation should not happen now! \n");
+	    fflush(stdout);
+	    e->dest_pe = dest_peid;
+	}
+    else
+    {
+	e = tw_event_grab(src_lp->pe);
+	e->send_pe = src_peid;
+	e->dest_pe = dest_peid;
+    }
+    return( e );
 #endif
 
-    return( tw_event_grab(sendpe) );
+    // Code path never done if above shared memory is used
+    e = tw_event_grab(src_lp->pe);
+    e->send_pe = src_peid;
+    e->dest_pe = dest_peid;
+    return( e );
 }
 
 static inline void
@@ -89,7 +116,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
     send_pe->stats.s_events_past_end++;
   } else {
       // e = tw_event_grab(send_pe);
-      e = tw_event_pick_event_pool(dest_gid, send_pe);
+      e = tw_event_pick_event_pool(dest_gid, sender);
     if (!e) {
         if (g_tw_synchronization_protocol == CONSERVATIVE
                 || g_tw_synchronization_protocol == SEQUENTIAL) {

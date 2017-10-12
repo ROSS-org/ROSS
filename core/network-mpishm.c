@@ -33,15 +33,18 @@ static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
   TWOPT_GROUP("ROSS MPI Kernel"),
-  TWOPT_UINT(
-	     "read-buffer",
+  TWOPT_UINT("read-buffer",
 	     read_buffer,
 	     "Network read buffer size in number of events"),
-  TWOPT_UINT(
-	     "send-buffer",
+  TWOPT_UINT("send-buffer",
 	     send_buffer,
 	     "Network send buffer size in number of events"),
-  TWOPT_UINT( "sharedmem", g_tw_shm_events_per_pe, "Number of shared memory events per PE/MPI rank"),
+  TWOPT_UINT( "sharedmem",
+	      g_tw_shm_events_per_pe,
+	      "Number of shared memory events per PE/MPI rank"),
+    TWOPT_UINT( "rankspernode",
+		g_tw_ranks_per_node,
+		"Number of MPI ranks per compute node"),
   TWOPT_END()
 };
 

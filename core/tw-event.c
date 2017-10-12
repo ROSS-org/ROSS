@@ -43,7 +43,9 @@ void tw_event_send(tw_event * event) {
     link_causality(event, send_pe->cur_event);
 
     // call LP remote mapping function to get dest_pe
-    dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    // dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    // now set in tw_event_pick_event_pool 
+    dest_peid = event->dest_pe;
     event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {

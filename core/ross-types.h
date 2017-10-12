@@ -307,6 +307,7 @@ struct tw_event {
         unsigned char cancel_q;     /**< @brief Actively on a dest_lp->pe's cancel_q */
         unsigned char cancel_asend;
         unsigned char remote;       /**< @brief Indicates union addr is in 'remote' storage */
+	unsigned char shared_mem;   /**< @brief Indicates event came from shared memory pool */
     } state;
 
     tw_bf        cv;                /**< @brief Used by app during reverse computation. */
@@ -316,10 +317,11 @@ struct tw_event {
     unsigned int critical_path;     /**< @brief Critical path of this event */
 
     tw_lp       *dest_lp;           /**< @brief Destination LP ID */
+    tw_peid      dest_pe;            /**< @brief Destination PE ID / MPI rank */
     tw_lp       *src_lp;            /**< @brief Sending LP ID */
     tw_stime     recv_ts;           /**< @brief Actual time to be received */
 
-    tw_peid      send_pe;
+    tw_peid      send_pe;           /**< @brief Sending PE ID / MPI rank */
     tw_lpid      send_lp;           /**< @brief sending LP ID for data collection uses */
     tw_stime     send_ts;
 
