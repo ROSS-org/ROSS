@@ -23,7 +23,10 @@ void specialized_lp_setup()
         return;
 
     // determine total LPs used by model and assign value to analysis_start_gid
-    MPI_Allreduce(&g_tw_nlp, &g_st_total_model_lps, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_ROSS);
+    if (g_tw_synchronization_protocol != SEQUENTIAL)
+        MPI_Allreduce(&g_tw_nlp, &g_st_total_model_lps, 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_ROSS);
+    else
+        g_st_total_model_lps = g_tw_nlp;
 
     analysis_start_gid = g_st_total_model_lps;
     g_st_analysis_nlp = g_tw_nkp; // # of analysis LPs per PE

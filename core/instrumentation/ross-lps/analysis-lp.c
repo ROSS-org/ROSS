@@ -110,7 +110,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     } 
 
     // sim engine sampling
-    collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
+    if (g_tw_synchronization_protocol != SEQUENTIAL)
+        collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
     
     // create next sampling event
     st_create_sample_event(lp);
@@ -174,7 +175,10 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 char buffer[sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz];
                 memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
                 memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
-                st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz); 
+                if (g_tw_synchronization_protocol != SEQUENTIAL)
+                    st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz); 
+                else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
+                    fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
             }
             s->start_sample++;
             break;
@@ -200,7 +204,10 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
             model_lp = tw_getlocal_lp(s->lp_list[j]);
             char buffer[model_lp->model_types->sample_struct_sz];
             memcpy(&buffer[0], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
-            st_buffer_push(ANALYSIS_LP, &buffer[0], model_lp->model_types->sample_struct_sz); 
+            if (g_tw_synchronization_protocol != SEQUENTIAL)
+                st_buffer_push(ANALYSIS_LP, &buffer[0], model_lp->model_types->sample_struct_sz); 
+            else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
+                fwrite(buffer, model_lp->model_types->sample_struct_sz, 1, seq_analysis);
         }
     }
 

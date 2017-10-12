@@ -10,7 +10,7 @@ int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
 static const char *file_suffix[NUM_COL_TYPES];
-FILE *seq_ev_trace, *seq_model;
+FILE *seq_ev_trace, *seq_model, *seq_analysis;
 static st_stats_buffer **g_st_buffer;
 
 void st_buffer_allocate()
@@ -85,6 +85,8 @@ void st_buffer_init(int type)
             seq_ev_trace = fopen(filename, "w");
         else if (strcmp(file_suffix[type], "model") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_model = fopen(filename, "w");
+        else if (type == ANALYSIS_LP && g_tw_synchronization_protocol == SEQUENTIAL)
+            seq_analysis = fopen(filename, "w");
         
     }
 

@@ -28,7 +28,7 @@ typedef struct{
 extern char stats_directory[INST_MAX_LENGTH];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
-extern FILE *seq_ev_trace, *seq_model;
+extern FILE *seq_ev_trace, *seq_model, *seq_analysis;
 
 void st_buffer_allocate();
 void st_buffer_init(int type);
