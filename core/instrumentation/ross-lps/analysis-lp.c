@@ -68,18 +68,21 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->start_sample = 0;
     s->current_sample = -1;
 
-    // set up sample structs for sim engine data
-    s->prev_data_kp.time_ahead_gvt = 0;
-    s->prev_data_kp.rb_total = 0;
-    s->prev_data_kp.rb_secondary = 0;
-
-    s->prev_data_lp = tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
-    for (i = 0; i < s->num_lps_sim; i++)
+    if (g_st_use_analysis_lps == 1)
     {
-        s->prev_data_lp[i].nevent_processed = 0; 
-        s->prev_data_lp[i].e_rbs = 0;
-        s->prev_data_lp[i].nsend_network = 0;
-        s->prev_data_lp[i].nread_network = 0;
+        // set up sample structs for sim engine data
+        s->prev_data_kp.time_ahead_gvt = 0;
+        s->prev_data_kp.rb_total = 0;
+        s->prev_data_kp.rb_secondary = 0;
+
+        s->prev_data_lp = tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
+        for (i = 0; i < s->num_lps_sim; i++)
+        {
+            s->prev_data_lp[i].nevent_processed = 0; 
+            s->prev_data_lp[i].e_rbs = 0;
+            s->prev_data_lp[i].nsend_network = 0;
+            s->prev_data_lp[i].nread_network = 0;
+        }
     }
 
     // schedule 1st sampling event 
@@ -110,7 +113,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     } 
 
     // sim engine sampling
-    if (g_tw_synchronization_protocol != SEQUENTIAL)
+    if (g_tw_synchronization_protocol != SEQUENTIAL && g_st_use_analysis_lps == 1)
         collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
     
     // create next sampling event
