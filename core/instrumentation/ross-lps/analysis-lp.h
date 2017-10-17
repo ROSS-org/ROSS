@@ -52,6 +52,8 @@ struct sim_engine_data_lp
 
 struct model_sample_data
 {
+    model_sample_data *prev;
+    model_sample_data *next;
     tw_stime timestamp;
     void **lp_data;          /* data for each LP on the associated KP at this sampling point */
 };
@@ -63,10 +65,9 @@ struct analysis_state
     int num_lps_sim;
     tw_lpid *lp_list; // list of LPs that the analysis LP is responsible for
     tw_lpid *lp_list_sim;
-    model_sample_data *model_samples;
-    int start_sample;
-    int current_sample;
-    unsigned long long sample_sz;
+    model_sample_data *model_samples_head;
+    model_sample_data *model_samples_current;
+    model_sample_data *model_samples_tail;
     sim_engine_data_kp prev_data_kp;
     sim_engine_data_lp *prev_data_lp;
 };

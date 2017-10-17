@@ -19,11 +19,9 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->analysis_id = lp->gid - analysis_start_gid;
     s->num_lps = ceil((double)g_tw_nlp / g_tw_nkp);
 
-    s->sample_sz = sizeof(model_sample_data);
-
     // create list of LPs this is responsible for
-    s->lp_list = tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
-    s->lp_list_sim = tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
+    s->lp_list = (tw_lpid*)tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
+    s->lp_list_sim = (tw_lpid*)tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
     // size of lp_list is max number of LPs this analysis LP is responsible for
     for (i = 0; i < s->num_lps; i++)
     {
@@ -45,7 +43,6 @@ void analysis_init(analysis_state *s, tw_lp *lp)
                 continue;
 
             s->lp_list[idx] = cur_lp->gid;
-            s->sample_sz += cur_lp->model_types->sample_struct_sz;
             idx++;
         }
     }
@@ -55,18 +52,35 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->num_lps_sim = sim_idx;
 
     // setup memory to use for model samples
-    s->model_samples = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
+    s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
+    s->model_samples_current = s->model_samples_head;
+    model_sample_data *sample = s->model_samples_head;
     for (i = 0; i < g_st_sample_count; i++)
     {
-        s->model_samples[i].lp_data = (void**) tw_calloc(TW_LOC, "analysis LPs", sizeof(void*), s->num_lps);
+        if (i == 0)
+        {
+            sample->prev = NULL;
+            sample->next = sample + 1;
+            sample->next->prev = sample;
+        }
+        else if (i == g_st_sample_count - 1)
+        {
+            sample->next = NULL;
+            s->model_samples_tail = sample;
+        }
+        else 
+        {
+            sample->next = sample + 1;
+            sample->next->prev = sample;
+        }
+        sample->lp_data = (void**) tw_calloc(TW_LOC, "analysis LPs", sizeof(void*), s->num_lps);
         for (j = 0; j < s->num_lps; j++)
         {
             cur_lp = tw_getlocal_lp(s->lp_list[j]);
-            s->model_samples[i].lp_data[j] = (void *) tw_calloc(TW_LOC, "analysis LPs", cur_lp->model_types->sample_struct_sz, 1);
+            sample->lp_data[j] = (void *) tw_calloc(TW_LOC, "analysis LPs", cur_lp->model_types->sample_struct_sz, 1);
         }
+        sample = sample->next;
     }
-    s->start_sample = 0;
-    s->current_sample = -1;
 
     if (g_st_use_analysis_lps == 1)
     {
@@ -75,7 +89,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
         s->prev_data_kp.rb_total = 0;
         s->prev_data_kp.rb_secondary = 0;
 
-        s->prev_data_lp = tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
+        s->prev_data_lp = (sim_engine_data_lp*)tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
         for (i = 0; i < s->num_lps_sim; i++)
         {
             s->prev_data_lp[i].nevent_processed = 0; 
@@ -94,8 +108,11 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     int i;
     tw_lp *model_lp;
 
-    s->current_sample++;
-    model_sample_data *sample = &s->model_samples[s->current_sample];
+    model_sample_data *sample = s->model_samples_current;
+    // TODO handle this situation better
+    if (sample == s->model_samples_tail)
+        printf("WARNING: last available sample space for analysis lp!\n");
+
     sample->timestamp = tw_now(lp);
     m->timestamp = tw_now(lp);
 
@@ -112,6 +129,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         model_lp->model_types->sample_event_fn(model_lp->cur_state, bf, lp, sample->lp_data[i]);
     } 
 
+    s->model_samples_current = s->model_samples_current->next;
+
     // sim engine sampling
     if (g_tw_synchronization_protocol != SEQUENTIAL && g_st_use_analysis_lps == 1)
         collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
@@ -127,9 +146,9 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     // need to remove sample associated with this event from the list
     model_sample_data *sample;
     // start at end, because it's most likely closer to the timestamp we're looking for
-    for (i = s->current_sample; i >= s->start_sample; i --)
+    for (sample = s->model_samples_current->prev; sample != NULL; sample = sample->prev)
     { 
-        sample = &s->model_samples[i];
+        //sample = &s->model_samples[i];
         if (sample->timestamp == m->timestamp)
         {
             for (j = 0; j < s->num_lps; j++)
@@ -142,7 +161,22 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
             }
 
-            s->current_sample--;
+            sample->timestamp = 0;
+
+            if (sample->prev)
+                sample->prev->next = sample->next;
+            if (sample->next)
+                sample->next->prev = sample->prev;
+            if (s->model_samples_head == sample)
+                s->model_samples_head = sample->next;
+            if (s->model_samples_tail != sample)
+            { // move this freed sample to the end of the list, so we don't have a memory leak
+                sample->prev = s->model_samples_tail;
+                sample->prev->next = sample;
+                sample->next = NULL;
+                s->model_samples_tail = sample;
+            }
+            
 
             break;
         }
@@ -158,9 +192,8 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     tw_lp *model_lp;
     lp_metadata metadata;
     // start at beginning
-    for (i = s->start_sample; i <= s->current_sample; i++)
+    for (sample = s->model_samples_head; sample != NULL; sample = sample->next)
     {
-        sample = &s->model_samples[i];
         if (sample->timestamp == m->timestamp)
         {
             for (j = 0; j < s->num_lps; j++)
@@ -181,7 +214,23 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
                     fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
             }
-            s->start_sample++;
+
+            sample->timestamp = 0;
+
+            if (sample->prev)
+                sample->prev->next = sample->next;
+            if (sample->next)
+                sample->next->prev = sample->prev;
+            if (s->model_samples_head == sample)
+                s->model_samples_head = sample->next;
+            if (s->model_samples_tail != sample)
+            { // move this freed sample to the end of the list, so we don't have a memory leak
+                sample->prev = s->model_samples_tail;
+                sample->prev->next = sample;
+                sample->next = NULL;
+                s->model_samples_tail = sample;
+            }
+            
             break;
         }
     }
@@ -189,25 +238,8 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_finish(analysis_state *s, tw_lp *lp)
 {
-    // write all remaining samples to buffer
-    model_sample_data *sample;
-    int i, j;
-    tw_lp *model_lp;
-    // start at beginning
-    for (i = s->start_sample; i <= s->current_sample; i++)
-    {
-        sample = &s->model_samples[i];
-        for (j = 0; j < s->num_lps; j++)
-        {
-            model_lp = tw_getlocal_lp(s->lp_list[j]);
-            char buffer[model_lp->model_types->sample_struct_sz];
-            memcpy(&buffer[0], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
-            if (g_tw_synchronization_protocol != SEQUENTIAL)
-                st_buffer_push(ANALYSIS_LP, &buffer[0], model_lp->model_types->sample_struct_sz); 
-            else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
-                fwrite(buffer, model_lp->model_types->sample_struct_sz, 1, seq_analysis);
-        }
-    }
+    // TODO all samples should be written by the commit function, right?
+    // Does anything actually need to be done here?
 
 }
 
@@ -258,8 +290,8 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     tw_lp *cur_lp;
     sim_engine_data_kp cur_data_kp;
     sim_engine_data_lp cur_data_lp;
-    char kp_buffer[sizeof(lp_metadata) + sizeof(sim_engine_data_kp)];
-    char lp_buffer[sizeof(lp_metadata) + sizeof(sim_engine_data_lp)];
+    char kp_buffer[sizeof(metadata) + sizeof(cur_data_kp)];
+    char lp_buffer[sizeof(metadata) + sizeof(cur_data_lp)];
     int i;
 
     // kp data
@@ -277,10 +309,10 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     s->prev_data_kp.rb_total = lp->kp->s_rb_total;
     s->prev_data_kp.rb_secondary = lp->kp->s_rb_secondary;
 
-    memcpy(&kp_buffer[0], (char*)&metadata, sizeof(lp_metadata));
-    memcpy(&kp_buffer[sizeof(lp_metadata)], (char*)&cur_data_kp, sizeof(sim_engine_data_kp));
+    memcpy(&kp_buffer[0], &metadata, sizeof(metadata));
+    memcpy(&kp_buffer[sizeof(metadata)], &cur_data_kp, sizeof(cur_data_kp));
 
-    st_buffer_push(ANALYSIS_LP, &kp_buffer[0], sizeof(lp_metadata) + sizeof(sim_engine_data_kp));
+    st_buffer_push(ANALYSIS_LP, &kp_buffer[0], sizeof(metadata) + sizeof(cur_data_kp));
 
     // lp data
     metadata.sample_sz = sizeof(sim_engine_data_lp);
@@ -300,9 +332,9 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
         s->prev_data_lp[i].nsend_network = cur_lp->event_counters->s_nsend_network;
         s->prev_data_lp[i].nread_network = cur_lp->event_counters->s_nread_network;
 
-        memcpy(&lp_buffer[0], (char*)&metadata, sizeof(lp_metadata));
-        memcpy(&lp_buffer[sizeof(lp_metadata)], (char*)&cur_data_lp, sizeof(sim_engine_data_lp));
+        memcpy(&lp_buffer[0], &metadata, sizeof(metadata));
+        memcpy(&lp_buffer[sizeof(metadata)], &cur_data_lp, sizeof(cur_data_lp));
 
-        st_buffer_push(ANALYSIS_LP, &lp_buffer[0], sizeof(lp_metadata) + sizeof(sim_engine_data_lp));
+        st_buffer_push(ANALYSIS_LP, &lp_buffer[0], sizeof(metadata) + sizeof(cur_data_lp));
     }
 }
