@@ -136,7 +136,7 @@ void st_buffer_push(int type, char *data, int size)
         }
     }
     g_st_buffer[type]->count += size;
-    //printf("wrote %d bytes to buffer; %d bytes of free space left\n", size, st_buffer_free_space(buffer));
+    //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(g_st_buffer[type]));
 }
 
 /* determine whether to dump buffer to file */
@@ -150,27 +150,24 @@ void st_buffer_write(int end_of_sim, int type)
     int i;
     int write_sizes[tw_nnodes()];
 
-    if ((double) st_buffer_free_space(g_st_buffer[type]) / g_st_buffer_size < g_st_buffer_free_percent / 100.0 || end_of_sim)
-    {
-        //printf("free space %f, free percent %f\n", (double)st_buffer_free_space(buffer)/g_st_buffer_size, g_st_buffer_free_percent/100.0);
-        my_write_size = g_st_buffer[type]->count;
-        write_to_file = 1;
-    }
+    my_write_size = g_st_buffer[type]->count;
 
     MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_ROSS);
     for (i = 0; i < tw_nnodes(); i++)
     {
-        if (i < g_tw_mynode)
-            offset += write_sizes[i];
-        prev_offsets[type] += write_sizes[i];
-
         if ((double) write_sizes[i] / g_st_buffer_size >= g_st_buffer_free_percent / 100.0)
             write_to_file = 1;
     }
 
     if (write_to_file)
     {
-        //printf("rank %ld writing %d bytes at offset %lld\n", g_tw_mynode, my_write_size, offset);
+        for (i = 0; i < tw_nnodes(); i++)
+        {
+            if (i < g_tw_mynode)
+                offset += write_sizes[i];
+            prev_offsets[type] += write_sizes[i];
+        }
+        //printf("rank %ld writing %d bytes at offset %lld (prev_offsets[ANALYSIS_LP] = %lld)\n", g_tw_mynode, my_write_size, offset, prev_offsets[type]);
         // dump buffer to file
         MPI_Status status;
 
@@ -193,8 +190,7 @@ void st_buffer_finalize(int type)
     if (!g_st_disable_out)
         st_buffer_write(1, type);
 
-    if (g_tw_mynode == g_tw_masternode)
-        printf("There were %ld bytes of data missed because of buffer overflow\n", missed_bytes);
+    printf("PE %ld: There were %ld bytes of data missed because of buffer overflow\n", g_tw_mynode, missed_bytes);
 
     MPI_File_close(&buffer_fh[type]);
 
