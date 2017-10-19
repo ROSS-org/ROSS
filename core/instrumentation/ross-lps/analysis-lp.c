@@ -86,8 +86,12 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->prev_data_kp.time_ahead_gvt = 0;
     s->prev_data_kp.rb_total = 0;
     s->prev_data_kp.rb_secondary = 0;
+    s->prev_data_kp.nevent_processed = 0;
+    s->prev_data_kp.e_rbs = 0;
+    s->prev_data_kp.nsend_network = 0;
+    s->prev_data_kp.nread_network = 0;
 
-    if (g_st_use_analysis_lps == 1)
+    if (g_st_use_analysis_lps != 3)
     {
         s->prev_data_lp = (sim_engine_data_lp*)tw_calloc(TW_LOC, "analysis LPs", sizeof(sim_engine_data_lp), s->num_lps_sim);
         for (i = 0; i < s->num_lps_sim; i++)
@@ -290,22 +294,22 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
         // only collect model data
         return;
     
-    lp_metadata metadata;
+    lp_metadata metadata_kp, metadata;
     tw_lp *cur_lp;
-    sim_engine_data_kp cur_data_kp;
-    sim_engine_data_lp cur_data_lp;
+    sim_engine_data_kp cur_data_kp = {0};
+    sim_engine_data_lp cur_data_lp = {0};
     char kp_buffer[sizeof(metadata) + sizeof(cur_data_kp)];
     char lp_buffer[sizeof(metadata) + sizeof(cur_data_lp)];
     int i;
 
     // kp data
-    metadata.lpid = lp->gid;
-    metadata.kpid = lp->kp->id;
-    metadata.peid = lp->pe->id;
-    metadata.ts = tw_now(lp);
-    metadata.real_time = current_rt;
-    metadata.sample_sz = sizeof(sim_engine_data_kp);
-    metadata.flag = KP_TYPE;
+    metadata_kp.lpid = lp->gid;
+    metadata_kp.kpid = lp->kp->id;
+    metadata_kp.peid = lp->pe->id;
+    metadata_kp.ts = tw_now(lp);
+    metadata_kp.real_time = current_rt;
+    metadata_kp.sample_sz = sizeof(sim_engine_data_kp);
+    metadata_kp.flag = KP_TYPE;
 
     cur_data_kp.time_ahead_gvt = lp->kp->last_time - pe->GVT;
     cur_data_kp.rb_total = lp->kp->s_rb_total - s->prev_data_kp.rb_total;
@@ -313,35 +317,47 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     s->prev_data_kp.rb_total = lp->kp->s_rb_total;
     s->prev_data_kp.rb_secondary = lp->kp->s_rb_secondary;
 
-    memcpy(&kp_buffer[0], &metadata, sizeof(metadata));
-    memcpy(&kp_buffer[sizeof(metadata)], &cur_data_kp, sizeof(cur_data_kp));
-
-    st_buffer_push(ANALYSIS_LP, &kp_buffer[0], sizeof(metadata) + sizeof(cur_data_kp));
-
-    if (g_st_use_analysis_lps == 1)
+    // lp data
+    metadata.kpid = lp->kp->id;
+    metadata.peid = lp->pe->id;
+    metadata.ts = tw_now(lp);
+    metadata.real_time = current_rt;
+    metadata.sample_sz = sizeof(sim_engine_data_lp);
+    metadata.flag = LP_TYPE;
+    for (i = 0; i < s->num_lps_sim; i++)
     {
-        // lp data
-        metadata.sample_sz = sizeof(sim_engine_data_lp);
-        metadata.flag = LP_TYPE;
-        for (i = 0; i < s->num_lps_sim; i++)
+        cur_lp = tw_getlocal_lp(s->lp_list_sim[i]);
+
+        metadata.lpid = cur_lp->gid;
+
+        cur_data_lp.nevent_processed = cur_lp->event_counters->s_nevent_processed - s->prev_data_lp[i].nevent_processed;
+        cur_data_kp.nevent_processed += cur_data_lp.nevent_processed;
+
+        cur_data_lp.e_rbs = cur_lp->event_counters->s_e_rbs - s->prev_data_lp[i].e_rbs;
+        cur_data_kp.e_rbs += cur_data_lp.e_rbs;
+
+        cur_data_lp.nsend_network = cur_lp->event_counters->s_nsend_network - s->prev_data_lp[i].nsend_network;
+        cur_data_kp.nsend_network += cur_data_lp.nsend_network;
+
+        cur_data_lp.nread_network = cur_lp->event_counters->s_nread_network - s->prev_data_lp[i].nread_network;
+        cur_data_kp.nread_network += cur_data_lp.nread_network;
+
+        s->prev_data_lp[i].nevent_processed = cur_lp->event_counters->s_nevent_processed;
+        s->prev_data_lp[i].e_rbs = cur_lp->event_counters->s_e_rbs;
+        s->prev_data_lp[i].nsend_network = cur_lp->event_counters->s_nsend_network;
+        s->prev_data_lp[i].nread_network = cur_lp->event_counters->s_nread_network;
+
+        if (g_st_use_analysis_lps == 1)
         {
-            cur_lp = tw_getlocal_lp(s->lp_list_sim[i]);
-
-            metadata.lpid = cur_lp->gid;
-
-            cur_data_lp.nevent_processed = cur_lp->event_counters->s_nevent_processed - s->prev_data_lp[i].nevent_processed;
-            cur_data_lp.e_rbs = cur_lp->event_counters->s_e_rbs - s->prev_data_lp[i].e_rbs;
-            cur_data_lp.nsend_network = cur_lp->event_counters->s_nsend_network - s->prev_data_lp[i].nsend_network;
-            cur_data_lp.nread_network = cur_lp->event_counters->s_nread_network - s->prev_data_lp[i].nread_network;
-            s->prev_data_lp[i].nevent_processed = cur_lp->event_counters->s_nevent_processed;
-            s->prev_data_lp[i].e_rbs = cur_lp->event_counters->s_e_rbs;
-            s->prev_data_lp[i].nsend_network = cur_lp->event_counters->s_nsend_network;
-            s->prev_data_lp[i].nread_network = cur_lp->event_counters->s_nread_network;
-
             memcpy(&lp_buffer[0], &metadata, sizeof(metadata));
             memcpy(&lp_buffer[sizeof(metadata)], &cur_data_lp, sizeof(cur_data_lp));
 
             st_buffer_push(ANALYSIS_LP, &lp_buffer[0], sizeof(metadata) + sizeof(cur_data_lp));
         }
     }
+
+    memcpy(&kp_buffer[0], &metadata_kp, sizeof(metadata_kp));
+    memcpy(&kp_buffer[sizeof(metadata_kp)], &cur_data_kp, sizeof(cur_data_kp));
+
+    st_buffer_push(ANALYSIS_LP, &kp_buffer[0], sizeof(metadata_kp) + sizeof(cur_data_kp));
 }

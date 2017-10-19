@@ -40,6 +40,10 @@ struct sim_engine_data_kp
     tw_stime time_ahead_gvt;
     tw_stat rb_total; 
     tw_stat rb_secondary;
+    tw_stat nevent_processed;
+    tw_stat e_rbs;
+    tw_stat nsend_network;
+    tw_stat nread_network;
 };
 
 struct sim_engine_data_lp
