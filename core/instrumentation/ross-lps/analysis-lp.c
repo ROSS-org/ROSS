@@ -244,7 +244,8 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
 {
     // TODO all samples should be written by the commit function, right?
     // Does anything actually need to be done here?
-
+    if (s->model_samples_head != s->model_samples_current)
+        printf("WARNING: there is model sample data that has not been committed!\n");
 }
 
 static void st_create_sample_event(tw_lp *lp)

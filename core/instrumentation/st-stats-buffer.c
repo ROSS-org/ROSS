@@ -153,10 +153,15 @@ void st_buffer_write(int end_of_sim, int type)
     my_write_size = g_st_buffer[type]->count;
 
     MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_ROSS);
-    for (i = 0; i < tw_nnodes(); i++)
+    if (end_of_sim)
+        write_to_file = 1;
+    else
     {
-        if ((double) write_sizes[i] / g_st_buffer_size >= g_st_buffer_free_percent / 100.0)
-            write_to_file = 1;
+        for (i = 0; i < tw_nnodes(); i++)
+        {
+            if ((double) write_sizes[i] / g_st_buffer_size >= g_st_buffer_free_percent / 100.0)
+                write_to_file = 1;
+        }
     }
 
     if (write_to_file)
