@@ -83,13 +83,8 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     }
 
     // set up sample structs for sim engine data
-    s->prev_data_kp.time_ahead_gvt = 0;
-    s->prev_data_kp.rb_total = 0;
-    s->prev_data_kp.rb_secondary = 0;
-    s->prev_data_kp.nevent_processed = 0;
-    s->prev_data_kp.e_rbs = 0;
-    s->prev_data_kp.nsend_network = 0;
-    s->prev_data_kp.nread_network = 0;
+    s->prev_data_pe = (const sim_engine_data_pe){0};
+    s->prev_data_kp = (const sim_engine_data_kp){0};
 
     if (g_st_use_analysis_lps != 3)
     {
@@ -295,13 +290,56 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
         // only collect model data
         return;
     
-    lp_metadata metadata_kp, metadata;
+    lp_metadata metadata_pe, metadata_kp, metadata;
     tw_lp *cur_lp;
+    sim_engine_data_pe cur_data_pe = {0};
     sim_engine_data_kp cur_data_kp = {0};
     sim_engine_data_lp cur_data_lp = {0};
-    char kp_buffer[sizeof(metadata) + sizeof(cur_data_kp)];
+    char pe_buffer[sizeof(metadata_pe) + sizeof(cur_data_pe)];
+    char kp_buffer[sizeof(metadata_kp) + sizeof(cur_data_kp)];
     char lp_buffer[sizeof(metadata) + sizeof(cur_data_lp)];
     int i;
+
+    // pe data
+    metadata_pe.lpid = lp->gid;
+    metadata_pe.kpid = lp->kp->id;
+    metadata_pe.peid = lp->pe->id;
+    metadata_pe.ts = tw_now(lp);
+    metadata_pe.real_time = current_rt;
+    metadata_pe.sample_sz = sizeof(sim_engine_data_pe);
+    metadata_pe.flag = PE_TYPE;
+    
+    cur_data_pe.last_gvt = pe->GVT;
+    cur_data_pe.ngvt = g_tw_gvt_done - s->prev_data_pe.ngvt;
+    cur_data_pe.s_net_read = (pe->stats.s_net_read - s->prev_data_pe.s_net_read) / g_tw_clock_rate;
+    cur_data_pe.s_gvt = (pe->stats.s_gvt - s->prev_data_pe.s_gvt) / g_tw_clock_rate;
+    cur_data_pe.s_fossil_collect = (pe->stats.s_fossil_collect - s->prev_data_pe.s_fossil_collect) / g_tw_clock_rate;
+    cur_data_pe.s_event_abort = (pe->stats.s_event_abort - s->prev_data_pe.s_event_abort) / g_tw_clock_rate;
+    cur_data_pe.s_event_process = (pe->stats.s_event_process - s->prev_data_pe.s_event_process) / g_tw_clock_rate;
+    cur_data_pe.s_pq = (pe->stats.s_pq - s->prev_data_pe.s_pq) / g_tw_clock_rate;
+    cur_data_pe.s_rollback = (pe->stats.s_rollback - s->prev_data_pe.s_rollback) / g_tw_clock_rate;
+    cur_data_pe.s_cancel_q = (pe->stats.s_cancel_q - s->prev_data_pe.s_cancel_q) / g_tw_clock_rate;
+    cur_data_pe.s_avl = (pe->stats.s_avl - s->prev_data_pe.s_avl) / g_tw_clock_rate;
+    //cur_data_pe.s_buddy = (pe->stats.s_buddy - s->prev_data_pe.s_buddy) / g_tw_clock_rate;
+    //cur_data_pe.s_lz4 = (pe->stats.s_lz4 - s->prev_data_pe.s_lz4) / g_tw_clock_rate;
+
+    s->prev_data_pe.ngvt = g_tw_gvt_done;
+    s->prev_data_pe.s_net_read = pe->stats.s_net_read;
+    s->prev_data_pe.s_gvt = pe->stats.s_gvt;
+    s->prev_data_pe.s_fossil_collect = pe->stats.s_fossil_collect;
+    s->prev_data_pe.s_event_abort = pe->stats.s_event_abort;
+    s->prev_data_pe.s_event_process = pe->stats.s_event_process;
+    s->prev_data_pe.s_pq = pe->stats.s_pq;
+    s->prev_data_pe.s_rollback = pe->stats.s_rollback;
+    s->prev_data_pe.s_cancel_q = pe->stats.s_cancel_q;
+    s->prev_data_pe.s_avl = pe->stats.s_avl;
+    //s->prev_data_pe.s_buddy = pe->stats.s_buddy;
+    //s->prev_data_pe.s_lz4 = pe->stats.s_lz4;
+    
+    memcpy(&pe_buffer[0], &metadata_pe, sizeof(metadata_pe));
+    memcpy(&pe_buffer[sizeof(metadata_pe)], &cur_data_pe, sizeof(cur_data_pe));
+
+    st_buffer_push(ANALYSIS_LP, &pe_buffer[0], sizeof(metadata_pe) + sizeof(cur_data_pe));
 
     // kp data
     metadata_kp.lpid = lp->gid;
