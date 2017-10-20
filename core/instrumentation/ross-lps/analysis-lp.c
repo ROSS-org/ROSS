@@ -300,46 +300,49 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
     char lp_buffer[sizeof(metadata) + sizeof(cur_data_lp)];
     int i;
 
-    // pe data
-    metadata_pe.lpid = lp->gid;
-    metadata_pe.kpid = lp->kp->id;
-    metadata_pe.peid = lp->pe->id;
-    metadata_pe.ts = tw_now(lp);
-    metadata_pe.real_time = current_rt;
-    metadata_pe.sample_sz = sizeof(sim_engine_data_pe);
-    metadata_pe.flag = PE_TYPE;
-    
-    cur_data_pe.last_gvt = pe->GVT;
-    cur_data_pe.ngvt = g_tw_gvt_done - s->prev_data_pe.ngvt;
-    cur_data_pe.s_net_read = (pe->stats.s_net_read - s->prev_data_pe.s_net_read) / g_tw_clock_rate;
-    cur_data_pe.s_gvt = (pe->stats.s_gvt - s->prev_data_pe.s_gvt) / g_tw_clock_rate;
-    cur_data_pe.s_fossil_collect = (pe->stats.s_fossil_collect - s->prev_data_pe.s_fossil_collect) / g_tw_clock_rate;
-    cur_data_pe.s_event_abort = (pe->stats.s_event_abort - s->prev_data_pe.s_event_abort) / g_tw_clock_rate;
-    cur_data_pe.s_event_process = (pe->stats.s_event_process - s->prev_data_pe.s_event_process) / g_tw_clock_rate;
-    cur_data_pe.s_pq = (pe->stats.s_pq - s->prev_data_pe.s_pq) / g_tw_clock_rate;
-    cur_data_pe.s_rollback = (pe->stats.s_rollback - s->prev_data_pe.s_rollback) / g_tw_clock_rate;
-    cur_data_pe.s_cancel_q = (pe->stats.s_cancel_q - s->prev_data_pe.s_cancel_q) / g_tw_clock_rate;
-    cur_data_pe.s_avl = (pe->stats.s_avl - s->prev_data_pe.s_avl) / g_tw_clock_rate;
-    //cur_data_pe.s_buddy = (pe->stats.s_buddy - s->prev_data_pe.s_buddy) / g_tw_clock_rate;
-    //cur_data_pe.s_lz4 = (pe->stats.s_lz4 - s->prev_data_pe.s_lz4) / g_tw_clock_rate;
+    if (s->analysis_id % g_tw_nkp == 0)
+    {
+        // pe data
+        metadata_pe.lpid = lp->gid;
+        metadata_pe.kpid = lp->kp->id;
+        metadata_pe.peid = lp->pe->id;
+        metadata_pe.ts = tw_now(lp);
+        metadata_pe.real_time = current_rt;
+        metadata_pe.sample_sz = sizeof(sim_engine_data_pe);
+        metadata_pe.flag = PE_TYPE;
 
-    s->prev_data_pe.ngvt = g_tw_gvt_done;
-    s->prev_data_pe.s_net_read = pe->stats.s_net_read;
-    s->prev_data_pe.s_gvt = pe->stats.s_gvt;
-    s->prev_data_pe.s_fossil_collect = pe->stats.s_fossil_collect;
-    s->prev_data_pe.s_event_abort = pe->stats.s_event_abort;
-    s->prev_data_pe.s_event_process = pe->stats.s_event_process;
-    s->prev_data_pe.s_pq = pe->stats.s_pq;
-    s->prev_data_pe.s_rollback = pe->stats.s_rollback;
-    s->prev_data_pe.s_cancel_q = pe->stats.s_cancel_q;
-    s->prev_data_pe.s_avl = pe->stats.s_avl;
-    //s->prev_data_pe.s_buddy = pe->stats.s_buddy;
-    //s->prev_data_pe.s_lz4 = pe->stats.s_lz4;
-    
-    memcpy(&pe_buffer[0], &metadata_pe, sizeof(metadata_pe));
-    memcpy(&pe_buffer[sizeof(metadata_pe)], &cur_data_pe, sizeof(cur_data_pe));
+        cur_data_pe.last_gvt = pe->GVT;
+        cur_data_pe.ngvt = g_tw_gvt_done - s->prev_data_pe.ngvt;
+        cur_data_pe.s_net_read = (pe->stats.s_net_read - s->prev_data_pe.s_net_read) / g_tw_clock_rate;
+        cur_data_pe.s_gvt = (pe->stats.s_gvt - s->prev_data_pe.s_gvt) / g_tw_clock_rate;
+        cur_data_pe.s_fossil_collect = (pe->stats.s_fossil_collect - s->prev_data_pe.s_fossil_collect) / g_tw_clock_rate;
+        cur_data_pe.s_event_abort = (pe->stats.s_event_abort - s->prev_data_pe.s_event_abort) / g_tw_clock_rate;
+        cur_data_pe.s_event_process = (pe->stats.s_event_process - s->prev_data_pe.s_event_process) / g_tw_clock_rate;
+        cur_data_pe.s_pq = (pe->stats.s_pq - s->prev_data_pe.s_pq) / g_tw_clock_rate;
+        cur_data_pe.s_rollback = (pe->stats.s_rollback - s->prev_data_pe.s_rollback) / g_tw_clock_rate;
+        cur_data_pe.s_cancel_q = (pe->stats.s_cancel_q - s->prev_data_pe.s_cancel_q) / g_tw_clock_rate;
+        cur_data_pe.s_avl = (pe->stats.s_avl - s->prev_data_pe.s_avl) / g_tw_clock_rate;
+        //cur_data_pe.s_buddy = (pe->stats.s_buddy - s->prev_data_pe.s_buddy) / g_tw_clock_rate;
+        //cur_data_pe.s_lz4 = (pe->stats.s_lz4 - s->prev_data_pe.s_lz4) / g_tw_clock_rate;
 
-    st_buffer_push(ANALYSIS_LP, &pe_buffer[0], sizeof(metadata_pe) + sizeof(cur_data_pe));
+        s->prev_data_pe.ngvt = g_tw_gvt_done;
+        s->prev_data_pe.s_net_read = pe->stats.s_net_read;
+        s->prev_data_pe.s_gvt = pe->stats.s_gvt;
+        s->prev_data_pe.s_fossil_collect = pe->stats.s_fossil_collect;
+        s->prev_data_pe.s_event_abort = pe->stats.s_event_abort;
+        s->prev_data_pe.s_event_process = pe->stats.s_event_process;
+        s->prev_data_pe.s_pq = pe->stats.s_pq;
+        s->prev_data_pe.s_rollback = pe->stats.s_rollback;
+        s->prev_data_pe.s_cancel_q = pe->stats.s_cancel_q;
+        s->prev_data_pe.s_avl = pe->stats.s_avl;
+        //s->prev_data_pe.s_buddy = pe->stats.s_buddy;
+        //s->prev_data_pe.s_lz4 = pe->stats.s_lz4;
+
+        memcpy(&pe_buffer[0], &metadata_pe, sizeof(metadata_pe));
+        memcpy(&pe_buffer[sizeof(metadata_pe)], &cur_data_pe, sizeof(cur_data_pe));
+
+        st_buffer_push(ANALYSIS_LP, &pe_buffer[0], sizeof(metadata_pe) + sizeof(cur_data_pe));
+    }
 
     // kp data
     metadata_kp.lpid = lp->gid;
