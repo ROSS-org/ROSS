@@ -237,6 +237,58 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
 #endif
 
   event->state.owner = TW_pe_free_q;
+  event->state.shared_mem = 1;
+  event->shm_pool_id = -1;
+  q->head->prev = event->next = NULL;
+  q->tail = event;
+}
+
+static inline void
+tw_eventq_shmem_alloc(tw_eventq * q, unsigned int cnt, void *base_ptr)
+{
+  tw_event *event;
+  size_t event_len;
+  size_t align;
+#ifdef ROSS_ALLOC_DEBUG
+  tw_event *event_prev = NULL;
+#endif
+
+  /* Construct a linked list of free events.  We allocate
+   * the events such that they look like this in memory:
+   *
+   *  ------------------
+   *  | tw_event       |
+   *  | user_data      |
+   *  ------------------
+   *  | tw_event       |
+   *  | user_data      |
+   *  ------------------
+   *  ......
+   *  ------------------
+   */
+
+  align = ROSS_MAX(sizeof(double), sizeof(void*));
+  event_len = sizeof(tw_event) + g_tw_msg_sz;
+  if (event_len & (align - 1))
+    {
+      event_len += align - (event_len & (align - 1));
+      tw_printf(TW_LOC, "REALIGNING EVENT MEMORY!\n");
+    }
+
+  g_tw_event_msg_sz = event_len;
+
+  q->size = cnt;
+
+  q->head = event = (tw_event *)base_ptr;
+  while (--cnt) {
+    event->state.owner = TW_pe_free_q;
+    event->prev = (tw_event *) (((char *)event) - event_len);
+    event->next = (tw_event *) (((char *)event) + event_len);
+    event->shm_pool_id = -1;
+    event = event->next;
+  }
+  event->prev = (tw_event *) (((char *)event) - event_len);
+  event->state.owner = TW_pe_free_q;
   event->shm_pool_id = -1;
   q->head->prev = event->next = NULL;
   q->tail = event;

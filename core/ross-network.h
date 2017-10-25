@@ -22,6 +22,9 @@ void tw_comm_set(MPI_Comm comm);
 /* Starts the network library after option parsing. */
 void tw_net_start(void);
 
+/* Starts the network shared memory layer. */
+void tw_net_shmem_start(void);
+
 /* Stops the network library after simulation end. */
 void tw_net_stop(void);
 

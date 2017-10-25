@@ -311,6 +311,8 @@ void tw_run(void) {
 
     me = setup_pes();
 
+    tw_net_shmem_start();
+
     // init instrumentation
     st_inst_init(); 
 
