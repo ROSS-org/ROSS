@@ -84,10 +84,12 @@ tw_peid		g_tw_npe = 1;
 tw_pe		**g_tw_pe;
 unsigned int    g_tw_events_per_pe = 2048;
 
+unsigned int    g_tw_shm_enabled = 0;
 #ifdef ROSS_NETWORK_mpishm
 unsigned int    g_tw_shm_events_per_pe = 2048;
 unsigned int    g_tw_ranks_per_node=1;
 tw_network_pe   *g_tw_network_pe=NULL;
+int             g_tw_network_mpishm_shmcomm_rank = 0;
 #endif
 
 /** Number of extra events allocated per PE.  Command-line customizable. */

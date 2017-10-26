@@ -249,17 +249,20 @@ struct tw_bf {
 };
 
 enum tw_event_owner {
-    TW_pe_event_q = 1,        /**< @brief In a tw_pe.event_q list */
-    TW_pe_pq = 2,           /**< @brief In a tw_pe.pq */
-    TW_kp_pevent_q = 3,     /**< @brief In a tw_kp.pevent_q */
-    TW_pe_anti_msg = 4,     /**< @brief Anti-message */
-    TW_net_outq = 5,        /**< @brief Pending network transmission */
-    TW_net_asend = 6,       /**< @brief Network transmission in progress */
-    TW_net_acancel = 7,     /**< @brief Network transmission in progress */
-    TW_pe_sevent_q = 8,     /**< @brief In tw_pe.sevent_q */
-    TW_pe_free_q = 9,       /**< @brief In tw_pe.free_q */
+    TW_pe_event_q = 1,              /**< @brief In a tw_pe.event_q list */
+    TW_pe_pq = 2,                   /**< @brief In a tw_pe.pq */
+    TW_kp_pevent_q = 3,             /**< @brief In a tw_kp.pevent_q */
+    TW_pe_anti_msg = 4,             /**< @brief Anti-message */
+    TW_net_outq = 5,                /**< @brief Pending network transmission */
+    TW_net_asend = 6,               /**< @brief Network transmission in progress */
+    TW_net_acancel = 7,             /**< @brief Network transmission in progress */
+    TW_net_shmem_event_q = 8,       /**< @brief Network Shmem event_q */
+    TW_net_shmem_cancel_q = 9,      /**< @brief Network Shmem event_q */
+    TW_net_shmem_return_q = 10,     /**< @brief Network Shmem event_q */
+    TW_pe_sevent_q = 11,            /**< @brief In tw_pe.sevent_q */
+    TW_pe_free_q = 12,              /**< @brief In tw_pe.free_q */
 #ifdef USE_RIO
-    IO_buffer = 10,         /**< @brief RIO captured event */
+    IO_buffer = 13,                 /**< @brief RIO captured event */
 #endif
 };
 typedef enum tw_event_owner tw_event_owner;
@@ -322,10 +325,10 @@ struct tw_event {
     tw_stime     recv_ts;           /**< @brief Actual time to be received */
 
     tw_peid      send_pe;           /**< @brief Sending PE ID / MPI rank */
-    tw_lpid      send_lp;           /**< @brief sending LP ID for data collection uses */
-    tw_stime     send_ts;
+    tw_lpid      send_lp;           /**< @brief Sending LP ID for data collection uses */
+    tw_stime     send_ts;           /**< @brief Send time of message */
 
-    unsigned int shm_pool_id;
+    int          shmem_pool_id;     /**< @brief id/index of pool if shared */
 
 #ifdef ROSS_MEMORY
     tw_memory   *memory;
@@ -486,7 +489,7 @@ struct tw_pe {
     tw_statistics stats; /**< @brief per PE counters */
 
 
-// YES - MPI and MPISHM ARE THE SAME BUT CPP IS BROKEN AND DOES NOT DO ORS or  ELSEIF VERY WELL!! SO LEAVE AS IS, PLEASE!!!
+// YES - MPI and MPISHM ARE THE SAME BUT CPP IS BROKEN AND DOES NOT DO ORS or ELSEIF VERY WELL!! SO LEAVE AS IS, PLEASE!!!
 #ifdef ROSS_NETWORK_mpi
 #define HAVE_NETWORK
     void           *hash_t; /**< @brief Array of incoming events from remote pes, Note: only necessary for distributed DSR*/

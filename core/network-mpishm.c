@@ -1,6 +1,5 @@
 #include <ross.h>
 #include <mpi.h>
-#include <pthread.h>
 
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
@@ -39,10 +38,13 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_UINT("send-buffer",
 	     send_buffer,
 	     "Network send buffer size in number of events"),
+  TWOPT_UINT( "enableshmem",
+	      g_tw_shm_enabled,
+	      "Enable use of shared memory event pools between ranks on same node"),
   TWOPT_UINT( "sharedmem",
 	      g_tw_shm_events_per_pe,
 	      "Number of shared memory events per PE/MPI rank"),
-    TWOPT_UINT( "rankspernode",
+  TWOPT_UINT( "rankspernode",
 		g_tw_ranks_per_node,
 		"Number of MPI ranks per compute node"),
   TWOPT_END()
@@ -61,7 +63,6 @@ int network_mpishm_group = 0;
 int network_mpishm_group_counter = 0;
 int network_mpishm_key = 0;
 int network_mpishm_rank = 0 ;
-int network_mpishm_shmcomm_rank = 0;
 
 unsigned int network_mpishm_num_cpus_per_node = 1;
 cpu_set_t network_mpishm_cpu_set[NETWORK_MPISHM_MAX_CPUS];
@@ -188,11 +189,17 @@ tw_net_shmem_start(void)
 {
   int i;
 
+  if( !g_tw_shm_enabled )
+  {
+      printf("tw_net_shmem_start: --enableshmem=1 not on cmd line, not creating pools\n");
+      return;
+  }
+
   if( g_tw_ranks_per_node == 1 )
   {
       if( g_tw_mynode == 0)
       {
-	  printf("tw_net_shmem_start: Not starting, only 1 ranks per node\n");
+	  printf("tw_net_shmem_start: --rankspernode only 1, increase to use shared memory pools \n");
       }
       return;
   }
@@ -218,7 +225,9 @@ tw_net_shmem_start(void)
   network_mpishm_event_length = sizeof(tw_event) + g_tw_msg_sz;
   if (network_mpishm_event_length & (network_mpishm_align - 1))
     {
-      network_mpishm_event_length += network_mpishm_align - (network_mpishm_event_length & (network_mpishm_align - 1));
+      network_mpishm_event_length +=
+	  network_mpishm_align - (network_mpishm_event_length & (network_mpishm_align - 1));
+      tw_printf(TW_LOC, "REALIGNING EVENT MEMORY!\n");
     }
   
   network_mpishm_shared_memory_size = ((sizeof(tw_network_pe) * g_tw_ranks_per_node) +
@@ -253,10 +262,10 @@ tw_net_shmem_start(void)
   
   MPI_Comm_split(network_mpishm_comm, network_mpishm_color, network_mpishm_key, &network_mpishm_shmcomm); 
   MPI_Comm_size (network_mpishm_shmcomm, &network_mpishm_shmcomm_size);
-  MPI_Comm_rank (network_mpishm_shmcomm, &network_mpishm_shmcomm_rank);
+  MPI_Comm_rank (network_mpishm_shmcomm, &g_tw_network_mpishm_shmcomm_rank);
   
   printf ("I'm Comm World Rank = %ld, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
-	  g_tw_mynode, network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
+	  g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
   fflush(stdout);
   
   /******************************************************************************************************************/
@@ -264,7 +273,7 @@ tw_net_shmem_start(void)
   /******************************************************************************************************************/
   MPI_Barrier(network_mpishm_comm);
     
-  if( network_mpishm_shmcomm_rank == 0 )
+  if( g_tw_network_mpishm_shmcomm_rank == 0 )
   {
       if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
 						    network_mpishm_shared_memory_size,
@@ -273,7 +282,7 @@ tw_net_shmem_start(void)
 	  perror("create shmget failed: ");
 	  exit(-1);
       }
-      printf("Rank %ld/Shm Rank %d: Created Shm Pool with ID %d \n", g_tw_mynode, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
+      printf("Rank %ld/Shm Rank %d: Created Shm Pool with ID %d \n", g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
       MPI_Barrier(network_mpishm_shmcomm);  
   }
   else
@@ -288,7 +297,7 @@ tw_net_shmem_start(void)
 	  exit(-1);
       }
       printf("Rank %ld/Shm Rank %d: Located Shm Pool with ID %d \n",
-	     g_tw_mynode, network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
+	     g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
   }
   
   /******************************************************************************************************************/
@@ -401,30 +410,38 @@ tw_net_shmem_start(void)
 		  (unsigned long long) network_mpishm_shared_memory_size);
   }
 
-  // breakup memory pool and allocate events - let local Rank 0 do the work for this.
-  if( network_mpishm_shmcomm_rank == 0 )
+  // breakup memory pool and allocate events - let each local Rank 0 do the work across groups
+  if( g_tw_network_mpishm_shmcomm_rank == 0 )
   {
+      printf("Comm World Rank %ld, Shm Comm Rank %d: setting up pool, allocating %llu bytes \n",
+	     g_tw_mynode, network_mpishm_rank, network_mpishm_shared_memory_size);
+      
       g_tw_network_pe = (tw_network_pe *)network_mpishm_start_shared_memory_pool_address;
       network_mpishm_start_shared_memory_pool_address =
 	  network_mpishm_start_shared_memory_pool_address + (sizeof(tw_network_pe) * g_tw_ranks_per_node);
 
       for( i = 0; i < g_tw_ranks_per_node; i++)
       {
+	  // chunk up the event list and attach to free_q for each local MPI rank in this group
 	  tw_eventq_shmem_alloc( &(g_tw_network_pe[i].free_q),
 				 g_tw_shm_events_per_pe,
-				 network_mpishm_start_shared_memory_pool_address);
-	  network_mpishm_start_shared_memory_pool_address +=  network_mpishm_event_length * g_tw_shm_events_per_pe;
-	  
+				 network_mpishm_start_shared_memory_pool_address, i);
+	  // increment pool address pointer
+	  network_mpishm_start_shared_memory_pool_address +=
+	      network_mpishm_event_length * g_tw_shm_events_per_pe;
+
+	  // init various event list queues to NULL
 	  bzero( &(g_tw_network_pe[i].event_q), sizeof(tw_eventq));
 	  bzero( &(g_tw_network_pe[i].cancel_q), sizeof(tw_eventq));
 	  bzero( &(g_tw_network_pe[i].return_q), sizeof(tw_eventq));
-	  
+
+	  // init the pthread locks located in the shmem pool
 	  pthread_mutex_init( &(g_tw_network_pe[i].event_q_lock), NULL);
 	  pthread_mutex_init( &(g_tw_network_pe[i].cancel_q_lock), NULL);
 	  pthread_mutex_init( &(g_tw_network_pe[i].return_q_lock), NULL);
       }
   }
-  // Barrier everyone before returing to the initial output looks reasonable.
+  // Barrier everyone before returning to the initial output looks reasonable.
   MPI_Barrier(MPI_COMM_ROSS);
   printf("\n");
 
@@ -443,7 +460,7 @@ tw_net_abort(void)
 	// Now, let's clean up our shared memory segments
 	/******************************************************************************************************************/
 	MPI_Barrier(network_mpishm_shmcomm);  
-	if( network_mpishm_shmcomm_rank == 0 )
+	if( g_tw_network_mpishm_shmcomm_rank == 0 )
 	{
 	    sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
 	    system( network_mpishm_ipcrm_command_string );
@@ -471,7 +488,7 @@ tw_net_stop(void)
 	  /******************************************************************************************************************/
 	  MPI_Barrier(network_mpishm_shmcomm);  
 	  
-	  if( network_mpishm_shmcomm_rank == 0 )
+	  if( g_tw_network_mpishm_shmcomm_rank == 0 )
 	  {
 	      sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
 	      system( network_mpishm_ipcrm_command_string );
@@ -851,7 +868,23 @@ service_queues(tw_pe *me)
 void
 tw_net_read(tw_pe *me)
 {
-  service_queues(me);
+    tw_event *head=NULL;
+    tw_event *e=NULL;
+    
+    // service shmem layer
+    tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
+    head = tw_eventq_pop_list(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q));
+    tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
+
+    // iterate over returned list starting with e and add to my pe's event q
+    for( e = head; e != NULL; e = e->next)
+    {
+	e->state.owner = TW_pe_event_q;
+	me->s_nwhite_recv++;
+	tw_eventq_push( &me->event_q, e);
+    }	
+    // service the network layer
+    service_queues(me);
 }
 
 void
@@ -859,16 +892,32 @@ tw_net_send(tw_event *e)
 {
   tw_pe * me = e->src_lp->pe;
   int changed = 0;
+  int remote_pool_id = 0;
+  int rank_diff=0;
+  
+  if( e->shmem_pool_id != -1 )
+  {
+      rank_diff = g_tw_mynode - e->dest_pe;
+      remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
+      me->s_nwhite_sent++;
+      tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
+      tw_eventq_push(&(g_tw_network_pe[remote_pool_id].event_q), e);
+      tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
 
-  e->state.remote = 0;
-  e->state.owner = TW_net_outq;
-  tw_eventq_unshift(&outq, e);
+      // Do not need to check network/MPI layer at this time.
+  }
+  else
+  {
+      e->state.remote = 0;
+      e->state.owner = TW_net_outq;
+      tw_eventq_unshift(&outq, e);
 
-  do
-    {
-      changed = test_q(&posted_sends, me, send_finish);
-      changed |= send_begin(me);
-    } while (changed);
+      do
+      {
+	  changed = test_q(&posted_sends, me, send_finish);
+	  changed |= send_begin(me);
+      } while (changed);
+  }
 }
 
 void

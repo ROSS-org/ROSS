@@ -230,7 +230,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
     event->state.owner = TW_pe_free_q;
     event->prev = (tw_event *) (((char *)event) - event_len);
     event->next = (tw_event *) (((char *)event) + event_len);
-    event->shm_pool_id = -1;
+    event->shmem_pool_id = -1;
     event = event->next;
   }
   event->prev = (tw_event *) (((char *)event) - event_len);
@@ -238,13 +238,13 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
 
   event->state.owner = TW_pe_free_q;
   event->state.shared_mem = 1;
-  event->shm_pool_id = -1;
+  event->shmem_pool_id = -1;
   q->head->prev = event->next = NULL;
   q->tail = event;
 }
 
 static inline void
-tw_eventq_shmem_alloc(tw_eventq * q, unsigned int cnt, void *base_ptr)
+tw_eventq_shmem_alloc(tw_eventq * q, unsigned int cnt, void *base_ptr, int shmem_pool_id)
 {
   tw_event *event;
   size_t event_len;
@@ -284,12 +284,12 @@ tw_eventq_shmem_alloc(tw_eventq * q, unsigned int cnt, void *base_ptr)
     event->state.owner = TW_pe_free_q;
     event->prev = (tw_event *) (((char *)event) - event_len);
     event->next = (tw_event *) (((char *)event) + event_len);
-    event->shm_pool_id = -1;
+    event->shmem_pool_id = shmem_pool_id;
     event = event->next;
   }
   event->prev = (tw_event *) (((char *)event) - event_len);
   event->state.owner = TW_pe_free_q;
-  event->shm_pool_id = -1;
+  event->shmem_pool_id = shmem_pool_id;
   q->head->prev = event->next = NULL;
   q->tail = event;
 }

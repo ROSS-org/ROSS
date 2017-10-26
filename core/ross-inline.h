@@ -39,16 +39,32 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ( destlpid );
     src_peid = src_lp->pe->id;
-
     
 #ifdef ROSS_NETWORK_mpishm
     if( (src_peid != dest_peid) &&
 	(abs((dest_peid - src_peid)) < g_tw_ranks_per_node ))
 	{
 	    // allocated a shared memory event
-	    printf("Error: shared memory allocation should not happen now! \n");
-	    fflush(stdout);
-	    e->dest_pe = dest_peid;
+	    e = tw_eventq_pop(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].free_q));
+	    if( e == NULL )
+	    {
+		// grab from return NEED TO CODE!!
+	    }
+	    if (e)
+	    {
+		e->cancel_next = NULL;
+		e->caused_by_me = NULL;
+		e->cause_next = NULL;
+		e->prev = e->next = NULL;
+		memset(&e->state, 0, sizeof(e->state));
+		memset(&e->event_id, 0, sizeof(e->event_id));
+		e->send_pe = src_peid;
+		e->dest_pe = dest_peid;
+	    }
+	    else
+	    {
+		tw_error(TW_LOC, "shared memory pool empty - increase size - termination simulation");
+	    }
 	}
     else
     {
@@ -122,7 +138,7 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
                 || g_tw_synchronization_protocol == SEQUENTIAL) {
         tw_error(TW_LOC,
                 "No free event buffers. Try increasing via g_tw_events_per_pe"
-                " or --extramem");
+                ", --extramem or --sharedmem");
         }
         else
             e = send_pe->abort_event;
@@ -173,6 +189,7 @@ tw_event_free(tw_pe *pe, tw_event *e)
   e->memory = NULL;
 #endif
 
+
   tw_free_output_messages(e, 0);
 
   if (e->delta_buddy) {
@@ -184,6 +201,21 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
   e->state.owner = TW_pe_free_q;
 
+#ifdef ROSS_NETWORK_mpishm
+  if( e->shmem_pool_id != -1 )
+  {
+      tw_mutex_lock( &(g_tw_network_pe[e->shmem_pool_id].return_q_lock));
+      tw_eventq_unshift(&(g_tw_network_pe[e->shmem_pool_id].return_q), e);
+      tw_mutex_unlock( &(g_tw_network_pe[e->shmem_pool_id].return_q_lock));
+  }
+  else
+  {
+      tw_eventq_unshift(&pe->free_q, e);
+  }
+  return;
+#endif 
+
+  // this code is never processed if ROSS_NETWORK_mpishm enabled
   tw_eventq_unshift(&pe->free_q, e);
 }
 

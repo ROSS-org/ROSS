@@ -216,7 +216,7 @@ static void tw_sched_batch(tw_pe * me) {
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
-    clp->event_counters->s_nevent_processed++;
+	clp->event_counters->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
