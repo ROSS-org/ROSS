@@ -432,7 +432,7 @@ tw_net_shmem_start(void)
 
 	  // init various event list queues to NULL
 	  bzero( &(g_tw_network_pe[i].event_q), sizeof(tw_eventq));
-	  bzero( &(g_tw_network_pe[i].cancel_q), sizeof(tw_eventq));
+	  g_tw_network_pe[i].cancel_q = NULL;
 	  bzero( &(g_tw_network_pe[i].return_q), sizeof(tw_eventq));
 
 	  // init the pthread locks located in the shmem pool
@@ -440,6 +440,10 @@ tw_net_shmem_start(void)
 	  pthread_mutex_init( &(g_tw_network_pe[i].cancel_q_lock), NULL);
 	  pthread_mutex_init( &(g_tw_network_pe[i].return_q_lock), NULL);
       }
+  }
+  else
+  {
+      g_tw_network_pe = (tw_network_pe *)network_mpishm_start_shared_memory_pool_address;
   }
   // Barrier everyone before returning to the initial output looks reasonable.
   MPI_Barrier(MPI_COMM_ROSS);
@@ -522,6 +526,22 @@ tw_net_minimum(tw_pe *me)
   tw_event *e;
   int i;
 
+  for( e = g_tw_network_pe[g_tw_mynode].event_q.head; e != NULL; e = e->next )
+  {
+      if (m > e->recv_ts)
+      {
+	  m = e->recv_ts;
+      }
+  }
+
+  for( e = g_tw_network_pe[g_tw_mynode].cancel_q; e != NULL; e = e->next )
+  {
+      if (m > e->recv_ts)
+      {
+	  m = e->recv_ts;
+      }
+  }
+  
   e = outq.head;
   while (e) {
     if (m > e->recv_ts)
@@ -870,19 +890,40 @@ tw_net_read(tw_pe *me)
 {
     tw_event *head=NULL;
     tw_event *e=NULL;
+    int remote_pool_id = 0;
     
     // service shmem layer
-    tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
-    head = tw_eventq_pop_list(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q));
-    tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
-
-    // iterate over returned list starting with e and add to my pe's event q
-    for( e = head; e != NULL; e = e->next)
+    if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size )
     {
-	e->state.owner = TW_pe_event_q;
-	me->s_nwhite_recv++;
-	tw_eventq_push( &me->event_q, e);
-    }	
+	tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
+	head = tw_eventq_pop_list(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q));
+	tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q_lock));
+
+	// iterate over returned list starting with e and add to my pe's event q
+	for( e = head; e != NULL; e = e->next)
+	{
+	    e->state.owner = TW_pe_event_q;
+	    me->s_nwhite_recv++;
+	    tw_eventq_push( &me->event_q, e);
+	}
+    }
+
+    if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q != NULL )
+    {
+	tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+	head = g_tw_network_pe[remote_pool_id].cancel_q;
+	g_tw_network_pe[remote_pool_id].cancel_q = NULL;
+	tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+
+	for( e = head; e != NULL; e = e->next )
+	{
+	    me->s_nwhite_recv++;
+	    e->state.cancel_q = 1;
+	    e->state.remote = 0;
+	    e->cancel_next = me->cancel_q;
+	    me->cancel_q = e;
+	}
+    }
     // service the network layer
     service_queues(me);
 }
@@ -900,9 +941,16 @@ tw_net_send(tw_event *e)
       rank_diff = g_tw_mynode - e->dest_pe;
       remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
       me->s_nwhite_sent++;
-      tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
-      tw_eventq_push(&(g_tw_network_pe[remote_pool_id].event_q), e);
-      tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
+      if( !e->state.cancel_q )
+      {
+	  tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
+	  tw_eventq_push(&(g_tw_network_pe[remote_pool_id].event_q), e);
+	  tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
+      }
+      else
+      {
+	  tw_error( TW_LOC, "Atempting to send a SHMEM cancel message via tw_net_send\n");
+      }
 
       // Do not need to check network/MPI layer at this time.
   }
@@ -924,7 +972,27 @@ void
 tw_net_cancel(tw_event *e)
 {
   tw_pe *src_pe = e->src_lp->pe;
+  int remote_pool_id = 0;
+  int rank_diff = 0;
+  
+  // first see if this is a shmem cancel event
+  if( e->shmem_pool_id != -1 )
+  {
+      // compute the dest pool
+     rank_diff = g_tw_mynode - e->dest_pe;
+     remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
+     src_pe->s_nwhite_sent++;
+     // lock and insert cancel event on shared memory queue
+     tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+     e->cancel_next = g_tw_network_pe[remote_pool_id].cancel_q;
+     g_tw_network_pe[remote_pool_id].cancel_q = e;
+     tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+     
+     return;
+  }
 
+
+  // if not, then do the regular network cancel
   switch (e->state.owner) {
   case TW_net_outq:
     /* Cancelled before we could transmit it.  Do not

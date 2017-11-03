@@ -519,7 +519,7 @@ struct tw_network_pe
     tw_eventq free_q;               /**< @brief Linked list of free SHM tw_events */
     tw_eventq event_q;              /**< @brief Linked list of N SHM events sent to this PE */
     pthread_mutex_t event_q_lock;  /**< @brief event q mutex lock */
-    tw_eventq cancel_q;             /**< @brief Linked list of N SHM cancel events sent to this PE */
+    tw_event *cancel_q;             /**< @brief Linked list of N SHM cancel events but **not** eventq DS sent to this PE */
     pthread_mutex_t cancel_q_lock; /**< @brief cancel q mutex lock */
     tw_eventq return_q;             /**< @brief Linked list of SHM tw_events returned by other recv local ranks */
     pthread_mutex_t return_q_lock; /**< @brief return q mutex lock */
