@@ -398,8 +398,35 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
         }
     }
 
+    if (cur_data_kp.nevent_processed - cur_data_kp.e_rbs != 0)
+        cur_data_kp.efficiency = 100.0 * (1.0 - cur_data_kp.e_rbs/(cur_data_kp.nevent_processed - cur_data_kp.e_rbs));
+    else
+        cur_data_kp.efficiency = 0;
+    if ((g_st_limit_opt == LIMIT_OFF || g_st_limit_opt == LIMIT_RECOVER) && cur_data_kp.efficiency < 0) // set flag to limit optimism
+        g_st_limit_opt = LIMIT_ON;
+    if (g_st_limit_opt == LIMIT_ON && cur_data_kp.efficiency > 0)
+        g_st_limit_opt = LIMIT_RECOVER;
+
     memcpy(&kp_buffer[0], &metadata_kp, sizeof(metadata_kp));
     memcpy(&kp_buffer[sizeof(metadata_kp)], &cur_data_kp, sizeof(cur_data_kp));
 
     st_buffer_push(ANALYSIS_LP, &kp_buffer[0], sizeof(metadata_kp) + sizeof(cur_data_kp));
+}
+
+void st_adjust_optimism()
+{
+    if (g_st_limit_opt == LIMIT_ON)
+    { // use multiplicative decrease to lower g_st_max_opt_lookahead
+        if (g_tw_max_opt_lookahead >= 1000)
+            g_tw_max_opt_lookahead *= 0.5;
+        //printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+    }
+    else if (g_st_limit_opt == LIMIT_RECOVER)
+    { // use additive increase to slowly allow for more optimism
+        if (ULLONG_MAX - g_tw_max_opt_lookahead < 1000) // avoid overflow
+            g_tw_max_opt_lookahead = ULLONG_MAX;
+        else 
+            g_tw_max_opt_lookahead += 1000;
+        //printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+    }
 }

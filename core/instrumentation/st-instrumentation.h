@@ -57,6 +57,13 @@ extern void st_inst_init(void);
 extern void st_stats_init();
 extern void st_inst_dump();
 extern void st_inst_finalize(tw_pe *me);
+extern int g_st_limit_opt;
+// keep track of limiting optimism
+typedef enum{
+    LIMIT_OFF,
+    LIMIT_RECOVER,
+    LIMIT_ON
+} limit_opt_states;
 
 
 /*
@@ -168,6 +175,7 @@ extern tw_stime g_st_vt_interval;
 extern tw_stime g_st_sampling_end;
 extern tw_lpid g_st_total_model_lps;
 extern int g_st_sample_count;
+extern void st_adjust_optimism();
 
 /*
  * st-model-data.c

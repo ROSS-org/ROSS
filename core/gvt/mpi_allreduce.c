@@ -214,6 +214,8 @@ tw_gvt_step2(tw_pe *me)
     
     st_inst_dump();
 
+    st_adjust_optimism();
+
 	g_tw_gvt_done++;
 
 	// reset for the next gvt round -- for use in realtime GVT mode only!!

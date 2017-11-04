@@ -9,7 +9,7 @@ int g_st_gvt_sampling = 0;
 int g_st_num_gvt = 10;
 int g_st_model_stats = 0;
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
-
+int g_st_limit_opt = LIMIT_OFF;
 
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),

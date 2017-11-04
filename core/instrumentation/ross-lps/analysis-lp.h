@@ -62,6 +62,7 @@ struct sim_engine_data_pe
 struct sim_engine_data_kp
 {
     tw_stime time_ahead_gvt;
+    double efficiency;
     tw_stat rb_total; 
     tw_stat rb_secondary;
     tw_stat nevent_processed;
