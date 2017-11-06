@@ -107,6 +107,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     int i;
     tw_lp *model_lp;
 
+    lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
+
     model_sample_data *sample = s->model_samples_current;
     // TODO handle this situation better
     if (sample == s->model_samples_tail)
@@ -142,6 +144,9 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     tw_lp *model_lp;
     int i, j;
+
+    lp->pe->stats.s_alp_e_rbs++;
+
     // need to remove sample associated with this event from the list
     model_sample_data *sample;
     // start at end, because it's most likely closer to the timestamp we're looking for

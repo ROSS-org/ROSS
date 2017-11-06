@@ -159,6 +159,8 @@ struct tw_statistics {
 
     tw_clock s_stat_comp;
     tw_clock s_stat_write;
+    tw_stat s_alp_nevent_processed;
+    tw_stat s_alp_e_rbs;
 
 #ifdef USE_RIO
     tw_clock s_rio_load;

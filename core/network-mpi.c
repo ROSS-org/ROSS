@@ -869,6 +869,15 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
+  if(MPI_Reduce(&(s->s_alp_nevent_processed),
+		&me->stats.s_alp_nevent_processed,
+		2,
+		MPI_UNSIGNED_LONG_LONG,
+		MPI_SUM,
+		(int)g_tw_masternode,
+		MPI_COMM_ROSS) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
 #ifdef USE_RIO
     if (MPI_Reduce(&s->s_rio_load,
             &me->stats.s_rio_load,
