@@ -10,6 +10,7 @@ int g_st_num_gvt = 10;
 int g_st_model_stats = 0;
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 int g_st_limit_opt = LIMIT_OFF;
+int g_st_disable_opt = 0;
 
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),
@@ -23,6 +24,7 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
     TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"),
+    TWOPT_UINT("disable-opt", g_st_disable_opt, "disable performance optimizations when set to 1"),
     TWOPT_END()
 };
 

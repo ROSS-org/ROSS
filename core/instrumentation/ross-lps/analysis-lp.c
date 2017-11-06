@@ -415,6 +415,9 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
 
 void st_adjust_optimism()
 {
+    if (g_st_disable_opt)
+        return;
+
     if (g_st_limit_opt == LIMIT_ON)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead
         if (g_tw_max_opt_lookahead >= 1000)

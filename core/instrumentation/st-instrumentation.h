@@ -51,6 +51,7 @@ typedef enum{
 //extern st_stats_buffer **g_st_buffer;
 extern int g_st_instrumentation;
 extern int g_st_engine_stats;
+extern int g_st_disable_opt;
 
 extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
