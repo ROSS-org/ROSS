@@ -98,7 +98,11 @@ static inline void event_cancel(tw_event * event) {
     tw_pe *send_pe = event->src_lp->pe;
     tw_peid dest_peid;
 
-    if(event->state.owner == TW_net_asend || event->state.owner == TW_pe_sevent_q) {
+    // make sure to test if shared memory event and if so perform remote cancel
+    if(event->shmem_pool_id != -1 ||
+       event->state.owner == TW_net_asend ||
+       event->state.owner == TW_pe_sevent_q)
+    {
         /* Slowest approach of all; this has to be sent over the
         * network to let the dest_pe know it shouldn't have seen
         * it in the first place.

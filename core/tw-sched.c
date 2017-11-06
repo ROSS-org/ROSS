@@ -80,9 +80,10 @@ static void tw_sched_event_q(tw_pe * me) {
  *  need to do any further rollbacks.
  */
 static void tw_sched_cancel_q(tw_pe * me) {
-    tw_clock     start;
-    tw_event    *cev;
-    tw_event    *nev;
+    tw_clock     start=0;
+    tw_event    *cev=NULL;
+    tw_event    *nev=NULL;
+    tw_event    *shmem_cancel=NULL;
 
     start = tw_clock_read();
     while (me->cancel_q) {
@@ -133,12 +134,21 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     tw_event_free(me, cev);
                     break;
 
+	        case TW_net_shmem_event_q:
+		    printf("tw_sched_cancel_q: Rank %ld: found shmem cancel event @ TS = %lf, not yet read from shmem event q\n",
+			   g_tw_mynode, cev->recv_ts);
+		    cev->cancel_next = shmem_cancel;
+		    shmem_cancel=cev;
+		    break;
+
                 default:
                     tw_error(TW_LOC, "Event in cancel_q, but owner %d not recognized", cev->state.owner);
             }
         }
     }
-
+    // add back the shmem cancel events that not yet been officially read as positive messages
+    me->cancel_q = shmem_cancel;
+    
     me->stats.s_cancel_q += tw_clock_read() - start;
 }
 

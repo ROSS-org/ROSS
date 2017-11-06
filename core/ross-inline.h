@@ -35,10 +35,13 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 
     int dest_peid, src_peid;
     tw_event *e=NULL;
+    tw_event *head=NULL;
+    size_t size=0;
+    tw_pe *me=src_lp->pe;
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ( destlpid );
-    src_peid = src_lp->pe->id;
+    src_peid = me->id;
     
 #ifdef ROSS_NETWORK_mpishm
     if( (src_peid != dest_peid) &&
@@ -48,7 +51,26 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 	    e = tw_eventq_pop(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].free_q));
 	    if( e == NULL )
 	    {
-		// grab from return NEED TO CODE!!
+		// grab whole list from return q and reset it.
+		// assume all return events have gone thru the fossil collection process - e.g., tw_eventq_push_list routine
+		// Just tac on to end of free list.
+
+		if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q.size )
+		{
+		    tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q_lock));
+		    memcpy(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].free_q),
+			   &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q),
+			   sizeof(tw_eventq));
+		    // reset return q list
+		    head = tw_eventq_pop_list(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q));
+		    tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q_lock));
+		}
+		else
+		{
+		    tw_error(TW_LOC, "Increase size of shared memory pool with --sharedmem option or memory leak maybe possible \n");
+		}
+
+
 	    }
 	    if (e)
 	    {

@@ -40,12 +40,191 @@ tw_eventq_debug(tw_eventq * q)
 }
 
 static inline void
+tw_eventq_push(tw_eventq *q, tw_event *e)
+{
+  tw_event *t = q->tail;
+
+  tw_eventq_debug(q);
+
+  e->next = NULL;
+  e->prev = t;
+  if (t)
+    t->next = e;
+  else
+    q->head = e;
+
+  q->tail = e;
+  q->size++;
+
+  tw_eventq_debug(q);
+}
+
+static inline tw_event *
+tw_eventq_peek(tw_eventq *q)
+{
+  return q->tail;
+}
+
+static inline tw_event *
+tw_eventq_pop(tw_eventq * q)
+{
+  tw_event *t = q->tail;
+  tw_event *p;
+
+  tw_eventq_debug(q);
+
+  if(!t)
+    return NULL;
+
+  p = t->prev;
+
+  if (p)
+    p->next = NULL;
+  else
+    q->head = NULL;
+
+  q->tail = p;
+  q->size--;
+
+  t->next = t->prev = NULL;
+
+  tw_eventq_debug(q);
+
+  return t;
+}
+
+static inline void
+tw_eventq_unshift(tw_eventq *q, tw_event *e)
+{
+  tw_event *h = q->head;
+
+  tw_eventq_debug(q);
+
+  e->prev = NULL;
+  e->next = h;
+
+  if (h)
+    h->prev = e;
+  else
+    q->tail = e;
+
+  q->head = e;
+  q->size++;
+
+  tw_eventq_debug(q);
+}
+
+static inline tw_event *
+tw_eventq_peek_head(tw_eventq *q)
+{
+  return q->head;
+}
+
+static inline tw_event *
+tw_eventq_shift(tw_eventq *q)
+{
+  tw_event *h = q->head;
+  tw_event *n;
+
+  tw_eventq_debug(q);
+
+  if(!h)
+    return NULL;
+
+  n = h->next;
+
+  if (n)
+    n->prev = NULL;
+  else
+    q->tail = NULL;
+
+  q->head = n;
+  q->size--;
+
+  h->next = h->prev = NULL;
+
+  tw_eventq_debug(q);
+
+  return h;
+}
+
+static inline void
+tw_eventq_delete_any(tw_eventq *q, tw_event *e)
+{
+  tw_event *p = e->prev;
+  tw_event *n = e->next;
+
+  tw_eventq_debug(q);
+
+  if (p)
+    p->next = n;
+  else
+    q->head = n;
+
+  if (n)
+    n->prev = p;
+  else
+    q->tail = p;
+
+  e->next = e->prev = NULL;
+  q->size--;
+
+  tw_eventq_debug(q);
+}
+
+static inline tw_event *
+tw_eventq_pop_list(tw_eventq * q)
+{
+  tw_event	*h = q->head;
+
+  q->size = 0;
+  q->head = q->tail = NULL;
+
+  return h;
+}
+
+/*
+ * The purpose of this function is to be able to remove some
+ * part of a list.. could be all of list, from head to some inner
+ * buffer, or from some inner buffer to tail.  I only care about the
+ * last case..
+ */
+static inline void
+tw_eventq_splice(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
+{
+  tw_eventq_debug(q);
+
+  if(h == q->head && t == q->tail)
+    {
+      q->size = 0;
+      q->head = q->tail = NULL;
+      return;
+    }
+
+  if(h == q->head)
+    q->head = t->next;
+  else
+    h->prev->next = t->next;
+
+  if(t == q->tail)
+    q->tail = h->prev;
+  else
+    t->next->prev = h->prev;
+
+  q->size -= cnt;
+
+  tw_eventq_debug(q);
+}
+
+// This routine is exclusive for use during fossil collection.
+static inline void
 tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 {
-    tw_pe       *pe;
-    tw_event	*e;
-    tw_event	*cev;
-    tw_event	*next;
+    tw_pe       *pe=NULL;
+    tw_event	*e=NULL;
+    tw_event	*e_prev=NULL;
+    tw_event	*cev=NULL;
+    tw_event	*next=NULL;
 
     tw_eventq_debug(q);
 
@@ -66,17 +245,28 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     // go in reverse to ensure correct commit order
     e = t;
     t = t->next;
+    
     while(1)
     {
-        if (g_st_ev_trace == COMMIT_TRACE) // doesn't rely on commit function existing, so should be outside of commit function check
+	// save e->prev for advancing e at end of loop.
+	e_prev = e->prev; 
+	
+	// doesn't rely on commit function existing, so should be outside of commit function check
+        if (g_st_ev_trace == COMMIT_TRACE)
+	{
             st_collect_event_data(e, (double)tw_clock_read() / g_tw_clock_rate, 0);
-        tw_lp * clp = e->dest_lp;
-        if (*clp->type->commit) {
+	}
+
+	tw_lp * clp = e->dest_lp;
+        if (*clp->type->commit)
+	{
             (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
         }
-        tw_free_output_messages(e, 1);
 
-        if (e->delta_buddy) {
+	tw_free_output_messages(e, 1);
+
+        if (e->delta_buddy)
+	{
             tw_clock start = tw_clock_read();
             buddy_free(e->delta_buddy);
             g_tw_pe[0]->stats.s_buddy += (tw_clock_read() - start);
@@ -84,10 +274,16 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
         }
 
         pe = e->dest_lp->pe;
-        // have to reclaim non-cancelled remote events from hash table
-        if(e->event_id && e->state.remote)
+	
+        // have to reclaim non-cancelled remote events from hash table but not any shared memory events
+        if( (e->shmem_pool_id == -1) &&
+	    e->event_id &&
+	    e->state.remote)
+	{
             tw_hash_remove(pe->hash_t, e, e->send_pe);
+	}
 
+	// free the cause by me events only if **not** shared
         if(e->caused_by_me)
         {
             cev = next = e->caused_by_me;
@@ -97,8 +293,14 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
                 next = cev->cause_next;
                 cev->cause_next = NULL;
 
+		// make sure we don't free any shared events since they will be freed by the other side
                 if(cev->state.owner == TW_pe_sevent_q)
-                    tw_event_free(cev->src_lp->pe, cev);
+		{
+		    if( cev->shmem_pool_id == -1 )
+		    {
+			tw_event_free(cev->src_lp->pe, cev);
+		    }
+		}
 
                 cev = next;
             }
@@ -106,10 +308,36 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             e->caused_by_me = NULL;
             e->state.owner = TW_pe_free_q;
         }
-        if (e == h) {
-          break;
+
+	// unhook and place shared memory event into return list.
+	if( e->shmem_pool_id != -1)
+	{
+	    if( e == q->head )
+		q->head = e->next;
+	    if( e == q->tail )
+		q->tail = e->prev;
+	    
+	    if( e->prev )
+		e->prev->next = e->next;
+	    if( e->next )
+		e->next->prev = e->prev;
+
+	    //reduce q size by one
+	    q->size--;
+	    
+	    tw_mutex_lock( &(g_tw_network_pe[e->shmem_pool_id].return_q_lock));
+	    tw_eventq_unshift(&(g_tw_network_pe[e->shmem_pool_id].return_q), e);
+	    tw_mutex_unlock( &(g_tw_network_pe[e->shmem_pool_id].return_q_lock));
+	}
+
+	// finally arrived back at the list head so stop
+        if (e == h)
+	{
+	    break;
         }
-        e = e->prev;
+
+	// advance to next previous event on list - recall working the list from tail to head
+        e = e_prev;
     }
 
     tw_eventq_debug(q);
@@ -292,183 +520,6 @@ tw_eventq_shmem_alloc(tw_eventq * q, unsigned int cnt, void *base_ptr, int shmem
   event->shmem_pool_id = shmem_pool_id;
   q->head->prev = event->next = NULL;
   q->tail = event;
-}
-
-static inline void
-tw_eventq_push(tw_eventq *q, tw_event *e)
-{
-  tw_event *t = q->tail;
-
-  tw_eventq_debug(q);
-
-  e->next = NULL;
-  e->prev = t;
-  if (t)
-    t->next = e;
-  else
-    q->head = e;
-
-  q->tail = e;
-  q->size++;
-
-  tw_eventq_debug(q);
-}
-
-static inline tw_event *
-tw_eventq_peek(tw_eventq *q)
-{
-  return q->tail;
-}
-
-static inline tw_event *
-tw_eventq_pop(tw_eventq * q)
-{
-  tw_event *t = q->tail;
-  tw_event *p;
-
-  tw_eventq_debug(q);
-
-  if(!t)
-    return NULL;
-
-  p = t->prev;
-
-  if (p)
-    p->next = NULL;
-  else
-    q->head = NULL;
-
-  q->tail = p;
-  q->size--;
-
-  t->next = t->prev = NULL;
-
-  tw_eventq_debug(q);
-
-  return t;
-}
-
-static inline void
-tw_eventq_unshift(tw_eventq *q, tw_event *e)
-{
-  tw_event *h = q->head;
-
-  tw_eventq_debug(q);
-
-  e->prev = NULL;
-  e->next = h;
-
-  if (h)
-    h->prev = e;
-  else
-    q->tail = e;
-
-  q->head = e;
-  q->size++;
-
-  tw_eventq_debug(q);
-}
-
-static inline tw_event *
-tw_eventq_peek_head(tw_eventq *q)
-{
-  return q->head;
-}
-
-static inline tw_event *
-tw_eventq_shift(tw_eventq *q)
-{
-  tw_event *h = q->head;
-  tw_event *n;
-
-  tw_eventq_debug(q);
-
-  if(!h)
-    return NULL;
-
-  n = h->next;
-
-  if (n)
-    n->prev = NULL;
-  else
-    q->tail = NULL;
-
-  q->head = n;
-  q->size--;
-
-  h->next = h->prev = NULL;
-
-  tw_eventq_debug(q);
-
-  return h;
-}
-
-static inline void
-tw_eventq_delete_any(tw_eventq *q, tw_event *e)
-{
-  tw_event *p = e->prev;
-  tw_event *n = e->next;
-
-  tw_eventq_debug(q);
-
-  if (p)
-    p->next = n;
-  else
-    q->head = n;
-
-  if (n)
-    n->prev = p;
-  else
-    q->tail = p;
-
-  e->next = e->prev = NULL;
-  q->size--;
-
-  tw_eventq_debug(q);
-}
-
-static inline tw_event *
-tw_eventq_pop_list(tw_eventq * q)
-{
-  tw_event	*h = q->head;
-
-  q->size = 0;
-  q->head = q->tail = NULL;
-
-  return h;
-}
-
-/*
- * The purpose of this function is to be able to remove some
- * part of a list.. could be all of list, from head to some inner
- * buffer, or from some inner buffer to tail.  I only care about the
- * last case..
- */
-static inline void
-tw_eventq_splice(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
-{
-  tw_eventq_debug(q);
-
-  if(h == q->head && t == q->tail)
-    {
-      q->size = 0;
-      q->head = q->tail = NULL;
-      return;
-    }
-
-  if(h == q->head)
-    q->head = t->next;
-  else
-    h->prev->next = t->next;
-
-  if(t == q->tail)
-    q->tail = h->prev;
-  else
-    t->next->prev = h->prev;
-
-  q->size -= cnt;
-
-  tw_eventq_debug(q);
 }
 
 #endif

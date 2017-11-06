@@ -187,7 +187,8 @@ tw_net_start(void)
 void
 tw_net_shmem_start(void)
 {
-  int i;
+    int i, j;
+    size_t original_size=0; // part of thread test at end of setup.
 
   if( !g_tw_shm_enabled )
   {
@@ -447,6 +448,42 @@ tw_net_shmem_start(void)
   }
   // Barrier everyone before returning to the initial output looks reasonable.
   MPI_Barrier(MPI_COMM_ROSS);
+  original_size = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size;
+  
+  printf("Rank %ld: Found event q size to be %ld before pthread lock test \n",
+	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size );
+
+  MPI_Barrier(MPI_COMM_ROSS);
+    
+  for( i = 0; i < g_tw_ranks_per_node; i++ )
+  {
+      for( j = 0; j < (1024*1024); j++)
+      {
+	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
+	  g_tw_network_pe[i].event_q.size++;
+	  tw_mutex_unlock(&(g_tw_network_pe[i].event_q_lock));
+      }
+      for( j = 0; j < (1024*1024); j++)
+      {
+	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
+	  g_tw_network_pe[i].event_q.size--;
+	  tw_mutex_unlock(&(g_tw_network_pe[i].event_q_lock));
+      }
+  }
+
+  MPI_Barrier(MPI_COMM_ROSS);
+  
+  printf("Rank %ld: Found event q size after test to be %ld, vs %ld original size \n",
+	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size, original_size );
+  fflush(stdout);
+
+  MPI_Barrier(MPI_COMM_ROSS);
+
+// reset original size after test
+  g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size = original_size;
+
+  MPI_Barrier(MPI_COMM_ROSS);
+    
   printf("\n");
 
 }
@@ -890,7 +927,6 @@ tw_net_read(tw_pe *me)
 {
     tw_event *head=NULL;
     tw_event *e=NULL;
-    int remote_pool_id = 0;
     
     // service shmem layer
     if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size )
@@ -902,26 +938,45 @@ tw_net_read(tw_pe *me)
 	// iterate over returned list starting with e and add to my pe's event q
 	for( e = head; e != NULL; e = e->next)
 	{
-	    e->state.owner = TW_pe_event_q;
 	    me->s_nwhite_recv++;
+
+	    // set event state variables
+	    e->state.owner = TW_pe_event_q; // transition from TW_net_shmem_event_q to dest pe's event q.
+	    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+	    e->caused_by_me = NULL;
+	    e->cause_next = NULL;
+	    // note, don't mess with e->next_cancel here!!
+	    
+	    // insert on PE's event q list.
 	    tw_eventq_push( &me->event_q, e);
+	    
+	    printf("tw_net_read: Fwd Ev at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
+		   e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
 	}
     }
 
     if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q != NULL )
     {
-	tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
-	head = g_tw_network_pe[remote_pool_id].cancel_q;
-	g_tw_network_pe[remote_pool_id].cancel_q = NULL;
-	tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+	tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
+	head = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q;
+	g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q = NULL;
+	tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
 
 	for( e = head; e != NULL; e = e->next )
 	{
 	    me->s_nwhite_recv++;
+
+	    // set event state - look for additional items that need setting - remember this is shared memory
 	    e->state.cancel_q = 1;
-	    e->state.remote = 0;
+	    e->state.remote = 1;
+	    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+	    
+	    // insert onto PE's cancel queue.
 	    e->cancel_next = me->cancel_q;
 	    me->cancel_q = e;
+
+	    printf("tw_net_read: Cancel Ev at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
+		   e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
 	}
     }
     // service the network layer
@@ -938,9 +993,14 @@ tw_net_send(tw_event *e)
   
   if( e->shmem_pool_id != -1 )
   {
-      rank_diff = g_tw_mynode - e->dest_pe;
+      // must be dest minus source for alogorithm to work right since we add back the diff to the shmcomm rank number.
+      rank_diff = e->dest_pe - g_tw_mynode;
       remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
+      
       me->s_nwhite_sent++;
+      e->event_id = (tw_eventid) ++me->seq_num;
+      e->state.owner = TW_net_shmem_event_q; // Treat send as complete and not cancelled since it is instant.
+      
       if( !e->state.cancel_q )
       {
 	  tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
@@ -951,7 +1011,9 @@ tw_net_send(tw_event *e)
       {
 	  tw_error( TW_LOC, "Atempting to send a SHMEM cancel message via tw_net_send\n");
       }
-
+      printf("tw_net_send: Fwd Ev at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
+	     e->recv_ts, (tw_lpid) e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, me->s_nwhite_sent );
+   
       // Do not need to check network/MPI layer at this time.
   }
   else
@@ -978,15 +1040,26 @@ tw_net_cancel(tw_event *e)
   // first see if this is a shmem cancel event
   if( e->shmem_pool_id != -1 )
   {
-      // compute the dest pool
-     rank_diff = g_tw_mynode - e->dest_pe;
+      // compute the dest pool - again must be dest - src for algo to work right.
+     rank_diff = e->dest_pe - g_tw_mynode;
      remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
      src_pe->s_nwhite_sent++;
+
+     // set event state to cancel q - probably will get set as well on recv
+     e->state.cancel_q = 1;
+     // Note, don't mess with state.owner as it was set already via the original send.
+     
      // lock and insert cancel event on shared memory queue
      tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
      e->cancel_next = g_tw_network_pe[remote_pool_id].cancel_q;
      g_tw_network_pe[remote_pool_id].cancel_q = e;
      tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
+
+     printf("tw_net_cancel: Canel Ev at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
+	    e->recv_ts, (tw_lpid)e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, src_pe->s_nwhite_sent );
+
+     // also service queues for other network activity just incase
+     service_queues(src_pe);
      
      return;
   }
