@@ -18,6 +18,8 @@ struct pe_data
     tw_stat e_rbs;
 };
 
+extern int g_perf_disable_opt;
+
 const tw_optdef *perf_opts(void);
 extern void perf_adjust_optimism(tw_pe *pe);
 

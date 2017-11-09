@@ -2,11 +2,11 @@
 
 static int limit_opt = LIMIT_OFF;
 static pe_data last_check = {0};
-static int disable_opt = 0;
+int g_perf_disable_opt = 0;
 
 static const tw_optdef perf_options[] = {
     TWOPT_GROUP("ROSS Performance Optimizations"),
-    TWOPT_UINT("disable-opt", disable_opt, "disable performance optimizations when set to 1"),
+    TWOPT_UINT("disable-opt", g_perf_disable_opt, "disable performance optimizations when set to 1"),
     TWOPT_END()
 };
 
@@ -18,6 +18,7 @@ const tw_optdef *perf_opts(void)
 static void perf_efficiency_check(tw_pe *pe)
 {
     tw_statistics s;
+    bzero(&s, sizeof(s));
     tw_get_stats(pe, &s);
 
     tw_stat nevent_delta = s.s_nevent_processed - last_check.nevent_processed;
@@ -25,7 +26,7 @@ static void perf_efficiency_check(tw_pe *pe)
     double efficiency = 0;
 
     if (nevent_delta - e_rbs_delta != 0)
-        efficiency = 100.0 * (1 - (e_rbs_delta/(nevent_delta - e_rbs_delta)));
+        efficiency = 100.0 * (1 - ((double)e_rbs_delta/(double)(nevent_delta - e_rbs_delta)));
 
     last_check.nevent_processed = s.s_nevent_processed;
     last_check.e_rbs = s.s_e_rbs;
@@ -56,7 +57,7 @@ static void perf_efficiency_check(tw_pe *pe)
 
 void perf_adjust_optimism(tw_pe *pe)
 {
-    if (disable_opt)
+    if (g_perf_disable_opt)
         return;
 
     perf_efficiency_check(pe);

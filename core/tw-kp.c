@@ -130,6 +130,7 @@ tw_init_kps(tw_pe * me)
 			continue;
 
 		kp->id = i;
+        kp->s_nevent_processed = 0;
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
