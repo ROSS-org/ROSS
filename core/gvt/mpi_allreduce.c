@@ -214,7 +214,7 @@ tw_gvt_step2(tw_pe *me)
     
     st_inst_dump();
 
-    st_adjust_optimism();
+    perf_adjust_optimism(me);
 
 	g_tw_gvt_done++;
 
