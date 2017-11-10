@@ -642,7 +642,6 @@ void tw_scheduler_optimistic(tw_pe * me) {
         }
 
         tw_sched_batch(me);
-        perf_efficiency_check(me);
     }
 
     tw_wall_now(&me->end_time);

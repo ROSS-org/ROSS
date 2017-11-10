@@ -39,7 +39,7 @@ void perf_efficiency_check(tw_pe *pe)
     tw_stat nevent_delta;
     tw_stat e_rbs_delta;
     double efficiency = 0;
-    double lowest_eff = 100.0;
+    double lowest_eff = DBL_MAX;
 
     for (i = 0; i < g_tw_nkp; i++)
     {
@@ -48,6 +48,8 @@ void perf_efficiency_check(tw_pe *pe)
         e_rbs_delta = kp->s_e_rbs - last_check.e_rbs[i];
         if (nevent_delta - e_rbs_delta != 0)
             efficiency = 100.0 * (1 - ((double)e_rbs_delta/(double)(nevent_delta - e_rbs_delta)));
+        else
+            efficiency = 0;
 
         if (efficiency < lowest_eff)
             lowest_eff = efficiency;
@@ -88,7 +90,7 @@ void perf_adjust_optimism(tw_pe *pe)
     if (g_perf_disable_opt)
         return;
 
-    //perf_efficiency_check(pe);
+    perf_efficiency_check(pe);
 
     if (limit_opt == LIMIT_ON)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead
