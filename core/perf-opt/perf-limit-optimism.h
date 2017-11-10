@@ -14,13 +14,15 @@ typedef enum{
 typedef struct pe_data pe_data;
 struct pe_data
 {
-    tw_stat nevent_processed;
-    tw_stat e_rbs;
+    tw_stat *nevent_processed;
+    tw_stat *e_rbs;
 };
 
 extern int g_perf_disable_opt;
 
-const tw_optdef *perf_opts(void);
+extern const tw_optdef *perf_opts(void);
+extern void perf_init();
 extern void perf_adjust_optimism(tw_pe *pe);
+extern void perf_efficiency_check(tw_pe *pe);
 
 #endif

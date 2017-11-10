@@ -15,21 +15,49 @@ const tw_optdef *perf_opts(void)
 	return perf_options;
 }
 
-static void perf_efficiency_check(tw_pe *pe)
+void perf_init()
 {
-    tw_statistics s;
-    bzero(&s, sizeof(s));
-    tw_get_stats(pe, &s);
+    int i;
 
-    tw_stat nevent_delta = s.s_nevent_processed - last_check.nevent_processed;
-    tw_stat e_rbs_delta = s.s_e_rbs - last_check.e_rbs;
+    last_check.nevent_processed = tw_calloc(TW_LOC, "performance optimizations", sizeof(tw_stat), g_tw_nkp);
+    last_check.e_rbs = tw_calloc(TW_LOC, "performance optimizations", sizeof(tw_stat), g_tw_nkp);
+    for (i = 0; i < g_tw_nkp; i++)
+    {
+        last_check.nevent_processed[i] = 0;
+        last_check.e_rbs[i] = 0;
+    }
+}
+
+void perf_efficiency_check(tw_pe *pe)
+{
+    //tw_statistics s;
+    //bzero(&s, sizeof(s));
+    //tw_get_stats(pe, &s);
+
+    int i;
+    tw_kp *kp;
+    tw_stat nevent_delta;
+    tw_stat e_rbs_delta;
     double efficiency = 0;
+    double lowest_eff = 100.0;
 
-    if (nevent_delta - e_rbs_delta != 0)
-        efficiency = 100.0 * (1 - ((double)e_rbs_delta/(double)(nevent_delta - e_rbs_delta)));
+    for (i = 0; i < g_tw_nkp; i++)
+    {
+        kp = tw_getkp(i);
+        nevent_delta = kp->s_nevent_processed - last_check.nevent_processed[i];
+        e_rbs_delta = kp->s_e_rbs - last_check.e_rbs[i];
+        if (nevent_delta - e_rbs_delta != 0)
+            efficiency = 100.0 * (1 - ((double)e_rbs_delta/(double)(nevent_delta - e_rbs_delta)));
 
-    last_check.nevent_processed = s.s_nevent_processed;
-    last_check.e_rbs = s.s_e_rbs;
+        if (efficiency < lowest_eff)
+            lowest_eff = efficiency;
+
+        last_check.nevent_processed[i] = kp->s_nevent_processed;
+        last_check.e_rbs[i] = kp->s_e_rbs;
+
+    }
+
+    efficiency = lowest_eff;
 
     if (limit_opt == LIMIT_OFF || limit_opt == LIMIT_RECOVER)
     {
@@ -60,7 +88,7 @@ void perf_adjust_optimism(tw_pe *pe)
     if (g_perf_disable_opt)
         return;
 
-    perf_efficiency_check(pe);
+    //perf_efficiency_check(pe);
 
     if (limit_opt == LIMIT_ON)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead

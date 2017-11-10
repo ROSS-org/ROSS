@@ -212,6 +212,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
+    perf_init();
     st_buffer_allocate();
     if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
         specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
