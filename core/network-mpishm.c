@@ -563,6 +563,7 @@ tw_net_minimum(tw_pe *me)
   tw_event *e;
   int i;
 
+  // check network layer events
   for( e = g_tw_network_pe[g_tw_mynode].event_q.head; e != NULL; e = e->next )
   {
       if (m > e->recv_ts)
@@ -571,14 +572,32 @@ tw_net_minimum(tw_pe *me)
       }
   }
 
-  for( e = g_tw_network_pe[g_tw_mynode].cancel_q; e != NULL; e = e->next )
+  for( e = g_tw_network_pe[g_tw_mynode].cancel_q; e != NULL; e = e->cancel_next )
   {
       if (m > e->recv_ts)
       {
 	  m = e->recv_ts;
       }
   }
-  
+
+  // check former network layer events just added to PE's event_q and cancel_q but not processed
+  for( e = me->event_q.head; e != NULL; e = e->next )
+  {
+      if (m > e->recv_ts)
+      {
+	  m = e->recv_ts;
+      }
+  }
+
+  for( e = me->cancel_q; e != NULL; e = e->cancel_next )
+  {
+      if (m > e->recv_ts)
+      {
+	  m = e->recv_ts;
+      }
+  }
+
+  // now check MPI remote layer
   e = outq.head;
   while (e) {
     if (m > e->recv_ts)
@@ -927,6 +946,7 @@ tw_net_read(tw_pe *me)
 {
     tw_event *head=NULL;
     tw_event *e=NULL;
+    tw_event *e_cnext=NULL;
     
     // service shmem layer
     if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size )
@@ -941,8 +961,8 @@ tw_net_read(tw_pe *me)
 	    me->s_nwhite_recv++;
 
 	    // set event state variables
-	    e->state.owner = TW_pe_event_q; // transition from TW_net_shmem_event_q to dest pe's event q.
 	    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+	    e->state.owner = TW_pe_event_q; // transition from TW_net_shmem_event_q to dest pe's event q.
 	    e->caused_by_me = NULL;
 	    e->cause_next = NULL;
 	    // note, don't mess with e->next_cancel here!!
@@ -950,8 +970,8 @@ tw_net_read(tw_pe *me)
 	    // insert on PE's event q list.
 	    tw_eventq_push( &me->event_q, e);
 	    
-	    printf("tw_net_read: Fwd Ev at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
-		   e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
+	    printf("tw_net_read: Fwd Ev(%p) at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
+		   e, e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
 	}
     }
 
@@ -962,21 +982,42 @@ tw_net_read(tw_pe *me)
 	g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q = NULL;
 	tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
 
-	for( e = head; e != NULL; e = e->next )
+	for( e = head; e != NULL; e = e_cnext )
 	{
+	    e_cnext = e->cancel_next; // need to grab early incase e->cancel_next is modified below
+	    
+	    if( e->state.owner == TW_net_shmem_event_q )
+	    {
+		// e is still in network layer event q and has not offically been read yet.
+		// Re-insert back on cancel_q and let it be read first and make sure not to count it has having been recv'ed
+		tw_mutex_lock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
+		if( g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q == NULL )
+		{
+		    g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q = e;
+		}
+		else
+		{
+		    e->cancel_next = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q;
+		    g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q = e;
+		}
+		tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
+		continue;
+	    }
+
+	    // now we can count it!!
 	    me->s_nwhite_recv++;
 
 	    // set event state - look for additional items that need setting - remember this is shared memory
 	    e->state.cancel_q = 1;
 	    e->state.remote = 1;
-	    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
+	    // e->dest_lp was set by tw_getlocal_lp((tw_lpid) e->dest_lp) when read as a forward event.
 	    
 	    // insert onto PE's cancel queue.
 	    e->cancel_next = me->cancel_q;
 	    me->cancel_q = e;
 
-	    printf("tw_net_read: Cancel Ev at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
-		   e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
+	    printf("tw_net_read: Cancel Ev(%p) at TS=%lf, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
+		   e, e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
 	}
     }
     // service the network layer
@@ -1004,15 +1045,15 @@ tw_net_send(tw_event *e)
       if( !e->state.cancel_q )
       {
 	  tw_mutex_lock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
-	  tw_eventq_push(&(g_tw_network_pe[remote_pool_id].event_q), e);
+	  tw_eventq_unshift(&(g_tw_network_pe[remote_pool_id].event_q), e);
 	  tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].event_q_lock));
       }
       else
       {
 	  tw_error( TW_LOC, "Atempting to send a SHMEM cancel message via tw_net_send\n");
       }
-      printf("tw_net_send: Fwd Ev at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
-	     e->recv_ts, (tw_lpid) e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, me->s_nwhite_sent );
+      printf("tw_net_send: Fwd Ev(%p) at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
+	     e, e->recv_ts, (tw_lpid) e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, me->s_nwhite_sent );
    
       // Do not need to check network/MPI layer at this time.
   }
@@ -1055,8 +1096,8 @@ tw_net_cancel(tw_event *e)
      g_tw_network_pe[remote_pool_id].cancel_q = e;
      tw_mutex_unlock( &(g_tw_network_pe[remote_pool_id].cancel_q_lock));
 
-     printf("tw_net_cancel: Canel Ev at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
-	    e->recv_ts, (tw_lpid)e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, src_pe->s_nwhite_sent );
+     printf("tw_net_cancel: Canel Ev(%p) at TS=%lf, Dest LP %ld, Src Pool %d, Src Shmcomm Rank %d, Remote Pool ID %d, Src Global Rank %ld, SEND Count %lld \n",
+	    e, e->recv_ts, (tw_lpid)e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, remote_pool_id, g_tw_mynode, src_pe->s_nwhite_sent );
 
      // also service queues for other network activity just incase
      service_queues(src_pe);

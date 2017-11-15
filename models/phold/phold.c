@@ -57,7 +57,9 @@ void
 phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
 	tw_lpid	 dest;
-
+	
+printf("PHOLD LP %ld: FWD processing event at TS=%lf \n", lp->gid, tw_now(lp));
+	
 	if(tw_rand_unif(lp->rng) <= percent_remote)
 	{
 		bf->c1 = 1;
@@ -81,6 +83,8 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 void
 phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+printf("PHOLD LP %ld: REV processing event at TS=%lf \n", lp->gid, tw_now(lp));
+
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
 

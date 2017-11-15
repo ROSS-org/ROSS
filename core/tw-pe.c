@@ -56,6 +56,8 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	pe->node = g_tw_mynode;
 	tw_pe_settype(pe, &no_type);
 
+	pe->GVT = 0.0;
+	pe->GVT_prev = 0.0;
 	pe->trans_msg_ts = DBL_MAX;
 	pe->gvt_status = 0;
 
@@ -85,7 +87,9 @@ tw_pe_fossil_collect(tw_pe * me)
 	for(i = 0; i < g_tw_nkp; i++)
 	{
 		kp = tw_getkp(i);
+printf("tw_pe_fossil_collect: Rank %ld, START FC on KP %d \n", g_tw_mynode, i);		
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
+printf("tw_pe_fossil_collect: Rank %ld, END FC on KP %d \n", g_tw_mynode, i);		
 
 #ifdef ROSS_MEMORY
 		tw_kp_fossil_memory(kp);

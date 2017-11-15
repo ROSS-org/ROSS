@@ -475,7 +475,7 @@ struct tw_pe {
 
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */
     tw_stime GVT; /**< @brief Global Virtual Time */
-    tw_stime GVT_prev;
+    tw_stime GVT_prev; 
     tw_stime LVT; /**< @brief Local (to PE) Virtual Time */
 
 #ifdef ROSS_GVT_mpi_allreduce

@@ -150,8 +150,11 @@ tw_gvt_step2(tw_pe *me)
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-
-	gvt = ROSS_MIN(gvt, me->GVT_prev);
+	
+	printf("GVT %d: Rank %ld computes GVT at %lf with pq_min %lf, net_min %lf, GVT_prev %lf, PQ size %d \n",
+	       g_tw_gvt_done, g_tw_mynode, gvt, pq_min, net_min, me->GVT_prev, tw_pq_get_size(me->pq) );
+	
+	// gvt = ROSS_MIN(gvt, me->GVT_prev); this forces GVT to a lower value potential or if prev GVT is DBL_MAX it does nothing.
 
 	if(gvt != me->GVT_prev)
 	{
@@ -183,8 +186,11 @@ tw_gvt_step2(tw_pe *me)
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;
 	me->trans_msg_ts = DBL_MAX;
-	me->GVT_prev = DBL_MAX; // me->GVT;
+	me->GVT_prev = me->GVT;
 	me->GVT = gvt;
+
+printf("Reset me->GVT %lf equal to just locally computed gvt variable %lf \n", me->GVT, gvt );
+	
 	me->gvt_status = TW_GVT_NORMAL;
 
 	gvt_cnt = 0;
@@ -216,8 +222,8 @@ tw_gvt_step2(tw_pe *me)
     
     st_inst_dump();
 
-	g_tw_gvt_done++;
+    g_tw_gvt_done++;
 
-	// reset for the next gvt round -- for use in realtime GVT mode only!!
-	g_tw_gvt_interval_start_cycles = tw_clock_read();
+    // reset for the next gvt round -- for use in realtime GVT mode only!!
+    g_tw_gvt_interval_start_cycles = tw_clock_read();
  }
