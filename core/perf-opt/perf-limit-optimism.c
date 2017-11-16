@@ -28,7 +28,7 @@ void perf_init()
     }
 }
 
-void perf_efficiency_check(tw_pe *pe)
+double perf_efficiency_check(tw_pe *pe)
 {
     //tw_statistics s;
     //bzero(&s, sizeof(s));
@@ -63,26 +63,15 @@ void perf_efficiency_check(tw_pe *pe)
 
     if (limit_opt == LIMIT_OFF || limit_opt == LIMIT_RECOVER)
     {
-        if (efficiency < 0.0 && efficiency >= -100.0) // set flag to limit optimism
+        if (efficiency < 0.0) // set flag to limit optimism
             limit_opt = LIMIT_ON;
-        else if (efficiency < -100)
-            limit_opt = LIMIT_AGGRESSIVE;
     }
     else if (limit_opt == LIMIT_ON)
     {
         if (efficiency > 0)
             limit_opt = LIMIT_RECOVER;
-        else if (efficiency < -100)
-            limit_opt = LIMIT_AGGRESSIVE;
     }
-    else if (limit_opt == LIMIT_AGGRESSIVE)
-    {
-        if (efficiency > 0)
-            limit_opt = LIMIT_RECOVER;
-        else if (efficiency < 0 && efficiency > -100)
-            limit_opt = LIMIT_ON;
-    }
-
+    return efficiency;
 }
 
 void perf_adjust_optimism(tw_pe *pe)
@@ -90,26 +79,27 @@ void perf_adjust_optimism(tw_pe *pe)
     if (g_perf_disable_opt)
         return;
 
-    perf_efficiency_check(pe);
+    double efficiency = perf_efficiency_check(pe);
+    int inc_amount = 1000 * efficiency;
+    double dec_amt = 1.0 - (abs(efficiency) / (abs(efficiency) + 1000.0));
+    if (dec_amt < 0.05)
+        dec_amt = 0.05;
+    else if (dec_amt > 0.95)
+        dec_amt = 0.95;
 
     if (limit_opt == LIMIT_ON)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead
         if (g_tw_max_opt_lookahead >= 1000)
-            g_tw_max_opt_lookahead *= 0.75;
+            g_tw_max_opt_lookahead *= dec_amt;
+        //printf("efficiency = %f, dec_amt = %f\n", efficiency, dec_amt);
         //printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
-    }
-    else if (limit_opt == LIMIT_AGGRESSIVE)
-    { // use multiplicative decrease to lower g_st_max_opt_lookahead
-        if (g_tw_max_opt_lookahead >= 1000)
-            g_tw_max_opt_lookahead *= 0.5;
-        //printf("PE %ld decreasing opt lookahead (aggressive) to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
     }
     else if (limit_opt == LIMIT_RECOVER)
     { // use additive increase to slowly allow for more optimism
-        if (ULLONG_MAX - g_tw_max_opt_lookahead < 1000) // avoid overflow
+        if (ULLONG_MAX - g_tw_max_opt_lookahead < inc_amount) // avoid overflow
             g_tw_max_opt_lookahead = ULLONG_MAX;
         else 
-            g_tw_max_opt_lookahead += 1000;
+            g_tw_max_opt_lookahead += inc_amount;
         //printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
     }
 }
