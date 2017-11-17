@@ -57,6 +57,7 @@ struct sim_engine_data_pe
     tw_stime s_avl;
     //tw_stime s_buddy;
     //tw_stime s_lz4;
+    unsigned long long max_opt_lookahead;
 };
 
 struct sim_engine_data_kp

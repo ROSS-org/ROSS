@@ -329,6 +329,7 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
         cur_data_pe.s_avl = (pe->stats.s_avl - s->prev_data_pe.s_avl) / g_tw_clock_rate;
         //cur_data_pe.s_buddy = (pe->stats.s_buddy - s->prev_data_pe.s_buddy) / g_tw_clock_rate;
         //cur_data_pe.s_lz4 = (pe->stats.s_lz4 - s->prev_data_pe.s_lz4) / g_tw_clock_rate;
+        cur_data_pe.max_opt_lookahead = g_tw_max_opt_lookahead;
 
         s->prev_data_pe.ngvt = g_tw_gvt_done;
         s->prev_data_pe.s_net_read = pe->stats.s_net_read;
