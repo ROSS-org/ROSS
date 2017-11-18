@@ -18,6 +18,14 @@ typedef enum{
     MODEL_TYPE
 } data_type_flag;
 
+typedef enum{
+    ALP_NONE,
+    ALP_FULL, // LP, KP, and PE
+    ALP_KP, // KP and PE
+    ALP_PE, //PE only
+    ALP_MODEL
+} analysis_type_flag;
+
 struct analysis_msg
 {
     tw_lpid src;
@@ -40,12 +48,16 @@ struct sim_engine_data_pe
 {
     tw_stime last_gvt;
     tw_stat ngvt;
-    //tw_stat rb_total; 
-    //tw_stat rb_secondary;
-    //tw_stat nevent_processed;
-    //tw_stat e_rbs;
-    //tw_stat nsend_network;
-    //tw_stat nread_network;
+    tw_stat rb_total; 
+    tw_stat rb_secondary;
+    tw_stat nevent_processed;
+    tw_stat nevent_abort;
+    tw_stat e_rbs;
+    tw_stat nsend_network;
+    tw_stat nread_network;
+    tw_stat fc_attempts;
+    tw_stat pq_qsize;
+    tw_stat pe_event_ties;
     tw_stime s_net_read;
     tw_stime s_gvt;
     tw_stime s_fossil_collect;
