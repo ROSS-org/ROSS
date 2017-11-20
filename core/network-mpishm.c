@@ -187,9 +187,13 @@ tw_net_start(void)
 void
 tw_net_shmem_start(void)
 {
-    int i, j;
-    size_t original_size=0; // part of thread test at end of setup.
-
+  int i, j;
+  size_t original_size=0; // part of thread test at end of setup.
+  tw_clock mutex_time_start=0;
+  tw_clock mutex_time_finish=0;
+  tw_clock mutex_time_total=0;
+  tw_clock mutex_total_count=0;
+  
   if( !g_tw_shm_enabled )
   {
       printf("tw_net_shmem_start: --enableshmem=1 not on cmd line, not creating pools\n");
@@ -276,6 +280,13 @@ tw_net_shmem_start(void)
     
   if( g_tw_network_mpishm_shmcomm_rank == 0 )
   {
+      printf("Rank %ld/Shm Rank %d: Attempting shmget cmd with key %d, size %llu, flag %d \n",
+	     g_tw_mynode,
+	     g_tw_network_mpishm_shmcomm_rank,
+	     network_mpishm_shared_memory_key,
+	     network_mpishm_shared_memory_size,
+	     network_mpishm_shared_memory_create_flag);
+      
       if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
 						    network_mpishm_shared_memory_size,
 						    network_mpishm_shared_memory_create_flag)) < 0)
@@ -315,7 +326,7 @@ tw_net_shmem_start(void)
      int sum_valid_addresses=0;
      int attach_succeeded=0;
      int sum_attach_succeeded=0;
-     
+
      // rest each MPI rank test flags
      found_valid_address = 0;
      attach_succeeded = 0;
@@ -459,22 +470,32 @@ tw_net_shmem_start(void)
   {
       for( j = 0; j < (1024*1024); j++)
       {
+	  mutex_time_start = tw_clock_read();
 	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
 	  g_tw_network_pe[i].event_q.size++;
 	  tw_mutex_unlock(&(g_tw_network_pe[i].event_q_lock));
+	  mutex_time_finish = tw_clock_read();
+	  mutex_time_total += mutex_time_finish - mutex_time_start;
+	  mutex_total_count++;
       }
       for( j = 0; j < (1024*1024); j++)
       {
+	  mutex_time_start = tw_clock_read();
 	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
 	  g_tw_network_pe[i].event_q.size--;
 	  tw_mutex_unlock(&(g_tw_network_pe[i].event_q_lock));
+	  mutex_time_finish = tw_clock_read();
+	  mutex_time_total += mutex_time_finish - mutex_time_start;
+	  mutex_total_count++;
+
       }
   }
 
   MPI_Barrier(MPI_COMM_ROSS);
   
-  printf("Rank %ld: Found event q size after test to be %ld, vs %ld original size \n",
-	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size, original_size );
+  printf("Rank %ld: Found event q size after test to be %ld, vs %ld original size, cycles per mutex = %lf (%ld cycles / %ld num mutexes) \n",
+	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size, original_size,
+	 ((double)(mutex_time_total) / (double)(mutex_total_count)), mutex_time_total, mutex_total_count );
   fflush(stdout);
 
   MPI_Barrier(MPI_COMM_ROSS);

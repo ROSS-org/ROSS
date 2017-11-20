@@ -63,6 +63,10 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 			   sizeof(tw_eventq));
 		    // reset return q list
 		    head = tw_eventq_pop_list(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q));
+
+		    // now grab new event
+		    e = tw_eventq_pop(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].free_q));
+		    
 		    tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].return_q_lock));
 		}
 		else

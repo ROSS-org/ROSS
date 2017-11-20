@@ -1,7 +1,7 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
-#define ROSS_DEBUG 1 // NOTE - THIS IS ON NOW!!
+#define ROSS_DEBUG 0 
 
 #include <ross.h>
 
@@ -292,16 +292,16 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             {
                 next = cev->cause_next;
                 cev->cause_next = NULL;
-printf("Ev FC: e->recv_ts = %lf, caused by me->recv_ts = %lf, Shmem Pool Id %d, State Owner %d \n",
-       e->recv_ts, cev->recv_ts, cev->shmem_pool_id, cev->state.owner);
+/* printf("Ev FC: e->recv_ts = %lf, caused by me->recv_ts = %lf, Shmem Pool Id %d, State Owner %d \n", */
+/*        e->recv_ts, cev->recv_ts, cev->shmem_pool_id, cev->state.owner); */
 
                 // make sure we don't free any shared events since they will be freed by the other side
                 if(cev->state.owner == TW_pe_sevent_q)
 		{
 		    if( cev->shmem_pool_id == -1 )
 		    {
-printf("Ev FC: e->recv_ts = %lf, caused by me->recv_ts = %lf, Shmem Pool Id %d, State Owner %d - ADDED to FreeQ \n",
-       e->recv_ts, cev->recv_ts, cev->shmem_pool_id, cev->state.owner);
+/* printf("Ev FC: e->recv_ts = %lf, caused by me->recv_ts = %lf, Shmem Pool Id %d, State Owner %d - ADDED to FreeQ \n", */
+/*        e->recv_ts, cev->recv_ts, cev->shmem_pool_id, cev->state.owner); */
 			
 			tw_event_free(cev->src_lp->pe, cev);
 		    }
@@ -330,8 +330,8 @@ printf("Ev FC: e->recv_ts = %lf, caused by me->recv_ts = %lf, Shmem Pool Id %d, 
 	    //reduce q size by one
 	    q->size--;
 
-printf("Ev FC: Adding to Return Q: e->recv_ts = %lf, ev->shmem_pool_id %d \n",
-       e->recv_ts, e->shmem_pool_id);
+/* printf("Ev FC: Adding to Return Q: e->recv_ts = %lf, ev->shmem_pool_id %d \n", */
+/*        e->recv_ts, e->shmem_pool_id); */
 	    
 	    tw_mutex_lock( &(g_tw_network_pe[e->shmem_pool_id].return_q_lock));
 	    tw_eventq_unshift(&(g_tw_network_pe[e->shmem_pool_id].return_q), e);
@@ -361,16 +361,16 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 
   int	 cnt;
 
-  if( q->head )
-  {
-      printf("tw_eventq_fossil_collect: GVT %lf, KP head ts = %lf, KP tail ts %lf, KP q size %ld \n",
-	     gvt, q->head->recv_ts, q->tail->recv_ts, q->size );
-  }
-  else
-  {
-            printf("tw_eventq_fossil_collect: GVT %lf, KP head is NULL, KP tail is NULL, KP q size %ld \n",
-	     gvt, q->size );
-  }
+  /* if( q->head ) */
+  /* { */
+  /*     printf("tw_eventq_fossil_collect: GVT %lf, KP head ts = %lf, KP tail ts %lf, KP q size %ld \n", */
+  /* 	     gvt, q->head->recv_ts, q->tail->recv_ts, q->size ); */
+  /* } */
+  /* else */
+  /* { */
+  /*           printf("tw_eventq_fossil_collect: GVT %lf, KP head is NULL, KP tail is NULL, KP q size %ld \n", */
+  /* 	     gvt, q->size ); */
+  /* } */
   
   /* Nothing to collect from this event list? */
   if (!t || t->recv_ts >= gvt)
@@ -379,7 +379,7 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
   if (h->recv_ts < gvt)
     {
       /* Everything in the queue can be collected */
-printf("tw_eventq_fossil_collect: GVT %lf, Free WHOLE List via tw_eventq_push_list \n", gvt);
+// printf("tw_eventq_fossil_collect: GVT %lf, Free WHOLE List via tw_eventq_push_list \n", gvt);
       tw_eventq_push_list(&pe->free_q, h, t, q->size);
       q->head = q->tail = NULL;
       q->size = 0;
@@ -408,7 +408,7 @@ printf("tw_eventq_fossil_collect: GVT %lf, Free WHOLE List via tw_eventq_push_li
     q->size -= cnt;
 
     /* Free h..t (inclusive) */
-printf("tw_eventq_fossil_collect: GVT %lf, Free PART List via tw_eventq_push_list \n", gvt);    
+// printf("tw_eventq_fossil_collect: GVT %lf, Free PART List via tw_eventq_push_list \n", gvt);    
     tw_eventq_push_list(&pe->free_q, h, t, cnt);
   }
 }

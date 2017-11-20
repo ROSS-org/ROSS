@@ -87,9 +87,9 @@ tw_pe_fossil_collect(tw_pe * me)
 	for(i = 0; i < g_tw_nkp; i++)
 	{
 		kp = tw_getkp(i);
-printf("tw_pe_fossil_collect: Rank %ld, START FC on KP %d \n", g_tw_mynode, i);		
+// printf("tw_pe_fossil_collect: Rank %ld, START FC on KP %d \n", g_tw_mynode, i);		
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
-printf("tw_pe_fossil_collect: Rank %ld, END FC on KP %d \n", g_tw_mynode, i);		
+// printf("tw_pe_fossil_collect: Rank %ld, END FC on KP %d \n", g_tw_mynode, i);		
 
 #ifdef ROSS_MEMORY
 		tw_kp_fossil_memory(kp);
