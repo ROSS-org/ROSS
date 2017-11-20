@@ -43,6 +43,7 @@ double perf_efficiency_check(tw_pe *pe)
     //double lowest_eff = DBL_MAX;
     tw_stime vt_diff = 0.0;
     tw_stime max_diff = 0.0;
+    tw_stime ratio = 0.0;
 
     for (i = 0; i < g_tw_nkp; i++)
     {
@@ -68,20 +69,37 @@ double perf_efficiency_check(tw_pe *pe)
     }
 
     vt_diff = max_diff;
-    tw_stime ratio = vt_diff/max_diff_sim;
+    if (vt_diff == 0.0) 
+        // this PE has not processed any events -> load imbalance
+        // so we probably want to reduce its lookahead
+        ratio = 0.95;
+    else if (vt_diff < 0.0) 
+        // shouldn't happen, but just in case
+        ratio = 0.95;
+    else
+    {
+        if (max_diff_sim <= 0.0)
+            ratio = 0.5; 
+        else 
+            ratio= vt_diff/max_diff_sim;
+    }
+
+    //printf("PE %ld state = %d, max_diff_sim = %f, vt_diff = %f, ratio = %f\n", g_tw_mynode, limit_opt, max_diff_sim, vt_diff, ratio);
     //efficiency = lowest_eff;
 
     if (limit_opt == LIMIT_OFF || limit_opt == LIMIT_RECOVER)
     {
         //if (efficiency < 0.0) // set flag to limit optimism
-        if (vt_diff > max_diff_sim)
+        if (ratio > .25)
             limit_opt = LIMIT_ON;
+        //printf("PE %ld state now = %d (if branch)\n", g_tw_mynode, limit_opt);
     }
     else if (limit_opt == LIMIT_ON)
     {
         //if (efficiency > 0)
-        if (vt_diff <= max_diff_sim)
+        if (ratio < .25)
             limit_opt = LIMIT_RECOVER;
+        //printf("PE %ld state now = %d (else branch)\n", g_tw_mynode, limit_opt);
     }
     //return efficiency;
     if (vt_diff > max_diff_sim)
@@ -97,10 +115,12 @@ void perf_adjust_optimism(tw_pe *pe)
 
     //double efficiency = perf_efficiency_check(pe);
     tw_stime diff_ratio = perf_efficiency_check(pe);
+    if (diff_ratio > 0.95)
+        diff_ratio = 0.95;
     //int inc_amount = 1000 * efficiency;
     int inc_amount = 1000 * (1-diff_ratio);
     //double dec_amt = 1.0 - (abs(efficiency) / (abs(efficiency) + 1000.0));
-    double dec_amt = diff_ratio;
+    double dec_amt = (1 - diff_ratio);
     if (dec_amt < 0.05)
         dec_amt = 0.05;
     else if (dec_amt > 0.95)
@@ -110,7 +130,7 @@ void perf_adjust_optimism(tw_pe *pe)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead
         if (g_tw_max_opt_lookahead >= 1000)
             g_tw_max_opt_lookahead *= dec_amt;
-        //printf("efficiency = %f, dec_amt = %f\n", efficiency, dec_amt);
+        //printf("ratio = %f, dec_amt = %f\n", diff_ratio, dec_amt);
         //printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
     }
     else if (limit_opt == LIMIT_RECOVER)
@@ -119,6 +139,7 @@ void perf_adjust_optimism(tw_pe *pe)
             g_tw_max_opt_lookahead = ULLONG_MAX;
         else 
             g_tw_max_opt_lookahead += inc_amount;
+        //printf("ratio = %f, inc_amt = %d\n", diff_ratio, inc_amount);
         //printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
     }
 }
