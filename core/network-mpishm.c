@@ -1019,8 +1019,8 @@ tw_net_read(tw_pe *me)
 		g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q = e;
 		tw_mutex_unlock( &(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q_lock));
 		
-		printf("tw_net_read: Re-Insert Cancel Ev(%p) at TS=%lf as NOT YET read as FWD Ev, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n",
-		       e, e->recv_ts, e->dest_lp->gid, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv );
+		/* printf("tw_net_read: Re-Insert Cancel Ev(%p) at TS=%lf as NOT YET read as FWD Ev, Dest LP %ld, Src Pool %d, Dest Shmcomm Rank %d, Dest Global Rank %ld, RECV Count %lld \n", */
+		/*        e, e->recv_ts, (tw_lpid)e->dest_lp, e->shmem_pool_id, g_tw_network_mpishm_shmcomm_rank, g_tw_mynode, me->s_nwhite_recv ); */
 
 		continue;
 	    }
@@ -1058,6 +1058,7 @@ tw_net_send(tw_event *e)
       // must be dest minus source for alogorithm to work right since we add back the diff to the shmcomm rank number.
       rank_diff = e->dest_pe - g_tw_mynode;
       remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
+      // don't have to check pool block here - we can assume they are the same at this point
       
       me->s_nwhite_sent++;
       e->event_id = (tw_eventid) ++me->seq_num;

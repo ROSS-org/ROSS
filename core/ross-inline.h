@@ -34,6 +34,7 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 {
 
     int dest_peid, src_peid;
+    int dest_pool_block, src_pool_block;
     tw_event *e=NULL;
     tw_event *head=NULL;
     size_t size=0;
@@ -41,11 +42,14 @@ tw_event_pick_event_pool(tw_lpid destlpid, tw_lp *src_lp)
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ( destlpid );
+    dest_pool_block = dest_peid / g_tw_ranks_per_node;
     src_peid = me->id;
+    src_pool_block = src_peid / g_tw_ranks_per_node;
     
 #ifdef ROSS_NETWORK_mpishm
     if( (src_peid != dest_peid) &&
-	(abs((dest_peid - src_peid)) < g_tw_ranks_per_node ))
+	(abs((dest_peid - src_peid)) < g_tw_ranks_per_node ) &&
+	dest_pool_block == src_pool_block)
 	{
 	    // allocated a shared memory event
 	    e = tw_eventq_pop(&(g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].free_q));
