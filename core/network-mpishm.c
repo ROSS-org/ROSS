@@ -196,7 +196,10 @@ tw_net_shmem_start(void)
   
   if( !g_tw_shm_enabled )
   {
-      printf("tw_net_shmem_start: --enableshmem=1 not on cmd line, not creating pools\n");
+    if(g_tw_mynode == 0)
+      {
+	printf("tw_net_shmem_start: --enableshmem=1 not on cmd line, not creating pools\n");
+      }
       return;
   }
 
@@ -232,7 +235,10 @@ tw_net_shmem_start(void)
     {
       network_mpishm_event_length +=
 	  network_mpishm_align - (network_mpishm_event_length & (network_mpishm_align - 1));
-      tw_printf(TW_LOC, "REALIGNING EVENT MEMORY!\n");
+      if( g_tw_mynode == 0)
+	{
+	  tw_printf(TW_LOC, "REALIGNING EVENT MEMORY!\n");
+	}
     }
   
   network_mpishm_shared_memory_size = ((sizeof(tw_network_pe) * g_tw_ranks_per_node) +
@@ -252,8 +258,11 @@ tw_net_shmem_start(void)
   
   if ( sched_setaffinity(getpid(), NETWORK_MPISHM_MAX_CPUS, network_mpishm_cpu_set) == 0 )
   {
-      printf("Rank %ld, pid %d is now bound to cpu %d, confirmed by sched_getcpu = %d \n", 
-	     g_tw_mynode, getpid(), network_mpishm_my_cpu, sched_getcpu() );
+    if( g_tw_mynode == 0 )
+      {
+	printf("Rank %ld, pid %d is now bound to cpu %d, confirmed by sched_getcpu = %d \n", 
+	       g_tw_mynode, getpid(), network_mpishm_my_cpu, sched_getcpu() );
+      }
   }
   else
   {
@@ -269,9 +278,12 @@ tw_net_shmem_start(void)
   MPI_Comm_size (network_mpishm_shmcomm, &network_mpishm_shmcomm_size);
   MPI_Comm_rank (network_mpishm_shmcomm, &g_tw_network_mpishm_shmcomm_rank);
   
-  printf ("I'm Comm World Rank = %ld, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
-	  g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
-  fflush(stdout);
+  if( g_tw_mynode == 0 )
+    {
+      printf ("I'm Comm World Rank = %ld, Shm Comm Rank = %d with a Shm Comm Size of %d and Shared Memory Key %d\n",
+	      g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shmcomm_size, network_mpishm_shared_memory_key); 
+      fflush(stdout);
+    }
   
   /******************************************************************************************************************/
   // Create and locate the shared memory segment
@@ -280,22 +292,31 @@ tw_net_shmem_start(void)
     
   if( g_tw_network_mpishm_shmcomm_rank == 0 )
   {
-      printf("Rank %ld/Shm Rank %d: Attempting shmget cmd with key %d, size %llu, flag %d \n",
-	     g_tw_mynode,
-	     g_tw_network_mpishm_shmcomm_rank,
-	     network_mpishm_shared_memory_key,
-	     network_mpishm_shared_memory_size,
-	     network_mpishm_shared_memory_create_flag);
-      
-      if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
+    if( g_tw_mynode == 0)
+      {
+    	printf("Rank %ld/Shm Rank %d: Attempting shmget cmd with key %d, size %llu, flag %d \n",
+    	       g_tw_mynode,
+    	       g_tw_network_mpishm_shmcomm_rank,
+    	       network_mpishm_shared_memory_key,
+    	       network_mpishm_shared_memory_size,
+    	       network_mpishm_shared_memory_create_flag);
+      }
+    
+    if ((network_mpishm_shared_memory_id = shmget(network_mpishm_shared_memory_key,
 						    network_mpishm_shared_memory_size,
 						    network_mpishm_shared_memory_create_flag)) < 0)
       {
-	  perror("create shmget failed: ");
-	  exit(-1);
+	perror("create shmget failed: ");
+	exit(-1);
       }
-      printf("Rank %ld/Shm Rank %d: Created Shm Pool with ID %d \n", g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
-      MPI_Barrier(network_mpishm_shmcomm);  
+
+    /* if( g_tw_mynode == 0 ) */
+    /*   { */
+    /* 	printf("Rank %ld/Shm Rank %d: Created Shm Pool with ID %d \n",  */
+    /* 	       g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id); */
+    /*   } */
+
+    MPI_Barrier(network_mpishm_shmcomm);  
   }
   else
   {
@@ -308,8 +329,6 @@ tw_net_shmem_start(void)
 	  perror("locate shmget failed: ");
 	  exit(-1);
       }
-      printf("Rank %ld/Shm Rank %d: Located Shm Pool with ID %d \n",
-	     g_tw_mynode, g_tw_network_mpishm_shmcomm_rank, network_mpishm_shared_memory_id);
   }
   
   /******************************************************************************************************************/
@@ -339,9 +358,12 @@ tw_net_shmem_start(void)
 			    fd, offset)) != MAP_FAILED) &&
 	 (ret_addr == network_mpishm_start_shared_memory_pool_address))
      {
-	 printf("Rank %ld: Mmap try %d found available VM region at address %p \n", 
-		g_tw_mynode, counter, network_mpishm_start_shared_memory_pool_address );
-	 fflush(stdout);
+       /* if( g_tw_mynode == 0 ) */
+       /* 	 { */
+       /* 	   printf("Rank %ld: Mmap try %d found available VM region at address %p \n",  */
+       /* 		  g_tw_mynode, counter, network_mpishm_start_shared_memory_pool_address ); */
+       /* 	 fflush(stdout); */
+       /* 	 } */
 	 
 	 found_valid_address = 1;
 	 
@@ -362,24 +384,33 @@ tw_net_shmem_start(void)
 	     }
 	 }
 	 
-	 printf("Rank %ld: Mmap try %d: found no free VM region at address %p, ret addr = %p \n", 
-		g_tw_mynode, counter, network_mpishm_start_shared_memory_pool_address, ret_addr );
-	 fflush(stdout);
+	 /* if( g_tw_mynode == 0 ) */
+	 /*   { */
+	 /*     printf("Rank %ld: Mmap try %d: found no free VM region at address %p, ret addr = %p \n",  */
+	 /* 	    g_tw_mynode, counter, network_mpishm_start_shared_memory_pool_address, ret_addr ); */
+	 /*     fflush(stdout); */
+	 /*   } */
      }
      
      MPI_Allreduce( &found_valid_address, &sum_valid_addresses, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
      
      if( sum_valid_addresses != network_mpishm_shmcomm_size )
      {
-	 printf("Rank %ld: NOT all ranks agree on address %p, found valid address = %d TRY AGAIN!\n",
-		g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	 fflush(stdout);
+       /* if( g_tw_mynode == 0) */
+       /* 	 { */
+       /* 	   printf("Rank %ld: NOT all ranks agree on address %p, found valid address = %d TRY AGAIN!\n", */
+       /* 		  g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address ); */
+       /* 	 fflush(stdout); */
+       /* 	 } */
 	 goto continue_address_test;
      }
      else
      {
-	 printf("Rank %ld: all ranks agree on address %p, found valid address = %d now try attach test\n",
-		g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+       /* if( g_tw_mynode == 0 ) */
+       /* 	 { */
+       /* 	   printf("Rank %ld: all ranks agree on address %p, found valid address = %d now try attach test\n", */
+       /* 		  g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address ); */
+       /* 	 } */
      }
      
      // test attach the shared memory segment in serial fashion
@@ -395,24 +426,24 @@ tw_net_shmem_start(void)
      }
      else
      {
-	 printf("Rank %ld: Completed shared memory pool attachment at location %p \n",
-		g_tw_mynode, network_mpishm_shared_memory_pool );
-	 fflush(stdout);
+       /* if( g_tw_mynode == 0 ) */
+       /* 	 { */
+       /* 	   printf("Rank %ld: Completed shared memory pool attachment at location %p \n", */
+       /* 		  g_tw_mynode, network_mpishm_shared_memory_pool ); */
+       /* 	 fflush(stdout); */
+       /* 	 } */
 	 attach_succeeded = 1;
      }
      
      MPI_Allreduce( &attach_succeeded, &sum_attach_succeeded, 1, MPI_INT, MPI_SUM, network_mpishm_shmcomm);
      
-     if( sum_attach_succeeded != network_mpishm_shmcomm_size)
+     if( sum_attach_succeeded == network_mpishm_shmcomm_size)
      {
-	 printf("Rank %ld: NOT all ranks attach on address %p, attach succeeded = %d TRY AGAIN!\n",
-		g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address );
-	 fflush(stdout);
-     }
-     else
-     {
-	 printf("Rank %ld: all ranks attached on address %p, found valid address = %d now try shared segment lock/unlock test\n",
-		g_tw_mynode, network_mpishm_start_shared_memory_pool_address, found_valid_address );
+       if( g_tw_mynode == 0)
+	 {
+	   printf("Rank %ld: all ranks attached on address %p, size %llu, found valid address = %d now try shared segment lock/unlock test\n",
+		  g_tw_mynode, network_mpishm_start_shared_memory_pool_address, network_mpishm_shared_memory_size, found_valid_address );
+	 }
 	 break;
      }
      
@@ -425,8 +456,11 @@ tw_net_shmem_start(void)
   // breakup memory pool and allocate events - let each local Rank 0 do the work across groups
   if( g_tw_network_mpishm_shmcomm_rank == 0 )
   {
-      printf("Comm World Rank %ld, Shm Comm Rank %d: setting up pool, allocating %llu bytes \n",
-	     g_tw_mynode, network_mpishm_rank, network_mpishm_shared_memory_size);
+    if( g_tw_mynode == 0 )
+      {
+	printf("Comm World Rank %ld, Shm Comm Rank %d: setting up pool, allocating %llu bytes \n",
+	       g_tw_mynode, network_mpishm_rank, network_mpishm_shared_memory_size);
+      }
       
       g_tw_network_pe = (tw_network_pe *)network_mpishm_start_shared_memory_pool_address;
       network_mpishm_start_shared_memory_pool_address =
@@ -461,14 +495,18 @@ tw_net_shmem_start(void)
   MPI_Barrier(MPI_COMM_ROSS);
   original_size = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size;
   
-  printf("Rank %ld: Found event q size to be %ld before pthread lock test \n",
-	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size );
+  if( g_tw_mynode == 0 )
+    {
+      printf("Rank %ld: Found event q size to be %ld before pthread lock test \n",
+	     g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size );
+    }
 
   MPI_Barrier(MPI_COMM_ROSS);
     
-  for( i = 0; i < g_tw_ranks_per_node; i++ )
+  // perform test just 2 times thru
+  for( i = 0; i < 2; i++ )
   {
-      for( j = 0; j < (1024*1024); j++)
+      for( j = 0; j < 1024; j++)
       {
 	  mutex_time_start = tw_clock_read();
 	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
@@ -478,7 +516,7 @@ tw_net_shmem_start(void)
 	  mutex_time_total += mutex_time_finish - mutex_time_start;
 	  mutex_total_count++;
       }
-      for( j = 0; j < (1024*1024); j++)
+      for( j = 0; j < 1024; j++)
       {
 	  mutex_time_start = tw_clock_read();
 	  tw_mutex_lock(&(g_tw_network_pe[i].event_q_lock));
@@ -487,16 +525,18 @@ tw_net_shmem_start(void)
 	  mutex_time_finish = tw_clock_read();
 	  mutex_time_total += mutex_time_finish - mutex_time_start;
 	  mutex_total_count++;
-
       }
   }
 
   MPI_Barrier(MPI_COMM_ROSS);
   
-  printf("Rank %ld: Found event q size after test to be %ld, vs %ld original size, cycles per mutex = %lf (%ld cycles / %ld num mutexes) \n",
-	 g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size, original_size,
-	 ((double)(mutex_time_total) / (double)(mutex_total_count)), mutex_time_total, mutex_total_count );
-  fflush(stdout);
+  if( g_tw_mynode == 0 )
+    {
+      printf("Rank %ld: Found event q size after test to be %ld, vs %ld original size, cycles per mutex = %lf (%ld cycles / %ld num mutexes) \n\n\n",
+	     g_tw_mynode, g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size, original_size,
+	     ((double)(mutex_time_total) / (double)(mutex_total_count)), mutex_time_total, mutex_total_count );
+      fflush(stdout);
+    }
 
   MPI_Barrier(MPI_COMM_ROSS);
 
@@ -504,9 +544,6 @@ tw_net_shmem_start(void)
   g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.size = original_size;
 
   MPI_Barrier(MPI_COMM_ROSS);
-    
-  printf("\n");
-
 }
 
 void
@@ -554,8 +591,11 @@ tw_net_stop(void)
 	  {
 	      sprintf(network_mpishm_ipcrm_command_string, "ipcrm -m %d", network_mpishm_shared_memory_id);
 	      system( network_mpishm_ipcrm_command_string );
-	      printf("Rank %ld leaving MPI World, cleaned up shm segment id %d \n", g_tw_mynode, network_mpishm_shared_memory_id);
-	      fflush(stdout);
+	      if( g_tw_mynode == 0)
+		{
+		  printf("Rank %ld leaving MPI World, cleaned up shm segment id %d \n", g_tw_mynode, network_mpishm_shared_memory_id);
+		  fflush(stdout);
+		}
 	  }
 	  /******************************************************************************************************************/
 	  // Now LEAVE THE MPI WORLD !!!
@@ -585,7 +625,7 @@ tw_net_minimum(tw_pe *me)
   int i;
 
   // check network layer events
-  for( e = g_tw_network_pe[g_tw_mynode].event_q.head; e != NULL; e = e->next )
+  for( e = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].event_q.head; e != NULL; e = e->next )
   {
       if (m > e->recv_ts)
       {
@@ -593,7 +633,7 @@ tw_net_minimum(tw_pe *me)
       }
   }
 
-  for( e = g_tw_network_pe[g_tw_mynode].cancel_q; e != NULL; e = e->cancel_next )
+  for( e = g_tw_network_pe[g_tw_network_mpishm_shmcomm_rank].cancel_q; e != NULL; e = e->cancel_next )
   {
       if (m > e->recv_ts)
       {

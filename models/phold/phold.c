@@ -34,24 +34,24 @@ phold_init(phold_state * s, tw_lp * lp)
 	  }
 }
 
-void
-phold_pre_run(phold_state * s, tw_lp * lp)
-{
-    tw_lpid	 dest;
+/* void */
+/* phold_pre_run(phold_state * s, tw_lp * lp) */
+/* { */
+/*     tw_lpid	 dest; */
 
-	if(tw_rand_unif(lp->rng) <= percent_remote)
-	{
-		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
-	} else
-	{
-		dest = lp->gid;
-	}
+/* 	if(tw_rand_unif(lp->rng) <= percent_remote) */
+/* 	{ */
+/* 		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1); */
+/* 	} else */
+/* 	{ */
+/* 		dest = lp->gid; */
+/* 	} */
 
-	if(dest >= (g_tw_nlp * tw_nnodes()))
-		tw_error(TW_LOC, "bad dest");
+/* 	if(dest >= (g_tw_nlp * tw_nnodes())) */
+/* 		tw_error(TW_LOC, "bad dest"); */
 
-	tw_event_send(tw_event_new(dest, tw_rand_exponential(lp->rng, mean) + lookahead, lp));
-}
+/* 	tw_event_send(tw_event_new(dest, tw_rand_exponential(lp->rng, mean) + lookahead, lp)); */
+/* } */
 
 void
 phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
@@ -63,11 +63,18 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 	if(tw_rand_unif(lp->rng) <= percent_remote)
 	{
 		bf->c1 = 1;
-		dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
-		// Makes PHOLD non-deterministic across processors! Don't uncomment
-		/* dest += offset_lpid; */
-		/* if(dest >= ttl_lps) */
-		/* 	dest -= ttl_lps; */
+
+		switch( traffic )
+		  {
+		  case 0:
+		    dest = tw_rand_integer(lp->rng, 0, ttl_lps - 1);
+		    break;
+		  case 1:
+		    dest = (lp->gid + nlp_per_pe) % ttl_lps;
+		    break;
+		  default:
+		    tw_error(TW_LOC, "Bad traffic type define");
+		  }
 	} else
 	{
 		bf->c1 = 0;
@@ -88,7 +95,7 @@ phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * l
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
 
-	if(bf->c1 == 1)
+	if(bf->c1 == 1 && traffic == 0)
 		tw_rand_reverse_unif(lp->rng);
 }
 
@@ -140,6 +147,7 @@ const tw_optdef app_opt[] =
 {
 	TWOPT_GROUP("PHOLD Model"),
 	TWOPT_STIME("remote", percent_remote, "desired remote event rate"),
+	TWOPT_UINT("traffic", traffic, "remote traffic pattern: 0=Uniform Random, 1=Nearest Neighbor Rank (lpid + nlp_per_pe)"),
 	TWOPT_UINT("nlp", nlp_per_pe, "number of LPs per processor"),
 	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
 	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),

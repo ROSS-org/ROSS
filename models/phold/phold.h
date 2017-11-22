@@ -28,6 +28,7 @@ static unsigned int stagger = 0;
 static unsigned int offset_lpid = 0;
 static tw_stime mult = 1.4;
 static tw_stime percent_remote = 0.25;
+static unsigned int traffic=0; // default to uniform random remote traffic
 static unsigned int ttl_lps = 0;
 static unsigned int nlp_per_pe = 8;
 static int g_phold_start_events = 1;
