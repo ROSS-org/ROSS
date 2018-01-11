@@ -77,10 +77,10 @@ double perf_efficiency_check(tw_pe *pe)
         // shouldn't happen, but just in case
         ratio = 0.95;
     else
-    {
+    { // "worst" KP is ahead of GVT
         if (max_diff_sim <= 0.0)
             ratio = 0.5; 
-        else 
+        else  // look at how our current distance from GVT compares to the max distance we've seen so far
             ratio= vt_diff/max_diff_sim;
     }
 
@@ -128,19 +128,20 @@ void perf_adjust_optimism(tw_pe *pe)
 
     if (limit_opt == LIMIT_ON)
     { // use multiplicative decrease to lower g_st_max_opt_lookahead
-        if (g_tw_max_opt_lookahead >= 1000)
-            g_tw_max_opt_lookahead *= dec_amt;
+        g_tw_max_opt_lookahead *= dec_amt;
+        if (g_tw_max_opt_lookahead < 100)
+            g_tw_max_opt_lookahead = 100;
         //printf("ratio = %f, dec_amt = %f\n", diff_ratio, dec_amt);
         //printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
     }
-    else if (limit_opt == LIMIT_RECOVER)
-    { // use additive increase to slowly allow for more optimism
-        if (ULLONG_MAX - g_tw_max_opt_lookahead < inc_amount) // avoid overflow
-            g_tw_max_opt_lookahead = ULLONG_MAX;
-        else 
-            g_tw_max_opt_lookahead += inc_amount;
-        //printf("ratio = %f, inc_amt = %d\n", diff_ratio, inc_amount);
-        //printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
-    }
+    //else if (limit_opt == LIMIT_RECOVER)
+    //{ // use additive increase to slowly allow for more optimism
+    //    if (ULLONG_MAX - g_tw_max_opt_lookahead < inc_amount) // avoid overflow
+    //        g_tw_max_opt_lookahead = ULLONG_MAX;
+    //    else 
+    //        g_tw_max_opt_lookahead += inc_amount;
+    //    //printf("ratio = %f, inc_amt = %d\n", diff_ratio, inc_amount);
+    //    //printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+    //}
 }
 
