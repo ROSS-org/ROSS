@@ -58,8 +58,6 @@ tw-signal.c
 tw-stats.c
 tw-util.c
 
-perf-opt/perf-limit-optimism.h
-perf-opt/perf-limit-optimism.c
 instrumentation/st-instrumentation.h
 instrumentation/st-instrumentation.c
 instrumentation/st-stats-buffer.c

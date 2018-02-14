@@ -208,7 +208,6 @@ typedef uint64_t tw_lpid;
 #  include "tw-memory.h"
 #endif
 
-#include "perf-opt/perf-limit-optimism.h"
 #include "instrumentation/st-instrumentation.h"
 
 #include "tw-eventq.h"

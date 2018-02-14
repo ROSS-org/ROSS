@@ -57,7 +57,6 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
-    tw_opt_add(perf_opts());
     tw_opt_add(st_inst_opts());
     tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
@@ -212,7 +211,6 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
-    perf_init();
     st_buffer_allocate();
     if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
         specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
