@@ -5,7 +5,7 @@
 static long missed_bytes = 0;
 static MPI_Offset *prev_offsets = NULL;
 static MPI_File *buffer_fh = NULL;
-char stats_directory[INST_MAX_LENGTH];
+char stats_directory[INST_MAX_LENGTH+4096];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
@@ -23,14 +23,16 @@ void st_buffer_allocate()
     // setup directory for instrumentation output
     if (g_tw_mynode == g_tw_masternode)
     {
-        rc = mkdir("stats-output", S_IRUSR | S_IWUSR | S_IXUSR);
+        if (!g_st_stats_path[0])
+            sprintf(g_st_stats_path, "stats-output");
+        rc = mkdir(g_st_stats_path, S_IRUSR | S_IWUSR | S_IXUSR);
         if (rc == -1)
         {
-            sprintf(stats_directory, "%s-%ld-%ld", "stats-output", (long)getpid(), (long)time(NULL));
+            sprintf(stats_directory, "%s-%ld-%ld", g_st_stats_path, (long)getpid(), (long)time(NULL));
             mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
         }
         else
-            sprintf(stats_directory, "stats-output");
+            sprintf(stats_directory, "%s", g_st_stats_path);
     }
 
     MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);

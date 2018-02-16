@@ -9,6 +9,7 @@ int g_st_gvt_sampling = 0;
 int g_st_num_gvt = 10;
 int g_st_model_stats = 0;
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
+char g_st_stats_path[4096] = {0};
 
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),
@@ -19,6 +20,7 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("granularity", g_st_granularity, "for sim engine instrumentation; 0 = collect on PE basis only, 1 for KP/LP data as well"),
     TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-prefix", g_st_stats_out, "prefix for filename(s) for stats output"),
+    TWOPT_CHAR("stats-path", g_st_stats_path, "path to directory to save instrumentation output"),
     TWOPT_UINT("buffer-size", g_st_buffer_size, "size of buffer in bytes for stats collection"),
     TWOPT_UINT("buffer-free", g_st_buffer_free_percent, "percentage of free space left in buffer before writing out at GVT"),
     TWOPT_UINT("disable-output", g_st_disable_out, "used for perturbation analysis; buffer never dumped to file when 1"),

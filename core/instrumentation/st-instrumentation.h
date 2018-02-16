@@ -25,7 +25,7 @@ typedef struct{
     int count;
 } st_stats_buffer;
 
-extern char stats_directory[INST_MAX_LENGTH];
+extern char stats_directory[INST_MAX_LENGTH+4096];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
 extern FILE *seq_ev_trace, *seq_model, *seq_analysis;
@@ -108,6 +108,7 @@ struct st_lp_counters{
 };
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
+extern char g_st_stats_path[4096];
 extern int g_st_gvt_sampling;
 extern int g_st_num_gvt;
 extern int g_st_rt_sampling;
