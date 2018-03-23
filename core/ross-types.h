@@ -326,6 +326,7 @@ struct tw_event {
 
     tw_peid      send_pe;           /**< @brief Sending PE ID / MPI rank */
     tw_lpid      send_lp;           /**< @brief Sending LP ID for data collection uses */
+    tw_lpid      dest_lpid;
     tw_stime     send_ts;           /**< @brief Send time of message */
 
     int          shmem_pool_id;     /**< @brief id/index of pool if shared */

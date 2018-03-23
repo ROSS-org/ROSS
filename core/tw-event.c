@@ -29,10 +29,20 @@ void tw_event_send(tw_event * event) {
     }
 #endif
 
+    // call LP remote mapping function to get dest_pe
+    // dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    // now set in tw_event_pick_event_pool 
+    dest_peid = event->dest_pe;
+    event->send_lp = src_lp->gid;
+
     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
         if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {
-            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead");
+            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
+                    "Event causing violation: src LP: %lu, src PE: %lu\n"
+                    "dest LP %lu, dest PE %lu, recv_ts %f\n",
+                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid, 
+                    dest_peid, recv_ts);
         }
     }
 
@@ -41,12 +51,6 @@ void tw_event_send(tw_event * event) {
     }
 
     link_causality(event, send_pe->cur_event);
-
-    // call LP remote mapping function to get dest_pe
-    // dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
-    // now set in tw_event_pick_event_pool 
-    dest_peid = event->dest_pe;
-    event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
