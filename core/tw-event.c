@@ -36,10 +36,11 @@ void tw_event_send(tw_event * event) {
     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
         if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {
-            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead\n"
+            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
                     "Event causing violation: src LP: %lu, src PE: %lu\n"
                     "dest LP %lu, dest PE %lu, recv_ts %f\n",
-                    src_lp->gid, send_pe->id, event->dest_lpid, dest_peid, recv_ts);
+                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid, 
+                    dest_peid, recv_ts);
         }
     }
 
