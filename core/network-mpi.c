@@ -521,8 +521,8 @@ send_begin(tw_pe *me)
       dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
-      if(!e->state.cancel_q)
-	e->event_id = (tw_eventid) ++me->seq_num;
+      //if(!e->state.cancel_q)
+	//e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
       e->send_lp = e->src_lp->gid;
