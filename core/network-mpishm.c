@@ -905,9 +905,6 @@ send_begin(tw_pe *me)
       dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
-      if(!e->state.cancel_q)
-	e->event_id = (tw_eventid) ++me->seq_num;
-
       e->send_pe = (tw_peid) g_tw_mynode;
 
       if (MPI_Isend(e,
@@ -1101,7 +1098,6 @@ tw_net_send(tw_event *e)
       // don't have to check pool block here - we can assume they are the same at this point
       
       me->s_nwhite_sent++;
-      e->event_id = (tw_eventid) ++me->seq_num;
       e->state.owner = TW_net_shmem_event_q; // Treat send as complete and not cancelled since it is instant.
       
       if( !e->state.cancel_q )
