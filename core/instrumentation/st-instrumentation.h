@@ -8,11 +8,14 @@
 #include <ross.h>
 #include <inttypes.h>
 
-#define INST_MAX_LENGTH 1024
+#define INST_MAX_LENGTH 4096
 
-/*
- * st-stats-buffer.c
- */
+typedef struct sample_metadata sample_metadata;
+typedef struct st_pe_stats st_pe_stats;
+typedef struct st_kp_stats st_kp_stats;
+typedef struct st_lp_stats st_lp_stats;
+
+/* st-stats-buffer.c */
 #define st_buffer_free_space(buf) (buf->size - buf->count)
 #define st_buffer_write_ptr(buf) (buf->buffer + buf->write_pos)
 #define st_buffer_read_ptr(buf) (buf->buffer + buf->read_pos)
@@ -25,7 +28,7 @@ typedef struct{
     int count;
 } st_stats_buffer;
 
-extern char stats_directory[INST_MAX_LENGTH+4096];
+extern char stats_directory[INST_MAX_LENGTH];
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
 extern FILE *seq_ev_trace, *seq_model, *seq_analysis;
@@ -36,9 +39,7 @@ void st_buffer_push(int type, char *data, int size);
 void st_buffer_write(int end_of_sim, int type);
 void st_buffer_finalize(int type);
 
-/*
- * st-instrumentation.c
- */
+/* st-instrumentation.c */
 typedef enum{
     GVT_COL,
     RT_COL,
@@ -48,7 +49,28 @@ typedef enum{
     NUM_COL_TYPES
 } collection_types;
 
-//extern st_stats_buffer **g_st_buffer;
+typedef enum{
+    PE_TYPE,
+    KP_TYPE,
+    LP_TYPE,
+    MODEL_TYPE
+} data_type_flag;
+
+typedef enum {
+    GRAN_PE,
+    GRAN_KP,
+    GRAN_LP,
+    GRAN_ALL
+} granularity_types;
+
+struct sample_metadata
+{
+    int flag; // 0 == PE, 1 == KP, 2 == LP, 3 == model
+    int sample_sz;
+    tw_stime ts;
+    tw_stime real_time;
+};
+
 extern int g_st_instrumentation;
 extern int g_st_engine_stats;
 
@@ -62,53 +84,71 @@ extern void st_inst_finalize(tw_pe *me);
  * st-sim-engine.c
  * Simulation Engine related instrumentation
  */
-typedef struct st_lp_counters st_lp_counters;
+//typedef struct st_lp_counters st_lp_counters;
 
-typedef struct {
-    tw_clock s_net_read;
-    tw_clock s_gvt;
-    tw_clock s_fossil_collect;
-    tw_clock s_event_abort;
-    tw_clock s_event_process;
-    tw_clock s_pq;
-    tw_clock s_rollback;
-    tw_clock s_cancel_q;
-    tw_clock s_avl;
-    tw_clock s_buddy;
-    tw_clock s_lz4;
-} st_cycle_counters;
+struct st_pe_stats{
+    unsigned int peid;
 
-typedef struct {
     unsigned int s_nevent_processed;
     unsigned int s_nevent_abort;
     unsigned int s_e_rbs;
-
     unsigned int s_rb_total;
     unsigned int s_rb_secondary;
     unsigned int s_fc_attempts;
-
     unsigned int s_pq_qsize;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
-
-    unsigned int s_nsend_net_remote;
-    unsigned int s_pe_event_ties;
-
+    //unsigned int s_nsend_remote_rb;
+    //unsigned int s_nsend_loc_remote;
+    //unsigned int s_nsend_net_remote;
     unsigned int s_ngvts;
-} st_event_counters;
+    unsigned int s_pe_event_ties;
+    unsigned int all_reduce_count;
+    float efficiency;
 
-struct st_lp_counters{
+    float s_net_read;
+    float s_gvt;
+    float s_fossil_collect;
+    float s_event_abort;
+    float s_event_process;
+    float s_pq;
+    float s_rollback;
+    float s_cancel_q;
+    float s_avl;
+    float s_buddy;
+    float s_lz4;
+};
+
+struct st_kp_stats{
+    unsigned int peid;
+    unsigned int kpid;
+
     unsigned int s_nevent_processed;
+    unsigned int s_nevent_abort;
     unsigned int s_e_rbs;
-
+    unsigned int s_rb_total;
+    unsigned int s_rb_secondary;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
+    float time_ahead_gvt;
+    float efficiency;
+};
 
-    unsigned int s_nsend_net_remote;
+struct st_lp_stats{
+    unsigned int peid;
+    unsigned int kpid;
+    unsigned int lpid;
+
+    unsigned int s_nevent_processed;
+    unsigned int s_nevent_abort;
+    unsigned int s_e_rbs;
+    unsigned int s_nsend_network;
+    unsigned int s_nread_network;
+    float efficiency;
 };
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
-extern char g_st_stats_path[4096];
+extern char g_st_stats_path[INST_MAX_LENGTH];
 extern int g_st_gvt_sampling;
 extern int g_st_num_gvt;
 extern int g_st_rt_sampling;
@@ -120,18 +160,10 @@ extern tw_clock g_st_rt_interval;
 extern tw_clock g_st_rt_samp_start_cycles;
 extern int g_st_model_stats;
 
-extern st_cycle_counters last_cycle_counters;
-extern st_event_counters last_event_counters;
-
-void print_sim_engine_metadata(FILE *file);
-extern void st_collect_data(tw_pe *pe, tw_stime current_rt);
-void st_collect_time_ahead_GVT(tw_pe *me, char *data_size);
-void st_collect_cycle_counters(tw_pe *pe, char *data);
-void st_collect_event_counters_pes(tw_pe *pe, char *data);
-void st_collect_event_counters_lps(tw_pe *pe, char *data);
-void st_gvt_log(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
-void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
-void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt);
+void st_collect_engine_data(tw_pe *me, int col_type);
+void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_kps(tw_pe *me, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_lps(tw_pe *me, sample_metadata *sample_md, tw_statistics *s, int col_type);
 
 /*
  * st-event-trace.c 
@@ -142,6 +174,10 @@ typedef enum{
     RB_TRACE,
     COMMIT_TRACE
 } traces_enum;
+
+typedef struct {
+
+} st_event_data;
 
 // collect_flag allows for specific events to be turned on/off in tracing
 typedef void (*rbev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_flag);

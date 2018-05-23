@@ -216,7 +216,9 @@ static void tw_sched_batch(tw_pe * me) {
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
-    clp->event_counters->s_nevent_processed++;
+    // instrumentation
+    ckp->kp_stats->s_nevent_processed++;
+    clp->lp_stats->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
@@ -227,6 +229,9 @@ static void tw_sched_batch(tw_pe * me) {
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_abort++;
+        clp->lp_stats->s_nevent_abort++;
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
@@ -252,7 +257,7 @@ static void tw_sched_batch(tw_pe * me) {
         {
             tw_clock current_rt = tw_clock_read();
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                st_collect_engine_data(me, RT_COL);
             if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 
@@ -337,6 +342,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
+    // instrumentation
+    ckp->kp_stats->s_nevent_processed++;
+    clp->lp_stats->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
@@ -347,6 +355,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_abort++;
+        clp->lp_stats->s_nevent_abort++;
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
@@ -378,7 +389,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         {
             tw_clock current_rt = tw_clock_read();
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                st_collect_engine_data(me, RT_COL);
             if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 
@@ -476,6 +487,9 @@ void tw_scheduler_sequential(tw_pe * me) {
         }
 
         ckp->s_nevent_processed++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_processed++;
+        clp->lp_stats->s_nevent_processed++;
         tw_event_free(me, cev);
 
         if(g_st_rt_sampling && 
@@ -576,6 +590,9 @@ void tw_scheduler_conservative(tw_pe * me) {
             }
 
             ckp->s_nevent_processed++;
+            // instrumentation
+            ckp->kp_stats->s_nevent_processed++;
+            clp->lp_stats->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
 
             if (me->cev_abort) {
@@ -589,7 +606,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             {
                 tw_clock current_rt = tw_clock_read();
                 if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                    st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
+                    st_collect_engine_data(me, RT_COL);
                 if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
                     st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 

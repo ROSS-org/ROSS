@@ -12,13 +12,6 @@ typedef struct model_sample_data model_sample_data;
 typedef struct lp_metadata lp_metadata;
 
 typedef enum{
-    PE_TYPE,
-    KP_TYPE,
-    LP_TYPE,
-    MODEL_TYPE
-} data_type_flag;
-
-typedef enum{
     ALP_NONE,
     ALP_FULL, // LP, KP, and PE
     ALP_KP, // KP and PE

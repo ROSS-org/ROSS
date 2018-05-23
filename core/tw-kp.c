@@ -25,6 +25,8 @@ tw_kp_rollback_to(tw_kp * kp, tw_stime to)
         tw_event       *e;
 
         kp->s_rb_total++;
+        // instrumentation
+        kp->kp_stats->s_rb_total++;
 
 #if VERIFY_ROLLBACK
         printf("%d %d: rb_to %f, now = %f \n",
@@ -61,15 +63,18 @@ tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 void
 tw_kp_rollback_event(tw_event * event)
 {
-        tw_event       *e = NULL;
-        tw_kp          *kp;
-        tw_pe          *pe;
+    tw_event       *e = NULL;
+    tw_kp          *kp;
+    tw_pe          *pe;
 
-        kp = event->dest_lp->kp;
-        pe = kp->pe;
+    kp = event->dest_lp->kp;
+    pe = kp->pe;
 
-        kp->s_rb_total++;
+    kp->s_rb_total++;
 	kp->s_rb_secondary++;
+    // instrumentation
+    kp->kp_stats->s_rb_total++;
+	kp->kp_stats->s_rb_secondary++;
 
 #if VERIFY_ROLLBACK
         printf("%d %d: rb_event: %f \n", pe->id, kp->id, event->recv_ts);
@@ -140,6 +145,11 @@ tw_init_kps(tw_pe * me)
 	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
             kp->output = init_output_messages(kp);
         }
+
+        // instrumentation setup
+        kp->kp_stats = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
+        kp->last_stats_gvt = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
+        kp->last_stats_rt = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
 
 #if ROSS_MEMORY
 		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",

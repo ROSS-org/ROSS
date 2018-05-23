@@ -32,13 +32,13 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
     else if (!model_type_warned && g_tw_mynode == g_tw_masternode)
     {
         fprintf(stderr, "WARNING: node: %ld: %s:%i: ", g_tw_mynode, __FILE__, __LINE__);
-        fprintf(stderr, "The struct st_model_types has not been defined! No model level data will be collected\n");
+        fprintf(stderr, "The struct st_model_types has not been defined for at least 1 LP type! No model level data will be collected for LP types without a valid st_model_types struct defined.\n");
         model_type_warned = 1;
     }
 }
 
 /*
- * This function allows for ROSS to collect model level data.
+ * This function allows for ROSS to collect model level data, when not using Analysis LPs.
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
  * Loop through all LPs on this PE and collect stats
  */

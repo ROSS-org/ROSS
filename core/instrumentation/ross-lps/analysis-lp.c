@@ -407,22 +407,22 @@ void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime c
 
         metadata.lpid = cur_lp->gid;
 
-        cur_data_lp.nevent_processed = cur_lp->event_counters->s_nevent_processed - s->prev_data_lp[i].nevent_processed;
+        cur_data_lp.nevent_processed = cur_lp->lp_stats->s_nevent_processed - s->prev_data_lp[i].nevent_processed;
         cur_data_kp.nevent_processed += cur_data_lp.nevent_processed;
 
-        cur_data_lp.e_rbs = cur_lp->event_counters->s_e_rbs - s->prev_data_lp[i].e_rbs;
+        cur_data_lp.e_rbs = cur_lp->lp_stats->s_e_rbs - s->prev_data_lp[i].e_rbs;
         cur_data_kp.e_rbs += cur_data_lp.e_rbs;
 
-        cur_data_lp.nsend_network = cur_lp->event_counters->s_nsend_network - s->prev_data_lp[i].nsend_network;
+        cur_data_lp.nsend_network = cur_lp->lp_stats->s_nsend_network - s->prev_data_lp[i].nsend_network;
         cur_data_kp.nsend_network += cur_data_lp.nsend_network;
 
-        cur_data_lp.nread_network = cur_lp->event_counters->s_nread_network - s->prev_data_lp[i].nread_network;
+        cur_data_lp.nread_network = cur_lp->lp_stats->s_nread_network - s->prev_data_lp[i].nread_network;
         cur_data_kp.nread_network += cur_data_lp.nread_network;
 
-        s->prev_data_lp[i].nevent_processed = cur_lp->event_counters->s_nevent_processed;
-        s->prev_data_lp[i].e_rbs = cur_lp->event_counters->s_e_rbs;
-        s->prev_data_lp[i].nsend_network = cur_lp->event_counters->s_nsend_network;
-        s->prev_data_lp[i].nread_network = cur_lp->event_counters->s_nread_network;
+        s->prev_data_lp[i].nevent_processed = cur_lp->lp_stats->s_nevent_processed;
+        s->prev_data_lp[i].e_rbs = cur_lp->lp_stats->s_e_rbs;
+        s->prev_data_lp[i].nsend_network = cur_lp->lp_stats->s_nsend_network;
+        s->prev_data_lp[i].nread_network = cur_lp->lp_stats->s_nread_network;
 
         if (g_st_use_analysis_lps == ALP_FULL)
         {

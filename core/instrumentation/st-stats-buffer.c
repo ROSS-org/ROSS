@@ -5,7 +5,7 @@
 static long missed_bytes = 0;
 static MPI_Offset *prev_offsets = NULL;
 static MPI_File *buffer_fh = NULL;
-char stats_directory[INST_MAX_LENGTH+4096];
+char stats_directory[INST_MAX_LENGTH];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
@@ -35,9 +35,10 @@ void st_buffer_allocate()
             sprintf(stats_directory, "%s", g_st_stats_path);
     }
 
+    // make sure everyone has the directory name
     MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
 
-    // allocate buffer
+    // allocate buffer pointers
     g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
 
     // setup MPI file offsets
@@ -141,10 +142,10 @@ void st_buffer_push(int type, char *data, int size)
     //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(g_st_buffer[type]));
 }
 
-/* determine whether to dump buffer to file */
+/* determine whether to dump buffer to file 
+ * should only be called at GVT! */
 void st_buffer_write(int end_of_sim, int type)
 {
-    //TODO need metadata file
     MPI_Offset offset = prev_offsets[type];
     MPI_File *fh = &buffer_fh[type];
     int write_to_file = 0;
@@ -191,6 +192,7 @@ void st_buffer_write(int end_of_sim, int type)
     }
 }
 
+/* make sure we write out any remaining buffer data */
 void st_buffer_finalize(int type)
 {
     // check if any data needs to be written out

@@ -17,7 +17,7 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 both"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
     TWOPT_ULONGLONG("rt-interval", g_st_rt_interval, "real time sampling interval in ms"),
-    TWOPT_UINT("granularity", g_st_granularity, "for sim engine instrumentation; 0 = collect on PE basis only, 1 for KP/LP data as well"),
+    TWOPT_UINT("granularity", g_st_granularity, "for sim engine instrumentation; 0 = PE only, 1 = KP only, 2 = LP only, 3 = All levels"),
     TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-prefix", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_CHAR("stats-path", g_st_stats_path, "path to directory to save instrumentation output"),
@@ -85,7 +85,7 @@ void st_stats_init()
 
     if (!g_st_disable_out && g_tw_mynode == 0) {
         FILE *file;
-        char filename[INST_MAX_LENGTH*2];
+        char filename[INST_MAX_LENGTH];
         sprintf(filename, "%s/%s-README.txt", stats_directory, g_st_stats_out);
         file = fopen(filename, "w");
 
@@ -102,8 +102,6 @@ void st_stats_init()
             else
                 fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
         }
-
-        print_sim_engine_metadata(file);
 
         fprintf(file, "END\n\n");
 
@@ -146,7 +144,7 @@ void st_inst_finalize(tw_pe *me)
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
     {
         // collect data one final time to account for time between last sample and sim end time
-        st_collect_data(me, (double)tw_clock_read() / g_tw_clock_rate);
+        st_collect_engine_data(me, RT_COL);
         st_buffer_finalize(RT_COL);
     }
     if (g_st_ev_trace)
