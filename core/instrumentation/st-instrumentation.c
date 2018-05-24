@@ -1,7 +1,6 @@
 #include <ross.h>
 #include <sys/stat.h>
 
-int g_st_instrumentation = 0;
 int g_st_engine_stats = 0;
 int g_st_rt_sampling = 0;
 tw_clock g_st_rt_interval = 1000;
@@ -39,8 +38,6 @@ void st_inst_init(void)
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
         return;
 
-    g_st_instrumentation = 1;
-
     // setup appropriate flags for various instrumentation modes
     // set up files and buffers for necessary instrumentation modes
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS)
@@ -68,72 +65,22 @@ void st_inst_init(void)
         st_buffer_init(EV_TRACE);
     if (g_st_model_stats)
         st_buffer_init(MODEL_COL);
-
-    st_stats_init();
-}
-
-void st_stats_init()
-{
-    // Need to call after st_buffer_init()!
-    int i;
-    int npe = tw_nnodes();
-    tw_lpid nlp_per_pe[npe];
-    if (g_tw_synchronization_protocol != SEQUENTIAL)
-        MPI_Gather(&g_tw_nlp, 1, MPI_UINT64_T, nlp_per_pe, 1, MPI_UINT64_T, g_tw_masternode, MPI_COMM_ROSS);
-    else
-        nlp_per_pe[0] = g_tw_nlp;
-
-    if (!g_st_disable_out && g_tw_mynode == 0) {
-        FILE *file;
-        char filename[INST_MAX_LENGTH];
-        sprintf(filename, "%s/%s-README.txt", stats_directory, g_st_stats_out);
-        file = fopen(filename, "w");
-
-        /* start of metadata info for binary reader */
-        fprintf(file, "GRANULARITY=%d\n", g_st_granularity);
-        fprintf(file, "NUM_PE=%d\n", tw_nnodes());
-        fprintf(file, "NUM_KP=%lu\n", g_tw_nkp);
-
-        fprintf(file, "LP_PER_PE=");
-        for (i = 0; i < npe; i++)
-        {
-            if (i == npe - 1)
-                fprintf(file, "%"PRIu64"\n", nlp_per_pe[i]);
-            else
-                fprintf(file, "%"PRIu64",", nlp_per_pe[i]);
-        }
-
-        fprintf(file, "END\n\n");
-
-        /* end of metadata info for binary reader */
-        fprintf(file, "Info for ROSS run.\n\n");
-#if HAVE_CTIME
-        time_t raw_time;
-        time(&raw_time);
-        fprintf(file, "Date Created:\t%s\n", ctime(&raw_time));
-#endif
-        fprintf(file, "## BUILD CONFIGURATION\n\n");
-#ifdef ROSS_VERSION
-        fprintf(file, "ROSS Version:\t%s\n", ROSS_VERSION);
-#endif
-        //fprintf(file, "MODEL Version:\t%s\n", model_version);
-        fprintf(file, "\n## RUN TIME SETTINGS by GROUP:\n\n");
-        tw_opt_settings(file);
-        fclose(file);
-    }
 }
 
 void st_inst_dump()
 {
-    if (!g_st_disable_out && (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS))
+    if (g_st_disable_out)
+        return;
+
+    if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS)
         st_buffer_write(0, GVT_COL);
-    if (!g_st_disable_out && (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS))
+    if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
         st_buffer_write(0, RT_COL);
-    if (!g_st_disable_out && (g_st_ev_trace))
+    if (g_st_ev_trace)
         st_buffer_write(0, EV_TRACE);
-    if (!g_st_disable_out && (g_st_model_stats))
+    if (g_st_model_stats)
         st_buffer_write(0, MODEL_COL);
-    if (!g_st_disable_out && (g_st_use_analysis_lps))
+    if (g_st_use_analysis_lps)
         st_buffer_write(0, ANALYSIS_LP);
 }
 

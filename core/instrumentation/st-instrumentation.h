@@ -54,7 +54,7 @@ typedef enum{
     KP_TYPE,
     LP_TYPE,
     MODEL_TYPE
-} data_type_flag;
+} inst_data_types;
 
 typedef enum {
     GRAN_PE,
@@ -71,12 +71,10 @@ struct sample_metadata
     tw_stime real_time;
 };
 
-extern int g_st_instrumentation;
 extern int g_st_engine_stats;
 
 extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
-extern void st_stats_init();
 extern void st_inst_dump();
 extern void st_inst_finalize(tw_pe *me);
 
