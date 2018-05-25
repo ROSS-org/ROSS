@@ -123,9 +123,7 @@ void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
 }
 
 st_model_types model_types[] = {
-    {(rbev_trace_f) rb_event_trace,
-     0,
-     (ev_trace_f) rb_event_trace,
+    {(ev_trace_f) rb_event_trace,
      0,
     (model_stat_f) phold_stats_collect,
     sizeof(int)},
