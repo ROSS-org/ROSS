@@ -180,7 +180,7 @@ typedef struct {
     float send_vts;
     float recv_vts;
     float real_ts;
-    int model_data_sz;
+    unsigned int model_data_sz;
 } st_event_data;
 
 // collect_flag allows for specific events to be turned on/off in tracing
@@ -217,10 +217,10 @@ typedef struct st_model_types st_model_types;
  * Struct to help ROSS collect model-level data
  * */
 struct st_model_types {
-    ev_trace_f ev_trace;     /**< @brief function pointer to collect data about all events for given LP */
-    size_t ev_sz;            /**< @brief size of data collected from model for each event */
-    model_stat_f model_stat_fn;            /**< @brief function pointer to collect model level data */
-    size_t mstat_sz;         /**< @brief size of data collected from model at sampling points */
+    ev_trace_f ev_trace;         /**< @brief function pointer to collect data about all events for given LP */
+    size_t ev_sz;                /**< @brief size of data collected from model for each event */
+    model_stat_f model_stat_fn;  /**< @brief function pointer to collect model level data for RT and GVT-based instrumentation */
+    size_t mstat_sz;             /**< @brief size of data collected from model at sampling points */
     sample_event_f sample_event_fn;
     sample_revent_f sample_revent_fn;
     size_t sample_struct_sz;
@@ -232,6 +232,15 @@ typedef enum{
     RT_STATS,
     BOTH_STATS
 } stats_types_enum;
+
+typedef struct {
+    unsigned int peid;
+    unsigned int kpid;
+    unsigned int lpid;
+    float gvt;
+    int stats_type;
+    unsigned int model_sz;
+} model_metadata;
 
 extern st_model_types *g_st_model_types;
 
