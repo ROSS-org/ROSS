@@ -3,15 +3,8 @@
 #define __STDC_FORMAT_MACROS 1
 
 long g_st_current_interval = 0;
-tw_clock g_st_rt_samp_start_cycles = 0;
 static tw_statistics last_pe_stats = {0};
 static tw_stat last_all_reduce_cnt = 0;
-int g_st_disable_out = 0;
-//st_cycle_counters last_cycle_counters = {0};
-//st_event_counters last_event_counters = {0};
-int g_st_granularity = 0;
-tw_clock g_st_stat_write_ctr = 0;
-tw_clock g_st_stat_comp_ctr = 0;
 
 /* wrapper to call gvt instrumentation functions depending on which granularity to use */
 void st_collect_engine_data(tw_pe *pe, int col_type)
@@ -161,7 +154,7 @@ void st_collect_engine_data_lps(tw_pe *pe, sample_metadata *sample_md, tw_statis
     int index = 0, i;
 
     // sample_md time stamps were set in the calling function
-    sample_md->flag = KP_TYPE;
+    sample_md->flag = LP_TYPE;
     sample_md->sample_sz = sizeof(lp_stats);
 
     lp_stats.peid = (unsigned int) g_tw_mynode;

@@ -1,14 +1,22 @@
 #include <ross.h>
 #include <sys/stat.h>
 
-int g_st_engine_stats = 0;
-int g_st_rt_sampling = 0;
-tw_clock g_st_rt_interval = 1000;
-int g_st_gvt_sampling = 0;
-int g_st_num_gvt = 10;
-int g_st_model_stats = 0;
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 char g_st_stats_path[4096] = {0};
+tw_clock g_st_stat_write_ctr = 0;
+tw_clock g_st_stat_comp_ctr = 0;
+int g_st_granularity = 0;
+int g_st_disable_out = 0;
+
+int g_st_model_stats = 0;
+int g_st_engine_stats = 0;
+
+int g_st_gvt_sampling = 0;
+int g_st_num_gvt = 10;
+
+int g_st_rt_sampling = 0;
+tw_clock g_st_rt_interval = 1000;
+tw_clock g_st_rt_samp_start_cycles = 0;
 
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),

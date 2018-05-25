@@ -10,11 +10,6 @@
 
 #define INST_MAX_LENGTH 4096
 
-typedef struct sample_metadata sample_metadata;
-typedef struct st_pe_stats st_pe_stats;
-typedef struct st_kp_stats st_kp_stats;
-typedef struct st_lp_stats st_lp_stats;
-
 /* st-stats-buffer.c */
 #define st_buffer_free_space(buf) (buf->size - buf->count)
 #define st_buffer_write_ptr(buf) (buf->buffer + buf->write_pos)
@@ -40,6 +35,8 @@ void st_buffer_write(int end_of_sim, int type);
 void st_buffer_finalize(int type);
 
 /* st-instrumentation.c */
+typedef struct sample_metadata sample_metadata;
+
 typedef enum{
     GVT_COL,
     RT_COL,
@@ -71,7 +68,22 @@ struct sample_metadata
     tw_stime real_time;
 };
 
+extern char g_st_stats_out[INST_MAX_LENGTH];
+extern char g_st_stats_path[INST_MAX_LENGTH];
+extern tw_clock g_st_stat_write_ctr;
+extern tw_clock g_st_stat_comp_ctr;
+extern int g_st_granularity;
+extern int g_st_disable_out;
+
+extern int g_st_model_stats;
 extern int g_st_engine_stats;
+
+extern int g_st_gvt_sampling;
+extern int g_st_num_gvt;
+
+extern int g_st_rt_sampling;
+extern tw_clock g_st_rt_interval;
+extern tw_clock g_st_rt_samp_start_cycles;
 
 extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
@@ -82,7 +94,9 @@ extern void st_inst_finalize(tw_pe *me);
  * st-sim-engine.c
  * Simulation Engine related instrumentation
  */
-//typedef struct st_lp_counters st_lp_counters;
+typedef struct st_pe_stats st_pe_stats;
+typedef struct st_kp_stats st_kp_stats;
+typedef struct st_lp_stats st_lp_stats;
 
 struct st_pe_stats{
     unsigned int peid;
@@ -144,19 +158,6 @@ struct st_lp_stats{
     unsigned int s_nread_network;
     float efficiency;
 };
-
-extern char g_st_stats_out[INST_MAX_LENGTH];
-extern char g_st_stats_path[INST_MAX_LENGTH];
-extern int g_st_gvt_sampling;
-extern int g_st_num_gvt;
-extern int g_st_rt_sampling;
-extern int g_st_disable_out;
-extern int g_st_granularity;
-extern tw_clock g_st_stat_write_ctr;
-extern tw_clock g_st_stat_comp_ctr;
-extern tw_clock g_st_rt_interval;
-extern tw_clock g_st_rt_samp_start_cycles;
-extern int g_st_model_stats;
 
 void st_collect_engine_data(tw_pe *me, int col_type);
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type);
