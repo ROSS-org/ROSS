@@ -362,8 +362,7 @@ struct tw_lp {
     /* ROSS instrumentation structs */
     struct st_model_types *model_types;
     struct st_lp_stats *lp_stats;
-    struct st_lp_stats *last_stats_gvt;
-    struct st_lp_stats *last_stats_rt;
+    struct st_lp_stats *last_stats[3];
 
     /* tw_suspend variables */
     tw_event    *suspend_event;
@@ -406,8 +405,7 @@ struct tw_kp {
     long s_rb_total; /**< @brief Number of total rollbacks by this LP */
     long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
     struct st_kp_stats *kp_stats;
-    struct st_kp_stats *last_stats_gvt;
-    struct st_kp_stats *last_stats_rt;
+    struct st_kp_stats *last_stats[3];
 
 #ifdef ROSS_MEMORY
     tw_memoryq *pmemory_q; /**< @brief TW processed memory buffer queues */

@@ -126,6 +126,7 @@ tw_init_kps(tw_pe * me)
 {
 	tw_kp *prev_kp = NULL;
 	tw_kpid i;
+    int j;
 
 	for (i = 0; i < g_tw_nkp; i++)
 	{
@@ -148,8 +149,8 @@ tw_init_kps(tw_pe * me)
 
         // instrumentation setup
         kp->kp_stats = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
-        kp->last_stats_gvt = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
-        kp->last_stats_rt = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
+        for (j = 0; j < 3; j++)
+            kp->last_stats[j] = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
 
 #if ROSS_MEMORY
 		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",

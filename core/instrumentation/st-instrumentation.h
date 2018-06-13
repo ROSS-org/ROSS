@@ -40,9 +40,9 @@ typedef struct sample_metadata sample_metadata;
 typedef enum{
     GVT_COL,
     RT_COL,
+    ANALYSIS_LP,
     EV_TRACE,
     MODEL_COL,
-    ANALYSIS_LP,
     NUM_COL_TYPES
 } collection_types;
 
@@ -161,8 +161,8 @@ struct st_lp_stats{
 
 void st_collect_engine_data(tw_pe *me, int col_type);
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_kps(tw_pe *me, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_lps(tw_pe *me, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_lps(tw_pe *me, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type);
 
 /*
  * st-event-trace.c 
@@ -230,7 +230,8 @@ typedef enum{
     NO_STATS,
     GVT_STATS,
     RT_STATS,
-    BOTH_STATS
+    VT_STATS,
+    ALL_STATS
 } stats_types_enum;
 
 typedef struct {

@@ -10,13 +10,14 @@ static inline tw_lp *
 {
   tw_lpid id;
 
+  // finding analysis LPs doesn't depend on model's choice of mapping
+  if (g_st_use_analysis_lps && gid >= g_st_total_model_lps)
+  {
+      return g_tw_lp[(gid - g_st_total_model_lps) % g_tw_nkp + g_tw_nlp];
+  }
 
   switch (g_tw_mapping) {
   case CUSTOM:
-      if (g_st_use_analysis_lps && gid >= g_st_total_model_lps)
-      {
-          return g_tw_lp[(gid - g_st_total_model_lps) % g_tw_nkp + g_tw_nlp];
-      }
       return( g_tw_custom_lp_global_to_local_map( gid ) );
   case ROUND_ROBIN:
       id = gid / tw_nnodes();

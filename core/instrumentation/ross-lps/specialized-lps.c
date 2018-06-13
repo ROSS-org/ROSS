@@ -10,8 +10,6 @@
 
 int g_st_use_analysis_lps = 0;
 tw_lpid g_st_analysis_nlp = 0;
-tw_stime g_st_vt_interval = 1000000;
-tw_stime g_st_sampling_end = 0;
 int g_st_sample_count = 65536;
 
 tw_lpid analysis_start_gid = 0;
@@ -19,7 +17,13 @@ tw_lpid g_st_total_model_lps = 0;
 
 void specialized_lp_setup()
 {
-    if (!g_st_use_analysis_lps)
+    if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS || 
+            g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    {
+        g_st_use_analysis_lps = 1;
+        st_buffer_init(ANALYSIS_LP);
+    }
+    else
         return;
 
     // determine total LPs used by model and assign value to analysis_start_gid
@@ -31,8 +35,6 @@ void specialized_lp_setup()
     analysis_start_gid = g_st_total_model_lps;
     g_st_analysis_nlp = g_tw_nkp; // # of analysis LPs per PE
 
-    // set up buffers to be used by analysis LPs
-    st_buffer_init(ANALYSIS_LP); 
 
 }
 
@@ -57,9 +59,7 @@ void specialized_lp_run()
 const tw_optdef special_lp_opt[] =
 {
     TWOPT_GROUP("Specialized ROSS LPs"),
-    TWOPT_UINT("analysis-lps", g_st_use_analysis_lps, "Set to 1 to turn on analysis LPs (1 per KP) for virtual time sampling"),
-    TWOPT_STIME("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
-    TWOPT_STIME("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
+    //TWOPT_UINT("analysis-lps", g_st_use_analysis_lps, "Set to 1 to turn on analysis LPs (1 per KP) for virtual time sampling"),
     TWOPT_UINT("sample-count", g_st_sample_count, "Number of samples to allocate in memory"),
     TWOPT_END()
 };

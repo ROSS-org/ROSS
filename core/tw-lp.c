@@ -83,6 +83,7 @@ void
 tw_init_lps(tw_pe * me)
 {
 	tw_lpid i;
+    int j;
 
 	for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
 	{
@@ -97,8 +98,8 @@ tw_init_lps(tw_pe * me)
 		}
 
         lp->lp_stats = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
-        lp->last_stats_gvt = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
-        lp->last_stats_rt = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
+        for (j = 0; j < 3; j++)
+            lp->last_stats[j] = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
 
 #ifndef USE_RIO
 		if (lp->type->init)

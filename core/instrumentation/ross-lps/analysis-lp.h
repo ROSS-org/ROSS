@@ -5,9 +5,6 @@
 
 typedef struct analysis_state analysis_state;
 typedef struct analysis_msg analysis_msg;
-typedef struct sim_engine_data_pe sim_engine_data_pe;
-typedef struct sim_engine_data_kp sim_engine_data_kp;
-typedef struct sim_engine_data_lp sim_engine_data_lp;
 typedef struct model_sample_data model_sample_data;
 typedef struct lp_metadata lp_metadata;
 
@@ -37,54 +34,6 @@ struct lp_metadata
     int flag; // 0 == PE, 1 == KP, 2 == LP, 3 == model
 };
 
-struct sim_engine_data_pe
-{
-    tw_stime last_gvt;
-    tw_stat ngvt;
-    tw_stat rb_total; 
-    tw_stat rb_secondary;
-    tw_stat nevent_processed;
-    tw_stat nevent_abort;
-    tw_stat e_rbs;
-    tw_stat nsend_network;
-    tw_stat nread_network;
-    tw_stat fc_attempts;
-    tw_stat pq_qsize;
-    tw_stat pe_event_ties;
-    tw_stime s_net_read;
-    tw_stime s_gvt;
-    tw_stime s_fossil_collect;
-    tw_stime s_event_abort;
-    tw_stime s_event_process;
-    tw_stime s_pq;
-    tw_stime s_rollback;
-    tw_stime s_cancel_q;
-    tw_stime s_avl;
-    //tw_stime s_buddy;
-    //tw_stime s_lz4;
-    unsigned long long max_opt_lookahead;
-};
-
-struct sim_engine_data_kp
-{
-    tw_stime time_ahead_gvt;
-    double efficiency;
-    tw_stat rb_total; 
-    tw_stat rb_secondary;
-    tw_stat nevent_processed;
-    tw_stat e_rbs;
-    tw_stat nsend_network;
-    tw_stat nread_network;
-};
-
-struct sim_engine_data_lp
-{
-    tw_stat nevent_processed;
-    tw_stat e_rbs;
-    tw_stat nsend_network;
-    tw_stat nread_network;
-};
-
 struct model_sample_data
 {
     model_sample_data *prev;
@@ -103,9 +52,6 @@ struct analysis_state
     model_sample_data *model_samples_head;
     model_sample_data *model_samples_current;
     model_sample_data *model_samples_tail;
-    sim_engine_data_pe prev_data_pe;
-    sim_engine_data_kp prev_data_kp;
-    sim_engine_data_lp *prev_data_lp;
 };
 
 void analysis_init(analysis_state *s, tw_lp *lp);

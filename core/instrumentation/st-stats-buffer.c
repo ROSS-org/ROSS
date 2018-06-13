@@ -65,9 +65,9 @@ void st_buffer_init(int type)
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";
     file_suffix[1] = "rt";
-    file_suffix[2] = "evtrace";
-    file_suffix[3] = "model";
-    file_suffix[4] = "analysis-lps";
+    file_suffix[2] = "analysis-lps";
+    file_suffix[3] = "evtrace";
+    file_suffix[4] = "model";
     
     g_st_buffer[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     g_st_buffer[type]->size  = g_st_buffer_size;
