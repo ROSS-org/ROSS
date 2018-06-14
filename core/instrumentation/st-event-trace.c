@@ -27,6 +27,9 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
 
     if (cev->dest_lp->model_types && cev->dest_lp->model_types->ev_trace)
         ev_data.model_data_sz = cev->dest_lp->model_types->ev_sz;
+    else
+        ev_data.model_data_sz = 0;
+
 
     total_sz += ev_data.model_data_sz;
     char buffer[total_sz];
