@@ -173,6 +173,9 @@ typedef uint64_t tw_lpid;
 #ifdef ROSS_CLOCK_ppc
 #  include "clock/ppc.h"
 #endif
+#ifdef ROSS_CLOCK_ppc64le
+#  include "clock/ppc64le.h"
+#endif
 #ifdef ROSS_CLOCK_bgl
 #  include "clock/bgl.h"
 #endif

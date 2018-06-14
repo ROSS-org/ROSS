@@ -62,6 +62,37 @@ tw_pq_create(void)
     return st;
 }
 
+static unsigned int tw_pq_compare_less_than( tw_event *n, tw_event *e )
+{
+    if (KEY(n) < KEY(e))
+	return 1;
+    else if (KEY(n) > KEY(e))
+	return 0;
+    else
+    {
+	if( n->send_lp < e->send_lp )
+	    return 1;
+	else if( n->send_lp > e->send_lp )
+	    return 0;
+	else
+	{
+	    if( n->dest_lp->gid < e->dest_lp->gid )
+		return 1;
+	    else if(n->dest_lp->gid > e->dest_lp->gid )
+		return 0;
+	    else
+	    {
+		if( n->event_id < e->event_id )
+		    return 1;
+		else if( n->event_id > e->event_id )
+		    return 0;
+		else
+		    tw_error(TW_LOC, "Found tie events at ts %lf when it's impossible!!\n", e->recv_ts);
+	    }
+	}
+    }
+}
+
 static void
 splay(tw_event * node)
 {
@@ -176,7 +207,8 @@ tw_pq_enqueue(splay_tree *st, tw_event * e)
 	{
 		for (;;)
 		{
-			if (KEY(n) <= KEY(e))
+//			if (KEY(n) <= KEY(e))
+		    if( tw_pq_compare_less_than( n, e ) )
 			{
 				if (RIGHT(n))
 					n = RIGHT(n);
