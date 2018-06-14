@@ -128,7 +128,7 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
     else
         kp_stats.efficiency = 0;
     
-    memcpy(kp->last_stats[col_type], kp->kp_stats, sizeof(kp->kp_stats));
+    memcpy(kp->last_stats[col_type], kp->kp_stats, sizeof(st_kp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
     index += sizeof(*sample_md);
@@ -170,7 +170,7 @@ void st_collect_engine_data_lps(tw_pe *pe, tw_lp *lp, sample_metadata *sample_md
     else
         lp_stats.efficiency = 0;
     
-    memcpy(lp->last_stats[col_type], lp->lp_stats, sizeof(lp->lp_stats));
+    memcpy(lp->last_stats[col_type], lp->lp_stats, sizeof(st_lp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
     index += sizeof(*sample_md);
