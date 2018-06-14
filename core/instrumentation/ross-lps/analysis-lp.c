@@ -52,7 +52,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->num_lps_sim = sim_idx;
 
     // setup memory to use for model samples
-    if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
         s->model_samples_current = s->model_samples_head;
@@ -75,6 +75,8 @@ void analysis_init(analysis_state *s, tw_lp *lp)
                 sample->next = sample + 1;
                 sample->next->prev = sample;
             }
+            if (s->num_lps <= 0)
+                tw_error(TW_LOC, "s->num_lps <= 0!");
             sample->lp_data = (void**) tw_calloc(TW_LOC, "analysis LPs", sizeof(void*), s->num_lps);
             for (j = 0; j < s->num_lps; j++)
             {
@@ -96,7 +98,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
 
-    if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         model_sample_data *sample = s->model_samples_current;
         // TODO handle this situation better
@@ -138,7 +140,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_e_rbs++;
 
-    if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         // need to remove sample associated with this event from the list
         model_sample_data *sample;
@@ -186,7 +188,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
-    if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         // write committed data to buffer
         model_sample_data *sample;
