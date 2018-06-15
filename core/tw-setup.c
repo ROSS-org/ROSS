@@ -58,6 +58,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(kernel_options);
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
+    tw_opt_add(perf_opts());
     tw_opt_add(st_inst_opts());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
@@ -211,6 +212,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
+    perf_init();
     /*
      * Construct the LP array.
      */
