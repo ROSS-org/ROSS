@@ -23,6 +23,7 @@ extern int g_perf_disable_opt;
 extern const tw_optdef *perf_opts(void);
 extern void perf_init();
 extern void perf_adjust_optimism(tw_pe *pe);
-extern double perf_efficiency_check(tw_pe *pe);
+extern void perf_custom_reduction(double *invec, double *inoutvec, int *len, MPI_Datatype *dt);
+extern void perf_finalize();
 
 #endif

@@ -198,6 +198,11 @@ tw_gvt_step2(tw_pe *me)
 	    start = tw_clock_read();
 	    tw_pe_fossil_collect(me);
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
+
+        if (gvt <= g_tw_ts_end)
+            perf_adjust_optimism(me);
+        else
+            perf_finalize();
 	  }
 
     if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS) && 
@@ -214,8 +219,6 @@ tw_gvt_step2(tw_pe *me)
         st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, GVT_STATS);
     
     st_inst_dump();
-
-    perf_adjust_optimism(me);
 
 	g_tw_gvt_done++;
 
