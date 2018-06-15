@@ -38,17 +38,30 @@ void perf_init()
 
 // collect min, max, and sum for all KPs on this PE
 // for both metrics, efficiency and difference between local clock and GVT
-static void reduce_kp_data_local(tw_pe *pe, double *results, int len)
+static void reduce_kp_data_local(tw_pe *pe, double *results, int len, int type)
 {
 	int i;
 	tw_kp *kp;
 	tw_stime vt_diff, efficiency;
     tw_stat nevent_delta;
     tw_stat e_rbs_delta;
+	double mean[len];
 	
-	results[0] = results[3] = DBL_MAX;
-	results[1] = results[4] = -DBL_MAX;
-	results[2] = results[5] = 0.0;
+	if (type == 0)
+	{
+		results[0] = results[3] = DBL_MAX;
+		results[1] = results[4] = -DBL_MAX;
+		results[2] = results[5] = 0.0;
+	}
+	else if (type == 1)
+	{
+		// results passed in are the mean, save them so we don't overwrite
+		for (i = 0; i < len; i++)
+		{
+			mean[i] = results[i];
+			results[i] = 0;
+		}
+	}
 
     for (i = 0; i < g_tw_nkp; i++)
     {
@@ -62,22 +75,30 @@ static void reduce_kp_data_local(tw_pe *pe, double *results, int len)
         else
             efficiency = 0;
 
-		if (efficiency < results[0])
-			results[0] = efficiency;
-		if (efficiency > results[1])
-			results[1] = efficiency;
-		results[2] += efficiency;
-
         vt_diff = kp->last_time - pe->GVT;
 
-		if (vt_diff < results[3])
-			results[3] = vt_diff;
-		if (vt_diff > results[4])
-			results[4] = vt_diff;
-		results[5] += vt_diff;
+		if (type == 0)
+		{
+			if (efficiency < results[0])
+				results[0] = efficiency;
+			if (efficiency > results[1])
+				results[1] = efficiency;
+			results[2] += efficiency;
 
-        last_check.nevent_processed[i] = kp->s_nevent_processed;
-        last_check.e_rbs[i] = kp->s_e_rbs;
+			if (vt_diff < results[3])
+				results[3] = vt_diff;
+			if (vt_diff > results[4])
+				results[4] = vt_diff;
+			results[5] += vt_diff;
+		}
+		else if (type == 1)
+		{
+			results[0] += (efficiency - mean[0]) * (efficiency - mean[0]);
+			results[1] += (vt_diff - mean[1]) * (vt_diff - mean[1]);
+
+			last_check.nevent_processed[i] = kp->s_nevent_processed;
+			last_check.e_rbs[i] = kp->s_e_rbs;
+		}
     }
 
 }
@@ -90,13 +111,27 @@ void perf_adjust_optimism(tw_pe *pe)
     if (g_perf_disable_opt)
         return;
 
-	int len = 6;
-	double data[len], results[len];
-	reduce_kp_data_local(pe, &data[0], len);
+	int len = 6, i;
+	double data[len], results[len], std_dev_local[2], std_dev_global[2];
+	tw_kp *kp;
+
+	reduce_kp_data_local(pe, &data[0], len, 0);
 
 	//printf("PE %lu: data: %f, %f, %f, %f, %f, %f\n", pe->id, data[0], data[1], data[2], data[3], data[4], data[5]);
 	MPI_Allreduce(&data, &results, len, MPI_DOUBLE, custom_opt_op, MPI_COMM_ROSS);
+	results[2] /= (g_tw_nkp * tw_nnodes());
+	results[5] /= (g_tw_nkp * tw_nnodes());
+
 	//printf("PE %lu: results: %f, %f, %f, %f, %f, %f\n", pe->id, results[0], results[1], results[2], results[3], results[4], results[5]);
+	std_dev_local[0] = results[2];
+	std_dev_local[1] = results[5];
+	reduce_kp_data_local(pe, &std_dev_local[0], 2, 1);
+
+	//printf("PE %lu: std_dev_local: %f, %f\n", pe->id, std_dev_local[0], std_dev_local[1]);
+	MPI_Allreduce(&std_dev_local, &std_dev_global, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_ROSS);
+	std_dev_global[0] = sqrt(std_dev_global[0] / (g_tw_nkp * tw_nnodes()));
+	std_dev_global[1] = sqrt(std_dev_global[1] / (g_tw_nkp * tw_nnodes()));
+	//printf("PE %lu: std_dev_global: %f, %f\n", pe->id, std_dev_global[0], std_dev_global[1]);
 
 	/*** old stuff ***/
     ////double efficiency = perf_efficiency_check(pe);
