@@ -619,6 +619,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
+    int process_events = 1; // flag to determine if a PE should do forward event processing
 
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
@@ -634,6 +635,13 @@ void tw_scheduler_optimistic(tw_pe * me) {
             me->stats.s_net_read += tw_clock_read() - start;
         }
 
+        // we want the PE to continue to receive events/process rollbacks
+        // instead of doing nothing in GVT if it has no events in the GVT + max_opt_lookahead window
+        if (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)
+            process_events = 1;
+        else
+            process_events = 0;
+
         tw_gvt_step1(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
@@ -642,8 +650,9 @@ void tw_scheduler_optimistic(tw_pe * me) {
         if (me->GVT > g_tw_ts_end) {
             break;
         }
-
-        tw_sched_batch(me);
+        
+        if (process_events)
+            tw_sched_batch(me);
     }
 
     tw_wall_now(&me->end_time);
@@ -665,6 +674,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
 
 void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_clock start;
+    int process_events = 1; // flag to determine if a PE should do forward event processing
 
     g_tw_gvt_realtime_interval = g_tw_gvt_interval * g_tw_clock_rate / 1000;
 
@@ -685,6 +695,13 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
             me->stats.s_net_read += tw_clock_read() - start;
         }
 
+        // we want the PE to continue to receive events/process rollbacks
+        // instead of doing nothing in GVT if it has no events in the GVT + max_opt_lookahead window
+        if (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)
+            process_events = 1;
+        else
+            process_events = 0;
+
         tw_gvt_step1_realtime(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
@@ -694,7 +711,8 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
             break;
         }
 
-        tw_sched_batch_realtime(me);
+        if (process_events)
+            tw_sched_batch_realtime(me);
     }
 
     tw_wall_now(&me->end_time);
