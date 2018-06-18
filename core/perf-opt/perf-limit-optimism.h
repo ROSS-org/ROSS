@@ -11,6 +11,16 @@ typedef enum{
     LIMIT_AGGRESSIVE,
 } limit_opt_states;
 
+typedef enum {
+    EFF_MIN,
+    EFF_MAX,
+    EFF_MEAN,
+    TIME_MIN,
+    TIME_MAX,
+    TIME_MEAN,
+    NUM_RED_ELEM
+} reduction_data_elem;
+
 typedef struct pe_data pe_data;
 struct pe_data
 {
