@@ -46,7 +46,7 @@ SET(ARCH $ENV{ARCH} CACHE STRING "Target architecture")
 MARK_AS_ADVANCED(ARCH)
 IF(NOT ARCH)
   MESSAGE(FATAL_ERROR "ARCH not defined!\n"
-    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
+    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64 | ppc64 | ppc64le)")
 ENDIF(NOT ARCH)
 
 IF(ARCH STREQUAL i386)
@@ -87,6 +87,12 @@ IF(ARCH STREQUAL ppc64)
   SET(CLOCK ppc)
 ENDIF(ARCH STREQUAL ppc64)
 
+IF(ARCH STREQUAL ppc64le)
+  SET(VALID_ARCH YES)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O5 -qprefetch=aggressive -qarch=pwr9 -qtune=auto -qmaxmem=-1 -qsimd=noauto -qhot")
+  SET(CLOCK ppc64le)
+ENDIF(ARCH STREQUAL ppc64le)
+
 IF(ARCH STREQUAL x86_64)
   SET(VALID_ARCH YES)
   SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
@@ -96,7 +102,7 @@ ENDIF(ARCH STREQUAL x86_64)
 
 IF(NOT VALID_ARCH)
   MESSAGE(FATAL_ERROR "ARCH not valid!\n"
-    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64)")
+    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64 | ppc64le)")
 ENDIF(NOT VALID_ARCH)
 
 # ROSS Core code

@@ -29,10 +29,21 @@ void tw_event_send(tw_event * event) {
     }
 #endif
 
+     // moved from network-mpi.c in order to give all events a seq_num
+	event->event_id = (tw_eventid) ++send_pe->seq_num;
+
+    // call LP remote mapping function to get dest_pe
+    dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+    event->send_lp = src_lp->gid;
+
     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
         if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {
-            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead");
+            tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
+                    "Event causing violation: src LP: %lu, src PE: %lu\n"
+                    "dest LP %lu, dest PE %lu, recv_ts %f\n",
+                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid, 
+                    dest_peid, recv_ts);
         }
     }
 
@@ -41,10 +52,6 @@ void tw_event_send(tw_event * event) {
     }
 
     link_causality(event, send_pe->cur_event);
-
-    // call LP remote mapping function to get dest_pe
-    dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
-    event->send_lp = src_lp->gid;
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
@@ -96,7 +103,9 @@ static inline void event_cancel(tw_event * event) {
     tw_pe *send_pe = event->src_lp->pe;
     tw_peid dest_peid;
 
-    if(event->state.owner == TW_net_asend || event->state.owner == TW_pe_sevent_q) {
+    if( event->state.owner == TW_net_asend ||
+	event->state.owner == TW_net_outq  || // need to consider this case - Chris 06/13/2018
+	event->state.owner == TW_pe_sevent_q) {
         /* Slowest approach of all; this has to be sent over the
         * network to let the dest_pe know it shouldn't have seen
         * it in the first place.

@@ -34,8 +34,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 50000;
-static unsigned int send_buffer = 50000;
+static unsigned int read_buffer = 16;
+static unsigned int send_buffer = 1024;
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -51,6 +51,13 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_END()
 };
 
+// Forward declarations of functions used in MPI network message processing
+static int recv_begin(tw_pe *me);
+static void recv_finish(tw_pe *me, tw_event *e, char * buffer);
+static int send_begin(tw_pe *me);
+static void send_finish(tw_pe *me, tw_event *e, char * buffer);
+
+// Start of implmentation of network processing routines/functions
 void tw_comm_set(MPI_Comm comm)
 {
 	MPI_COMM_ROSS = comm;
@@ -168,6 +175,9 @@ tw_net_start(void)
   init_q(&posted_recvs, "MPI recv queue");
 
   g_tw_net_device_size = read_buffer;
+
+  // pre-post all the Irecv operations
+  recv_begin( g_tw_pe[0] );
 }
 
 void
@@ -267,27 +277,30 @@ test_q(
     }
 
   /* Collapse the lists to remove any holes we left. */
-  for (i = 0, n = 0; i < q->cur; i++) {
-    if (q->event_list[i]) {
-      if (i != n) {
+  for (i = 0, n = 0; i < q->cur; i++)
+  {
+    if (q->event_list[i])
+    {
+      if (i != n)
+      {
 	// swap the event pointers
-	q->event_list[n] = q->event_list[i];
+	  q->event_list[n] = q->event_list[i];
 
 	// copy the request handles
-	memcpy(
-	       &q->req_list[n],
-	       &q->req_list[i],
-	       sizeof(q->req_list[0]));
-
+	  memcpy(
+	      &q->req_list[n],
+	      &q->req_list[i],
+	      sizeof(q->req_list[0]));
+	  
 #if ROSS_MEMORY
-	// swap the buffers
-	tmp = q->buffers[n];
-	q->buffers[n] = q->buffers[i];
-	q->buffers[i] = tmp;
+	  // swap the buffers
+	  tmp = q->buffers[n];
+	  q->buffers[n] = q->buffers[i];
+	  q->buffers[i] = tmp;
 #endif
-      }
+      } // endif (i != n)
       n++;
-    }
+    } // endif (q->event_list[i])
   }
   q->cur -= ready;
 
@@ -308,29 +321,15 @@ recv_begin(tw_pe *me)
     {
       unsigned id = posted_recvs.cur;
 
-      MPI_Iprobe(MPI_ANY_SOURCE,
-		 MPI_ANY_TAG,
-		 MPI_COMM_ROSS,
-		 &flag,
-		 &status);
-
-      if(flag)
-	{
-	  if(!(e = tw_event_grab(me)))
-	    {
-	      if(tw_gvt_inprogress(me))
-		tw_error(TW_LOC, "out of events in GVT!");
-
-	      break;
-	    }
-	} else
-	{
-	  return changed;
-	}
+      if(!(e = tw_event_grab(me)))
+      {
+	  if(tw_gvt_inprogress(me))
+	      tw_error(TW_LOC, "out of events in GVT!");
+	  return changed;	  
+      }
 
 #if ROSS_MEMORY
-      if(!flag ||
-	 MPI_Irecv(posted_recvs.buffers[id],
+      if( MPI_Irecv(posted_recvs.buffers[id],
 		   EVENT_SIZE(e),
 		   MPI_BYTE,
 		   MPI_ANY_SOURCE,
@@ -338,8 +337,7 @@ recv_begin(tw_pe *me)
 		   MPI_COMM_ROSS,
 		   &posted_recvs.req_list[id]) != MPI_SUCCESS)
 #else
-	if(!flag ||
-	   MPI_Irecv(e,
+	if( MPI_Irecv(e,
 		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
 		     MPI_ANY_SOURCE,
@@ -535,8 +533,8 @@ send_begin(tw_pe *me)
       dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
-      if(!e->state.cancel_q)
-	e->event_id = (tw_eventid) ++me->seq_num;
+      //if(!e->state.cancel_q)
+	//e->event_id = (tw_eventid) ++me->seq_num;
 
       e->send_pe = (tw_peid) g_tw_mynode;
       e->send_lp = e->src_lp->gid;

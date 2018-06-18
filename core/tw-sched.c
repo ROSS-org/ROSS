@@ -565,8 +565,10 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp = clp->kp;
             me->cur_event = cev;
             if( ckp->last_time > cev->recv_ts ){
-                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d",
-                ckp->last_time, cev->recv_ts, clp->gid );
+                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
+                        "src LP %lu, src PE %lu",
+                ckp->last_time, cev->recv_ts, clp->gid, clp->pe->id,
+                cev->send_lp, cev->send_pe);
             }
             ckp->last_time = cev->recv_ts;
 

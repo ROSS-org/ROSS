@@ -320,6 +320,7 @@ struct tw_event {
 
     tw_peid      send_pe;
     tw_lpid      send_lp;           /**< @brief sending LP ID for data collection uses */
+    tw_lpid      dest_lpid;
     tw_stime     send_ts;
 
 #ifdef ROSS_MEMORY
