@@ -59,6 +59,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
+    tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
 #endif
@@ -211,10 +212,14 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
+    st_buffer_allocate();
+    //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
+        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
+
     /*
      * Construct the LP array.
      */
-    g_tw_lp = (tw_lp **) tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp);
+    g_tw_lp = (tw_lp **) tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp + g_st_analysis_nlp);
 
     switch(g_tw_mapping) {
         case LINEAR:
@@ -237,8 +242,11 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
             tw_error(TW_LOC, "Bad value for g_tw_mapping %d \n", g_tw_mapping);
     }
 
+    //if (g_tw_mapping == CUSTOM)
+        specialized_lp_init_mapping();
+
     // init LP RNG stream(s)
-    for(i = 0; i < g_tw_nlp; i++) {
+    for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
         if(g_tw_rng_default == 1) {
             tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
         }
@@ -266,7 +274,7 @@ static void late_sanity_check(void) {
     }
 
     /* LPs KP and PE must agree. */
-    for (i = 0; i < g_tw_nlp; i++) {
+    for (i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
         tw_lp *lp = g_tw_lp[i];
 
         if (!lp || !lp->pe) {

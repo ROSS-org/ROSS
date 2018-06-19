@@ -3,8 +3,6 @@
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
 
-extern MPI_Comm MPI_COMM_ROSS;
-
 static unsigned int g_tw_gvt_max_no_change = 10000;
 static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
@@ -19,6 +17,11 @@ static const tw_optdef gvt_opts [] =
 			"percent of runtime to print GVT"),
 	TWOPT_END()
 };
+
+tw_stat st_get_allreduce_count()
+{
+    return all_reduce_cnt;
+}
 
 const tw_optdef *
 tw_gvt_setup(void)
@@ -201,20 +204,18 @@ tw_gvt_step2(tw_pe *me)
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
 
-    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == BOTH_STATS) &&
+    // do any necessary instrumentation calls
+    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) &&
             g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
-        tw_clock start_cycle_time = tw_clock_read();
-        tw_statistics s;
-        bzero(&s, sizeof(s));
-        tw_get_stats(me, &s);
-		st_gvt_log(me, gvt, &s, all_reduce_cnt);
-        g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
+		st_collect_engine_data(me, GVT_COL);
     }
-    if ((g_st_model_stats == GVT_STATS || g_st_model_stats == BOTH_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
+
+    if ((g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
         st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, GVT_STATS);
 
     st_inst_dump();
+    // done with instrumentation related stuff
 
 	g_tw_gvt_done++;
 

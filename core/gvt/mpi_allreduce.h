@@ -41,4 +41,6 @@ gvt_print(tw_stime gvt)
 	percent_complete += gvt_print_interval;
 }
 
+extern tw_stat st_get_allreduce_count();
+
 #endif
