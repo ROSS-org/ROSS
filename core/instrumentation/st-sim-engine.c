@@ -3,544 +3,183 @@
 #define __STDC_FORMAT_MACROS 1
 
 long g_st_current_interval = 0;
-tw_clock g_st_rt_samp_start_cycles = 0;
-static tw_statistics last_stats = {0};
+static tw_statistics last_pe_stats[3];
 static tw_stat last_all_reduce_cnt = 0;
-int g_st_disable_out = 0;
-st_cycle_counters last_cycle_counters = {0};
-st_event_counters last_event_counters = {0};
-int g_st_granularity = 0;
-tw_clock g_st_stat_write_ctr = 0;
-tw_clock g_st_stat_comp_ctr = 0;
 
-static int num_gvt_vals = 10;
-static int num_gvt_vals_pe = 4;
-static int num_gvt_vals_kp = 2;
-static int num_gvt_vals_lp = 4;
-static int num_cycle_ctrs = 11;
-static int num_ev_ctrs = 12;
-static int num_ev_ctrs_pe = 5;
-static int num_ev_ctrs_kp = 2;
-static int num_ev_ctrs_lp = 4;
-
-void print_sim_engine_metadata(FILE *file)
+/* wrapper to call gvt instrumentation functions depending on which granularity to use */
+void st_collect_engine_data(tw_pe *pe, int col_type)
 {
-        if (g_st_engine_stats && g_st_gvt_sampling)
-        {
-            if (g_st_granularity)
-            {
-                fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals_pe);
-                fprintf(file, "NUM_GVT_VALS_KP=%d\n", num_gvt_vals_kp);
-                fprintf(file, "NUM_GVT_VALS_LP=%d\n", num_gvt_vals_lp);
-            }
-            else
-                fprintf(file, "NUM_GVT_VALS_PE=%d\n", num_gvt_vals);
-        }
+    tw_clock start_time = tw_clock_read();
+    tw_kp *kp;
+    tw_lp *lp;
+    int i;
+    tw_statistics s;
+    bzero(&s, sizeof(s));
+    tw_get_stats(pe, &s);
 
-        if (g_st_engine_stats && g_st_rt_sampling)
+    sample_metadata sample_md;
+    sample_md.ts = pe->GVT;
+    sample_md.real_time = (double)tw_clock_read() / g_tw_clock_rate;
+
+    if (g_st_granularity == GRAN_PE || g_st_granularity == GRAN_ALL)
+        st_collect_engine_data_pes(pe, &sample_md, &s, col_type);
+    if (g_st_granularity == GRAN_KP || g_st_granularity == GRAN_ALL)
+    {
+        for (i = 0; i < g_tw_nkp; i++)
         {
-            fprintf(file, "NUM_CYCLE_CTRS=%d\n", num_cycle_ctrs);
-            if (g_st_granularity)
-            {
-                fprintf(file, "NUM_EV_CTRS_PE=%d\n", num_ev_ctrs_pe);
-                fprintf(file, "NUM_EV_CTRS_KP=%d\n", num_ev_ctrs_kp);
-                fprintf(file, "NUM_EV_CTRS_LP=%d\n", num_ev_ctrs_lp);
-            }
-            else
-                fprintf(file, "NUM_EV_CTRS_PE=%d\n", num_ev_ctrs);
+            kp = tw_getkp(i);
+            st_collect_engine_data_kps(pe, kp, &sample_md, &s, col_type);
         }
+    }
+    if (g_st_granularity == GRAN_LP || g_st_granularity == GRAN_ALL)
+    {
+        for (i = 0; i < g_tw_nlp; i++)
+        {
+            lp = tw_getlp(i);
+            st_collect_engine_data_lps(pe, lp, &sample_md, &s, col_type);
+        }
+    }
+    g_st_stat_comp_ctr += tw_clock_read() - start_time;
 }
 
-/* wrapper to call gvt log functions depending on which granularity to use */
-void st_gvt_log(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type)
 {
-    if (g_st_granularity == 0)
-        st_gvt_log_pes(me, gvt, s, all_reduce_cnt);
-    else
-        st_gvt_log_lps(me, gvt, s, all_reduce_cnt);
-
-}
-
-void st_gvt_log_pes(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
-{
-    //int buf_size = sizeof(tw_stat) * 11 + sizeof(tw_node) + sizeof(tw_stime) + sizeof(double) + sizeof(long long) *2;
-    int buf_size = sizeof(unsigned int) * num_gvt_vals + sizeof(unsigned short) + sizeof(float) * 3  + sizeof(int);
-    int index = 0;
+    st_pe_stats pe_stats;
+    int buf_size = sizeof(*sample_md) + sizeof(pe_stats);
     char buffer[buf_size];
-    //tw_stat tmp;
-    unsigned int tmp;
-    int tmp2;
-    float eff;
-    unsigned short nodeid;
-    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
+    tw_stat all_reduce_cnt = st_get_allreduce_count();
 
-    nodeid = (unsigned short) g_tw_mynode;
-    memcpy(&buffer[index], &nodeid, sizeof(nodeid));
-    index += sizeof(nodeid);
+    // sample_md time stamps were set in the calling function
+    sample_md->flag = PE_TYPE;
+    sample_md->sample_sz = sizeof(pe_stats);
 
-    eff = (float)gvt;
-    memcpy(&buffer[index], &eff, sizeof(eff));
-    index += sizeof(eff);
+    pe_stats.peid = (unsigned int) g_tw_mynode;
+    pe_stats.s_nevent_processed = (unsigned int)( s->s_nevent_processed-last_pe_stats[col_type].s_nevent_processed);
+    pe_stats.s_nevent_abort = (unsigned int)(s->s_nevent_abort-last_pe_stats[col_type].s_nevent_abort);
+    pe_stats.s_e_rbs = (unsigned int)(s->s_e_rbs-last_pe_stats[col_type].s_e_rbs);
+    pe_stats.s_rb_total = (unsigned int)( s->s_rb_total-last_pe_stats[col_type].s_rb_total);
+    pe_stats.s_rb_secondary = (unsigned int)(s->s_rb_secondary-last_pe_stats[col_type].s_rb_secondary);
+    pe_stats.s_fc_attempts = (unsigned int)(s->s_fc_attempts-last_pe_stats[col_type].s_fc_attempts);
+    pe_stats.s_pq_qsize = tw_pq_get_size(pe->pq);
+    pe_stats.s_nsend_network = (unsigned int)(s->s_nsend_network-last_pe_stats[col_type].s_nsend_network);
+    pe_stats.s_nread_network = (unsigned int)(s->s_nread_network-last_pe_stats[col_type].s_nread_network);
+    pe_stats.s_pe_event_ties = (unsigned int)(s->s_pe_event_ties-last_pe_stats[col_type].s_pe_event_ties);
+    pe_stats.s_ngvts = (unsigned int)(g_tw_gvt_done - last_pe_stats[col_type].s_ngvts);
+    pe_stats.all_reduce_count = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
 
-    eff = (float) current_rt;
-    memcpy(&buffer[index], &eff, sizeof(eff));
-    index += sizeof(eff);
+    // I think it's possible for net_events to be negative over some interval of simulation time
+    // e.g., if in the current interval we've happened to process more rollback events than forward events
+    // for now, just report efficiency as 0 in this case?
+    int net_events = pe_stats.s_nevent_processed - pe_stats.s_e_rbs;
+    if (net_events > 0)
+        pe_stats.efficiency = (float) 100.0 * (1.0 - ((float) pe_stats.s_e_rbs / (float) net_events));
+    else
+        pe_stats.efficiency = 0;
 
-    tmp = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    // TODO set a starting clock rate and subtract that from the counters?
+    // because PEs on different nodes will probably have different starting points for cycle counters
+    pe_stats.s_net_read = (float)(pe->stats.s_net_read - last_pe_stats[col_type].s_net_read) / g_tw_clock_rate;
+    pe_stats.s_gvt = (float)(pe->stats.s_gvt - last_pe_stats[col_type].s_gvt) / g_tw_clock_rate;
+    pe_stats.s_fossil_collect = (float)(pe->stats.s_fossil_collect - last_pe_stats[col_type].s_fossil_collect) / g_tw_clock_rate;
+    pe_stats.s_event_abort = (float)(pe->stats.s_event_abort - last_pe_stats[col_type].s_event_abort) / g_tw_clock_rate;
+    pe_stats.s_event_process = (float)(pe->stats.s_event_process - last_pe_stats[col_type].s_event_process) / g_tw_clock_rate;
+    pe_stats.s_pq = (float)(pe->stats.s_pq - last_pe_stats[col_type].s_pq) / g_tw_clock_rate;
+    pe_stats.s_rollback = (float)(pe->stats.s_rollback - last_pe_stats[col_type].s_rollback) / g_tw_clock_rate;
+    pe_stats.s_cancel_q = (float)(pe->stats.s_cancel_q - last_pe_stats[col_type].s_cancel_q) / g_tw_clock_rate;
+    pe_stats.s_avl = (float)(pe->stats.s_avl - last_pe_stats[col_type].s_avl) / g_tw_clock_rate;
+    pe_stats.s_buddy = (float)(pe->stats.s_buddy - last_pe_stats[col_type].s_buddy) / g_tw_clock_rate;
+    pe_stats.s_lz4 = (float)(pe->stats.s_lz4 - last_pe_stats[col_type].s_lz4) / g_tw_clock_rate;
 
-    tmp = (unsigned int)( s->s_nevent_processed-last_stats.s_nevent_processed);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    memcpy(&buffer[0], sample_md, sizeof(*sample_md));
+    memcpy(&buffer[sizeof(*sample_md)], &pe_stats, sizeof(pe_stats));
+    st_buffer_push(col_type, &buffer[0], buf_size);
 
-    tmp = (unsigned int)(s->s_nevent_abort-last_stats.s_nevent_abort);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    memcpy(&last_pe_stats[col_type], s, sizeof(tw_statistics));
+    last_all_reduce_cnt = all_reduce_cnt;
+}
 
-    tmp = (unsigned int)(s->s_e_rbs-last_stats.s_e_rbs);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md, tw_statistics *s, int col_type)
+{
+    st_kp_stats kp_stats;
+    int buf_size = sizeof(*sample_md) + sizeof(kp_stats);
+    char buffer[buf_size];
+    int index = 0;
 
-    tmp = (unsigned int)(s->s_pe_event_ties-last_stats.s_pe_event_ties);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    // sample_md time stamps were set in the calling function
+    sample_md->flag = KP_TYPE;
+    sample_md->sample_sz = sizeof(kp_stats);
 
-    tmp = (unsigned int)( s->s_rb_total-last_stats.s_rb_total);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    kp_stats.peid = (unsigned int) g_tw_mynode;
 
-    tmp = (unsigned int)(s->s_rb_secondary-last_stats.s_rb_secondary);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    kp_stats.kpid = kp->id;
 
-    tmp = (unsigned int)(s->s_fc_attempts-last_stats.s_fc_attempts);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    kp_stats.s_nevent_processed = (unsigned int)(kp->kp_stats->s_nevent_processed - kp->last_stats[col_type]->s_nevent_processed);
+    kp_stats.s_nevent_abort = (unsigned int)(kp->kp_stats->s_nevent_abort - kp->last_stats[col_type]->s_nevent_abort);
+    kp_stats.s_e_rbs = (unsigned int)(kp->kp_stats->s_e_rbs - kp->last_stats[col_type]->s_e_rbs);
+    kp_stats.s_rb_total = (unsigned int)(kp->kp_stats->s_rb_total - kp->last_stats[col_type]->s_rb_total);
+    kp_stats.s_rb_secondary = (unsigned int)(kp->kp_stats->s_rb_secondary - kp->last_stats[col_type]->s_rb_secondary);
+    kp_stats.s_nsend_network = (unsigned int)(kp->kp_stats->s_nsend_network - kp->last_stats[col_type]->s_nsend_network);
+    kp_stats.s_nread_network = (unsigned int)(kp->kp_stats->s_nread_network - kp->last_stats[col_type]->s_nread_network);
+    kp_stats.time_ahead_gvt = (float)(kp->last_time - pe->GVT);
 
-    tmp = (unsigned int)(s->s_nsend_network-last_stats.s_nsend_network);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
+    int net_events = kp_stats.s_nevent_processed - kp_stats.s_e_rbs;
+    if (net_events > 0)
+        kp_stats.efficiency = (float) 100.0 * (1.0 - ((float) kp_stats.s_e_rbs / (float) net_events));
+    else
+        kp_stats.efficiency = 0;
+    
+    memcpy(kp->last_stats[col_type], kp->kp_stats, sizeof(st_kp_stats));
 
-    tmp = (unsigned int)(s->s_nread_network-last_stats.s_nread_network);
-    memcpy(&buffer[index], &tmp, sizeof(tmp));
-    index += sizeof(tmp);
-
-    // next stat not guaranteed to always be non-decreasing
-    // can't use tw_stat (unsigned long long) for negative number
-    tmp2 = (int)s->s_nsend_net_remote-(int)last_stats.s_nsend_net_remote;
-    memcpy(&buffer[index], &tmp2, sizeof(tmp2));
-    index += sizeof(tmp2);
-
-    eff = (float) 100.0 * (1.0 - ((float) (s->s_e_rbs-last_stats.s_e_rbs)/(float) (s->s_net_events-last_stats.s_net_events)));
-    memcpy(&buffer[index], &eff, sizeof(float));
-    index += sizeof(float);
+    memcpy(&buffer[index], sample_md, sizeof(*sample_md));
+    index += sizeof(*sample_md);
+    memcpy(&buffer[index], &kp_stats, sizeof(kp_stats));
+    index += sizeof(kp_stats);
 
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
-    memcpy(&last_stats, s, sizeof(tw_statistics));
-    last_all_reduce_cnt = all_reduce_cnt;
+    st_buffer_push(col_type, &buffer[0], buf_size);
 }
 
-void st_gvt_log_lps(tw_pe *me, tw_stime gvt, tw_statistics *s, tw_stat all_reduce_cnt)
+void st_collect_engine_data_lps(tw_pe *pe, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type)
 {
-    //int buf_size = sizeof(tw_node) + sizeof(tw_stime) + sizeof(tw_stat) * 4 + sizeof(double) + sizeof(long long) +
-    //    sizeof(tw_stat) * 2 * g_tw_nkp + sizeof(tw_stat) * 4 * g_tw_nlp + sizeof(long long) * g_tw_nlp;
-    int buf_size = sizeof(unsigned short) + sizeof(float) * 2 + sizeof(unsigned int) * num_gvt_vals_pe + sizeof(int) + sizeof(float) +
-        sizeof(unsigned int) * num_gvt_vals_kp * g_tw_nkp + sizeof(unsigned int) * num_gvt_vals_lp * g_tw_nlp + sizeof(int) * g_tw_nlp;
-    int index = 0, i;
-    char buffer[buf_size];
-    unsigned int tmp;
-    int tmp2;
-    float eff;
     tw_kp *kp;
-    tw_lp *lp;
-    unsigned short nodeid;
-    tw_clock current_rt = (double)tw_clock_read() / g_tw_clock_rate;
+    st_lp_stats lp_stats;
+    int buf_size = sizeof(*sample_md) + sizeof(lp_stats);
+    char buffer[buf_size];
+    int index = 0;
 
-    /* PE granularity */
-    nodeid = (unsigned short) g_tw_mynode;
-    memcpy(&buffer[index], &nodeid, sizeof(nodeid));
-    index += sizeof(nodeid);
+    // sample_md time stamps were set in the calling function
+    sample_md->flag = LP_TYPE;
+    sample_md->sample_sz = sizeof(lp_stats);
 
-    eff = (float)gvt;
-    memcpy(&buffer[index], &eff, sizeof(float));
-    index += sizeof(float);
+    lp_stats.peid = (unsigned int) g_tw_mynode;
 
-    eff = (float) current_rt;
-    memcpy(&buffer[index], &eff, sizeof(eff));
-    index += sizeof(eff);
+    lp_stats.kpid = lp->kp->id;
+    lp_stats.lpid = lp->gid;
 
-    tmp = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
-    memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
+    lp_stats.s_nevent_processed = (unsigned int)(lp->lp_stats->s_nevent_processed - lp->last_stats[col_type]->s_nevent_processed);
+    lp_stats.s_nevent_abort = (unsigned int)(lp->lp_stats->s_nevent_abort - lp->last_stats[col_type]->s_nevent_abort);
+    lp_stats.s_e_rbs = (unsigned int)(lp->lp_stats->s_e_rbs - lp->last_stats[col_type]->s_e_rbs);
+    lp_stats.s_nsend_network = (unsigned int)(lp->lp_stats->s_nsend_network - lp->last_stats[col_type]->s_nsend_network);
+    lp_stats.s_nread_network = (unsigned int)(lp->lp_stats->s_nread_network - lp->last_stats[col_type]->s_nread_network);
 
-    tmp = (unsigned int)(s->s_nevent_abort-last_stats.s_nevent_abort);
-    memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
+    int net_events = lp_stats.s_nevent_processed - lp_stats.s_e_rbs;
+    if (net_events > 0)
+        lp_stats.efficiency = (float) 100.0 * (1.0 - ((float) lp_stats.s_e_rbs / (float) net_events));
+    else
+        lp_stats.efficiency = 0;
+    
+    memcpy(lp->last_stats[col_type], lp->lp_stats, sizeof(st_lp_stats));
 
-    tmp = (unsigned int)(s->s_pe_event_ties-last_stats.s_pe_event_ties);
-    memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(s->s_fc_attempts-last_stats.s_fc_attempts);
-    memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp2 = (int)((long long)s->s_net_events-(long long)last_stats.s_net_events);
-    memcpy(&buffer[index], &tmp2, sizeof(int));
-    index += sizeof(int);
-
-    eff = (float)100.0 * (1.0 - ((float) (s->s_e_rbs-last_stats.s_e_rbs)/(float) (s->s_net_events-last_stats.s_net_events)));
-    memcpy(&buffer[index], &eff, sizeof(float));
-    index += sizeof(float);
-
-    /* KP granularity */
-    for (i = 0; i < g_tw_nkp; i++)
-    {
-        kp = tw_getkp(i);
-
-        tmp = (unsigned int)(kp->s_rb_total - kp->last_s_rb_total_gvt);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        kp->last_s_rb_total_gvt = kp->s_rb_total;
-
-        tmp = (unsigned int)(kp->s_rb_secondary - kp->last_s_rb_secondary_gvt);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        kp->last_s_rb_secondary_gvt = kp->s_rb_secondary;
-    }
-
-    /* LP granularity */
-    for (i=0; i < g_tw_nlp; i++)
-    {
-        lp = tw_getlp(i);
-
-        tmp = (unsigned int)(lp->event_counters->s_nevent_processed - lp->prev_event_counters_gvt->s_nevent_processed);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_gvt->s_nevent_processed = lp->event_counters->s_nevent_processed;
-
-        tmp = (unsigned int)(lp->event_counters->s_e_rbs - lp->prev_event_counters_gvt->s_e_rbs);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_gvt->s_e_rbs = lp->event_counters->s_e_rbs;
-
-        tmp = (unsigned int)(lp->event_counters->s_nsend_network - lp->prev_event_counters_gvt->s_nsend_network);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_gvt->s_nsend_network = lp->event_counters->s_nsend_network;
-
-        tmp = (unsigned int)(lp->event_counters->s_nread_network - lp->prev_event_counters_gvt->s_nread_network);
-        memcpy(&buffer[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_gvt->s_nread_network = lp->event_counters->s_nread_network;
-
-        // next stat not guaranteed to always be non-decreasing
-        // can't use tw_stat (unsigned long long) for negative number
-        tmp2 = (int)lp->event_counters->s_nsend_net_remote - (int)lp->prev_event_counters_gvt->s_nsend_net_remote;
-        memcpy(&buffer[index], &tmp2, sizeof(int));
-        index += sizeof(int);
-        lp->prev_event_counters_gvt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
-    }
+    memcpy(&buffer[index], sample_md, sizeof(*sample_md));
+    index += sizeof(*sample_md);
+    memcpy(&buffer[index], &lp_stats, sizeof(lp_stats));
+    index += sizeof(lp_stats);
 
     if (index != buf_size)
         tw_error(TW_LOC, "size of data being pushed to buffer is incorrect!\n");
 
-    st_buffer_push(g_st_buffer[GVT_COL], &buffer[0], buf_size);
-    memcpy(&last_stats, s, sizeof(tw_statistics));
-    last_all_reduce_cnt = all_reduce_cnt;
+    st_buffer_push(col_type, &buffer[0], buf_size);
 }
-
-void st_collect_data(tw_pe *pe, tw_stime current_rt)
-{
-    tw_clock start_cycle_time = tw_clock_read();
-    int index = 0;
-    int total_size = sizeof(unsigned short) + sizeof(float)*2;
-    int data_size = g_tw_nkp * sizeof(float);
-    char data_gvt[data_size];
-    unsigned short id = (unsigned short)pe->id;
-    float ts;
-
-    st_collect_time_ahead_GVT(pe, &data_gvt[0]);
-    total_size += data_size;
-
-    data_size = num_cycle_ctrs * sizeof(float);
-    char data_cycles[data_size];
-    st_collect_cycle_counters(pe, &data_cycles[0]);
-    total_size += data_size;
-
-    if (g_st_granularity == 0)
-        data_size = sizeof(st_event_counters);
-    else
-        data_size = sizeof(unsigned int) * num_ev_ctrs_pe + sizeof(unsigned int) * num_ev_ctrs_kp * g_tw_nkp + (sizeof(unsigned int) * num_ev_ctrs_lp + sizeof(int)) * g_tw_nlp;
-
-    char data_events[data_size];
-    if (g_st_granularity == 0)
-        st_collect_event_counters_pes(pe, &data_events[0]);
-    else
-        st_collect_event_counters_lps(pe, &data_events[0]);
-    total_size += data_size;
-
-    char final_data[total_size];
-    memcpy(&final_data[index], &id, sizeof(id));
-    index += sizeof(id);
-    ts = (float) current_rt;
-    memcpy(&final_data[index], &ts, sizeof(ts));
-    index += sizeof(ts);
-    ts = (float)pe->GVT;
-    memcpy(&final_data[index], &ts, sizeof(ts));
-    index += sizeof(ts);
-    memcpy(&final_data[index], &data_gvt[0], sizeof(data_gvt));
-    index += sizeof(data_gvt);
-    memcpy(&final_data[index], &data_cycles[0], sizeof(data_cycles));
-    index += sizeof(data_cycles);
-    memcpy(&final_data[index], &data_events[0], sizeof(data_events));
-    index += sizeof(data_events);
-    st_buffer_push(g_st_buffer[RT_COL], final_data, total_size);
-    g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
-}
-
-void st_collect_time_ahead_GVT(tw_pe *pe, char *data)
-{
-    tw_kp *kp;
-    tw_lp *lp;
-    float time;
-    int i, index = 0;
-
-    for(i = 0; i < g_tw_nkp; i++)
-    {
-        kp = tw_getkp(i);
-        if (pe->GVT <= g_tw_ts_end)
-            time = (float)(kp->last_time - pe->GVT);
-        else
-            time = -1.0; // so we can filter out
-        memcpy(&data[index], &time, sizeof(time));
-        index += sizeof(time);
-    }
-}
-
-void st_collect_cycle_counters(tw_pe *pe, char *data)
-{
-    int index = 0;
-    float tmp;
-
-    tmp = (float)(pe->stats.s_net_read - last_cycle_counters.s_net_read) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_gvt - last_cycle_counters.s_gvt) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_fossil_collect - last_cycle_counters.s_fossil_collect) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_event_abort - last_cycle_counters.s_event_abort) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_event_process - last_cycle_counters.s_event_process) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_pq - last_cycle_counters.s_pq) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_rollback - last_cycle_counters.s_rollback) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_cancel_q - last_cycle_counters.s_cancel_q) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_avl - last_cycle_counters.s_avl) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_buddy - last_cycle_counters.s_buddy) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-    index += sizeof(float);
-
-    tmp = (float)(pe->stats.s_lz4 - last_cycle_counters.s_lz4) / g_tw_clock_rate;
-    memcpy(&data[index], &tmp, sizeof(float));
-
-    last_cycle_counters.s_net_read = pe->stats.s_net_read;
-    last_cycle_counters.s_gvt = pe->stats.s_gvt;
-    last_cycle_counters.s_fossil_collect = pe->stats.s_fossil_collect;
-    last_cycle_counters.s_event_abort = pe->stats.s_event_abort;
-    last_cycle_counters.s_event_process = pe->stats.s_event_process;
-    last_cycle_counters.s_pq = pe->stats.s_pq;
-    last_cycle_counters.s_rollback = pe->stats.s_rollback;
-    last_cycle_counters.s_cancel_q = pe->stats.s_cancel_q;
-    last_cycle_counters.s_avl = pe->stats.s_avl;
-    last_cycle_counters.s_buddy = pe->stats.s_buddy;
-    last_cycle_counters.s_lz4 = pe->stats.s_lz4;
-}
-
-void st_collect_event_counters_pes(tw_pe *pe, char *data)
-{
-    int i, index = 0;
-    tw_kp *kp;
-    tw_stat tmp;
-
-    tmp = (unsigned int)(pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)tw_pq_get_size(pe->pq);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(pe->stats.s_nsend_net_remote - last_event_counters.s_nsend_net_remote);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(pe->stats.s_nsend_network - last_event_counters.s_nsend_network);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(pe->stats.s_nread_network - last_event_counters.s_nread_network);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(g_tw_fossil_attempts - last_event_counters.s_fc_attempts);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    tmp = (unsigned int)(g_tw_gvt_done - last_event_counters.s_ngvts);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    unsigned int t[4] = {0};
-    for(i = 0; i < g_tw_nkp; i++)
-    {
-        kp = tw_getkp(i);
-        t[0] += kp->s_nevent_processed;
-        t[1] += kp->s_e_rbs;
-        t[2] += kp->s_rb_total;
-        t[3] += kp->s_rb_secondary;
-    }
-
-    tmp = t[0] - (unsigned int)last_event_counters.s_nevent_processed;
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    tmp = t[1] - (unsigned int)last_event_counters.s_e_rbs;
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    tmp = t[2] - (unsigned int)last_event_counters.s_rb_total;
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    tmp = t[3] - (unsigned int)last_event_counters.s_rb_secondary;
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-
-    last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
-    last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
-    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
-    last_event_counters.s_nsend_network = pe->stats.s_nsend_network;
-    last_event_counters.s_nread_network = pe->stats.s_nread_network;
-    last_event_counters.s_nsend_net_remote = pe->stats.s_nsend_net_remote;
-    last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
-    last_event_counters.s_ngvts = g_tw_gvt_done;
-    last_event_counters.s_nevent_processed = t[0];
-    last_event_counters.s_e_rbs = t[1];
-    last_event_counters.s_rb_total = t[2];
-    last_event_counters.s_rb_secondary = t[3];
-}
-
-void st_collect_event_counters_lps(tw_pe *pe, char *data)
-{
-    int i, index = 0;
-    tw_kp *kp;
-    tw_lp *lp;
-    unsigned int tmp;
-    int tmp2;
-
-    /* PE granularity */
-    tmp = (unsigned int)(pe->stats.s_nevent_abort - last_event_counters.s_nevent_abort);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    last_event_counters.s_nevent_abort = pe->stats.s_nevent_abort;
-
-    tmp = (unsigned int)tw_pq_get_size(pe->pq);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    last_event_counters.s_pq_qsize = tw_pq_get_size(pe->pq);
-
-    tmp = (unsigned int)(pe->stats.s_pe_event_ties - last_event_counters.s_pe_event_ties);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    last_event_counters.s_pe_event_ties = pe->stats.s_pe_event_ties;
-
-    tmp = (unsigned int)(g_tw_fossil_attempts - last_event_counters.s_fc_attempts);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    last_event_counters.s_fc_attempts = g_tw_fossil_attempts;
-
-    tmp = (unsigned int)(g_tw_gvt_done - last_event_counters.s_ngvts);
-    memcpy(&data[index], &tmp, sizeof(unsigned int));
-    index += sizeof(unsigned int);
-    last_event_counters.s_ngvts = g_tw_gvt_done;
-
-    /* KP granularity */
-    for(i = 0; i < g_tw_nkp; i++)
-    {
-        kp = tw_getkp(i);
-
-        tmp = (unsigned int)(kp->s_rb_total - kp->last_s_rb_total_rt);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        kp->last_s_rb_total_rt = kp->s_rb_total;
-
-        tmp = (unsigned int)(kp->s_rb_secondary - kp->last_s_rb_secondary_rt);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        kp->last_s_rb_secondary_rt = kp->s_rb_secondary;
-    }
-
-
-    /* LP granularity */
-    for (i=0; i < g_tw_nlp; i++)
-    {
-        lp = tw_getlp(i);
-
-        tmp = (unsigned int)(lp->event_counters->s_nevent_processed - lp->prev_event_counters_rt->s_nevent_processed);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_rt->s_nevent_processed = lp->event_counters->s_nevent_processed;
-
-        tmp = (unsigned int)(lp->event_counters->s_e_rbs - lp->prev_event_counters_rt->s_e_rbs);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_rt->s_e_rbs = lp->event_counters->s_e_rbs;
-
-        tmp = (unsigned int)(lp->event_counters->s_nsend_network - lp->prev_event_counters_rt->s_nsend_network);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_rt->s_nsend_network = lp->event_counters->s_nsend_network;
-
-        tmp = (unsigned int)(lp->event_counters->s_nread_network - lp->prev_event_counters_rt->s_nread_network);
-        memcpy(&data[index], &tmp, sizeof(unsigned int));
-        index += sizeof(unsigned int);
-        lp->prev_event_counters_rt->s_nread_network = lp->event_counters->s_nread_network;
-
-        // next stat not guaranteed to always be non-decreasing
-        // can't use unsigned int (unsigned long long) for negative number
-        tmp2 = (int)lp->event_counters->s_nsend_net_remote - (int)lp->prev_event_counters_rt->s_nsend_net_remote;
-        memcpy(&data[index], &tmp2, sizeof(int));
-        index += sizeof(int);
-        lp->prev_event_counters_rt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
-    }
-}
-
 

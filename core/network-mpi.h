@@ -4,6 +4,7 @@
 typedef unsigned int tw_eventid;
 typedef long tw_node;
 
+extern MPI_Comm MPI_COMM_ROSS;
 extern int g_tw_is_ross_rank;
 
 #endif

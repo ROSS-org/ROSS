@@ -82,6 +82,8 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
         s->s_rio_load += pe->stats.s_rio_load;
         s->s_rio_lp_init += pe->stats.s_rio_lp_init;
 #endif
+        s->s_alp_nevent_processed = pe->stats.s_alp_nevent_processed;
+        s->s_alp_e_rbs = pe->stats.s_alp_e_rbs;
 
 		for(i = 0; i < g_tw_nkp; i++)
 		{
@@ -99,6 +101,27 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 	s->s_rb_primary = s->s_rb_total - s->s_rb_secondary;
 }
 
+void st_print_analysis_LP_stats(tw_statistics *s)
+{
+    tw_stat model_nevent = s->s_nevent_processed - s->s_alp_nevent_processed;
+    tw_stat model_e_rbs = s->s_e_rbs - s->s_alp_e_rbs;
+    tw_stat model_net = model_nevent - model_e_rbs;
+    tw_stat analysis_net = s->s_alp_nevent_processed - s->s_alp_e_rbs;
+
+    printf("\nSeparate Statistics for Model and Analysis LPs\n");
+    printf("Model LPs:\n");
+	show_lld("Total Events Processed", model_nevent);
+	show_lld("Events Rolled Back", model_e_rbs);
+	show_lld("Net Events Processed", model_net);
+	show_2f("Efficiency", 100.0 * (1.0 - ((double) model_e_rbs / (double) model_net)));
+    
+    printf("\nAnalysis LPs:\n");
+	show_lld("Total Events Processed", s->s_alp_nevent_processed);
+	show_lld("Events Rolled Back", s->s_alp_e_rbs);
+	show_lld("Net Events Processed", analysis_net);
+	show_2f("Efficiency", 100.0 * (1.0 - ((double) s->s_alp_e_rbs / (double) analysis_net)));
+}
+
 void
 tw_stats(tw_pe *me)
 {
@@ -108,7 +131,7 @@ tw_stats(tw_pe *me)
 	tw_calloc_stats(&m_alloc, &m_waste);
     tw_lp *lp = NULL;
     int i;
-    for(i = 0; i < g_tw_nlp; i++)
+    for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
     {
         lp = tw_getlp(i);
         if (lp->type->final)
@@ -213,5 +236,8 @@ tw_stats(tw_pe *me)
 #endif
 
 	tw_gvt_stats(stdout);
+    
+    if (g_st_use_analysis_lps)
+        st_print_analysis_LP_stats(&s);
 #endif
 }

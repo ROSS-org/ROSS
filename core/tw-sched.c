@@ -60,7 +60,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         tw_kp_rollback_to(dest_kp, cev->recv_ts);
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
-                           st_collect_event_data(cev, (double)start / g_tw_clock_rate, 0);
+                           st_collect_event_data(cev, (double)start / g_tw_clock_rate);
                     }
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
@@ -149,7 +149,6 @@ static void tw_sched_batch(tw_pe * me) {
     const int max_alloc_fail_count = 20;
 
     tw_clock     start;
-    tw_clock ev_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -208,15 +207,16 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-        ev_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
-    clp->event_counters->s_nevent_processed++;
+    // instrumentation
+    ckp->kp_stats->s_nevent_processed++;
+    clp->lp_stats->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
@@ -227,6 +227,9 @@ static void tw_sched_batch(tw_pe * me) {
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_abort++;
+        clp->lp_stats->s_nevent_abort++;
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
@@ -257,9 +260,9 @@ static void tw_sched_batch(tw_pe * me) {
             tw_get_stats(me, &s);
             st_expose_data_damaris(me, me->GVT, &s, RT_COL);
 #else
-            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
-            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+                st_collect_engine_data(me, RT_COL);
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 #endif
             g_st_rt_samp_start_cycles = tw_clock_read();
@@ -275,7 +278,6 @@ static void tw_sched_batch_realtime(tw_pe * me) {
     const int max_alloc_fail_count = 20;
 
     tw_clock     start;
-    tw_clock ev_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -335,14 +337,16 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-        ev_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
+    // instrumentation
+    ckp->kp_stats->s_nevent_processed++;
+    clp->lp_stats->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We
@@ -353,6 +357,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	  {
 	    start = tw_clock_read();
 	    me->stats.s_nevent_abort++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_abort++;
+        clp->lp_stats->s_nevent_abort++;
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
@@ -383,9 +390,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
-            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
-            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+                st_collect_engine_data(me, RT_COL);
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 
             g_st_rt_samp_start_cycles = tw_clock_read();
@@ -437,7 +444,6 @@ void tw_sched_init(tw_pe * me) {
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
-    tw_clock ev_start;
     tw_stime gvt = 0.0;
 
     if(tw_nnodes() > 1) {
@@ -469,10 +475,9 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-        ev_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate, tw_clock_read() - ev_start);
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
@@ -482,13 +487,16 @@ void tw_scheduler_sequential(tw_pe * me) {
         }
 
         ckp->s_nevent_processed++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_processed++;
+        clp->lp_stats->s_nevent_processed++;
         tw_event_free(me, cev);
 
         if(g_st_rt_sampling && 
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
-            if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 
             g_st_rt_samp_start_cycles = tw_clock_read();
@@ -506,7 +514,6 @@ void tw_scheduler_sequential(tw_pe * me) {
 
 void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
-    tw_clock ev_start;
     unsigned int msg_i;
 
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
@@ -575,15 +582,17 @@ void tw_scheduler_conservative(tw_pe * me) {
             start = tw_clock_read();
             reset_bitfields(cev);
             clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-            ev_start = tw_clock_read();
             (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
             if (g_st_ev_trace == FULL_TRACE)
-                st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate, (double)(tw_clock_read() - ev_start)/g_tw_clock_rate);
+                st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
             if (*clp->type->commit) {
                 (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
             }
 
             ckp->s_nevent_processed++;
+            // instrumentation
+            ckp->kp_stats->s_nevent_processed++;
+            clp->lp_stats->s_nevent_processed++;
             me->stats.s_event_process += tw_clock_read() - start;
 
             if (me->cev_abort) {
@@ -596,9 +605,9 @@ void tw_scheduler_conservative(tw_pe * me) {
                     tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
             {
                 tw_clock current_rt = tw_clock_read();
-                if (g_st_engine_stats == RT_STATS || g_st_engine_stats == BOTH_STATS)
-                    st_collect_data(me, (tw_stime)current_rt / g_tw_clock_rate);
-                if (g_st_model_stats == RT_STATS || g_st_model_stats == BOTH_STATS)
+                if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+                    st_collect_engine_data(me, RT_COL);
+                if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
                     st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
 
                 g_st_rt_samp_start_cycles = tw_clock_read();

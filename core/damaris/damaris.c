@@ -208,30 +208,30 @@ static void kp_data(int inst_type)
     int i, err, block = 0;
     char var_name[2048];
 
-    for (i = 0; i < g_tw_nkp; i++)
-    {
-        kp = tw_getkp(i);
+    //for (i = 0; i < g_tw_nkp; i++)
+    //{
+    //    kp = tw_getkp(i);
 
-        kp_vars[0][i] = (int)(kp->s_rb_total - kp->last_s_rb_total_gvt);
-        kp_vars[1][i] = (int)(kp->s_rb_secondary - kp->last_s_rb_secondary_gvt);
-        kp_vars[2][i] = kp_vars[0][i] - kp_vars[1][i];
+    //    kp_vars[0][i] = (int)(kp->s_rb_total - kp->last_s_rb_total_gvt);
+    //    kp_vars[1][i] = (int)(kp->s_rb_secondary - kp->last_s_rb_secondary_gvt);
+    //    kp_vars[2][i] = kp_vars[0][i] - kp_vars[1][i];
 
-        kp->last_s_rb_total_gvt = kp->s_rb_total;
-        kp->last_s_rb_secondary_gvt = kp->s_rb_secondary;
-    }
+    //    kp->last_s_rb_total_gvt = kp->s_rb_total;
+    //    kp->last_s_rb_secondary_gvt = kp->s_rb_secondary;
+    //}
 
-    for (i = 0; i < NUM_KP_VARS; i++)
-    {
-        if (inst_type == GVT_COL)
-            snprintf(var_name, sizeof(damaris_gvt_path) + strlen(kp_var_names[i]),"%s%s", damaris_gvt_path, kp_var_names[i]);
-        else if (inst_type == RT_COL)
-        {
-            snprintf(var_name, sizeof(damaris_rt_path) + strlen(kp_var_names[i]),"%s%s", damaris_rt_path, kp_var_names[i]);
-            block = rt_block_counter;
-        }
-        if ((err = damaris_write_block(var_name, block, kp_vars[i])) != DAMARIS_OK)
-            damaris_error(TW_LOC, err, var_name);
-    }
+    //for (i = 0; i < NUM_KP_VARS; i++)
+    //{
+    //    if (inst_type == GVT_COL)
+    //        snprintf(var_name, sizeof(damaris_gvt_path) + strlen(kp_var_names[i]),"%s%s", damaris_gvt_path, kp_var_names[i]);
+    //    else if (inst_type == RT_COL)
+    //    {
+    //        snprintf(var_name, sizeof(damaris_rt_path) + strlen(kp_var_names[i]),"%s%s", damaris_rt_path, kp_var_names[i]);
+    //        block = rt_block_counter;
+    //    }
+    //    if ((err = damaris_write_block(var_name, block, kp_vars[i])) != DAMARIS_OK)
+    //        damaris_error(TW_LOC, err, var_name);
+    //}
 }
 
 /**
@@ -243,36 +243,36 @@ static void lp_data(int inst_type)
     int i, err, block = 0;
     char var_name[2048];
 
-    for (i = 0; i < g_tw_nlp; i++)
-    {
-        lp = tw_getlp(i);
+    //for (i = 0; i < g_tw_nlp; i++)
+    //{
+    //    lp = tw_getlp(i);
 
-        lp_vars[0][i] = (int)(lp->event_counters->s_nevent_processed - lp->prev_event_counters_gvt->s_nevent_processed);
-        lp_vars[1][i] = (int)(lp->event_counters->s_e_rbs - lp->prev_event_counters_gvt->s_e_rbs);
-        lp_vars[2][i] = lp_vars[0][i] - lp_vars[1][i];
-        lp_vars[3][i] = (int)(lp->event_counters->s_nsend_network - lp->prev_event_counters_gvt->s_nsend_network);
-        lp_vars[4][i] = (int)(lp->event_counters->s_nread_network - lp->prev_event_counters_gvt->s_nread_network);
-        lp_vars[5][i] = (int)lp->event_counters->s_nsend_net_remote - (int)lp->prev_event_counters_gvt->s_nsend_net_remote;
+    //    lp_vars[0][i] = (int)(lp->event_counters->s_nevent_processed - lp->prev_event_counters_gvt->s_nevent_processed);
+    //    lp_vars[1][i] = (int)(lp->event_counters->s_e_rbs - lp->prev_event_counters_gvt->s_e_rbs);
+    //    lp_vars[2][i] = lp_vars[0][i] - lp_vars[1][i];
+    //    lp_vars[3][i] = (int)(lp->event_counters->s_nsend_network - lp->prev_event_counters_gvt->s_nsend_network);
+    //    lp_vars[4][i] = (int)(lp->event_counters->s_nread_network - lp->prev_event_counters_gvt->s_nread_network);
+    //    lp_vars[5][i] = (int)lp->event_counters->s_nsend_net_remote - (int)lp->prev_event_counters_gvt->s_nsend_net_remote;
 
-        lp->prev_event_counters_gvt->s_nevent_processed = lp->event_counters->s_nevent_processed;
-        lp->prev_event_counters_gvt->s_e_rbs = lp->event_counters->s_e_rbs;
-        lp->prev_event_counters_gvt->s_nsend_network = lp->event_counters->s_nsend_network;
-        lp->prev_event_counters_gvt->s_nread_network = lp->event_counters->s_nread_network;
-        lp->prev_event_counters_gvt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
-    }
+    //    lp->prev_event_counters_gvt->s_nevent_processed = lp->event_counters->s_nevent_processed;
+    //    lp->prev_event_counters_gvt->s_e_rbs = lp->event_counters->s_e_rbs;
+    //    lp->prev_event_counters_gvt->s_nsend_network = lp->event_counters->s_nsend_network;
+    //    lp->prev_event_counters_gvt->s_nread_network = lp->event_counters->s_nread_network;
+    //    lp->prev_event_counters_gvt->s_nsend_net_remote = lp->event_counters->s_nsend_net_remote;
+    //}
 
-    for (i = 0; i < NUM_LP_VARS; i++)
-    {
-        if (inst_type == GVT_COL)
-            snprintf(var_name, sizeof(damaris_gvt_path) + strlen(lp_var_names[i]),"%s%s", damaris_gvt_path, lp_var_names[i]);
-        else if (inst_type == RT_COL)
-        {
-            snprintf(var_name, sizeof(damaris_rt_path) + strlen(lp_var_names[i]),"%s%s", damaris_rt_path, lp_var_names[i]);
-            block = rt_block_counter;
-        }
-        if ((err = damaris_write(var_name, lp_vars[i])) != DAMARIS_OK)
-            damaris_error(TW_LOC, err, var_name);
-    }
+    //for (i = 0; i < NUM_LP_VARS; i++)
+    //{
+    //    if (inst_type == GVT_COL)
+    //        snprintf(var_name, sizeof(damaris_gvt_path) + strlen(lp_var_names[i]),"%s%s", damaris_gvt_path, lp_var_names[i]);
+    //    else if (inst_type == RT_COL)
+    //    {
+    //        snprintf(var_name, sizeof(damaris_rt_path) + strlen(lp_var_names[i]),"%s%s", damaris_rt_path, lp_var_names[i]);
+    //        block = rt_block_counter;
+    //    }
+    //    if ((err = damaris_write(var_name, lp_vars[i])) != DAMARIS_OK)
+    //        damaris_error(TW_LOC, err, var_name);
+    //}
 }
 
 /** 
