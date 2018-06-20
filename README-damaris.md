@@ -1,16 +1,17 @@
 ## Using Damaris with ROSS
-[Damaris](http://damaris.gforge.inria.fr/doku.php) is a I/O and data management software.
+[Damaris](https://project.inria.fr/damaris) is an I/O and data management software.
 Support for Damaris is currently being added to ROSS to help manage extensions for in situ data analysis and visualization. 
 This readme contains some basic info for how to set-up ROSS to use Damaris.
 
 ## Building ROSS with Damaris
-For Damaris installation instructions, see the [Damaris User Guide](http://damaris.gforge.inria.fr/doc/DamarisUserManual-1.0.1.pdf).
+ROSS is currently up to date with [Damaris version 1.2.0](https://project.inria.fr/damaris/download).
+For Damaris installation instructions, see the [Damaris User Guide](https://project.inria.fr/damaris/documentation).
 
 Once that is done, make sure you've cloned caitlinross/ROSS-Vis and checkout the `damaris` branch.  
 First you'll need to do some setup with your model to make sure it will correctly link with Damaris and its dependencies.
 
 ### Setting up your model
-So far this is being tested with Phold, so that model is set.  The basic instructions for setting up with another ROSS model should be the following:
+So far this is being tested with PHOLD, so that model is set.  The basic instructions for setting up with another ROSS model should be the following:
 
 Add the following commands to your `CMakeLists.txt` file in your model directory.
 ```
@@ -23,7 +24,7 @@ After you've created the executable for your model in `CMakeLists.txt` (e.g., ph
 ```
 IF(USE_DAMARIS)
   SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive \
-    -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lmpi_cxx -lrt -ldl")
+    -lxerces-c -lboost_log -lboost_log_setup -lboost_filesystem -lboost_system -lboost_date_time -lboost_thread -lstdc++ -lmpi_cxx -lrt -ldl")
   TARGET_LINK_LIBRARIES(phold ROSS ${DAMARIS_LINKER_FLAGS} ${DAMARIS_LIB} m)
 ENDIF(USE_DAMARIS)
 ```
@@ -32,7 +33,7 @@ Set ARCH and CC as usual with a ROSS build.  For Damaris, you will also need to 
 I installed Damaris and all of the dependencies (Xerces-C, etc) to `$HOME/local` as suggested in the Damaris User Guide, so I used `export LD_LIBRARY_PATH=$HOME/local/lib`. 
 
 Now run ccmake (or set options with cmake command).  You should set `CMAKE_BUILD_TYPE` and `CMAKE_INSTALL_PREFIX` as you wish.  Now set `USE_DAMARIS` to `ON` and set `DAMARIS_DIR` appropriately.  It assumes `$HOME/local` as the default.  
-Right now I assume that Damaris and its dependencies are all in this same directory for simplicty, but I'll improve it in the future.  
+We assume that Damaris and its dependencies are all in this same directory for simplicty.  
 Now configure and generate the files as usual with ccmake.
 
 Now just `make` and `make install` and you should be set to run.
@@ -60,7 +61,7 @@ Now that VisIt is set up, you need to rebuild Damaris.  See the Damaris User Gui
 Now you can build and link your model, but you'll need to add libsimV2 to `DAMARIS_LINKER_FLAGS`:
 ```
 SET(DAMARIS_LINKER_FLAGS "-rdynamic -L/${DAMARIS_DIR}/lib -Wl,--whole-archive,-ldamaris,--no-whole-archive \
-  -lxerces-c -lboost_filesystem -lboost_system -lboost_date_time -lstdc++ -lpthread -lmpi_cxx -lrt -ldl \ 
+  -lxerces-c -lboost_log -lboost_log_setup -lboost_filesystem -lboost_system -lboost_date_time -lboost_thread -lstdc++ -lpthread -lmpi_cxx -lrt -ldl \ 
   -L/path/to/visit2.12.1/src/lib -lsimV2")
 ```
 
@@ -71,11 +72,31 @@ In the `ROSS-Vis/damaris` directory, there is a test.xml file.  This describes t
     <path>/path/to/visit2.12.1/src</path>
 </visit>
 ```
-On your local system, you need to set up a host profile so you can connect to VisIt on the remote system.  Go to Options and then Host Profiles.  Fill out Remote Host name, Path to Visit, Username, and check tunnel data connections through SSH.  Then click launch profiles tab.  Set a profile name and then on the Parallel tab, I checked Launch parallel engine along with setting Parallel launch method to mpirun.  You can then set number of desired processors/nodes.  Click Apply and then Dismiss.
+On your local system, you need to set up a host profile so you can connect to VisIt on the remote system.
+Go to Options and then Host Profiles.
+Fill out Remote Host name, Path to Visit, Username, and check tunnel data connections through SSH.
+Then click launch profiles tab.
+Set a profile name and then on the Parallel tab, I checked Launch parallel engine along with setting Parallel launch method to mpirun.
+You can then set number of desired processors/nodes.  Click Apply and then Dismiss.
 
-On the VisIt window, click Open under Sources.  Change Host to the Host you just created a profile for.  Enter your password when prompted and the path should change to your home directory on that system. It will also start the VisIt processes running on the remote system. Go into the .visit/simulations Directory.  The file list will be empty at this point.  Now you can run your simulation as described above for running with Damaris, but we need to turn on instrumentation (see next paragraph).  Click the refresh button on the File open window and there should be a file that starts with some number followed by `ROSS_test.sim2`.  Click on that and then OK.  Now you can try out different visualizations and choose the variables you want to examine.  
+On the VisIt window, click Open under Sources.
+Change Host to the Host you just created a profile for.
+Enter your password when prompted and the path should change to your home directory on that system.
+It will also start the VisIt processes running on the remote system.
+Go into the .visit/simulations Directory.
+The file list will be empty at this point.
+Now you can run your simulation as described above for running with Damaris, but we need to turn on instrumentation (see next paragraph).
+Click the refresh button on the File open window and there should be a file that starts with some number followed by `ROSS_test.sim2`.
+Click on that and then OK.
+Now you can try out different visualizations and choose the variables you want to examine.  
 
-Right now the command line arguments for turning on instrumentation are the same as before (if you have ROSS built to use Damaris, it just exposes the data to Damaris instead of writing out any data to file).  You can use this to run with both GVT-based and real time instrumentation (together or independently). So the relevant options are `--enable-gvt-stats=1` and `--num-gvt=n` for the GVT-based stats and `--real-time-samp=n` for the real time sampling.  `--granularity=n` has no effect here as it collects everything at the highest granularity.  Setting `--num-gvt` between 100 and 500 has worked well for the PHOLD model. (This has not yet been tested with CODES.)
+Right now the command line arguments for turning on instrumentation are the same as before (if you have ROSS built to use Damaris, it just exposes the data to Damaris instead of writing out any data to file).
+You can use this to run with both GVT-based and real time instrumentation (together or independently).
+See the [ROSS Instrumentation Documentation](http://carothersc.github.io/ROSS/instrumentation/instrumentation.html) for instructions on using the instrumenation.
+*Note*: Damaris is not yet setup to use the event tracing data or virtual time sampling data, yet.
+Those features should be avaliable soon!
+Another side note, `--granularity=n` has no effect here as when Damaris is turned on, the instrumentation collects everything at the finest granularity.  
+Setting `--num-gvt` between 100 and 500 has worked well for the PHOLD model. (This has not yet been tested with CODES.)
 
 
 
