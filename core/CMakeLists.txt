@@ -102,8 +102,8 @@ ENDIF(USE_RIO)
 
 if (USE_DAMARIS)
     INCLUDE_DIRECTORIES(${ROSS_Damaris_SOURCE_DIR})
-    MESSAGE("ross-damaris: ${ROSS_Damaris_SOURCE_DIR}")
-    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/damaris.h)
+    INCLUDE_DIRECTORIES(${DAMARIS_DIR}/include)
+    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
 
 # Use debugging-friendly memory allocation

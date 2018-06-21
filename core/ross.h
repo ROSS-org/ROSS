@@ -116,10 +116,6 @@ extern "C" {
 #include <stdarg.h>
 #include <stdint.h>
 
-#ifdef USE_DAMARIS
-#include "Damaris.h"
-#endif
-
 #if !defined(DBL_MAX)
 #include <float.h>
 #endif
@@ -218,7 +214,7 @@ typedef uint64_t tw_lpid;
 #include "instrumentation/st-instrumentation.h"
 
 #ifdef USE_DAMARIS
-#include "damaris/damaris.h"
+#include "../damaris/core/damaris.h"
 #endif
 
 #include "tw-eventq.h"
