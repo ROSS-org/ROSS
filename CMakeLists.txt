@@ -130,13 +130,11 @@ IF(DOXYGEN_FOUND)
 ENDIF(DOXYGEN_FOUND)
 
 # Damaris I/O and data management
-OPTION(USE_DAMARIS "Build with Damaris capabilities?" OFF)
+OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
 if (USE_DAMARIS)
-    SET(DAMARIS_DIR $ENV{DAMARIS_DIR} CACHE STRING "Path to Damaris install")
-    IF(NOT DAMARIS_DIR)
-        SET(DAMARIS_DIR $ENV{HOME}/local)
-    ENDIF(NOT DAMARIS_DIR)
-
     ADD_SUBDIRECTORY(damaris)
-    #FIND_LIBRARY(DAMARIS_LIB damaris ${DAMARIS_DIR}/lib)
+    #SET(DAMARIS_DIR $ENV{DAMARIS_DIR} CACHE STRING "Path to Damaris install")
+    #IF(NOT DAMARIS_DIR)
+    #    SET(DAMARIS_DIR $ENV{HOME}/local)
+    #ENDIF(NOT DAMARIS_DIR)
 ENDIF(USE_DAMARIS)
