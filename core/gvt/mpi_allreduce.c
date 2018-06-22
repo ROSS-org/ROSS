@@ -210,12 +210,8 @@ tw_gvt_step2(tw_pe *me)
     {
 #ifdef USE_DAMARIS
         tw_clock start_cycle_time = tw_clock_read();
-        tw_statistics s;
-        bzero(&s, sizeof(s));
-        tw_get_stats(me, &s);
-        st_expose_data_damaris(me, gvt, &s, GVT_COL);
-        damaris_end_iteration();
-        reset_block_counter();
+        st_damaris_expose_data(me, gvt, GVT_COL);
+        st_damaris_end_iteration();
         g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
 #else
 		st_collect_engine_data(me, GVT_COL);
@@ -226,8 +222,7 @@ tw_gvt_step2(tw_pe *me)
     //if (!g_st_stats_enabled && g_st_real_time_samp) //need to make sure if one PE enters this, all do; otherwise deadlock
     if (g_st_engine_stats == RT_STATS || g_st_model_stats == RT_STATS)
     {
-        damaris_end_iteration();
-        reset_block_counter();
+        st_damaris_end_iteration();
     }
 #endif
 

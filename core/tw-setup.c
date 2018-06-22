@@ -50,7 +50,7 @@ void tw_init(int *argc, char ***argv) {
     tw_net_init(argc, argv);
 
 #ifdef USE_DAMARIS
-    if(g_tw_is_ross_rank)
+    if(g_st_ross_rank)
     {
 #endif
     // Print out the command-line so we know what we passed in
@@ -81,7 +81,7 @@ void tw_init(int *argc, char ***argv) {
     tw_net_start();
     tw_gvt_start();
 #ifdef USE_DAMARIS
-    } // end of if(g_tw_is_ross_rank)
+    } // end of if(g_st_ross_rank)
 #endif
 }
 
@@ -260,7 +260,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
     }
 
 #ifdef USE_DAMARIS
-    st_set_damaris_parameters(nlp);
+    st_damaris_set_parameters(nlp);
 #endif
 
 }
@@ -399,19 +399,11 @@ void tw_run(void) {
         printf("================================= \n");
     }
 #endif
-
-#ifdef USE_DAMARIS
-    if(g_tw_is_ross_rank)
-    {
-        //printf("Sim over (just before damaris_stop: Rank %d g_tw_is_ross_rank = %d\n", g_tw_mynode, g_tw_is_ross_rank); 
-        damaris_stop();
-    }
-#endif
 }
 
 void tw_end(void) {
 #ifdef USE_DAMARIS
-    if(g_tw_is_ross_rank)
+    if(g_st_ross_rank)
     {
 #endif
     if(tw_ismaster()) {
@@ -419,7 +411,7 @@ void tw_end(void) {
         fclose(g_tw_csv);
     }
 #ifdef USE_DAMARIS
-    }
+    } // end if(g_st_ross_rank)
 #endif
 
     tw_net_stop();

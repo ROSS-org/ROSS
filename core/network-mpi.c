@@ -3,7 +3,6 @@
 
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
-int g_tw_is_ross_rank = 0; // for use with damaris
 
 static long id_tmp;
 
@@ -81,8 +80,8 @@ void tw_net_init(int *argc, char ***argv)
   }
   
 #ifdef USE_DAMARIS
-  st_ross_damaris_init();
-  if (!g_tw_is_ross_rank) // Damaris ranks only
+  st_damaris_ross_init();
+  if (!g_st_ross_rank) // Damaris ranks only
     return; 
 #endif
 
@@ -191,7 +190,7 @@ void
 tw_net_stop(void)
 {
 #ifdef USE_DAMARIS
-    st_ross_damaris_finalize();
+    st_damaris_ross_finalize();
 #else
   if (!custom_communicator) {
     if (MPI_Finalize() != MPI_SUCCESS)

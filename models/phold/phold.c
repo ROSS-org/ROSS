@@ -176,7 +176,7 @@ main(int argc, char **argv, char **env)
 	tw_init(&argc, &argv);
 
 #ifdef USE_DAMARIS
-    if(g_tw_is_ross_rank)
+    if(g_st_ross_rank)
     { // only ross ranks should run code between here and tw_run()
 #endif
 	if( lookahead > 1.0 )
@@ -218,7 +218,7 @@ main(int argc, char **argv, char **env)
 
 	tw_run();
 #ifdef USE_DAMARIS
-    } // end if(g_tw_is_ross_rank)
+    } // end if(g_st_ross_rank)
 #endif
 	tw_end();
 
