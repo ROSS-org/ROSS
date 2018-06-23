@@ -63,12 +63,8 @@ void tw_comm_set(MPI_Comm comm)
 	custom_communicator = 1;
 }
 
-const tw_optdef *tw_get_mpi_opts()
-{
-    return mpi_opts;
-}
-
-void tw_net_init(int *argc, char ***argv)
+const tw_optdef *
+tw_net_init(int *argc, char ***argv)
 {
   int my_rank;
   int initialized;
@@ -78,20 +74,15 @@ void tw_net_init(int *argc, char ***argv)
     if (MPI_Init(argc, argv) != MPI_SUCCESS)
       tw_error(TW_LOC, "MPI_Init failed.");
   }
-  
-#ifdef USE_DAMARIS
-  st_damaris_ross_init();
-  if (!g_st_ross_rank) // Damaris ranks only
-    return; 
-#endif
 
   if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
 
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
+  
+  return mpi_opts;
 }
-
 
 static void
 init_q(struct act_q *q, const char *name)

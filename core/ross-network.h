@@ -12,8 +12,7 @@
  * command line argument display and parsing; NULL may be returned
  * to indicate the implementation has no options it wants included.
  */
-void tw_net_init(int *argc, char ***argv);
-const tw_optdef *tw_get_mpi_opts();
+const tw_optdef *tw_net_init(int *argc, char ***argv);
 
 /* Setup the communicator to use instead of MPI_COMM_WORLD.
  * This function should be called before tw_net_init. 

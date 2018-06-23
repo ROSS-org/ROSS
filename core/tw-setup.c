@@ -34,25 +34,8 @@ void tw_init(int *argc, char ***argv) {
     time_t raw_time;
 #endif
 
-    tw_opt_add(tw_get_mpi_opts());
-    tw_opt_add(kernel_options);
-    tw_opt_add(tw_gvt_setup());
-    tw_opt_add(tw_clock_setup());
-    tw_opt_add(st_inst_opts());
-    tw_opt_add(st_special_lp_opts());
-#ifdef USE_RIO
-    tw_opt_add(io_opts);
-#endif
-
-    // by now all options must be in
-    tw_opt_parse(argc, argv);
-
-    tw_net_init(argc, argv);
-
-#ifdef USE_DAMARIS
-    if(g_st_ross_rank)
-    {
-#endif
+    tw_opt_add(tw_net_init(argc, argv));
+    
     // Print out the command-line so we know what we passed in
     if (tw_ismaster()) {
         for (i = 0; i < *argc; i++) {
@@ -70,6 +53,27 @@ void tw_init(int *argc, char ***argv) {
 #endif
         printf("ROSS Revision: %s\n\n", ROSS_VERSION);
     }
+#endif
+
+    tw_opt_add(kernel_options);
+    tw_opt_add(tw_gvt_setup());
+    tw_opt_add(tw_clock_setup());
+    tw_opt_add(st_inst_opts());
+    tw_opt_add(st_special_lp_opts());
+#ifdef USE_RIO
+    tw_opt_add(io_opts);
+#endif
+
+    // by now all options must be in
+    tw_opt_parse(argc, argv);
+
+  
+#ifdef USE_DAMARIS
+    st_damaris_ross_init();
+    if (!g_st_ross_rank) // Damaris ranks only
+        return; 
+    else 
+    {
 #endif
 
     if(tw_ismaster() && NULL == (g_tw_csv = fopen("ross.csv", "a"))) {
