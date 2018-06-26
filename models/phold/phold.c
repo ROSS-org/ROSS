@@ -121,22 +121,21 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
-void rb_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
+void event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
 {
     return;
 }
 
 void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
 {
+    // just testing
     int a = 1;
     memcpy(buffer, &a, sizeof(a));
     return;
 }
 
 st_model_types model_types[] = {
-    {(rbev_trace_f) rb_event_trace,
-     0,
-     (ev_trace_f) rb_event_trace,
+    {(ev_trace_f) event_trace,
      0,
     (model_stat_f) phold_stats_collect,
     sizeof(int)},

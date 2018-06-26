@@ -160,6 +160,8 @@ struct tw_statistics {
 
     tw_clock s_stat_comp;
     tw_clock s_stat_write;
+    tw_stat s_alp_nevent_processed;
+    tw_stat s_alp_e_rbs;
 
 #ifdef USE_RIO
     tw_clock s_rio_load;
@@ -366,18 +368,17 @@ struct tw_lp {
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
-    /* for ROSS instrumentation */
+    /* ROSS instrumentation structs */
     struct st_model_types *model_types;
-    struct st_lp_counters *event_counters;
-    struct st_lp_counters *prev_event_counters_gvt;
-    struct st_lp_counters *prev_event_counters_rt;
+    struct st_lp_stats *lp_stats;
+    struct st_lp_stats *last_stats[3];
 
-  /* tw_suspend variables */
-  tw_event    *suspend_event;
-  tw_stime     suspend_time;
-  unsigned int suspend_error_number;
-  unsigned int suspend_do_orig_event_rc;
-  unsigned int suspend_flag;
+    /* tw_suspend variables */
+    tw_event    *suspend_event;
+    tw_stime     suspend_time;
+    unsigned int suspend_error_number;
+    unsigned int suspend_do_orig_event_rc;
+    unsigned int suspend_flag;
 };
 
 /**
@@ -412,10 +413,8 @@ struct tw_kp {
     long s_e_rbs; /**< @brief Number of events rolled back by this LP */
     long s_rb_total; /**< @brief Number of total rollbacks by this LP */
     long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
-    long last_s_rb_total_gvt; /**< @brief Number of total rollbacks by this LP */
-    long last_s_rb_secondary_gvt; /**< @brief Number of secondary rollbacks by this LP */
-    long last_s_rb_total_rt; /**< @brief Number of total rollbacks by this LP */
-    long last_s_rb_secondary_rt; /**< @brief Number of secondary rollbacks by this LP */
+    struct st_kp_stats *kp_stats;
+    struct st_kp_stats *last_stats[3];
 
 #ifdef ROSS_MEMORY
     tw_memoryq *pmemory_q; /**< @brief TW processed memory buffer queues */

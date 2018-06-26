@@ -1,5 +1,6 @@
 #ifndef INC_ross_kernel_inline_h
 #define INC_ross_kernel_inline_h
+#include "instrumentation/st-instrumentation.h"
 
 #define	ROSS_MAX(a,b)	((a) > (b) ? (a) : (b))
 #define	ROSS_MIN(a,b)	((a) < (b) ? (a) : (b))
@@ -9,6 +10,11 @@ static inline tw_lp *
 {
   tw_lpid id;
 
+  // finding analysis LPs doesn't depend on model's choice of mapping
+  if (g_st_use_analysis_lps && gid >= g_st_total_model_lps)
+  {
+      return g_tw_lp[(gid - g_st_total_model_lps) % g_tw_nkp + g_tw_nlp];
+  }
 
   switch (g_tw_mapping) {
   case CUSTOM:
@@ -35,7 +41,7 @@ static inline tw_lp *
      tw_getlp(tw_lpid id)
 {
 #ifdef ROSS_runtime_checks  
-  if (id >= g_tw_nlp)
+  if (id >= g_tw_nlp + g_st_analysis_nlp)
     tw_error(TW_LOC, "ID %d exceeded MAX LPs", id);
   if (id != g_tw_lp[id]->id)
     tw_error(TW_LOC, "Inconsistent LP Mapping");

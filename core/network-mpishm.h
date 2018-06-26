@@ -2,6 +2,8 @@
 #define INC_network_mpishm_h
 #include<pthread.h>
 
+extern MPI_Comm MPI_COMM_ROSS;
+
 typedef unsigned int tw_eventid;
 typedef long tw_node;
 

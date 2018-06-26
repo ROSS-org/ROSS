@@ -33,8 +33,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 50000;
-static unsigned int send_buffer = 50000;
+static unsigned int read_buffer = 16;
+static unsigned int send_buffer = 1024;
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -50,6 +50,13 @@ static const tw_optdef mpi_opts[] = {
   TWOPT_END()
 };
 
+// Forward declarations of functions used in MPI network message processing
+static int recv_begin(tw_pe *me);
+static void recv_finish(tw_pe *me, tw_event *e, char * buffer);
+static int send_begin(tw_pe *me);
+static void send_finish(tw_pe *me, tw_event *e, char * buffer);
+
+// Start of implmentation of network processing routines/functions
 void tw_comm_set(MPI_Comm comm)
 {
 	MPI_COMM_ROSS = comm;
@@ -158,6 +165,9 @@ tw_net_start(void)
   init_q(&posted_recvs, "MPI recv queue");
 
   g_tw_net_device_size = read_buffer;
+
+  // pre-post all the Irecv operations
+  recv_begin( g_tw_pe[0] );
 }
 
 void
@@ -253,27 +263,30 @@ test_q(
     }
 
   /* Collapse the lists to remove any holes we left. */
-  for (i = 0, n = 0; i < q->cur; i++) {
-    if (q->event_list[i]) {
-      if (i != n) {
+  for (i = 0, n = 0; i < q->cur; i++)
+  {
+    if (q->event_list[i])
+    {
+      if (i != n)
+      {
 	// swap the event pointers
-	q->event_list[n] = q->event_list[i];
+	  q->event_list[n] = q->event_list[i];
 
 	// copy the request handles
-	memcpy(
-	       &q->req_list[n],
-	       &q->req_list[i],
-	       sizeof(q->req_list[0]));
-
+	  memcpy(
+	      &q->req_list[n],
+	      &q->req_list[i],
+	      sizeof(q->req_list[0]));
+	  
 #if ROSS_MEMORY
-	// swap the buffers
-	tmp = q->buffers[n];
-	q->buffers[n] = q->buffers[i];
-	q->buffers[i] = tmp;
+	  // swap the buffers
+	  tmp = q->buffers[n];
+	  q->buffers[n] = q->buffers[i];
+	  q->buffers[i] = tmp;
 #endif
-      }
+      } // endif (i != n)
       n++;
-    }
+    } // endif (q->event_list[i])
   }
   q->cur -= ready;
 
@@ -294,29 +307,15 @@ recv_begin(tw_pe *me)
     {
       unsigned id = posted_recvs.cur;
 
-      MPI_Iprobe(MPI_ANY_SOURCE,
-		 MPI_ANY_TAG,
-		 MPI_COMM_ROSS,
-		 &flag,
-		 &status);
-
-      if(flag)
-	{
-	  if(!(e = tw_event_grab(me)))
-	    {
-	      if(tw_gvt_inprogress(me))
-		tw_error(TW_LOC, "out of events in GVT!");
-
-	      break;
-	    }
-	} else
-	{
-	  return changed;
-	}
+      if(!(e = tw_event_grab(me)))
+      {
+	  if(tw_gvt_inprogress(me))
+	      tw_error(TW_LOC, "out of events in GVT!");
+	  return changed;	  
+      }
 
 #if ROSS_MEMORY
-      if(!flag ||
-	 MPI_Irecv(posted_recvs.buffers[id],
+      if( MPI_Irecv(posted_recvs.buffers[id],
 		   EVENT_SIZE(e),
 		   MPI_BYTE,
 		   MPI_ANY_SOURCE,
@@ -324,8 +323,7 @@ recv_begin(tw_pe *me)
 		   MPI_COMM_ROSS,
 		   &posted_recvs.req_list[id]) != MPI_SUCCESS)
 #else
-	if(!flag ||
-	   MPI_Irecv(e,
+	if( MPI_Irecv(e,
 		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
 		     MPI_ANY_SOURCE,
@@ -373,7 +371,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
   e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
   dest_pe = e->dest_lp->pe;
-  e->dest_lp->event_counters->s_nread_network++;
+  // instrumentation
+  e->dest_lp->kp->kp_stats->s_nread_network++;
+  e->dest_lp->lp_stats->s_nread_network++;
 
   if(e->send_pe > tw_nnodes()-1)
     tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
@@ -618,7 +618,9 @@ static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   me->stats.s_nsend_network++;
-  e->src_lp->event_counters->s_nsend_network++;
+  // instrumentation
+  e->src_lp->kp->kp_stats->s_nsend_network++;
+  e->src_lp->lp_stats->s_nsend_network++;
 
   if (e->state.owner == TW_net_asend) {
     if (e->state.cancel_asend) {
@@ -867,6 +869,15 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_MAX,
         (int)g_tw_masternode,
         MPI_COMM_ROSS) != MPI_SUCCESS)
+    tw_error(TW_LOC, "Unable to reduce statistics!");
+
+  if(MPI_Reduce(&(s->s_alp_nevent_processed),
+		&me->stats.s_alp_nevent_processed,
+		2,
+		MPI_UNSIGNED_LONG_LONG,
+		MPI_SUM,
+		(int)g_tw_masternode,
+		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
 #ifdef USE_RIO

@@ -84,7 +84,7 @@ void tw_event_send(tw_event * event) {
         * for processing.
         */
         send_pe->stats.s_nsend_net_remote++;
-        event->src_lp->event_counters->s_nsend_net_remote++;
+        //event->src_lp->lp_stats->s_nsend_net_remote++;
         event->state.owner = TW_net_asend;
         tw_net_send(event);
     }
@@ -108,6 +108,7 @@ static inline void event_cancel(tw_event * event) {
     // make sure to test if shared memory event and if so perform remote cancel
     if(event->shmem_pool_id != -1 ||
        event->state.owner == TW_net_asend ||
+       event->state.owner == TW_net_outq  || // need to consider this case - Chris 06/13/2018
        event->state.owner == TW_pe_sevent_q)
     {
         /* Slowest approach of all; this has to be sent over the
@@ -116,7 +117,7 @@ static inline void event_cancel(tw_event * event) {
         */
         tw_net_cancel(event);
         send_pe->stats.s_nsend_net_remote--;
-        event->src_lp->event_counters->s_nsend_net_remote--;
+        //event->src_lp->lp_stats->s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
             send_pe->trans_msg_ts = ROSS_MIN(send_pe->trans_msg_ts, event->recv_ts);
@@ -230,5 +231,7 @@ jump_over_rc_event_handler:
     event->caused_by_me = NULL;
 
     dest_lp->kp->s_e_rbs++;
-    dest_lp->event_counters->s_e_rbs++;
+    // instrumentation
+    dest_lp->kp->kp_stats->s_e_rbs++;
+    dest_lp->lp_stats->s_e_rbs++;
 }

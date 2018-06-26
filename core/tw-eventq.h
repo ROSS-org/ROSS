@@ -254,7 +254,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 	// doesn't rely on commit function existing, so should be outside of commit function check
         if (g_st_ev_trace == COMMIT_TRACE)
 	{
-            st_collect_event_data(e, (double)tw_clock_read() / g_tw_clock_rate, 0);
+            st_collect_event_data(e, (double)tw_clock_read() / g_tw_clock_rate);
 	}
 
 	tw_lp * clp = e->dest_lp;
