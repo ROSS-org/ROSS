@@ -83,7 +83,7 @@ void tw_event_send(tw_event * event) {
         * We need to send it over the network to the other PE
         * for processing.
         */
-        send_pe->stats.s_nsend_net_remote++;
+        //send_pe->stats.s_nsend_net_remote++;
         //event->src_lp->lp_stats->s_nsend_net_remote++;
         event->state.owner = TW_net_asend;
         tw_net_send(event);
@@ -116,7 +116,7 @@ static inline void event_cancel(tw_event * event) {
         * it in the first place.
         */
         tw_net_cancel(event);
-        send_pe->stats.s_nsend_net_remote--;
+        //send_pe->stats.s_nsend_net_remote--;
         //event->src_lp->lp_stats->s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {

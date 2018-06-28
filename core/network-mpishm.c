@@ -1092,6 +1092,7 @@ tw_net_send(tw_event *e)
   
   if( e->shmem_pool_id != -1 )
   {
+      me->stats.s_nsend_loc_remote++;
       // must be dest minus source for alogorithm to work right since we add back the diff to the shmcomm rank number.
       rank_diff = e->dest_pe - g_tw_mynode;
       remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
@@ -1123,6 +1124,7 @@ tw_net_send(tw_event *e)
   }
   else
   {
+      me->stats.s_nsend_net_remote++;
       e->state.remote = 0;
       e->state.owner = TW_net_outq;
       tw_eventq_unshift(&outq, e);
@@ -1145,6 +1147,7 @@ tw_net_cancel(tw_event *e)
   // first see if this is a shmem cancel event
   if( e->shmem_pool_id != -1 )
   {
+     src_pe->stats.s_nsend_loc_remote--;
       // compute the dest pool - again must be dest - src for algo to work right.
      rank_diff = e->dest_pe - g_tw_mynode;
      remote_pool_id = g_tw_network_mpishm_shmcomm_rank + rank_diff;
@@ -1217,6 +1220,7 @@ tw_net_cancel(tw_event *e)
 	     e->state.owner);
   }
 
+  src_pe->stats.s_nsend_net_remote--;
   service_queues(src_pe);
 }
 
