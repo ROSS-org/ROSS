@@ -263,10 +263,6 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
         }
     }
 
-#ifdef USE_DAMARIS
-    st_damaris_set_parameters(nlp);
-#endif
-
 }
 
 static void late_sanity_check(void) {
@@ -338,6 +334,9 @@ void tw_run(void) {
 
     // init instrumentation
     st_inst_init(); 
+#ifdef USE_DAMARIS
+    st_damaris_inst_init();
+#endif
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);
