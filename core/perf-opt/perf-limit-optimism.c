@@ -146,7 +146,7 @@ void perf_adjust_optimism(tw_pe *pe)
 	if (data[TIME_MAX] < 0)
 	{
 		g_tw_max_opt_lookahead = 100;
-		printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+		//printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
 	}
 	else
 	{
@@ -161,7 +161,7 @@ void perf_adjust_optimism(tw_pe *pe)
 				g_tw_max_opt_lookahead = ULLONG_MAX;
 			else
 				g_tw_max_opt_lookahead += inc_amt;
-			printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+			//printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
 		}
 		else
 		{
@@ -172,7 +172,7 @@ void perf_adjust_optimism(tw_pe *pe)
 					g_tw_max_opt_lookahead = ULLONG_MAX;
 				else
 					g_tw_max_opt_lookahead += inc_amt;
-				printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+				//printf("PE %ld increasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
 			}
 			else // we're somewhere between mean + stddev and global max
 			{
@@ -184,12 +184,15 @@ void perf_adjust_optimism(tw_pe *pe)
 				else if (dec_amt > 0.98)
 					dec_amt = 0.98;
 				g_tw_max_opt_lookahead *= dec_amt;
-				printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+				//printf("PE %ld decreasing opt lookahead to %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
 			}
 
 		}
 
 	}
+	//printf("PE %ld lookahead: %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
+	if (g_tw_max_opt_lookahead < 50)
+		g_tw_max_opt_lookahead = 50;
 
 }
 

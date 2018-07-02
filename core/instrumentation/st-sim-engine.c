@@ -5,6 +5,7 @@
 long g_st_current_interval = 0;
 static tw_statistics last_pe_stats[3];
 static tw_stat last_all_reduce_cnt = 0;
+static long num_samples[3] = {0, 0, 0};
 
 /* wrapper to call gvt instrumentation functions depending on which granularity to use */
 void st_collect_engine_data(tw_pe *pe, int col_type)
@@ -16,6 +17,8 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
     tw_statistics s;
     bzero(&s, sizeof(s));
     tw_get_stats(pe, &s);
+
+    num_samples[col_type]++;
 
     sample_metadata sample_md;
     sample_md.ts = pe->GVT;
@@ -66,6 +69,7 @@ void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statis
     pe_stats.s_pe_event_ties = (unsigned int)(s->s_pe_event_ties-last_pe_stats[col_type].s_pe_event_ties);
     pe_stats.s_ngvts = (unsigned int)(g_tw_gvt_done - last_pe_stats[col_type].s_ngvts);
     pe_stats.all_reduce_count = (unsigned int)(all_reduce_cnt-last_all_reduce_cnt);
+    pe_stats.max_opt_lookahead = g_tw_max_opt_lookahead;
 
     // I think it's possible for net_events to be negative over some interval of simulation time
     // e.g., if in the current interval we've happened to process more rollback events than forward events
@@ -120,7 +124,9 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
     kp_stats.s_rb_secondary = (unsigned int)(kp->kp_stats->s_rb_secondary - kp->last_stats[col_type]->s_rb_secondary);
     kp_stats.s_nsend_network = (unsigned int)(kp->kp_stats->s_nsend_network - kp->last_stats[col_type]->s_nsend_network);
     kp_stats.s_nread_network = (unsigned int)(kp->kp_stats->s_nread_network - kp->last_stats[col_type]->s_nread_network);
-    kp_stats.time_ahead_gvt = (float)(kp->last_time - pe->GVT);
+    kp_stats.virtual_time_diff = (float)(kp->last_time - pe->GVT);
+    kp->kp_stats->avg_virtual_time_diff = kp->last_stats[col_type]->avg_virtual_time_diff + (float)(kp->last_time - pe->GVT);
+    kp_stats.avg_virtual_time_diff = kp->kp_stats->avg_virtual_time_diff / (float)num_samples[col_type];
 
     int net_events = kp_stats.s_nevent_processed - kp_stats.s_e_rbs;
     if (net_events > 0)

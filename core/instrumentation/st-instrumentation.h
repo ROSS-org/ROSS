@@ -116,6 +116,7 @@ struct st_pe_stats{
     unsigned int s_ngvts;
     unsigned int s_pe_event_ties;
     unsigned int all_reduce_count;
+    unsigned long long max_opt_lookahead;
     float efficiency;
 
     float s_net_read;
@@ -142,7 +143,8 @@ struct st_kp_stats{
     unsigned int s_rb_secondary;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
-    float time_ahead_gvt;
+    float virtual_time_diff;
+    float avg_virtual_time_diff;
     float efficiency;
 };
 
