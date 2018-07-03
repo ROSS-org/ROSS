@@ -802,9 +802,9 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&s->s_total,
+  if(MPI_Reduce(&(s->s_total),
 		&me->stats.s_total,
-		14,
+		16,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_MAX,
 		(int)g_tw_masternode,
@@ -813,29 +813,11 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 
     if (MPI_Reduce(&s->s_events_past_end,
         &me->stats.s_events_past_end,
-        1,
+        3,
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
         (int)g_tw_masternode,
         MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-    if (MPI_Reduce(&g_st_stat_comp_ctr,
-        &me->stats.s_stat_comp,
-        2,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-  if(MPI_Reduce(&(s->s_alp_nevent_processed),
-		&me->stats.s_alp_nevent_processed,
-		2,
-		MPI_UNSIGNED_LONG_LONG,
-		MPI_SUM,
-		(int)g_tw_masternode,
-		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
 #ifdef USE_RIO

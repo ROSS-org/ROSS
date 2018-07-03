@@ -39,7 +39,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
             st_collect_engine_data_lps(pe, lp, &sample_md, &s, col_type);
         }
     }
-    g_st_stat_comp_ctr += tw_clock_read() - start_time;
+    pe->stats.s_stat_comp += tw_clock_read() - start_time;
 }
 
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type)

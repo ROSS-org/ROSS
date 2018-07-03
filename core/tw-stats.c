@@ -79,6 +79,8 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
         s->s_avl += pe->stats.s_avl;
         s->s_buddy += pe->stats.s_buddy;
         s->s_lz4 += pe->stats.s_lz4;
+        s->s_stat_comp += pe->stats.s_stat_comp;
+        s->s_stat_write += pe->stats.s_stat_write;
         s->s_events_past_end += pe->stats.s_events_past_end;
 #ifdef USE_RIO
         s->s_rio_load += pe->stats.s_rio_load;
@@ -234,8 +236,8 @@ tw_stats(tw_pe *me)
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
 	show_4f("Other Network", (double) s.s_net_other / g_tw_clock_rate);
-	show_4f("Statistics Computation", (double) s.s_stat_comp / g_tw_clock_rate);
-	show_4f("Statistics Write", (double) s.s_stat_write / g_tw_clock_rate);
+	show_4f("Instrumentation (computation)", (double) s.s_stat_comp / g_tw_clock_rate);
+	show_4f("Instrumentation (write)", (double) s.s_stat_write / g_tw_clock_rate);
 	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);
 #endif
 

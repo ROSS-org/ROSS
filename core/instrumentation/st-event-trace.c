@@ -46,6 +46,6 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
             fwrite(buffer, total_sz, 1, seq_ev_trace);
 
     }
-    g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
+    g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
 

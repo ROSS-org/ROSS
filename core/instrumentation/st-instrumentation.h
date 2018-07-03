@@ -70,8 +70,6 @@ struct sample_metadata
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
 extern char g_st_stats_path[INST_MAX_LENGTH];
-extern tw_clock g_st_stat_write_ctr;
-extern tw_clock g_st_stat_comp_ctr;
 extern int g_st_granularity;
 extern int g_st_disable_out;
 
