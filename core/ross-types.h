@@ -141,6 +141,7 @@ struct tw_statistics {
 
     tw_clock s_total;
     tw_clock s_net_read;
+    tw_clock s_net_other;
     tw_clock s_gvt;
     tw_clock s_fossil_collect;
 

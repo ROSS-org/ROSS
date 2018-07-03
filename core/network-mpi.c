@@ -348,6 +348,7 @@ static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   tw_pe		*dest_pe;
+  tw_clock start;
 
 #if ROSS_MEMORY
   tw_memory	*memory;
@@ -459,7 +460,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */
+    start = tw_clock_read();
     tw_pq_enqueue(dest_pe->pq, e);
+    dest_pe->stats.s_pq += tw_clock_read() - start;
     return;
   }
 

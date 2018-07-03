@@ -119,6 +119,7 @@ struct st_pe_stats{
     float efficiency;
 
     float s_net_read;
+    float s_net_other;
     float s_gvt;
     float s_fossil_collect;
     float s_event_abort;

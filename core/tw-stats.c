@@ -65,6 +65,7 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 
 		s->s_total += pe->stats.s_total;
 		s->s_net_read += pe->stats.s_net_read;
+        s->s_net_other += pe->stats.s_net_other;
 		s->s_gvt += pe->stats.s_gvt;
 		s->s_fossil_collect += pe->stats.s_fossil_collect;
 		s->s_event_abort += pe->stats.s_event_abort;
@@ -230,6 +231,7 @@ tw_stats(tw_pe *me)
 	show_4f("Fossil Collect", (double) s.s_fossil_collect / g_tw_clock_rate);
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
+	show_4f("Other Network", (double) s.s_net_other / g_tw_clock_rate);
 	show_4f("Statistics Computation", (double) s.s_stat_comp / g_tw_clock_rate);
 	show_4f("Statistics Write", (double) s.s_stat_write / g_tw_clock_rate);
 	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);

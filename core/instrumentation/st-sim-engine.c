@@ -79,6 +79,7 @@ void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statis
     // TODO set a starting clock rate and subtract that from the counters?
     // because PEs on different nodes will probably have different starting points for cycle counters
     pe_stats.s_net_read = (float)(pe->stats.s_net_read - last_pe_stats[col_type].s_net_read) / g_tw_clock_rate;
+    pe_stats.s_net_other = (float)(pe->stats.s_net_other - last_pe_stats[col_type].s_net_other) / g_tw_clock_rate;
     pe_stats.s_gvt = (float)(pe->stats.s_gvt - last_pe_stats[col_type].s_gvt) / g_tw_clock_rate;
     pe_stats.s_fossil_collect = (float)(pe->stats.s_fossil_collect - last_pe_stats[col_type].s_fossil_collect) / g_tw_clock_rate;
     pe_stats.s_event_abort = (float)(pe->stats.s_event_abort - last_pe_stats[col_type].s_event_abort) / g_tw_clock_rate;

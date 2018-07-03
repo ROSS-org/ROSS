@@ -23,6 +23,7 @@ void
 tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 {
         tw_event       *e;
+        tw_clock pq_start;
 
         kp->s_rb_total++;
         // instrumentation
@@ -56,7 +57,9 @@ tw_kp_rollback_to(tw_kp * kp, tw_stime to)
                 /*
                  * place event back into priority queue
                  */
+                pq_start = tw_clock_read();
                 tw_pq_enqueue(kp->pe->pq, e);
+                kp->pe->stats.s_pq += tw_clock_read() - pq_start;
         }
 }
 
@@ -66,6 +69,7 @@ tw_kp_rollback_event(tw_event * event)
     tw_event       *e = NULL;
     tw_kp          *kp;
     tw_pe          *pe;
+    tw_clock pq_start;
 
     kp = event->dest_lp->kp;
     pe = kp->pe;
@@ -88,7 +92,9 @@ tw_kp_rollback_event(tw_event * event)
 	{
                 kp->last_time = kp->pevent_q.head->recv_ts;
 		tw_event_rollback(e);
+                pq_start = tw_clock_read();
                 tw_pq_enqueue(pe->pq, e);
+                pe->stats.s_pq += tw_clock_read() - pq_start;
 
 		e = tw_eventq_shift(&kp->pevent_q);
         }
