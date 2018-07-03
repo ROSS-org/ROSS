@@ -1,5 +1,6 @@
 #include <ross.h>
 #include "lz4.h"
+#include <sys/stat.h>
 
 /**
  * @file tw-setup.c
@@ -69,11 +70,36 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
-    if(tw_ismaster() && NULL == (g_tw_csv = fopen("ross.csv", "a"))) {
-        tw_error(TW_LOC, "Unable to open: ross.csv\n");
+    if(tw_ismaster())
+    {
+        struct stat buffer;
+        int csv_check = stat("ross.csv", &buffer);
+
+        if (NULL == (g_tw_csv = fopen("ross.csv", "a"))) 
+            tw_error(TW_LOC, "Unable to open: ross.csv\n");
+
+        if (csv_check == -1)
+        {
+            fprintf(g_tw_csv, "total_pe,total_kp,total_lp,end_ts,mapping,model_events,network_events,total_events,"
+                    "runtime,events_processed,events_aborted,events_rb,pe_event_ties,eff,send_loc_remote,"
+                    "percent_loc,send_net_remote,percent_net,rb_total,rb_primary,rb_secondary,fc_attempts,"
+                    "num_gvt,net_events,event_rate,events_past_end,event_alloc,memory_alloc,memory_wasted,"
+                    "remote_sends,remote_recvs,pe_struct,kp_struct,lp_struct,lp_model_struct,lp_rngs,"
+                    "total_lp_size,event_struct,event_struct_model,init_time,pq_time,avl_time,lz4_time,"
+                    "buddy_time,");
+#ifdef USE_RIO
+            fprintf(g_tw_csv, "rio_load,rio_init,");
+#endif
+            fprintf(g_tw_csv, "event_proc_time,event_cancel_time,event_abort_time,gvt_time,fc_time,"
+                    "primary_rb_time,net_read_time,net_other_time,inst_comp_time,inst_write_time,total_time");
+            if (g_st_use_analysis_lps)
+                fprintf(g_tw_csv, ",model_nevent_proc,model_nevent_rb,model_net_events,model_eff,"
+                        "alp_nevent_proc,alp_nevent_rb,alp_net_events,alp_eff");
+            fprintf(g_tw_csv, "\n");
+        }
     }
 
-    tw_opt_print();
+    //tw_opt_print();
 
     tw_net_start();
     tw_gvt_start();
@@ -461,7 +487,7 @@ static tw_pe * setup_pes(void) {
         fprintf(g_tw_csv, "%u,", tw_nnodes());
 
         printf("\t%-50s [Nodes (%u) x PE_per_Node (%lu)] %lu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
-        fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
+        //fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
 
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
@@ -471,7 +497,7 @@ static tw_pe * setup_pes(void) {
         fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
-        fprintf(g_tw_csv, "%11.2lf\n", g_tw_ts_end);
+        fprintf(g_tw_csv, "%.2lf,", g_tw_ts_end);
 
 
         switch(g_tw_mapping) {
@@ -492,16 +518,17 @@ static tw_pe * setup_pes(void) {
         }
         printf("\n");
 
+        // moved these so ross.csv stays consistent
+        fprintf(g_tw_csv, "%d,", num_events_per_pe);
+        fprintf(g_tw_csv, "%d,", g_tw_gvt_threshold);
+        fprintf(g_tw_csv, "%d,", g_tw_events_per_pe);
 #ifndef ROSS_DO_NOT_PRINT
         printf("\nROSS Event Memory Allocation:\n");
         printf("\t%-50s %11d\n", "Model events", num_events_per_pe);
-        fprintf(g_tw_csv, "%d,", num_events_per_pe);
 
         printf("\t%-50s %11d\n", "Network events", g_tw_gvt_threshold);
-        fprintf(g_tw_csv, "%d,", g_tw_gvt_threshold);
 
         printf("\t%-50s %11d\n", "Total events", g_tw_events_per_pe);
-        fprintf(g_tw_csv, "%d,", g_tw_events_per_pe);
         printf("\n");
 #endif
     }

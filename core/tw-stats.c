@@ -5,28 +5,28 @@ static void
 show_lld(const char *name, tw_stat v)
 {
 	printf("\t%-50s %11lld\n", name, v);
-	fprintf(g_tw_csv, "%lld,", v);
+	fprintf(g_tw_csv, ",%lld", v);
 }
 
 static void
 show_2f(const char *name, double v)
 {
 	printf("\t%-50s %11.2f %%\n", name, v);
-	fprintf(g_tw_csv, "%.2f,", v);
+	fprintf(g_tw_csv, ",%.2f", v);
 }
 
 static void
 show_1f(const char *name, double v)
 {
 	printf("\t%-50s %11.1f\n", name, v);
-	fprintf(g_tw_csv, "%.2f,", v);
+	fprintf(g_tw_csv, ",%.2f", v);
 }
 
 static void
 show_4f(const char *name, double v)
 {
 	printf("\t%-50s %11.4lf\n", name, v);
-	fprintf(g_tw_csv, "%.4lf,", v);
+	fprintf(g_tw_csv, ",%.4lf", v);
 }
 
 #endif
@@ -147,7 +147,7 @@ tw_stats(tw_pe *me)
 
 #ifndef ROSS_DO_NOT_PRINT
 	printf("\n\t: Running Time = %.4f seconds\n", s.s_max_run_time);
-	fprintf(g_tw_csv, "%.4f,", s.s_max_run_time);
+	fprintf(g_tw_csv, "%.4f", s.s_max_run_time);
 
 	printf("\nTW Library Statistics:\n");
 	show_lld("Total Events Processed", s.s_nevent_processed);
