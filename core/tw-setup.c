@@ -10,6 +10,7 @@
 
 static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
+static tw_clock init_start = 0;
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
@@ -30,6 +31,7 @@ static const tw_optdef kernel_options[] = {
 
 void tw_init(int *argc, char ***argv) {
     int i;
+    init_start = tw_clock_read();
 #if HAVE_CTIME
     time_t raw_time;
 #endif
@@ -344,6 +346,7 @@ void tw_run(void) {
 #endif
 
     tw_sched_init(me);
+    me->stats.s_init = tw_clock_read() - init_start;
 
     switch(g_tw_synchronization_protocol) {
         case SEQUENTIAL:            // case 1

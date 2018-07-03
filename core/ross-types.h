@@ -140,6 +140,7 @@ struct tw_statistics {
     tw_stime s_min_detected_offset;
 
     tw_clock s_total;
+    tw_clock s_init;
     tw_clock s_net_read;
     tw_clock s_net_other;
     tw_clock s_gvt;

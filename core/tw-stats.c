@@ -64,6 +64,7 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 		s->s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
 		s->s_total += pe->stats.s_total;
+		s->s_init += pe->stats.s_init;
 		s->s_net_read += pe->stats.s_net_read;
         s->s_net_other += pe->stats.s_net_other;
 		s->s_gvt += pe->stats.s_gvt;
@@ -215,6 +216,7 @@ tw_stats(tw_pe *me)
 
 #ifdef ROSS_timing
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at %1.4lf GHz):\n", g_tw_clock_rate / 1000000000.0);
+	show_4f("Initialization", (double) s.s_init / g_tw_clock_rate);
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / g_tw_clock_rate);
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
