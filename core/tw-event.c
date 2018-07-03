@@ -10,6 +10,7 @@ void tw_event_send(tw_event * event) {
     tw_lp     *src_lp = event->src_lp;
     tw_pe     *send_pe = src_lp->pe;
     tw_pe     *dest_pe = NULL;
+    tw_clock pq_start, net_start;
 
     tw_peid        dest_peid = -1;
     tw_stime   recv_ts = event->recv_ts;
@@ -62,7 +63,9 @@ void tw_event_send(tw_event * event) {
             * no rollback caused by this send.  We cannot have any
             * transient messages on local sends so we can return.
             */
+            pq_start = tw_clock_read();
             tw_pq_enqueue(send_pe->pq, event);
+            send_pe->stats.s_pq += tw_clock_read() - pq_start;
             return;
         } else {
             /* Slower, but still local send, so put into top of
@@ -84,7 +87,9 @@ void tw_event_send(tw_event * event) {
         send_pe->stats.s_nsend_net_remote++;
         //event->src_lp->lp_stats->s_nsend_net_remote++;
         event->state.owner = TW_net_asend;
+        net_start = tw_clock_read();
         tw_net_send(event);
+        send_pe->stats.s_net_other += tw_clock_read() - net_start;
     }
 
     if(tw_gvt_inprogress(send_pe)) {
@@ -102,6 +107,7 @@ static inline void local_cancel(tw_pe *d, tw_event *event) {
 static inline void event_cancel(tw_event * event) {
     tw_pe *send_pe = event->src_lp->pe;
     tw_peid dest_peid;
+    tw_clock net_start;
 
     if( event->state.owner == TW_net_asend ||
 	event->state.owner == TW_net_outq  || // need to consider this case - Chris 06/13/2018
@@ -110,8 +116,10 @@ static inline void event_cancel(tw_event * event) {
         * network to let the dest_pe know it shouldn't have seen
         * it in the first place.
         */
+        net_start = tw_clock_read();
         tw_net_cancel(event);
         send_pe->stats.s_nsend_net_remote--;
+        send_pe->stats.s_net_other += tw_clock_read() - net_start;
         //event->src_lp->lp_stats->s_nsend_net_remote--;
 
         if(tw_gvt_inprogress(send_pe)) {
@@ -130,13 +138,16 @@ static inline void event_cancel(tw_event * event) {
 
     dest_peid = event->dest_lp->pe->id;
 
+    tw_clock pq_start;
     if (send_pe->id == dest_peid) {
         switch (event->state.owner) {
             case TW_pe_pq:
                 /* Currently in our pq and not processed; delete it and
                 * free the event buffer immediately.  No need to wait.
                 */
+                pq_start = tw_clock_read();
                 tw_pq_delete_any(send_pe->pq, event);
+                send_pe->stats.s_pq += tw_clock_read() - pq_start;
                 tw_event_free(send_pe, event);
                 break;
 
