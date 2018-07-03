@@ -140,7 +140,9 @@ struct tw_statistics {
     tw_stime s_min_detected_offset;
 
     tw_clock s_total;
+    tw_clock s_init;
     tw_clock s_net_read;
+    tw_clock s_net_other;
     tw_clock s_gvt;
     tw_clock s_fossil_collect;
 
@@ -154,11 +156,11 @@ struct tw_statistics {
     tw_clock s_avl;
     tw_clock s_buddy;
     tw_clock s_lz4;
+    tw_clock s_stat_comp;
+    tw_clock s_stat_write;
 
     tw_stat s_events_past_end;
 
-    tw_clock s_stat_comp;
-    tw_clock s_stat_write;
     tw_stat s_alp_nevent_processed;
     tw_stat s_alp_e_rbs;
 

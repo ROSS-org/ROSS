@@ -80,7 +80,7 @@ static void tw_sched_event_q(tw_pe * me) {
  *  need to do any further rollbacks.
  */
 static void tw_sched_cancel_q(tw_pe * me) {
-    tw_clock     start;
+    tw_clock     start=0, pq_start;
     tw_event    *cev;
     tw_event    *nev;
 
@@ -121,7 +121,9 @@ static void tw_sched_cancel_q(tw_pe * me) {
                     * because the cancel message came after we popped it
                     * out of that queue but before we could process it.
                     */
+                    pq_start = tw_clock_read();
                     tw_pq_delete_any(me->pq, cev);
+                    me->stats.s_pq += tw_clock_read() - pq_start;
                     tw_event_free(me, cev);
                     break;
 
@@ -148,7 +150,7 @@ static void tw_sched_batch(tw_pe * me) {
     static int warned_no_free_event_buffers = 0;
     const int max_alloc_fail_count = 20;
 
-    tw_clock     start;
+    tw_clock     start, pq_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -233,7 +235,9 @@ static void tw_sched_batch(tw_pe * me) {
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
+        pq_start = tw_clock_read();
 	    tw_pq_enqueue(me->pq, cev);
+        me->stats.s_pq += tw_clock_read() - pq_start;
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
@@ -271,7 +275,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
     static int warned_no_free_event_buffers = 0;
     const int max_alloc_fail_count = 20;
 
-    tw_clock     start;
+    tw_clock     start, pq_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -303,7 +307,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 
         start = tw_clock_read();
         if (!(cev = tw_pq_dequeue(me->pq))) {
-	  break; // leave the batch function
+          break; // leave the batch function
         }
         me->stats.s_pq += tw_clock_read() - start;
         if(cev->recv_ts == tw_pq_minimum(me->pq)) {
@@ -357,7 +361,9 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    me->cev_abort = 0;
 
 	    tw_event_rollback(cev);
+        pq_start = tw_clock_read();
 	    tw_pq_enqueue(me->pq, cev);
+        me->stats.s_pq += tw_clock_read() - pq_start;
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
