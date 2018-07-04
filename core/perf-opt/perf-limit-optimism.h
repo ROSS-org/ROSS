@@ -12,12 +12,8 @@ typedef enum{
 } limit_opt_states;
 
 typedef enum {
-    EFF_MIN,
-    EFF_MAX,
-    EFF_MEAN,
-    TIME_MIN,
     TIME_MAX,
-    TIME_MEAN,
+    TIME_MIN_MAX,
     NUM_RED_ELEM
 } reduction_data_elem;
 
