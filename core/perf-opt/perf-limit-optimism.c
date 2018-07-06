@@ -127,9 +127,9 @@ static void test_method2(tw_pe *pe, double *global_data, int len)
 		if (!decrease && rest_cycles > max_rest)
 		{ 
 			// test to see if we should increase or decrease
-			window_buffer = g_tw_max_opt_lookahead - (g_tw_max_opt_lookahead * 0.1);
+			window_buffer = g_tw_max_opt_lookahead * 0.75;
 			//printf("PE %ld: decrease = %d, window_buffer = %lu, g_tw_max_opt_lookahead = %llu \n", 
-					g_tw_mynode, decrease, window_buffer, g_tw_max_opt_lookahead);
+					//g_tw_mynode, decrease, window_buffer, g_tw_max_opt_lookahead);
 
 			for (i = 0; i < len; i++)
 			{
@@ -159,7 +159,7 @@ static void test_method2(tw_pe *pe, double *global_data, int len)
 		if (decrease)
 		{
 			printf("PE %ld is about to decrease g_tw_max_opt_lookahead %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
-			g_tw_max_opt_lookahead = ceil(min);
+			g_tw_max_opt_lookahead = ceil(min) * 1.25;
 			decrease = 0;
 			printf("PE %ld decreased g_tw_max_opt_lookahead %llu\n", g_tw_mynode, g_tw_max_opt_lookahead);
 		}
