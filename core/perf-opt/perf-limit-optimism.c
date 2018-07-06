@@ -114,19 +114,29 @@ static void test_method2(tw_pe *pe, double *global_data, int len)
 				max = global_data[i];
 		}
 
-		printf("PE %ld, min = %f, max = %f\n", g_tw_mynode, min, max);
+		if (g_tw_mynode == g_tw_masternode)
+		{
+			if (max == -DBL_MAX || min == DBL_MAX)
+			{
+				printf("No positive max or min value found: ");
+				for (i = 0; i < len; i++)
+					printf("%f, ", global_data[i]);
+			}
+			//printf("PE %ld, min = %f, max = %f\n", g_tw_mynode, min, max);
+		}
 		if (!decrease && rest_cycles > max_rest)
 		{ 
 			// test to see if we should increase or decrease
 			window_buffer = g_tw_max_opt_lookahead - (g_tw_max_opt_lookahead * 0.1);
-			printf("PE %ld: decrease = %d, window_buffer = %lu, g_tw_max_opt_lookahead = %llu \n", 
+			//printf("PE %ld: decrease = %d, window_buffer = %lu, g_tw_max_opt_lookahead = %llu \n", 
 					g_tw_mynode, decrease, window_buffer, g_tw_max_opt_lookahead);
 
 			for (i = 0; i < len; i++)
 			{
 				if (global_data[i] < pe->GVT + window_buffer && global_data[i] > 0)
 				{
-					printf("PE %ld: found max less than window_buffer %lu lookahead: %llu\n", g_tw_mynode, window_buffer, g_tw_max_opt_lookahead);
+					if (g_tw_mynode == g_tw_masternode)
+						printf("PE %ld: found max less than window_buffer %lu lookahead: %llu\n", g_tw_mynode, window_buffer, g_tw_max_opt_lookahead);
 					found = 1;
 					break;
 				}
