@@ -143,7 +143,6 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
 
 void st_collect_engine_data_lps(tw_pe *pe, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type)
 {
-    tw_kp *kp;
     st_lp_stats lp_stats;
     int buf_size = sizeof(*sample_md) + sizeof(lp_stats);
     char buffer[buf_size];
