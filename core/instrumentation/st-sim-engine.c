@@ -42,7 +42,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
             st_collect_engine_data_lps(pe, lp, &sample_md, &s, col_type);
         }
     }
-    g_st_stat_comp_ctr += tw_clock_read() - start_time;
+    pe->stats.s_stat_comp += tw_clock_read() - start_time;
 }
 
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type)
@@ -83,6 +83,7 @@ void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statis
     // TODO set a starting clock rate and subtract that from the counters?
     // because PEs on different nodes will probably have different starting points for cycle counters
     pe_stats.s_net_read = (float)(pe->stats.s_net_read - last_pe_stats[col_type].s_net_read) / g_tw_clock_rate;
+    pe_stats.s_net_other = (float)(pe->stats.s_net_other - last_pe_stats[col_type].s_net_other) / g_tw_clock_rate;
     pe_stats.s_gvt = (float)(pe->stats.s_gvt - last_pe_stats[col_type].s_gvt) / g_tw_clock_rate;
     pe_stats.s_fossil_collect = (float)(pe->stats.s_fossil_collect - last_pe_stats[col_type].s_fossil_collect) / g_tw_clock_rate;
     pe_stats.s_event_abort = (float)(pe->stats.s_event_abort - last_pe_stats[col_type].s_event_abort) / g_tw_clock_rate;

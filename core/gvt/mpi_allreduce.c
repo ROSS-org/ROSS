@@ -110,13 +110,16 @@ tw_gvt_step2(tw_pe *me)
 	tw_stime lvt;
 	tw_stime gvt;
 
+    tw_clock net_start;
 	tw_clock start = tw_clock_read();
 
 	if(me->gvt_status != TW_GVT_COMPUTE)
 		return;
 	while(1)
 	  {
+        net_start = tw_clock_read();
 	    tw_net_read(me);
+        me->stats.s_net_read += tw_clock_read() - net_start;
 
 	    // send message counts to create consistent cut
 	    local_white = me->s_nwhite_sent - me->s_nwhite_recv;

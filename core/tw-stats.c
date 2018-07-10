@@ -5,28 +5,28 @@ static void
 show_lld(const char *name, tw_stat v)
 {
 	printf("\t%-50s %11lld\n", name, v);
-	fprintf(g_tw_csv, "%lld,", v);
+	fprintf(g_tw_csv, ",%lld", v);
 }
 
 static void
 show_2f(const char *name, double v)
 {
 	printf("\t%-50s %11.2f %%\n", name, v);
-	fprintf(g_tw_csv, "%.2f,", v);
+	fprintf(g_tw_csv, ",%.2f", v);
 }
 
 static void
 show_1f(const char *name, double v)
 {
 	printf("\t%-50s %11.1f\n", name, v);
-	fprintf(g_tw_csv, "%.2f,", v);
+	fprintf(g_tw_csv, ",%.2f", v);
 }
 
 static void
 show_4f(const char *name, double v)
 {
 	printf("\t%-50s %11.4lf\n", name, v);
-	fprintf(g_tw_csv, "%.4lf,", v);
+	fprintf(g_tw_csv, ",%.4lf", v);
 }
 
 #endif
@@ -64,7 +64,9 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 		s->s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
 		s->s_total += pe->stats.s_total;
+		s->s_init += pe->stats.s_init;
 		s->s_net_read += pe->stats.s_net_read;
+        s->s_net_other += pe->stats.s_net_other;
 		s->s_gvt += pe->stats.s_gvt;
 		s->s_fossil_collect += pe->stats.s_fossil_collect;
 		s->s_event_abort += pe->stats.s_event_abort;
@@ -77,6 +79,8 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
         s->s_avl += pe->stats.s_avl;
         s->s_buddy += pe->stats.s_buddy;
         s->s_lz4 += pe->stats.s_lz4;
+        s->s_stat_comp += pe->stats.s_stat_comp;
+        s->s_stat_write += pe->stats.s_stat_write;
         s->s_events_past_end += pe->stats.s_events_past_end;
 #ifdef USE_RIO
         s->s_rio_load += pe->stats.s_rio_load;
@@ -145,7 +149,7 @@ tw_stats(tw_pe *me)
 
 #ifndef ROSS_DO_NOT_PRINT
 	printf("\n\t: Running Time = %.4f seconds\n", s.s_max_run_time);
-	fprintf(g_tw_csv, "%.4f,", s.s_max_run_time);
+	fprintf(g_tw_csv, "%.4f", s.s_max_run_time);
 
 	printf("\nTW Library Statistics:\n");
 	show_lld("Total Events Processed", s.s_nevent_processed);
@@ -214,6 +218,7 @@ tw_stats(tw_pe *me)
 
 #ifdef ROSS_timing
 	printf("\nTW Clock Cycle Statistics (MAX values in secs at %1.4lf GHz):\n", g_tw_clock_rate / 1000000000.0);
+	show_4f("Initialization", (double) s.s_init / g_tw_clock_rate);
 	show_4f("Priority Queue (enq/deq)", (double) s.s_pq / g_tw_clock_rate);
     show_4f("AVL Tree (insert/delete)", (double) s.s_avl / g_tw_clock_rate);
     show_4f("LZ4 (de)compression", (double) s.s_lz4 / g_tw_clock_rate);
@@ -230,8 +235,9 @@ tw_stats(tw_pe *me)
 	show_4f("Fossil Collect", (double) s.s_fossil_collect / g_tw_clock_rate);
 	show_4f("Primary Rollbacks", (double) s.s_rollback / g_tw_clock_rate);
 	show_4f("Network Read", (double) s.s_net_read / g_tw_clock_rate);
-	show_4f("Statistics Computation", (double) s.s_stat_comp / g_tw_clock_rate);
-	show_4f("Statistics Write", (double) s.s_stat_write / g_tw_clock_rate);
+	show_4f("Other Network", (double) s.s_net_other / g_tw_clock_rate);
+	show_4f("Instrumentation (computation)", (double) s.s_stat_comp / g_tw_clock_rate);
+	show_4f("Instrumentation (write)", (double) s.s_stat_write / g_tw_clock_rate);
 	show_4f("Total Time (Note: Using Running Time above for Speedup)", (double) s.s_total / g_tw_clock_rate);
 #endif
 

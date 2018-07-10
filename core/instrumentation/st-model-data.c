@@ -88,6 +88,6 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
                 fwrite(buffer, total_sz, 1, seq_model);
         }
     }
-    g_st_stat_comp_ctr += tw_clock_read() - start_cycle_time;
+    pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
 

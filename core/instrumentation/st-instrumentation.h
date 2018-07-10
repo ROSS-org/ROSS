@@ -70,8 +70,6 @@ struct sample_metadata
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
 extern char g_st_stats_path[INST_MAX_LENGTH];
-extern tw_clock g_st_stat_write_ctr;
-extern tw_clock g_st_stat_comp_ctr;
 extern int g_st_granularity;
 extern int g_st_disable_out;
 
@@ -120,6 +118,7 @@ struct st_pe_stats{
     float efficiency;
 
     float s_net_read;
+    float s_net_other;
     float s_gvt;
     float s_fossil_collect;
     float s_event_abort;
