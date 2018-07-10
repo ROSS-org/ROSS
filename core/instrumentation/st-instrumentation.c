@@ -3,8 +3,6 @@
 
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 char g_st_stats_path[4096] = {0};
-tw_clock g_st_stat_write_ctr = 0;
-tw_clock g_st_stat_comp_ctr = 0;
 int g_st_granularity = 0;
 int g_st_disable_out = 0;
 
