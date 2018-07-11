@@ -129,8 +129,3 @@ IF(DOXYGEN_FOUND)
   ENDIF(ROSS_BUILD_DOXYGEN)
 ENDIF(DOXYGEN_FOUND)
 
-# Damaris I/O and data management
-OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
-if (USE_DAMARIS)
-    ADD_SUBDIRECTORY(damaris)
-ENDIF(USE_DAMARIS)

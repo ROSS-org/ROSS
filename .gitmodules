@@ -8,5 +8,5 @@
 	path = models/ROSS-Models
 	url = https://github.com/carothersc/ROSS-Models
 [submodule "damaris"]
-	path = damaris
+	path = core/damaris
 	url = https://github.com/caitlinross/ROSS-damaris

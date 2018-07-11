@@ -100,7 +100,10 @@ IF(USE_RIO)
 	SET(ross_srcs ${ross_srcs} ${RIO_SOURCE_DIR}/io.h)
 ENDIF(USE_RIO)
 
+# Damaris I/O and data management
+OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
 if (USE_DAMARIS)
+    ADD_SUBDIRECTORY(damaris)
     INCLUDE_DIRECTORIES(${ROSS_Damaris_SOURCE_DIR})
     INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
