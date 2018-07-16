@@ -212,7 +212,6 @@ tw_gvt_step2(tw_pe *me)
             g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
 #ifdef USE_DAMARIS
-        tw_clock start_cycle_time = tw_clock_read();
         st_damaris_expose_data(me, gvt, GVT_COL);
         st_damaris_end_iteration();
 #else
