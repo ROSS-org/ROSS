@@ -310,7 +310,7 @@ recv_begin(tw_pe *me)
       if(!(e = tw_event_grab(me)))
       {
 	  if(tw_gvt_inprogress(me))
-	      tw_error(TW_LOC, "out of events in GVT!");
+	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
 	  return changed;
       }
 
