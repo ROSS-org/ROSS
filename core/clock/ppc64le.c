@@ -6,7 +6,7 @@ extern unsigned long long g_tw_clock_rate = 512000000.0;
 static const tw_optdef clock_opts [] =
 {
 	TWOPT_GROUP("ROSS Timing"),
-	TWOPT_STIME("clock-rate", g_tw_clock_rate, "CPU Clock Rate"),
+	TWOPT_ULONGLONG("clock-rate", g_tw_clock_rate, "CPU Clock Rate"),
 	TWOPT_END()
 };
 
