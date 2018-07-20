@@ -157,7 +157,8 @@ init_q(struct act_q *q, const char *name)
   q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
   q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
   q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
-  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n+1);// queue, n+1 is meant to prevent a full queue
+  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+  q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n+1);// queue, n+1 is meant to prevent a full queue
   q->front = 0;// front of queue
   q->coda  = 0;// end of queue
   q->sizeOfQ=n+1;// for wraparound
@@ -169,6 +170,15 @@ init_q(struct act_q *q, const char *name)
       fr_q_aq( q , i) ;
       i++;
   }
+
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->sizeOfQ, q->numInQ,q->coda, q->front );
+//  printf("dequeue twice, requeue those elements\n");
+//  fr_q_dq(q);
+//  fr_q_dq(q);
+//  fr_q_aq(q,0);
+//  fr_q_aq(q,1);
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->sizeOfQ, q->numInQ, q->coda, q->front );
+//  printf("check: num in q = %d, size of q = %d\n",q->numInQ,q->sizeOfQ);
 
 #if ROSS_MEMORY
   q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
