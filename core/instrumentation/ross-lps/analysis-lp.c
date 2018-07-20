@@ -125,8 +125,15 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     }
 
     // sim engine sampling
-    if (g_tw_synchronization_protocol != SEQUENTIAL && (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS))
+    if (g_tw_synchronization_protocol != SEQUENTIAL && 
+            (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS))
+    {
+#ifdef USE_DAMARIS
+        st_damaris_expose_data(lp->pe, tw_now(lp), ANALYSIS_LP);
+#else
         st_collect_engine_data(lp->pe, ANALYSIS_LP);
+#endif
+    }
         //collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
     
     // create next sampling event
