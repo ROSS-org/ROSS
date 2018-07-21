@@ -24,8 +24,8 @@ struct act_q
   unsigned int cur;
   int front;//add, front of queue
   int coda;//add, back of queue but back is already a variable somewhere
-  int sizeOfQ;//add, size of queue array
-  int numInQ;//add, number of elements in queue
+  int size_of_fr_q;//add, size of queue array
+  int num_in_fr_q;//add, number of elements in queue
 
 // Deal with filling queue, then plateauing
 
@@ -33,7 +33,7 @@ struct act_q
 
 int deal_with_cur(struct act_q *q)// try this
 {
-    if(q->cur < (q->sizeOfQ-1))
+    if(q->cur < (q->size_of_fr_q-1))
     {
         q->cur++;
         return 1;
@@ -47,7 +47,7 @@ int deal_with_cur(struct act_q *q)// try this
 
 int fr_q_chq(struct act_q *q, int *frontOrCoda) //free index queue; check for modulating the front or back index of que
 {
-    if(*frontOrCoda != q->sizeOfQ)//don't mess with queue
+    if(*frontOrCoda != q->size_of_fr_q)//don't mess with queue
     {
         return 0;// return probably not necessary
     }
@@ -62,7 +62,7 @@ void fr_q_aq(struct act_q *q, int ele) // free index queue; add to queue
 {
     q->free_idx_list[q->coda] = ele;
     q->coda++;
-    q->numInQ++;
+    q->num_in_fr_q++;
     fr_q_chq(q,&q->coda);//wraps the queue array around
 
 }
@@ -71,7 +71,7 @@ int fr_q_dq(struct act_q *q) // free index queue; dequeue
 {
     int rv =q->free_idx_list[q->front];
     q->front++;
-    q->numInQ--;
+    q->num_in_fr_q--;
     fr_q_chq(q,&q->front);// wraps the queue array around
 
     return rv;
@@ -161,8 +161,8 @@ init_q(struct act_q *q, const char *name)
   q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n+1);// queue, n+1 is meant to prevent a full queue
   q->front = 0;// front of queue
   q->coda  = 0;// end of queue
-  q->sizeOfQ=n+1;// for wraparound
-  q->numInQ= 0;// number of elements in queue
+  q->size_of_fr_q=n+1;// for wraparound
+  q->num_in_fr_q= 0;// number of elements in queue
 
   int i = 0;
   while(i<n) // initializes the queue
@@ -171,14 +171,14 @@ init_q(struct act_q *q, const char *name)
       i++;
   }
 
-//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->sizeOfQ, q->numInQ,q->coda, q->front );
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q,q->coda, q->front );
 //  printf("dequeue twice, requeue those elements\n");
 //  fr_q_dq(q);
 //  fr_q_dq(q);
 //  fr_q_aq(q,0);
 //  fr_q_aq(q,1);
-//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->sizeOfQ, q->numInQ, q->coda, q->front );
-//  printf("check: num in q = %d, size of q = %d\n",q->numInQ,q->sizeOfQ);
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q, q->coda, q->front );
+//  printf("check: num in q = %d, size of q = %d\n",q->num_in_fr_q,q->size_of_fr_q);
 
 #if ROSS_MEMORY
   q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
@@ -305,10 +305,10 @@ test_q(
   char *tmp;
 #endif
 
-//  if ( !q->cur || q->numInQ == ((q->sizeOfQ)-1) ) //fixed this line (?) if queue is full, no elements are being processed
+//  if ( !q->cur || q->num_in_fr_q == ((q->size_of_fr_q)-1) ) //fixed this line (?) if queue is full, no elements are being processed
 //    return 0;
 
-  if( q->numInQ == ((q->sizeOfQ)-1) )
+  if( q->num_in_fr_q == ((q->size_of_fr_q)-1) )
     return 0;
 
   if (MPI_Testsome(
@@ -385,7 +385,7 @@ recv_begin(tw_pe *me)
   int flag = 0;
   int changed = 0;
 
-  while (0 < posted_recvs.numInQ)//fix these lines
+  while (0 < posted_recvs.num_in_fr_q)//fix these lines
     {
 
       int id = fr_q_dq(&posted_recvs);
@@ -574,7 +574,7 @@ send_begin(tw_pe *me)
 {
   int changed = 0;
 
-  while (0 < posted_sends.numInQ)//fixed these line (hopefully)
+  while (0 < posted_sends.num_in_fr_q)//fixed these line (hopefully)
     {
       tw_event *e = tw_eventq_peek(&outq);//next event?
       tw_node	*dest_node = NULL;
