@@ -286,8 +286,12 @@ tw_net_minimum(tw_pe *me)
 
   for (i = 0; i < posted_sends.cur; i++) { //fix this line (?)
     e = posted_sends.event_list[i];
-    if (m > e->recv_ts)
+    if(e == NULL)
+    {}
+    else if(m > e->recv_ts)
       m = e->recv_ts;
+    else
+    {}  
   }
 
   return m;
@@ -388,7 +392,6 @@ recv_begin(tw_pe *me)
   while (0 < posted_recvs.num_in_fr_q)//fix these lines
     {
 
-      int id = fr_q_dq(&posted_recvs);
 
       if(!(e = tw_event_grab(me)))
       {
@@ -396,6 +399,8 @@ recv_begin(tw_pe *me)
 	      tw_error(TW_LOC, "out of events in GVT!");
 	  return changed;	  
       }
+	  
+      int id = fr_q_dq(&posted_recvs);
 
 #if ROSS_MEMORY
       if( MPI_Irecv(posted_recvs.buffers[id],
@@ -578,9 +583,7 @@ send_begin(tw_pe *me)
     {
       tw_event *e = tw_eventq_peek(&outq);//next event?
       tw_node	*dest_node = NULL;
-
-      int id =  fr_q_dq(&posted_sends);// fixed, grabs from front of queue, moves front up one element
-              // posted_sends.cur; //fix this line
+      // posted_sends.cur; //fixed this line
 
 #if ROSS_MEMORY
       tw_event *tmp_prev = NULL;
@@ -602,7 +605,8 @@ send_begin(tw_pe *me)
 
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
-
+	  
+      int id =  fr_q_dq(&posted_sends);// fixed, grabs from front of queue, moves front up one element
       dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
