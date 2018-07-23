@@ -82,7 +82,7 @@ extern const tw_optdef *tw_clock_setup();
 extern void tw_clock_init(tw_pe * me);
 extern tw_clock tw_clock_now(tw_pe * me);
 extern tw_clock tw_clock_read();
-extern tw_stime g_tw_clock_rate;
+extern unsigned long long g_tw_clock_rate;
 
 /*
  * tw-event.c

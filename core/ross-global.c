@@ -104,7 +104,7 @@ FILE		*g_tw_csv = NULL;
  *
  */
 
-tw_stime g_tw_clock_rate=1000000000.0; // Default to 1 GHz
+unsigned long long g_tw_clock_rate=1000000000.0; // Default to 1 GHz
 
 // LP Type Mapping
 tw_lptype * g_tw_lp_types = NULL;
