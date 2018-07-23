@@ -541,6 +541,10 @@ static tw_pe * setup_pes(void) {
         }
         printf("\n");
 
+#ifdef USE_DAMARIS
+    st_damaris_init_print();
+#endif
+
         // moved these so ross.csv stays consistent
         fprintf(g_tw_csv, "%d,", num_events_per_pe);
         fprintf(g_tw_csv, "%d,", g_tw_gvt_threshold);
