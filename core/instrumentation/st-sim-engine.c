@@ -21,9 +21,9 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
     sample_md.ts = pe->GVT;
     sample_md.real_time = (double)tw_clock_read() / g_tw_clock_rate;
 
-    if (g_st_granularity == GRAN_PE || g_st_granularity == GRAN_ALL)
+    if (g_st_pe_data)
         st_collect_engine_data_pes(pe, &sample_md, &s, col_type);
-    if (g_st_granularity == GRAN_KP || g_st_granularity == GRAN_ALL)
+    if (g_st_kp_data)
     {
         for (i = 0; i < g_tw_nkp; i++)
         {
@@ -31,7 +31,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
             st_collect_engine_data_kps(pe, kp, &sample_md, &s, col_type);
         }
     }
-    if (g_st_granularity == GRAN_LP || g_st_granularity == GRAN_ALL)
+    if (g_st_lp_data)
     {
         for (i = 0; i < g_tw_nlp; i++)
         {
