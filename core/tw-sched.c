@@ -260,7 +260,12 @@ static void tw_sched_batch(tw_pe * me) {
             tw_clock current_rt = tw_clock_read();
 #ifdef USE_DAMARIS
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
-                st_damaris_expose_data(me, me->GVT, RT_COL);
+            {
+                if (g_st_damaris_enabled)
+                    st_damaris_expose_data(me, me->GVT, RT_COL);
+                else
+                    st_collect_engine_data(me, RT_COL);
+            }
 #else
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
                 st_collect_engine_data(me, RT_COL);

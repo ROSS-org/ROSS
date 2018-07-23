@@ -62,6 +62,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
+    tw_opt_add(st_damaris_opts());
     tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
@@ -362,7 +363,8 @@ void tw_run(void) {
     // init instrumentation
     st_inst_init(); 
 #ifdef USE_DAMARIS
-    st_damaris_inst_init();
+    if (g_st_damaris_enabled)
+        st_damaris_inst_init();
 #endif
 
 #ifdef USE_BGPM

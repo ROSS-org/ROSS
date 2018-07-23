@@ -181,7 +181,15 @@ void
 tw_net_stop(void)
 {
 #ifdef USE_DAMARIS
-    st_damaris_ross_finalize();
+    if (g_st_damaris_enabled)
+        st_damaris_ross_finalize();
+    else
+    {
+        if (!custom_communicator) {
+            if (MPI_Finalize() != MPI_SUCCESS)
+                tw_error(TW_LOC, "Failed to finalize MPI");
+        }
+    }
 #else
   if (!custom_communicator) {
     if (MPI_Finalize() != MPI_SUCCESS)
