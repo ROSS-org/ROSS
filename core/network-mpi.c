@@ -491,7 +491,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
       // MPI module lets me read cancel events during
       // event sends over the network.
 
-      if(e!=NULL) // Temporary, for performance testing
+      if(cancel!=NULL) // Temporary, for performance testing
       {
       	cancel->state.cancel_q = 1;
       	cancel->state.remote = 0;
