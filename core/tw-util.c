@@ -86,6 +86,20 @@ tw_error(const char *file, int line, const char *fmt, ...)
 	tw_net_abort();
 }
 
+void
+tw_warning(const char *file, int line, const char *fmt, ...)
+{
+	va_list	ap;
+
+	va_start(ap, fmt);
+	fprintf(stdout, "node: %ld: warning: %s:%i: ", g_tw_mynode, file, line);
+	vfprintf(stdout, fmt, ap);
+	fprintf(stdout, "\n");
+	fflush(stdout);
+	fflush(stdout);
+	va_end(ap);
+}
+
 struct mem_pool
 {
 	struct mem_pool *next_pool;

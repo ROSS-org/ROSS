@@ -18,13 +18,13 @@ ENDFUNCTION(ROSS_TEST_SCHEDULERS)
 ## INSTRUMENTATION TESTS
 FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
 	ADD_TEST(${target_name}_INST_OptPE mpirun -np 2 ./${target_name} --synch=3 --engine-stats=4 --event-trace=2 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
-	ADD_TEST(${target_name}_INST_OptLP mpirun -np 2 ./${target_name} --synch=3 --engine-stats=4 --event-trace=2 --granularity=3 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
+	ADD_TEST(${target_name}_INST_OptLP mpirun -np 2 ./${target_name} --synch=3 --engine-stats=4 --event-trace=2 --kp-data=1 --lp-data=1 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
 
 	ADD_TEST(${target_name}_INST_RTOptPE mpirun -np 2 ./${target_name} --synch=5 --engine-stats=4 --event-trace=2 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
-	ADD_TEST(${target_name}_INST_RTOptLP mpirun -np 2 ./${target_name} --synch=5 --engine-stats=4 --event-trace=2 --granularity=3 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
+	ADD_TEST(${target_name}_INST_RTOptLP mpirun -np 2 ./${target_name} --synch=5 --engine-stats=4 --event-trace=2 --kp-data=1 --lp-data=1 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
 
 	ADD_TEST(${target_name}_INST_ConsPE mpirun -np 2 ./${target_name} --synch=2 --engine-stats=4 --event-trace=2 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
-	ADD_TEST(${target_name}_INST_ConsLP mpirun -np 2 ./${target_name} --synch=2 --engine-stats=4 --event-trace=2 --granularity=3 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
+	ADD_TEST(${target_name}_INST_ConsLP mpirun -np 2 ./${target_name} --synch=2 --engine-stats=4 --event-trace=2 --kp-data=1 --lp-data=1 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
 
     ADD_TEST(${target_name}_INST_Seq ./${target_name} --synch=1 --event-trace=1 --extramem=100000)
 
