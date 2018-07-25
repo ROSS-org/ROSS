@@ -258,11 +258,20 @@ static void tw_sched_batch(tw_pe * me) {
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
+#ifdef USE_DAMARIS
+            if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+            {
+                if (g_st_damaris_enabled)
+                    st_damaris_expose_data(me, me->GVT, RT_COL);
+                else
+                    st_collect_engine_data(me, RT_COL);
+            }
+#else
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
                 st_collect_engine_data(me, RT_COL);
             if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
                 st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
-
+#endif
             g_st_rt_samp_start_cycles = tw_clock_read();
         }
 

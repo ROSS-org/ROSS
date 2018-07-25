@@ -175,6 +175,10 @@ main(int argc, char **argv, char **env)
 	tw_opt_add(app_opt);
 	tw_init(&argc, &argv);
 
+#ifdef USE_DAMARIS
+    if(g_st_ross_rank)
+    { // only ross ranks should run code between here and tw_run()
+#endif
 	if( lookahead > 1.0 )
 	  tw_error(TW_LOC, "Lookahead > 1.0 .. needs to be less\n");
 
@@ -213,6 +217,9 @@ main(int argc, char **argv, char **env)
 	  }
 
 	tw_run();
+#ifdef USE_DAMARIS
+    } // end if(g_st_ross_rank)
+#endif
 	tw_end();
 
 	return 0;

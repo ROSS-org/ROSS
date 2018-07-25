@@ -70,7 +70,9 @@ struct sample_metadata
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
 extern char g_st_stats_path[INST_MAX_LENGTH];
-extern int g_st_granularity;
+extern int g_st_pe_data;
+extern int g_st_kp_data;
+extern int g_st_lp_data;
 extern int g_st_disable_out;
 
 extern int g_st_model_stats;

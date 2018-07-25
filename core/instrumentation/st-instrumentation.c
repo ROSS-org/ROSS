@@ -3,7 +3,9 @@
 
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 char g_st_stats_path[4096] = {0};
-int g_st_granularity = 0;
+int g_st_pe_data = 1;
+int g_st_kp_data = 0;
+int g_st_lp_data = 0;
 int g_st_disable_out = 0;
 
 int g_st_model_stats = 0;
@@ -19,6 +21,8 @@ tw_clock g_st_rt_samp_start_cycles = 0;
 tw_stime g_st_vt_interval = 1000000;
 tw_stime g_st_sampling_end = 0;
 
+
+
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),
     TWOPT_UINT("engine-stats", g_st_engine_stats, "Collect sim engine level stats; 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 All sampling modes"),
@@ -27,7 +31,9 @@ static const tw_optdef inst_options[] = {
     TWOPT_ULONGLONG("rt-interval", g_st_rt_interval, "real time sampling interval in ms"),
     TWOPT_STIME("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
     TWOPT_STIME("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
-    TWOPT_UINT("granularity", g_st_granularity, "for sim engine instrumentation; 0 = PE only, 1 = KP only, 2 = LP only, 3 = All levels"),
+    TWOPT_UINT("pe-data", g_st_pe_data, "Turn on/off collection of sim engine data at PE level"),
+    TWOPT_UINT("kp-data", g_st_kp_data, "Turn on/off collection of sim engine data at KP level"),
+    TWOPT_UINT("lp-data", g_st_lp_data, "Turn on/off collection of sim engine data at LP level"),
     TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-prefix", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_CHAR("stats-path", g_st_stats_path, "path to directory to save instrumentation output"),

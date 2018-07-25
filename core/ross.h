@@ -213,6 +213,10 @@ typedef uint64_t tw_lpid;
 
 #include "instrumentation/st-instrumentation.h"
 
+#ifdef USE_DAMARIS
+#include "damaris/core/damaris.h"
+#endif
+
 #include "tw-eventq.h"
 
 #ifdef USE_RIO

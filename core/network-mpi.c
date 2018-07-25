@@ -67,7 +67,6 @@ const tw_optdef *
 tw_net_init(int *argc, char ***argv)
 {
   int my_rank;
-
   int initialized;
   MPI_Initialized(&initialized);
 
@@ -75,6 +74,7 @@ tw_net_init(int *argc, char ***argv)
     if (MPI_Init(argc, argv) != MPI_SUCCESS)
       tw_error(TW_LOC, "MPI_Init failed.");
   }
+
   if (MPI_Comm_rank(MPI_COMM_ROSS, &my_rank) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_rank(MPI_COMM_ROSS)");
 
@@ -180,10 +180,22 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+        st_damaris_ross_finalize();
+    else
+    {
+        if (!custom_communicator) {
+            if (MPI_Finalize() != MPI_SUCCESS)
+                tw_error(TW_LOC, "Failed to finalize MPI");
+        }
+    }
+#else
   if (!custom_communicator) {
     if (MPI_Finalize() != MPI_SUCCESS)
       tw_error(TW_LOC, "Failed to finalize MPI");
   }
+#endif
 }
 
 void

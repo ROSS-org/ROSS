@@ -62,6 +62,9 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
+#ifdef USE_DAMARIS
+    tw_opt_add(st_damaris_opts());
+#endif
     tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
     tw_opt_add(io_opts);
@@ -69,6 +72,14 @@ void tw_init(int *argc, char ***argv) {
 
     // by now all options must be in
     tw_opt_parse(argc, argv);
+
+#ifdef USE_DAMARIS
+    st_damaris_ross_init();
+    if (!g_st_ross_rank) // Damaris ranks only
+        return;
+    else
+    {
+#endif
 
     if(tw_ismaster())
     {
@@ -103,7 +114,9 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
-
+#ifdef USE_DAMARIS
+    } // end of if(g_st_ross_rank)
+#endif
 }
 
 static void early_sanity_check(void) {
@@ -279,6 +292,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
             tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
         }
     }
+
 }
 
 static void late_sanity_check(void) {
@@ -350,6 +364,10 @@ void tw_run(void) {
 
     // init instrumentation
     st_inst_init();
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+        st_damaris_inst_init();
+#endif
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);
@@ -419,10 +437,17 @@ void tw_run(void) {
 }
 
 void tw_end(void) {
+#ifdef USE_DAMARIS
+    if(g_st_ross_rank)
+    {
+#endif
     if(tw_ismaster()) {
         fprintf(g_tw_csv, "\n");
         fclose(g_tw_csv);
     }
+#ifdef USE_DAMARIS
+    } // end if(g_st_ross_rank)
+#endif
 
     tw_net_stop();
 }
@@ -517,6 +542,10 @@ static tw_pe * setup_pes(void) {
                 break;
         }
         printf("\n");
+
+#ifdef USE_DAMARIS
+    st_damaris_init_print();
+#endif
 
         // moved these so ross.csv stays consistent
         fprintf(g_tw_csv, "%d,", num_events_per_pe);
