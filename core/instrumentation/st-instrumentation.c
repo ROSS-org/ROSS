@@ -43,6 +43,15 @@ static const tw_optdef inst_options[] = {
     TWOPT_END()
 };
 
+/* for use with Damaris optimistic debug */
+void st_turn_off_instrumentation()
+{
+    g_st_engine_stats = 0;
+    g_st_model_stats = 0;
+    g_st_use_analysis_lps = 0;
+    g_st_ev_trace = 0;
+}
+
 const tw_optdef *st_inst_opts(void)
 {
 	return inst_options;
