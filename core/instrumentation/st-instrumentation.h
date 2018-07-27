@@ -158,6 +158,7 @@ struct st_lp_stats{
     unsigned int s_e_rbs;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
+    unsigned int committed_events;
     float efficiency;
 };
 

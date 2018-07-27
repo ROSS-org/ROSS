@@ -75,6 +75,8 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
         }
         tw_free_output_messages(e, 1);
+        clp->lp_stats->committed_events++;
+        clp->pe->stats.s_committed_events++;
 
         if (e->delta_buddy) {
             tw_clock start = tw_clock_read();
