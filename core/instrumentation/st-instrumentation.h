@@ -89,6 +89,7 @@ extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
 extern void st_inst_dump();
 extern void st_inst_finalize(tw_pe *me);
+extern void st_turn_off_instrumentation();
 
 /*
  * st-sim-engine.c
