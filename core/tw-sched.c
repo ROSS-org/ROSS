@@ -466,7 +466,17 @@ void tw_scheduler_sequential(tw_pe * me) {
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
 
+#ifdef USE_DAMARIS
+	tw_stime current_gvt = 0.0;
+#endif
     while ((cev = tw_pq_dequeue(me->pq))) {
+#ifdef USE_DAMARIS
+		if (g_st_opt_debug && cev->recv_ts >= current_gvt)
+		{
+			current_gvt = st_damaris_opt_debug_sync(me);
+			printf("finished GVT cycle %f\n", current_gvt);
+		}
+#endif
         tw_lp *clp = cev->dest_lp;
         tw_kp *ckp = clp->kp;
 

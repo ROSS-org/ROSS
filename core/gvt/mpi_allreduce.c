@@ -230,6 +230,8 @@ tw_gvt_step2(tw_pe *me)
     {
         st_damaris_end_iteration();
     }
+	if (g_st_opt_debug)
+        st_damaris_opt_debug_sync(me);
 #endif
 
     if ((g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
