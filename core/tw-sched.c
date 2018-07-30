@@ -467,15 +467,14 @@ void tw_scheduler_sequential(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
 #ifdef USE_DAMARIS
-	tw_stime current_gvt = 0.0;
+	tw_stime current_gvt;
+	if (g_st_opt_debug)
+		current_gvt = st_damaris_opt_debug_sync(me);
 #endif
     while ((cev = tw_pq_dequeue(me->pq))) {
 #ifdef USE_DAMARIS
-		if (g_st_opt_debug && cev->recv_ts >= current_gvt)
-		{
+		if (g_st_opt_debug && current_gvt <= cev->recv_ts)
 			current_gvt = st_damaris_opt_debug_sync(me);
-			printf("finished GVT cycle %f\n", current_gvt);
-		}
 #endif
         tw_lp *clp = cev->dest_lp;
         tw_kp *ckp = clp->kp;
@@ -500,6 +499,8 @@ void tw_scheduler_sequential(tw_pe * me) {
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
+        clp->lp_stats->committed_events++;
+        me->stats.s_committed_events++;
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");

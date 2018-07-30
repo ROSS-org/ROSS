@@ -89,7 +89,7 @@ extern const tw_optdef *st_inst_opts();
 extern void st_inst_init(void);
 extern void st_inst_dump();
 extern void st_inst_finalize(tw_pe *me);
-extern void st_turn_off_instrumentation();
+extern void st_inst_set_debug();
 
 /*
  * st-sim-engine.c
@@ -117,6 +117,7 @@ struct st_pe_stats{
     unsigned int s_ngvts;
     unsigned int s_pe_event_ties;
     unsigned int all_reduce_count;
+    unsigned int committed_events;
     float efficiency;
 
     float s_net_read;
