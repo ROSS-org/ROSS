@@ -496,6 +496,8 @@ void tw_scheduler_sequential(tw_pe * me) {
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
+        if (g_st_opt_debug)
+            st_damaris_expose_event_data(cev);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
