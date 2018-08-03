@@ -51,6 +51,9 @@ tw_lp_settype(tw_lpid id, tw_lptype * type)
         if (type->state_sz > g_tw_delta_sz) {
             g_tw_delta_sz = type->state_sz;
         }
+
+    if (g_st_opt_debug)
+        st_damaris_opt_debug_map(type->event, id);
 }
 
 void
