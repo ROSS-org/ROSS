@@ -18,6 +18,11 @@ static const tw_optdef gvt_opts [] =
 	TWOPT_END()
 };
 
+void st_set_gvt_print_interval(tw_stime interval)
+{
+	gvt_print_interval = interval;
+}
+
 tw_stat st_get_allreduce_count()
 {
     return all_reduce_cnt;

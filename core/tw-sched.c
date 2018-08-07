@@ -657,9 +657,16 @@ void tw_scheduler_conservative(tw_pe * me) {
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
+#ifdef USE_DAMARIS
+	if (!g_st_opt_debug)
+	{
+#endif
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
+#ifdef USE_DAMARIS
+	} // end if (!g_st_opt_debug)
+#endif
 
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();

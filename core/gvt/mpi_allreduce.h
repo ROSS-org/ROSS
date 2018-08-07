@@ -42,5 +42,6 @@ gvt_print(tw_stime gvt)
 }
 
 extern tw_stat st_get_allreduce_count();
+void st_set_gvt_print_interval(tw_stime interval);
 
 #endif
