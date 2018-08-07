@@ -14,13 +14,68 @@ struct act_q
   MPI_Request	 *req_list;
   int		 *idx_list;
   MPI_Status	 *status_list;
+  int        *free_idx_list;//add, que of free indices
+
+
 #if ROSS_MEMORY
   char		**buffers;
 #endif
 
-  unsigned int	  cur;
+  unsigned int cur;
+  int front;//add, front of queue
+  int coda;//add, back of queue but back is already a variable somewhere
+  int size_of_fr_q;//add, size of queue array
+  int num_in_fr_q;//add, number of elements in queue
+
+// Deal with filling queue, then plateauing
+
 };
 
+int deal_with_cur(struct act_q *q)// try this
+{
+    if(q->cur < (q->size_of_fr_q-1))
+    {
+        q->cur++;
+        return 1;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+
+int fr_q_chq(struct act_q *q, int *frontOrCoda) //free index queue; check for modulating the front or back index of que
+{
+    if(*frontOrCoda != q->size_of_fr_q)//don't mess with queue
+    {
+        return 0;// return probably not necessary
+    }
+    else//mess with queue
+    {
+        *frontOrCoda = 0;
+        return 0;
+    }
+}
+
+void fr_q_aq(struct act_q *q, int ele) // free index queue; add to queue
+{
+    q->free_idx_list[q->coda] = ele;
+    q->coda++;
+    q->num_in_fr_q++;
+    fr_q_chq(q,&q->coda);//wraps the queue array around
+
+}
+
+int fr_q_dq(struct act_q *q) // free index queue; dequeue
+{
+    int rv =q->free_idx_list[q->front];
+    q->front++;
+    q->num_in_fr_q--;
+    fr_q_chq(q,&q->front);// wraps the queue array around
+
+    return rv;
+}
 #define EVENT_TAG 1
 
 #if ROSS_MEMORY
@@ -101,7 +156,29 @@ init_q(struct act_q *q, const char *name)
   q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
   q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
   q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
+  q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
   q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+  q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n+1);// queue, n+1 is meant to prevent a full queue
+  q->front = 0;// front of queue
+  q->coda  = 0;// end of queue
+  q->size_of_fr_q=n+1;// for wraparound
+  q->num_in_fr_q= 0;// number of elements in queue
+
+  int i = 0;
+  while(i<n) // initializes the queue
+  {
+      fr_q_aq( q , i) ;
+      i++;
+  }
+
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q,q->coda, q->front );
+//  printf("dequeue twice, requeue those elements\n");
+//  fr_q_dq(q);
+//  fr_q_dq(q);
+//  fr_q_aq(q,0);
+//  fr_q_aq(q,1);
+//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q, q->coda, q->front );
+//  printf("check: num in q = %d, size of q = %d\n",q->num_in_fr_q,q->size_of_fr_q);
 
 #if ROSS_MEMORY
   q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
@@ -219,10 +296,14 @@ tw_net_minimum(tw_pe *me)
     e = e->next;
   }
 
-  for (i = 0; i < posted_sends.cur; i++) {
+  for (i = 0; i < posted_sends.cur; i++) { //fix this line (?)
     e = posted_sends.event_list[i];
-    if (m > e->recv_ts)
+    if(e == NULL)
+    {}
+    else if(m > e->recv_ts)
       m = e->recv_ts;
+    else
+    {}  
   }
 
   return m;
@@ -240,7 +321,10 @@ test_q(
   char *tmp;
 #endif
 
-  if (!q->cur)
+//  if ( !q->cur || q->num_in_fr_q == ((q->size_of_fr_q)-1) ) //fixed this line (?) if queue is full, no elements are being processed
+//    return 0;
+
+  if( q->num_in_fr_q == ((q->size_of_fr_q)-1) )
     return 0;
 
   if (MPI_Testsome(
@@ -266,6 +350,7 @@ test_q(
       n = q->idx_list[i];
       e = q->event_list[n];
       q->event_list[n] = NULL;
+      fr_q_aq(q,n);//add n onto queue
 
 #if ROSS_MEMORY
       finish(me, e, q->buffers[n]);
@@ -275,7 +360,8 @@ test_q(
     }
 
   /* Collapse the lists to remove any holes we left. */
-  for (i = 0, n = 0; i < q->cur; i++)
+  /*
+  for (i = 0, n = 0; i < q->cur; i++)//fix these lines
   {
     if (q->event_list[i])
     {
@@ -300,8 +386,8 @@ test_q(
       n++;
     } // endif (q->event_list[i])
   }
-  q->cur -= ready;
-
+  q->cur -= ready;//fix this line
+  */
   return 1;
 }
 
@@ -315,9 +401,9 @@ recv_begin(tw_pe *me)
   int flag = 0;
   int changed = 0;
 
-  while (posted_recvs.cur < read_buffer)
+  while (0 < posted_recvs.num_in_fr_q)//fix these lines
     {
-      unsigned id = posted_recvs.cur;
+
 
       if(!(e = tw_event_grab(me)))
       {
@@ -325,6 +411,8 @@ recv_begin(tw_pe *me)
 	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
 	  return changed;	  
       }
+	  
+      int id = fr_q_dq(&posted_recvs);
 
 #if ROSS_MEMORY
       if( MPI_Irecv(posted_recvs.buffers[id],
@@ -349,7 +437,8 @@ recv_begin(tw_pe *me)
 	  }
 
       posted_recvs.event_list[id] = e;
-      posted_recvs.cur++;
+      deal_with_cur(&posted_recvs);
+      // fixed in fr_q_dq //posted_recvs.cur++; //fix this line
       changed = 1;
     }
 
@@ -360,12 +449,11 @@ static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   tw_pe		*dest_pe;
-  tw_clock start;
+  tw_clock       start;
 
 #if ROSS_MEMORY
   tw_memory	*memory;
   tw_memory	*last;
-
   tw_fd		 mem_fd;
 
   size_t		 mem_size;
@@ -415,12 +503,15 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
       // MPI module lets me read cancel events during
       // event sends over the network.
 
-      cancel->state.cancel_q = 1;
-      cancel->state.remote = 0;
+      if(cancel!=NULL) // Temporary, for performance testing
+      {
+      	cancel->state.cancel_q = 1;
+      	cancel->state.remote = 0;
 
-      cancel->cancel_next = dest_pe->cancel_q;
-      dest_pe->cancel_q = cancel;
-
+      	cancel->cancel_next = dest_pe->cancel_q;
+      	dest_pe->cancel_q = cancel;
+      }
+	  
       tw_event_free(me, e);
 
       return;
@@ -505,12 +596,11 @@ send_begin(tw_pe *me)
 {
   int changed = 0;
 
-  while (posted_sends.cur < send_buffer)
+  while (0 < posted_sends.num_in_fr_q)//fixed these line (hopefully)
     {
-      tw_event *e = tw_eventq_peek(&outq);
+      tw_event *e = tw_eventq_peek(&outq);//next event?
       tw_node	*dest_node = NULL;
-
-      unsigned id = posted_sends.cur;
+      // posted_sends.cur; //fixed this line
 
 #if ROSS_MEMORY
       tw_event *tmp_prev = NULL;
@@ -532,7 +622,8 @@ send_begin(tw_pe *me)
 
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
-
+	  
+      int id =  fr_q_dq(&posted_sends);// fixed, grabs from front of queue, moves front up one element
       dest_node = tw_net_onnode((*e->src_lp->type->map)
 				((tw_lpid) e->dest_lp));
 
@@ -621,7 +712,9 @@ send_begin(tw_pe *me)
 	: TW_net_asend;
 
       posted_sends.event_list[id] = e;
-      posted_sends.cur++;
+      deal_with_cur(&posted_sends);
+
+      // fixed in fr_q_dq //posted_sends.cur++;//fix this line
       me->s_nwhite_sent++;
 
       changed = 1;
