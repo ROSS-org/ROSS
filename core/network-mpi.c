@@ -396,7 +396,7 @@ recv_begin(tw_pe *me)
       if(!(e = tw_event_grab(me)))
       {
 	  if(tw_gvt_inprogress(me))
-	      tw_error(TW_LOC, "out of events in GVT!");
+	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
 	  return changed;	  
       }
 	  
@@ -437,11 +437,11 @@ static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
   tw_pe		*dest_pe;
+  tw_clock       start;
 
 #if ROSS_MEMORY
   tw_memory	*memory;
   tw_memory	*last;
-
   tw_fd		 mem_fd;
 
   size_t		 mem_size;
@@ -551,7 +551,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */
+    start = tw_clock_read();
     tw_pq_enqueue(dest_pe->pq, e);
+    dest_pe->stats.s_pq += tw_clock_read() - start;
     return;
   }
 
@@ -877,29 +879,11 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
 
   if(MPI_Reduce(&(s->s_net_events),
 		&me->stats.s_net_events,
-		16,
+		17,
 		MPI_UNSIGNED_LONG_LONG,
 		MPI_SUM,
 		(int)g_tw_masternode,
 		MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-  if(MPI_Reduce(&s->s_total,
-		&me->stats.s_total,
-		8,
-		MPI_UNSIGNED_LONG_LONG,
-		MPI_MAX,
-		(int)g_tw_masternode,
-		MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-  if(MPI_Reduce(&s->s_pe_event_ties,
-        &me->stats.s_pe_event_ties,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_SUM,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
   if(MPI_Reduce(&s->s_min_detected_offset,
@@ -911,67 +895,22 @@ tw_net_statistics(tw_pe * me, tw_statistics * s)
         MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
-  if(MPI_Reduce(&s->s_avl,
-        &me->stats.s_avl,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-    if (MPI_Reduce(&s->s_buddy,
-        &me->stats.s_buddy,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-    if (MPI_Reduce(&s->s_lz4,
-        &me->stats.s_lz4,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
+  if(MPI_Reduce(&(s->s_total),
+		&me->stats.s_total,
+		16,
+		MPI_UNSIGNED_LONG_LONG,
+		MPI_MAX,
+		(int)g_tw_masternode,
+		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
     if (MPI_Reduce(&s->s_events_past_end,
         &me->stats.s_events_past_end,
-        1,
+        3,
         MPI_UNSIGNED_LONG_LONG,
         MPI_SUM,
         (int)g_tw_masternode,
         MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-    if (MPI_Reduce(&g_st_stat_comp_ctr,
-        &me->stats.s_stat_comp,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-    if (MPI_Reduce(&g_st_stat_write_ctr,
-        &me->stats.s_stat_write,
-        1,
-        MPI_UNSIGNED_LONG_LONG,
-        MPI_MAX,
-        (int)g_tw_masternode,
-        MPI_COMM_ROSS) != MPI_SUCCESS)
-    tw_error(TW_LOC, "Unable to reduce statistics!");
-
-  if(MPI_Reduce(&(s->s_alp_nevent_processed),
-		&me->stats.s_alp_nevent_processed,
-		2,
-		MPI_UNSIGNED_LONG_LONG,
-		MPI_SUM,
-		(int)g_tw_masternode,
-		MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Unable to reduce statistics!");
 
 #ifdef USE_RIO
