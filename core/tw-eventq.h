@@ -71,7 +71,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
         if (g_st_ev_trace == COMMIT_TRACE) // doesn't rely on commit function existing, so should be outside of commit function check
             st_collect_event_data(e, (double)tw_clock_read() / g_tw_clock_rate);
         if (g_st_opt_debug)
-            st_damaris_expose_event_data(e);
+            st_damaris_expose_event_data(e, 0);
         tw_lp * clp = e->dest_lp;
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
