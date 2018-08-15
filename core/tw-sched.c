@@ -209,12 +209,17 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+#ifdef USE_DAMARIS
+        if (g_st_opt_debug || g_st_rng_check)
+            st_damaris_call_event(cev, clp);
+		else // if we're not in opt debug, call event handler normally
+			(*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+#else 
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
+#endif
         if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
-		if (g_st_opt_debug)
-			st_damaris_expose_event_data(cev, 1);
         cev->critical_path = prev_cp;
 	  }
 	ckp->s_nevent_processed++;
@@ -495,11 +500,16 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+#ifdef USE_DAMARIS
+        if (g_st_opt_debug)
+            st_damaris_call_event(cev, clp);
+		else // if we're not in opt debug, call event handler normally
+			(*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+#else 
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+#endif
         if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
-        if (g_st_opt_debug)
-            st_damaris_expose_event_data(cev, 0);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
@@ -660,14 +670,14 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
 #ifdef USE_DAMARIS
-	if (!g_st_opt_debug)
+	if (!g_st_opt_debug && !g_st_rng_check)
 	{
 #endif
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
 #ifdef USE_DAMARIS
-	} // end if (!g_st_opt_debug)
+	} // end if (!g_st_opt_debug && !g_st_rng_check)
 #endif
 
     tw_wall_now(&me->start_time);

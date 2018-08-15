@@ -328,6 +328,12 @@ struct tw_event {
     tw_lpid      dest_lpid;
     tw_stime     send_ts;
 
+#ifdef USE_DAMARIS
+    /* for use with optimistic debugger */
+    unsigned long *rng_count_begin;
+    unsigned long *rng_count_end;
+#endif
+
 #ifdef ROSS_MEMORY
     tw_memory   *memory;
 #endif
