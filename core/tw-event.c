@@ -213,7 +213,14 @@ void tw_event_rollback(tw_event * event) {
 	goto jump_over_rc_event_handler;
       }
 
+#ifdef USE_DAMARIS
+        if (g_st_debug_enabled)
+            st_damaris_call_rev_event(event, dest_lp);
+		else // if we're not in opt debug, call revent handler normally
+            (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
+#else 
     (*dest_lp->type->revent)(dest_lp->cur_state, &event->cv, tw_event_data(event), dest_lp);
+#endif
 
     // reset critical path
     dest_lp->critical_path = event->critical_path;
