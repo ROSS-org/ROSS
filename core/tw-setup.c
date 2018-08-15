@@ -63,7 +63,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
 #ifdef USE_DAMARIS
-    tw_opt_add(st_damaris_opts(argc, argv));
+    tw_opt_add(st_damaris_opts());
 #endif
     tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
