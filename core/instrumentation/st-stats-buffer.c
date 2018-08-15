@@ -16,7 +16,7 @@ static st_stats_buffer **g_st_buffer;
 void st_buffer_allocate()
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps) ||
-            g_st_opt_debug)
+            g_st_debug_enabled)
         return;
     
     int i, rc;
@@ -63,7 +63,7 @@ void st_buffer_allocate()
 void st_buffer_init(int type)
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps) ||
-            g_st_opt_debug)
+            g_st_debug_enabled)
         return;
     int i;
     char filename[INST_MAX_LENGTH];
@@ -105,7 +105,7 @@ void st_buffer_init(int type)
 void st_buffer_push(int type, char *data, int size)
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps) ||
-            g_st_opt_debug)
+            g_st_debug_enabled)
         return;
     int size1, size2;
     if (!g_st_disable_out && st_buffer_free_space(g_st_buffer[type]) < size)
@@ -145,7 +145,7 @@ void st_buffer_push(int type, char *data, int size)
 void st_buffer_write(int end_of_sim, int type)
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps) ||
-            g_st_opt_debug)
+            g_st_debug_enabled)
         return;
     MPI_Offset offset = prev_offsets[type];
     MPI_File *fh = &buffer_fh[type];
@@ -199,7 +199,7 @@ void st_buffer_write(int end_of_sim, int type)
 void st_buffer_finalize(int type)
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps) ||
-            g_st_opt_debug)
+            g_st_debug_enabled)
         return;
     // check if any data needs to be written out
     if (!g_st_disable_out)

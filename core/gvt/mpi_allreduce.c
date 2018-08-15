@@ -217,7 +217,7 @@ tw_gvt_step2(tw_pe *me)
             g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
 #ifdef USE_DAMARIS
-        if (g_st_damaris_enabled && !g_st_opt_debug && !g_st_rng_check)
+        if (g_st_damaris_enabled && !g_st_debug_enabled)
         {
             st_damaris_expose_data(me, gvt, GVT_COL);
             st_damaris_end_iteration();
@@ -235,12 +235,8 @@ tw_gvt_step2(tw_pe *me)
     {
         st_damaris_end_iteration();
     }
-	if (g_st_opt_debug && me->GVT > 0.0)
-	{
+	if (g_st_debug_enabled && me->GVT > 0.0)
 		st_damaris_opt_debug_sync(me);
-	}
-	if (g_st_rng_check && me->GVT > 0.0)
-		st_damaris_rng_check_end_iteration();
 #endif
 
     if ((g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)

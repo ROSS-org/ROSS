@@ -105,7 +105,7 @@ OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
 if (USE_DAMARIS)
     ADD_SUBDIRECTORY(damaris)
     INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
-    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
+    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris-api.h)
 ENDIF(USE_DAMARIS)
 
 # Use debugging-friendly memory allocation

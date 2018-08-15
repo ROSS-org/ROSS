@@ -52,7 +52,7 @@ tw_lp_settype(tw_lpid id, tw_lptype * type)
             g_tw_delta_sz = type->state_sz;
         }
 
-    if (g_st_opt_debug)
+    if (g_st_debug_enabled)
         st_damaris_opt_debug_map(type->event, id);
 }
 

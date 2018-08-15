@@ -210,7 +210,7 @@ static void tw_sched_batch(tw_pe * me) {
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
 #ifdef USE_DAMARIS
-        if (g_st_opt_debug || g_st_rng_check)
+        if (g_st_debug_enabled)
             st_damaris_call_event(cev, clp);
 		else // if we're not in opt debug, call event handler normally
 			(*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
@@ -475,12 +475,12 @@ void tw_scheduler_sequential(tw_pe * me) {
 
 #ifdef USE_DAMARIS
 	tw_stime current_gvt;
-	if (g_st_opt_debug)
+	if (g_st_debug_enabled)
 		current_gvt = st_damaris_opt_debug_sync(me);
 #endif
     while ((cev = tw_pq_dequeue(me->pq))) {
 #ifdef USE_DAMARIS
-		if (g_st_opt_debug && current_gvt <= cev->recv_ts)
+		if (g_st_debug_enabled && current_gvt <= cev->recv_ts)
 			current_gvt = st_damaris_opt_debug_sync(me);
 #endif
         tw_lp *clp = cev->dest_lp;
@@ -501,7 +501,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
 #ifdef USE_DAMARIS
-        if (g_st_opt_debug)
+        if (g_st_debug_enabled)
             st_damaris_call_event(cev, clp);
 		else // if we're not in opt debug, call event handler normally
 			(*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
@@ -670,14 +670,14 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
 #ifdef USE_DAMARIS
-	if (!g_st_opt_debug && !g_st_rng_check)
+	if (!g_st_debug_enabled)
 	{
 #endif
     if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
 #ifdef USE_DAMARIS
-	} // end if (!g_st_opt_debug && !g_st_rng_check)
+	} // end if (!g_st_debug_enabled)
 #endif
 
     tw_wall_now(&me->start_time);
