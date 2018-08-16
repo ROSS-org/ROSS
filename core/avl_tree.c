@@ -5,6 +5,7 @@
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
 
 #include "avl_tree.h"
+#include "ross.h"
 
 /* implementation of an AVL tree with explicit heights */
 
@@ -190,6 +191,20 @@ avlInsert(AvlTree *t, tw_event *key)
             if (key->send_pe == (*t)->key->send_pe) {
                 // This shouldn't happen but we'll allow it
                 tw_printf(TW_LOC, "The events are identical!!!\n");
+                if((key->state.cancel_q == 1 && (*t)->key->state.cancel_q == 0)||(key->state.cancel_q == 0 && (*t)->key->state.cancel_q == 1))
+                {
+                    tw_printf(TW_LOC, "Annihilation imminent \n");
+                    avlDelete(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);
+                }
+                else
+                {
+                    tw_printf(TW_LOC, "what.\n");
+
+                }
+//                avlDelete(&(*t), (*t)->key);
+//                avlDelete(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);//works?
+//                avlDelete(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);// alter this one
+
             }
             avlInsert(&(*t)->child[key->send_pe > (*t)->key->send_pe], key);
             avlRebalance(t);
