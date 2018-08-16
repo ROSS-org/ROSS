@@ -487,6 +487,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
     // if cancel event, retrieve and flush
     // else, store in hash table
+/*
     if(e->state.cancel_q)
     {
         tw_event *cancel = tw_hash_remove(me->hash_t, e, e->send_pe);
@@ -504,12 +505,17 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
             cancel->cancel_next = dest_pe->cancel_q;
             dest_pe->cancel_q = cancel;
         }
+        else
+        {
 
+            tw_hash_insert(me->hash_t, e, e->send_pe);
+
+        }
         tw_event_free(me, e);
 
         return;
     }
-
+*/
     if (g_tw_synchronization_protocol == OPTIMISTIC ||
         g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
         g_tw_synchronization_protocol == OPTIMISTIC_REALTIME ) {
@@ -596,7 +602,7 @@ send_begin(tw_pe *me)
         // posted_sends.cur; //fixed this line
 
 #if ROSS_MEMORY
-        tw_event *tmp_prev = NULL;
+            tw_event *tmp_prev = NULL;
 
       tw_lp *tmp_lp = NULL;
 
