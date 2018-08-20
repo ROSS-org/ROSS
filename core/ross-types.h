@@ -330,8 +330,8 @@ struct tw_event {
 
 #ifdef USE_DAMARIS
     /* for use with optimistic debugger */
-    unsigned long *rng_count_before;
-    unsigned long *rng_count_end;
+    unsigned long rng_count_before[10];
+    unsigned long rng_count_end[10];
 #endif
 
 #ifdef ROSS_MEMORY
