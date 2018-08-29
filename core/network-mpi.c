@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <mpi.h>
+#include "ross.h"
 
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
@@ -15,7 +16,7 @@ struct act_q
     int		 *idx_list;
     MPI_Status	 *status_list;
     int        *free_idx_list;//add, que of free indices
-
+    int        *overflow_anti;
 
 #if ROSS_MEMORY
     char		**buffers;
@@ -107,9 +108,9 @@ static const tw_optdef mpi_opts[] = {
 
 // Forward declarations of functions used in MPI network message processing
 static int recv_begin(tw_pe *me);
-static void recv_finish(tw_pe *me, tw_event *e, char * buffer);
+static void recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl);
 static int send_begin(tw_pe *me);
-static void send_finish(tw_pe *me, tw_event *e, char * buffer);
+static void send_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl);
 
 // Start of implmentation of network processing routines/functions
 void tw_comm_set(MPI_Comm comm)
@@ -156,9 +157,9 @@ init_q(struct act_q *q, const char *name)
     q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
     q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
     q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
-    q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
     q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
     q->free_idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n+1);// queue, n+1 is meant to prevent a full queue
+    q->overflow_anti = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n+1);// queue, n+1 is meant to prevent a full queue
     q->front = 0;// front of queue
     q->coda  = 0;// end of queue
     q->size_of_fr_q=n+1;// for wraparound
@@ -171,6 +172,7 @@ init_q(struct act_q *q, const char *name)
         i++;
     }
 
+    q->overflow_anti[0]=1;
     q->num_in_fr_q = n;
 
 //  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q,q->coda, q->front );
@@ -303,7 +305,7 @@ static int
 test_q(
         struct act_q *q,
         tw_pe *me,
-        void (*finish)(tw_pe *, tw_event *, char *))
+        void (*finish)(tw_pe *, tw_event *, char *, int**))
 {
     int ready, i, n;
 
@@ -336,18 +338,42 @@ test_q(
 
     for (i = 0; i < ready; i++)
     {
+
         tw_event *e;
 
         n = q->idx_list[i];
         e = q->event_list[n];
-        q->event_list[n] = NULL;
-        fr_q_aq(q,n);//add n onto queue
+        if(e->state.cancel_q == 0)
+        {
+            q->event_list[n] = NULL;
+            fr_q_aq(q, n);//add n onto queue
 
 #if ROSS_MEMORY
-        finish(me, e, q->buffers[n]);
+            finish(me, e, q->buffers[n],q->overflow_anti);
 #else
-        finish(me, e, NULL);
+            finish(me, e, NULL, &q->overflow_anti);
 #endif
+        }
+    }
+
+    for (i = 0; i < ready; i++)
+    {
+
+        tw_event *e;
+
+        n = q->idx_list[i];
+        e = q->event_list[n];
+        if(e != NULL)
+        {
+            q->event_list[n] = NULL;
+            fr_q_aq(q, n);//add n onto queue
+
+#if ROSS_MEMORY
+            finish(me, e, q->buffers[n],q->overflow_anti);
+#else
+            finish(me, e, NULL, &q->overflow_anti);
+#endif
+        }
     }
 
     q->num_in_fr_q+=ready;
@@ -439,7 +465,7 @@ recv_begin(tw_pe *me)
 }
 
 static void
-recv_finish(tw_pe *me, tw_event *e, char * buffer)
+recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
 {
     tw_pe		*dest_pe;
     tw_clock       start;
@@ -487,9 +513,30 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
     // if cancel event, retrieve and flush
     // else, store in hash table
+    if(e->state.cancel_q)
+    {
+        tw_event *cancel = tw_hash_remove(me->hash_t, e, e->send_pe);
+
+        // NOTE: it is possible to cancel the event we
+        // are currently processing at this PE since this
+        // MPI module lets me read cancel events during
+        // event sends over the network.
+
+        cancel->state.cancel_q = 1;
+        cancel->state.remote = 0;
+
+        cancel->cancel_next = dest_pe->cancel_q;
+        dest_pe->cancel_q = cancel;
+
+        tw_event_free(me, e);
+
+        return;
+    }
+
 /*
     if(e->state.cancel_q)
     {
+
         tw_event *cancel = tw_hash_remove(me->hash_t, e, e->send_pe);
 
         // NOTE: it is possible to cancel the event we
@@ -504,18 +551,20 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
             cancel->cancel_next = dest_pe->cancel_q;
             dest_pe->cancel_q = cancel;
+            tw_event_free(me, e);
         }
         else
         {
 
-            tw_hash_insert(me->hash_t, e, e->send_pe);
+
 
         }
-        tw_event_free(me, e);
 
         return;
     }
 */
+
+
     if (g_tw_synchronization_protocol == OPTIMISTIC ||
         g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
         g_tw_synchronization_protocol == OPTIMISTIC_REALTIME ) {
@@ -602,7 +651,7 @@ send_begin(tw_pe *me)
         // posted_sends.cur; //fixed this line
 
 #if ROSS_MEMORY
-            tw_event *tmp_prev = NULL;
+        tw_event *tmp_prev = NULL;
 
       tw_lp *tmp_lp = NULL;
 
@@ -722,7 +771,7 @@ send_begin(tw_pe *me)
 }
 
 static void
-send_finish(tw_pe *me, tw_event *e, char * buffer)
+send_finish(tw_pe *me, tw_event *e, char * buffer, int ** overflow)
 {
     me->stats.s_nsend_network++;
     // instrumentation
