@@ -108,9 +108,9 @@ static const tw_optdef mpi_opts[] = {
 
 // Forward declarations of functions used in MPI network message processing
 static int recv_begin(tw_pe *me);
-static void recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl);
+static void recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q* q, int id);
 static int send_begin(tw_pe *me);
-static void send_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl);
+static void send_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q* q, int id);
 
 // Start of implmentation of network processing routines/functions
 void tw_comm_set(MPI_Comm comm)
@@ -303,11 +303,13 @@ tw_net_minimum(tw_pe *me)
 
 static int
 test_q(
-        struct act_q *q,
+        struct act_q * q,
         tw_pe *me,
-        void (*finish)(tw_pe *, tw_event *, char *, int**))
+        void (*finish)(tw_pe *, tw_event *, char *, struct act_q*, int id))
 {
-    int ready, i, n;
+    int ready, i, n, indicator;
+    q->overflow_anti[0]=1; //
+    indicator = 1;
 
 #if ROSS_MEMORY
     char *tmp;
@@ -336,44 +338,51 @@ test_q(
     if (1 > ready)
         return 0;
 
-    for (i = 0; i < ready; i++)
-    {
+    for (i = 0; i < ready; i++) {
 
         tw_event *e;
 
         n = q->idx_list[i];
         e = q->event_list[n];
-        if(e->state.cancel_q == 0)
-        {
-            q->event_list[n] = NULL;
-            fr_q_aq(q, n);//add n onto queue
+        fr_q_aq(q, n);//add n onto queue
 
 #if ROSS_MEMORY
-            finish(me, e, q->buffers[n],q->overflow_anti);
+        finish(me, e, q->buffers[n], q, n);
 #else
-            finish(me, e, NULL, &q->overflow_anti);
+        finish(me, e, NULL, q, n);
 #endif
+        if (indicator != q->overflow_anti[0])
+        {
+            printf("indicator was %d, is now %d\n", indicator, q->overflow_anti[0]);
+            indicator= q->overflow_anti[0];
         }
+        else
+        {
+            q->event_list[n] = NULL;
+        }
+
+
     }
 
-    for (i = 0; i < ready; i++)
+//    printf("getting to it\n");
+
+    for (i = 1; i < q->overflow_anti[0]; i++)
     {
 
         tw_event *e;
-
-        n = q->idx_list[i];
+        printf("in loop\n");
+        n = q->overflow_anti[i];
         e = q->event_list[n];
-        if(e != NULL)
-        {
-            q->event_list[n] = NULL;
-            fr_q_aq(q, n);//add n onto queue
+        q->event_list[n] = NULL;
+        printf("about to finish\n");
+//        fr_q_aq(q, n);//add n onto queue
 
 #if ROSS_MEMORY
-            finish(me, e, q->buffers[n],q->overflow_anti);
+            finish(me, e, q->buffers[n], q, n);
 #else
-            finish(me, e, NULL, &q->overflow_anti);
+            finish(me, e, NULL, q, n);
 #endif
-        }
+
     }
 
     q->num_in_fr_q+=ready;
@@ -465,7 +474,7 @@ recv_begin(tw_pe *me)
 }
 
 static void
-recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
+recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id )
 {
     tw_pe		*dest_pe;
     tw_clock       start;
@@ -488,20 +497,20 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
 
     //  printf("recv_finish: remote event [cancel %u] FROM: LP %lu, PE %lu, TO: LP %lu, PE %lu at TS %lf \n",
     //	 e->state.cancel_q, (tw_lpid)e->src_lp, e->send_pe, (tw_lpid)e->dest_lp, me->id, e->recv_ts);
+    tw_lp * temp_lp  = (e->dest_lp);
+    tw_pe * temp_pe  = (e->dest_lp->pe);
 
-    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);
-    dest_pe = e->dest_lp->pe;
+    e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);//->gid);// check here
+    dest_pe = e->dest_lp->pe;// check here
     // instrumentation
     e->dest_lp->kp->kp_stats->s_nread_network++;
     e->dest_lp->lp_stats->s_nread_network++;
-
     if(e->send_pe > tw_nnodes()-1)
         tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
 
-    e->cancel_next = NULL;
-    e->caused_by_me = NULL;
-    e->cause_next = NULL;
-
+//    e->cancel_next = NULL;
+//    e->caused_by_me = NULL;
+//    e->cause_next = NULL;
 
 
     if(e->recv_ts < me->GVT)
@@ -513,27 +522,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
 
     // if cancel event, retrieve and flush
     // else, store in hash table
-    if(e->state.cancel_q)
-    {
-        tw_event *cancel = tw_hash_remove(me->hash_t, e, e->send_pe);
 
-        // NOTE: it is possible to cancel the event we
-        // are currently processing at this PE since this
-        // MPI module lets me read cancel events during
-        // event sends over the network.
-
-        cancel->state.cancel_q = 1;
-        cancel->state.remote = 0;
-
-        cancel->cancel_next = dest_pe->cancel_q;
-        dest_pe->cancel_q = cancel;
-
-        tw_event_free(me, e);
-
-        return;
-    }
-
-/*
     if(e->state.cancel_q)
     {
 
@@ -546,8 +535,13 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
 
         if(cancel!=NULL) // Temporary, for performance testing
         {
+//            printf("made it to proper cancel\n");
+            e->cancel_next = NULL;
+            e->caused_by_me = NULL;
+            e->cause_next = NULL;
             cancel->state.cancel_q = 1;
             cancel->state.remote = 0;
+
 
             cancel->cancel_next = dest_pe->cancel_q;
             dest_pe->cancel_q = cancel;
@@ -555,15 +549,21 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, int** overfl)
         }
         else
         {
-
+            printf("hitting overflow, storing %d in index %d\n",id, q->overflow_anti[0]);
+            e->dest_lp = temp_lp;
+            e->dest_lp->pe = temp_pe;
+            q->overflow_anti[q->overflow_anti[0]] = id; //add id stuff later
+            q->overflow_anti[0]++;
 
 
         }
 
         return;
     }
-*/
 
+    e->cancel_next = NULL;
+    e->caused_by_me = NULL;
+    e->cause_next = NULL;
 
     if (g_tw_synchronization_protocol == OPTIMISTIC ||
         g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
@@ -651,7 +651,7 @@ send_begin(tw_pe *me)
         // posted_sends.cur; //fixed this line
 
 #if ROSS_MEMORY
-        tw_event *tmp_prev = NULL;
+            tw_event *tmp_prev = NULL;
 
       tw_lp *tmp_lp = NULL;
 
@@ -771,7 +771,7 @@ send_begin(tw_pe *me)
 }
 
 static void
-send_finish(tw_pe *me, tw_event *e, char * buffer, int ** overflow)
+send_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id)
 {
     me->stats.s_nsend_network++;
     // instrumentation
