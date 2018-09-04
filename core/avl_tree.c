@@ -5,6 +5,7 @@
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
 
 #include "avl_tree.h"
+#include "ross.h"
 
 /* implementation of an AVL tree with explicit heights */
 
@@ -254,7 +255,7 @@ avlDelete(AvlTree *t, tw_event *key)
     AvlTree oldroot;
     
     if (*t == AVL_EMPTY) {
-        tw_error(TW_LOC, "We never look for non-existent events!");
+//        tw_error(TW_LOC, "We never look for non-existent events!");
         return target;
     }
     
