@@ -40,10 +40,10 @@ tw_node * tw_net_onnode(tw_peid gid);
 extern unsigned tw_nnodes(void);
 
 /* Block until all nodes call the barrier. */
-extern void tw_net_barrier(tw_pe * pe);
+extern void tw_net_barrier(void);
 
 /* Obtain the lowest timestamp inside the network buffers. */
-extern tw_stime tw_net_minimum(tw_pe *);
+extern tw_stime tw_net_minimum(void);
 
 /* Send / receive tw_statistics objects.  */
 extern tw_statistics *tw_net_statistics(tw_pe *, tw_statistics *);

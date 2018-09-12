@@ -199,18 +199,18 @@ tw_net_stop(void)
 }
 
 void
-tw_net_barrier(tw_pe * pe)
+tw_net_barrier(void)
 {
   if (MPI_Barrier(MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Failed to wait for MPI_Barrier");
 }
 
 tw_stime
-tw_net_minimum(tw_pe *me)
+tw_net_minimum(void)
 {
   tw_stime m = DBL_MAX;
   tw_event *e;
-  int i;
+  unsigned int i;
 
   e = outq.head;
   while (e) {
@@ -275,7 +275,7 @@ test_q(
     }
 
   /* Collapse the lists to remove any holes we left. */
-  for (i = 0, n = 0; i < q->cur; i++)
+  for (i = 0, n = 0; (unsigned int)i < q->cur; i++)
   {
     if (q->event_list[i])
     {
@@ -308,11 +308,8 @@ test_q(
 static int
 recv_begin(tw_pe *me)
 {
-  MPI_Status status;
-
   tw_event	*e = NULL;
 
-  int flag = 0;
   int changed = 0;
 
   while (posted_recvs.cur < read_buffer)
@@ -359,6 +356,7 @@ recv_begin(tw_pe *me)
 static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
+  (void) buffer;
   tw_pe		*dest_pe;
   tw_clock start;
 
@@ -632,6 +630,7 @@ send_begin(tw_pe *me)
 static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
+  (void) buffer;
   me->stats.s_nsend_network++;
   // instrumentation
   e->src_lp->kp->kp_stats->s_nsend_network++;

@@ -37,14 +37,14 @@ tw_gvt_start(void)
 }
 
 void
-tw_gvt_force_update(tw_pe *me)
+tw_gvt_force_update(void)
 {
 	gvt_force++;
 	gvt_cnt = g_tw_gvt_interval;
 }
 
 void
-tw_gvt_force_update_realtime(tw_pe *me)
+tw_gvt_force_update_realtime(void)
 {
 	gvt_force++;
         g_tw_gvt_interval_start_cycles = 0; // reset to start of time
@@ -139,7 +139,7 @@ tw_gvt_step2(tw_pe *me)
 	  }
 
 	pq_min = tw_pq_minimum(me->pq);
-	net_min = tw_net_minimum(me);
+	net_min = tw_net_minimum();
 
 	lvt = me->trans_msg_ts;
 	if(lvt > pq_min)

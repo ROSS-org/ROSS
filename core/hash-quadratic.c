@@ -3,13 +3,15 @@
 #include "avl_tree.h"
 #endif /* AVL_TREE */
 
+#ifndef AVL_TREE
 static void     rehash(tw_hash * hash_t, int pe);
-static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
 static int find_entry(tw_event ** hash_t, tw_event * event, int hash_size, int pe);
 static void     insert(tw_event ** hash_t, tw_event * event, int hash_size);
+static int find_empty(tw_event ** hash_t, tw_event * event, int hash_size);
+static int      next_prime(int ptst);
 static tw_event **allocate_table(int hash_size);
 static int hash_(tw_eventid event_id, int hash_size);
-static int      next_prime(int ptst);
+#endif
 static int      is_prime(int ptst);
 tw_event *hash_search(tw_event ** hash_t, tw_event *evt, int size);
 
@@ -18,17 +20,19 @@ void     hash_print(tw_hash * h);
 static unsigned int ncpu = 1;
 unsigned int g_tw_hash_size = 31;
 
+#ifndef AVL_TREE
 int
 hash_(tw_eventid event_id, int hash_size)
 {
 	return event_id % hash_size;
 }
+#endif
 
 void           *
 tw_hash_create()
 {
 #ifdef AVL_TREE
-  int i;
+  unsigned int i;
   AvlTree avl_list;
 
   g_tw_pe[0]->avl_tree_size = 0;
@@ -76,6 +80,8 @@ void
 tw_hash_insert(void *h, tw_event * event, long pe)
 {
 #ifdef AVL_TREE
+  (void) h;
+  (void) pe;
   tw_clock start;
 
   g_tw_pe[0]->avl_tree_size++;
@@ -98,6 +104,7 @@ tw_hash_insert(void *h, tw_event * event, long pe)
 #endif
 }
 
+#ifndef AVL_TREE
 void
 insert(tw_event ** hash_t, tw_event * event, int hash_size)
 {
@@ -193,11 +200,14 @@ allocate_table(int hash_size)
 {
 	return (tw_event **) tw_calloc(TW_LOC, "tw_hash", sizeof(tw_event *) * hash_size, 1);
 }
+#endif
 
 tw_event       *
 tw_hash_remove(void *h, tw_event * event, long pe)
 {
 #if AVL_TREE
+  (void) h;
+  (void) pe;
   tw_event *ret;
   tw_clock start;
 
@@ -295,7 +305,7 @@ hash_search(tw_event ** hash_t, tw_event *evt, int size)
 void
 hash_print(tw_hash * h)
 {
-	int             i, j, empty;
+	unsigned int             i, j, empty;
 	unsigned int   *sizes = h->hash_sizes;
 	int            *stored = h->num_stored;
 	tw_event      **hash_t;
