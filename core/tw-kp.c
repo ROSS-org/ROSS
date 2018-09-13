@@ -249,7 +249,6 @@ tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 	printf("%d: FC %d buf from FD %d \n", kp->id, cnt, fd);
 #endif
 }
-#endif
 
 void
 tw_kp_fossil_memory(tw_kp * kp)
@@ -259,3 +258,4 @@ tw_kp_fossil_memory(tw_kp * kp)
 	for(i = 0; i < g_tw_memory_nqueues; i++)
 		tw_kp_fossil_memoryq(kp, i);
 }
+#endif
