@@ -61,6 +61,7 @@ void st_buffer_allocate()
  */
 void st_buffer_init(int type)
 {
+    printf("st_buffer_init(): type = %d\n", type);
     int i;
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";

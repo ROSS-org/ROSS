@@ -253,7 +253,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
-    st_buffer_allocate();
+    //st_buffer_allocate();  // TODO need this set up before setting up analysis LPs?
     //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
         specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
 
@@ -364,10 +364,6 @@ void tw_run(void) {
 
     // init instrumentation
     st_inst_init(); 
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-        st_damaris_inst_init();
-#endif
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);

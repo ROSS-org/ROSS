@@ -21,10 +21,12 @@ tw_clock g_st_rt_samp_start_cycles = 0;
 tw_stime g_st_vt_interval = 1000000;
 tw_stime g_st_sampling_end = 0;
 
+static char config_file[1024];
 
 
 static const tw_optdef inst_options[] = {
     TWOPT_GROUP("ROSS Instrumentation"),
+    TWOPT_CHAR("config-file", config_file, "Use config file for instrumentation settings (will ignore command line params set)"),
     TWOPT_UINT("engine-stats", g_st_engine_stats, "Collect sim engine level stats; 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 All sampling modes"),
     TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 all sampling modes"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
@@ -48,26 +50,33 @@ const tw_optdef *st_inst_opts(void)
 	return inst_options;
 }
 
+void print_settings()
+{
+    printf("g_st_engine_stats:\t%d\n", g_st_engine_stats);
+    printf("g_st_model_stats:\t%d\n", g_st_model_stats);
+    printf("g_st_num_gvt:\t\t%d\n", g_st_num_gvt);
+    printf("g_st_rt_interval:\t%lu\n", g_st_rt_interval);
+    printf("g_st_vt_interval:\t%f\n", g_st_vt_interval);
+    printf("g_st_sampling_end:\t%f\n", g_st_sampling_end);
+    printf("g_st_pe_data:\t\t%d\n", g_st_pe_data);
+    printf("g_st_kp_data:\t\t%d\n", g_st_kp_data);
+    printf("g_st_lp_data:\t\t%d\n", g_st_lp_data);
+    printf("g_st_ev_trace:\t\t%d\n", g_st_ev_trace);
+}
+
+// TODO this has become a mess and could definitely be waaaay better
 void st_inst_init(void)
 {
+    st_damaris_parse_config(&config_file[0]);
     specialized_lp_run();
 
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
         return;
 
-    // setup appropriate flags for various instrumentation modes
-    // set up files and buffers for necessary instrumentation modes
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
-    {
         g_st_gvt_sampling = 1;
-        st_buffer_init(GVT_COL);
-    }
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
-    {
         g_st_rt_sampling = 1;
-        st_buffer_init(RT_COL);
-    }
-
     if (g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS)
         g_st_gvt_sampling = 1;
     if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
@@ -78,6 +87,24 @@ void st_inst_init(void)
         g_st_rt_interval = g_st_rt_interval * g_tw_clock_rate / 1000;
         g_st_rt_samp_start_cycles = tw_clock_read();
     }
+
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        st_damaris_inst_init(config_file);
+        g_st_disable_out = 1;
+        return; // no need to set up buffers in this case
+    }
+#endif
+
+    st_buffer_allocate();
+
+    // setup appropriate flags for various instrumentation modes
+    // set up files and buffers for necessary instrumentation modes
+    if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
+        st_buffer_init(GVT_COL);
+    if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+        st_buffer_init(RT_COL);
 
     if (g_st_ev_trace)
         st_buffer_init(EV_TRACE);
@@ -104,6 +131,9 @@ void st_inst_dump()
 
 void st_inst_finalize(tw_pe *me)
 {
+    if (g_st_disable_out)
+        return;
+
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
         st_buffer_finalize(GVT_COL);
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
