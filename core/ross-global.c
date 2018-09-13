@@ -94,8 +94,8 @@ unsigned int	g_tw_gvt_done = 0;
 	 * g_tw_masternode -- pointer to GVT net node, for GVT comp
 	 */
 unsigned int	g_tw_net_device_size = 0;
-tw_node		g_tw_mynode = -1;
-tw_node		g_tw_masternode = -1;
+tw_peid		g_tw_mynode = 0;
+tw_peid		g_tw_masternode = 0;
 
 FILE		*g_tw_csv = NULL;
 

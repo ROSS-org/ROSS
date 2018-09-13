@@ -56,8 +56,8 @@ extern unsigned int	    g_tw_gvt_threshold;
 extern unsigned int	    g_tw_gvt_done;
 
 extern unsigned int	g_tw_net_device_size;
-extern tw_node g_tw_mynode;
-extern tw_node g_tw_masternode;
+extern tw_peid g_tw_mynode;
+extern tw_peid g_tw_masternode;
 
 extern FILE		*g_tw_csv;
 

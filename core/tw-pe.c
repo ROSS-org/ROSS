@@ -2,6 +2,7 @@
 
 static void dummy_pe_f (tw_pe *pe)
 {
+    (void) pe;
 }
 
 void
@@ -78,7 +79,7 @@ tw_pe_fossil_collect(tw_pe * me)
 {
 	tw_kp	*kp;
 
-	int	 i;
+	unsigned int	 i;
 
 	g_tw_fossil_attempts++;
 

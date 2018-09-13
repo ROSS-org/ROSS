@@ -144,11 +144,11 @@ static void early_sanity_check(void) {
 void map_linear(void) {
     tw_pe   *pe;
 
-    int  nlp_per_kp;
-    int  lpid;
-    int  kpid;
-    int  i;
-    int  j;
+    unsigned int nlp_per_kp;
+    tw_lpid  lpid;
+    tw_kpid  kpid;
+    unsigned int i;
+    unsigned int j;
 
     // may end up wasting last KP, but guaranteed each KP has == nLPs
     nlp_per_kp = (int)ceil((double) g_tw_nlp / (double) g_tw_nkp);
@@ -205,8 +205,9 @@ void map_linear(void) {
 void map_round_robin(void) {
     tw_pe   * pe = g_tw_pe[0]; // ASSUMPTION: only 1 pe
 
-    int  kpid, lpid;
-    int  i;
+    tw_kpid kpid;
+    tw_lpid lpid;
+    unsigned int  i;
 
     // ASSUMPTION: g_tw_nlp is the same on each rank
     int lp_stride = tw_nnodes();
@@ -231,7 +232,7 @@ void map_round_robin(void) {
  * but mainly just here.
  */
 void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
-    int  i;
+    unsigned int  i;
 
     g_tw_nlp = nlp;
 
@@ -468,7 +469,9 @@ static tw_pe * setup_pes(void) {
     tw_pe   *pe;
     tw_pe   *master;
 
-    int  i;
+    unsigned int i;
+    int j;
+    (void) j;
     unsigned int num_events_per_pe;
 
     num_events_per_pe = 1 + g_tw_events_per_pe + g_tw_events_per_pe_extra;
@@ -499,7 +502,7 @@ static tw_pe * setup_pes(void) {
         pe->abort_event = tw_eventq_shift(&pe->free_q);
 #ifdef USE_RIO
         tw_clock start = tw_clock_read();
-        for (i = 0; i < g_io_events_buffered_per_rank; i++) {
+        for (j = 0; j < g_io_events_buffered_per_rank; j++) {
             tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
         }
         pe->stats.s_rio_load = (tw_clock_read() - start);
@@ -567,5 +570,6 @@ static tw_pe * setup_pes(void) {
 // This is the default lp type mapping function
 // valid ONLY if there is one lp type
 tw_lpid map_onetype (tw_lpid gid) {
+    (void) gid;
     return 0;
 }

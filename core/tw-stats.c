@@ -37,7 +37,7 @@ tw_get_stats(tw_pe * me, tw_statistics *s)
 	tw_pe	*pe;
 	tw_kp	*kp;
 
-	int	 i;
+	unsigned int i;
 
 	if (me != g_tw_pe[0])
 		return;
@@ -134,7 +134,7 @@ tw_stats(tw_pe *me)
 	size_t m_alloc, m_waste;
 	tw_calloc_stats(&m_alloc, &m_waste);
     tw_lp *lp = NULL;
-    int i;
+    unsigned int i;
     for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
     {
         lp = tw_getlp(i);

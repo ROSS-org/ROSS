@@ -20,7 +20,7 @@ tw_snapshot(tw_lp *lp, size_t state_sz)
 long
 tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 {
-    long i;
+    unsigned long i;
     tw_clock start;
     int ret_size = 0;
     unsigned char *current_state = (unsigned char *)lp->cur_state;
@@ -54,7 +54,7 @@ tw_snapshot_delta(tw_lp *lp, size_t state_sz)
 void
 tw_snapshot_restore(tw_lp *lp, size_t state_sz)
 {
-    int i;
+    unsigned int i;
     tw_clock start = tw_clock_read();
     unsigned char *snapshot = (unsigned char *)lp->pe->cur_event->delta_buddy;
     unsigned char *current_state = (unsigned char *)lp->cur_state;

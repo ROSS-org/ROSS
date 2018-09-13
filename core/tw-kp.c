@@ -130,7 +130,6 @@ init_output_messages(tw_kp *kp)
 void
 tw_init_kps(tw_pe * me)
 {
-	tw_kp *prev_kp = NULL;
 	tw_kpid i;
     int j;
 
@@ -146,7 +145,6 @@ tw_init_kps(tw_pe * me)
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
-		prev_kp = kp;
         if (g_tw_synchronization_protocol == OPTIMISTIC ||
 	    g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
 	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
@@ -193,10 +191,10 @@ tw_kp_put_back_output_buffer(tw_out *out)
     }
 }
 
+#if ROSS_MEMORY
 void
 tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 {
-#if ROSS_MEMORY
 	tw_memoryq	*q;
 
 	tw_memory      *b;
@@ -250,13 +248,13 @@ tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 #if VERIFY_PE_FC_MEM
 	printf("%d: FC %d buf from FD %d \n", kp->id, cnt, fd);
 #endif
-#endif
 }
+#endif
 
 void
 tw_kp_fossil_memory(tw_kp * kp)
 {
-	int	 i;
+	unsigned int	 i;
 
 	for(i = 0; i < g_tw_memory_nqueues; i++)
 		tw_kp_fossil_memoryq(kp, i);
