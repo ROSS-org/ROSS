@@ -162,6 +162,7 @@ void buddy_free(void *ptr)
     }
 
     unsigned int initial_count = blbt->count;
+    (void) initial_count; // quiet compiler when building Release
 
     // If there are no entries here, we can't have a buddy
     if (blbt->count == 0) {

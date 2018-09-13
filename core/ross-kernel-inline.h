@@ -8,7 +8,7 @@
 static inline tw_lp * 
      tw_getlocal_lp(tw_lpid gid)
 {
-  tw_lpid id;
+  tw_lpid id = gid;
 
   // finding analysis LPs doesn't depend on model's choice of mapping
   if (g_st_use_analysis_lps && gid >= g_st_total_model_lps)
