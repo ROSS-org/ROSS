@@ -61,7 +61,6 @@ void st_buffer_allocate()
  */
 void st_buffer_init(int type)
 {
-    int i;
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";
     file_suffix[1] = "rt";
@@ -141,7 +140,7 @@ void st_buffer_write(int end_of_sim, int type)
     MPI_File *fh = &buffer_fh[type];
     int write_to_file = 0;
     int my_write_size = 0;
-    int i;
+    unsigned int i;
     int write_sizes[tw_nnodes()];
     tw_clock start_cycle_time = tw_clock_read();
 

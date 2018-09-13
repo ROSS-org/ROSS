@@ -12,7 +12,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
     tw_clock start_time = tw_clock_read();
     tw_kp *kp;
     tw_lp *lp;
-    int i;
+    unsigned int i;
     tw_statistics s;
     bzero(&s, sizeof(s));
     tw_get_stats(pe, &s);
@@ -28,7 +28,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
         for (i = 0; i < g_tw_nkp; i++)
         {
             kp = tw_getkp(i);
-            st_collect_engine_data_kps(pe, kp, &sample_md, &s, col_type);
+            st_collect_engine_data_kps(pe, kp, &sample_md, col_type);
         }
     }
     if (g_st_lp_data)
@@ -36,7 +36,7 @@ void st_collect_engine_data(tw_pe *pe, int col_type)
         for (i = 0; i < g_tw_nlp; i++)
         {
             lp = tw_getlp(i);
-            st_collect_engine_data_lps(pe, lp, &sample_md, &s, col_type);
+            st_collect_engine_data_lps(lp, &sample_md, col_type);
         }
     }
     pe->stats.s_stat_comp += tw_clock_read() - start_time;
@@ -99,7 +99,7 @@ void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statis
     last_all_reduce_cnt = all_reduce_cnt;
 }
 
-void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md, tw_statistics *s, int col_type)
+void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md, int col_type)
 {
     st_kp_stats kp_stats;
     int buf_size = sizeof(*sample_md) + sizeof(kp_stats);
@@ -142,7 +142,7 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
     st_buffer_push(col_type, &buffer[0], buf_size);
 }
 
-void st_collect_engine_data_lps(tw_pe *pe, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type)
+void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_type)
 {
     st_lp_stats lp_stats;
     int buf_size = sizeof(*sample_md) + sizeof(lp_stats);

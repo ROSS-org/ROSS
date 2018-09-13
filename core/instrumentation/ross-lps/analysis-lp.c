@@ -29,7 +29,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
         s->lp_list_sim[i] = ULLONG_MAX;
     }
 
-    for (i = 0; i < g_tw_nlp; i++)
+    for (i = 0; (unsigned int)i < g_tw_nlp; i++)
     {
         cur_lp = g_tw_lp[i];
 
@@ -146,7 +146,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     tw_lp *model_lp;
-    int i, j;
+    int j;
 
     lp->pe->stats.s_alp_e_rbs++;
 
@@ -198,11 +198,13 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
+    (void) bf;
+    (void) lp;
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         // write committed data to buffer
         model_sample_data *sample;
-        int i, j;
+        int j;
         tw_lp *model_lp;
         lp_metadata metadata;
         // start at beginning
@@ -255,6 +257,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_finish(analysis_state *s, tw_lp *lp)
 {
+    (void) lp;
     // TODO all samples should be written by the commit function, right?
     // Does anything actually need to be done here?
     if (s->model_samples_head != s->model_samples_current)
