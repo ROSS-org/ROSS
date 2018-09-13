@@ -10,6 +10,7 @@ phold_map(tw_lpid gid)
 void
 phold_init(phold_state * s, tw_lp * lp)
 {
+    (void) s;
 	int              i;
 
 	if( stagger )
@@ -37,6 +38,7 @@ phold_init(phold_state * s, tw_lp * lp)
 void
 phold_pre_run(phold_state * s, tw_lp * lp)
 {
+    (void) s;
     tw_lpid	 dest;
 
 	if(tw_rand_unif(lp->rng) <= percent_remote)
@@ -56,6 +58,8 @@ phold_pre_run(phold_state * s, tw_lp * lp)
 void
 phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+    (void) s;
+    (void) m;
 	tw_lpid	 dest;
 
 	if(tw_rand_unif(lp->rng) <= percent_remote)
@@ -81,6 +85,8 @@ phold_event_handler(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 void
 phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+    (void) s;
+    (void) m;
 	tw_rand_reverse_unif(lp->rng);
 	tw_rand_reverse_unif(lp->rng);
 
@@ -90,11 +96,17 @@ phold_event_handler_rc(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * l
 
 void phold_commit(phold_state * s, tw_bf * bf, phold_message * m, tw_lp * lp)
 {
+    (void) s;
+    (void) bf;
+    (void) m;
+    (void) lp;
 }
 
 void
 phold_finish(phold_state * s, tw_lp * lp)
 {
+    (void) s;
+    (void) lp;
 }
 
 tw_lptype       mylps[] = {
@@ -112,14 +124,18 @@ tw_lptype       mylps[] = {
 
 void event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
 {
+    (void) m;
+    (void) lp;
+    (void) buffer;
+    (void) collect_flag;
     return;
 }
 
 void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
 {
-    // just testing
-    int a = 1;
-    memcpy(buffer, &a, sizeof(a));
+    (void) s;
+    (void) lp;
+    (void) buffer;
     return;
 }
 
@@ -127,7 +143,10 @@ st_model_types model_types[] = {
     {(ev_trace_f) event_trace,
      0,
     (model_stat_f) phold_stats_collect,
-    sizeof(int)},
+    sizeof(int),
+    NULL, //(sample_event_f)
+    NULL, //(sample_revent_f)
+    0},
     {0}
 };
 
@@ -147,7 +166,7 @@ const tw_optdef app_opt[] =
 };
 
 int
-main(int argc, char **argv, char **env)
+main(int argc, char **argv)
 {
 
 #ifdef TEST_COMM_ROSS
@@ -166,7 +185,7 @@ main(int argc, char **argv, char **env)
     tw_comm_set(split_comm);
 #endif
 
-	int		 i;
+	unsigned int i;
 
         // get rid of error if compiled w/ MEMORY queues
         g_tw_memory_nqueues=1;
