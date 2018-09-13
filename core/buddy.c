@@ -44,9 +44,9 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
     buddy_list_bucket_t *blbt = buddy_master;
 
     while (1) {
-        int counter = 0;
+        unsigned int counter = 0;
 
-        printf("BLBT %p:\n", blbt);
+        printf("BLBT %p:\n", (void*)blbt);
         printf("  Count: %d\n", blbt->count);
         printf("  Order: %d\n", blbt->order);
         if (blbt->is_valid == VALID)
@@ -58,10 +58,10 @@ int dump_buddy_table(buddy_list_bucket_t *buddy_master)
         LIST_FOREACH(blt, &blbt->ptr, next_freelist) {
             counter++;
             if (blt->use == FREE)
-                printf("    %11p%8s%16d\n", blt, "FREE", blt->size);
+                printf("    %11p%8s%16d\n", (void*)blt, "FREE", blt->size);
             else
-                printf("    %11p%8s%16d\n", blt, "USED", blt->size);
-            assert(next_power2(blt->size) == (1 << blbt->order));
+                printf("    %11p%8s%16d\n", (void*)blt, "USED", blt->size);
+            assert(next_power2(blt->size) == (unsigned int) (1 << blbt->order));
         }
         printf("\n");
         assert(counter == blbt->count && "Count is incorrect!");
@@ -88,7 +88,7 @@ int buddy_try_merge(buddy_list_t *blt)
         unsigned int size = blt->size + sizeof(buddy_list_t);
         buddy_list_bucket_t *blbt = g_tw_buddy_master;
         // Find the bucket we need
-        while (size > (1 << blbt->order)) {
+        while (size > (unsigned int)(1 << blbt->order)) {
             blbt++;
         }
         // We need to normalize for the "buddy formula" to work
@@ -144,7 +144,7 @@ void buddy_free(void *ptr)
 
     // Find the bucket we need
     buddy_list_bucket_t *blbt = g_tw_buddy_master;
-    while (size > (1 << blbt->order)) {
+    while (size > (unsigned int)(1 << blbt->order)) {
         blbt++;
     }
 
@@ -161,7 +161,7 @@ void buddy_free(void *ptr)
         assert(0 && "buddy with FREE status not in freelist");
     }
 
-    int initial_count = blbt->count;
+    unsigned int initial_count = blbt->count;
 
     // If there are no entries here, we can't have a buddy
     if (blbt->count == 0) {
@@ -240,7 +240,7 @@ void *buddy_alloc(unsigned size)
 
     // Find the bucket we need
     buddy_list_bucket_t *blbt = g_tw_buddy_master;
-    while (size > (1 << blbt->order)) {
+    while (size > (unsigned int)(1 << blbt->order)) {
         blbt++;
         if (blbt->is_valid == INVALID) {
             // Error: we're out of bound for valid BLBTs
