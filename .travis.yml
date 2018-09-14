@@ -21,24 +21,24 @@ before_install:
  - mpirun --version
 script:
  - mkdir cxx-build && cd cxx-build
- - ARCH=x86_64 CC=mpicc cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra -Wpedantic" ..
+ - ARCH=x86_64 CC=mpicc cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
  - export MPICH_CC=clang++
  - make
  - unset MPICH_CC
  - cd ..
  - mkdir release && cd release
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra -Wpedantic" -DROSS_BUILD_MODELS=ON ..
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
  - mkdir build && cd build
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra -Wpedantic" -DROSS_BUILD_MODELS=ON ..
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
  - cd ..
  - mkdir build2 && cd build2
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra -Wpedantic" -DROSS_BUILD_MODELS=ON ..
+ - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
