@@ -90,6 +90,20 @@ extern void st_inst_init(void);
 extern void st_inst_dump();
 extern void st_inst_finalize(tw_pe *me);
 
+// TODO new way of tracking inst modes turned on
+// need to make sure it works with both damaris and rest of inst layer
+typedef enum {
+    GVT_INST,
+    RT_INST,
+    VT_INST,
+    ET_INST,
+    NUM_INST_MODES
+} inst_modes;
+
+extern int engine_modes[NUM_INST_MODES];
+extern int model_modes[NUM_INST_MODES];
+void st_inst_sample(tw_pe *me, int inst_type);
+
 /*
  * st-sim-engine.c
  * Simulation Engine related instrumentation

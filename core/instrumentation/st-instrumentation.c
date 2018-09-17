@@ -21,6 +21,9 @@ tw_clock g_st_rt_samp_start_cycles = 0;
 tw_stime g_st_vt_interval = 1000000;
 tw_stime g_st_sampling_end = 0;
 
+int engine_modes[NUM_INST_MODES];
+int model_modes[NUM_INST_MODES];
+
 static char config_file[1024];
 
 
@@ -110,6 +113,34 @@ void st_inst_init(void)
         st_buffer_init(EV_TRACE);
     if (g_st_model_stats)
         st_buffer_init(MODEL_COL);
+}
+
+// warning: when calling from GVT, all PEs must call else deadlock
+void st_inst_sample(tw_pe *me, int inst_type)
+{
+    tw_clock current_rt = tw_clock_read();
+
+    // TODO need to test to make sure inst still works correctly w/out damaris enabled
+#ifndef USE_DAMARIS
+    if (engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
+        st_collect_engine_data(me, inst_type);
+    if (model_modes[inst_type])
+        st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, inst_type);
+#endif
+
+#ifdef USE_DAMARIS
+    // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
+    // new method should mean that this gets called regardless at GVT
+    if (inst_type == GVT_INST && g_st_damaris_enabled)
+	{
+        st_damaris_expose_data(me, me->GVT, GVT_INST);
+        st_damaris_end_iteration();
+	}
+#endif
+
+    // if damaris is enabled, g_st_disable_out == 1
+    if (inst_type == GVT_INST && !g_st_disable_out)
+        st_inst_dump();
 }
 
 void st_inst_dump()
