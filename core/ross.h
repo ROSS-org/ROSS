@@ -215,6 +215,7 @@ typedef uint64_t tw_lpid;
 
 #ifdef USE_DAMARIS
 #include "damaris/include/core/damaris.h"
+#include "damaris/include/core/model-c.h"
 #endif
 
 #include "tw-eventq.h"

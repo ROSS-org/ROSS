@@ -73,12 +73,11 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
+    // init instrumentation
+    st_inst_init(); 
 #ifdef USE_DAMARIS
-    st_damaris_ross_init();
-    if (!g_st_ross_rank) // Damaris ranks only
-        return; 
-    else 
-    {
+    if (!g_st_ross_rank) // Damaris ranks should not continue on here
+        return;
 #endif
 
     if(tw_ismaster())
@@ -114,9 +113,6 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
-#ifdef USE_DAMARIS
-    } // end of if(g_st_ross_rank)
-#endif
 }
 
 static void early_sanity_check(void) {
@@ -361,9 +357,6 @@ void tw_run(void) {
     late_sanity_check();
 
     me = setup_pes();
-
-    // init instrumentation
-    st_inst_init(); 
 
 #ifdef USE_BGPM
     Bgpm_Init(BGPM_MODE_SWDISTRIB);

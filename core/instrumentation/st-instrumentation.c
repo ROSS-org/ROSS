@@ -68,22 +68,42 @@ void print_settings()
 }
 
 // TODO this has become a mess and could definitely be waaaay better
+// should be called from tw_init, so this ensures we have all instrumentation global variables
+// set by the end of tw_init(), which may be used by models
 void st_inst_init(void)
 {
+#ifdef USE_DAMARIS
+    st_damaris_ross_init();
+    if (!g_st_ross_rank) // Damaris ranks only
+        return;
+
     st_damaris_parse_config(&config_file[0]);
+#endif
     specialized_lp_run();
 
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
         return;
 
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
+    {
         g_st_gvt_sampling = 1;
+        engine_modes[GVT_INST] = 1;
+    }
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+    {
         g_st_rt_sampling = 1;
+        engine_modes[RT_INST] = 1;
+    }
     if (g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS)
+    {
         g_st_gvt_sampling = 1;
+        model_modes[GVT_INST] = 1;
+    }
     if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
+    {
         g_st_rt_sampling = 1;
+        model_modes[RT_INST] = 1;
+    }
 
     if (g_st_rt_sampling)
     {
@@ -116,27 +136,29 @@ void st_inst_init(void)
 }
 
 // warning: when calling from GVT, all PEs must call else deadlock
+// this function doesn't do any checking on the correct time to do sampling
+// assumes the caller is only making the call when it is time to sample
 void st_inst_sample(tw_pe *me, int inst_type)
 {
+    //printf("pe %ld about to sample for mode %d\n", g_tw_mynode, inst_type);
     tw_clock current_rt = tw_clock_read();
-
-    // TODO need to test to make sure inst still works correctly w/out damaris enabled
-#ifndef USE_DAMARIS
-    if (engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
-        st_collect_engine_data(me, inst_type);
-    if (model_modes[inst_type])
-        st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, inst_type);
-#endif
 
 #ifdef USE_DAMARIS
     // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
     // new method should mean that this gets called regardless at GVT
-    if (inst_type == GVT_INST && g_st_damaris_enabled)
+    if (g_st_damaris_enabled)
 	{
-        st_damaris_expose_data(me, me->GVT, GVT_INST);
+        st_damaris_expose_data(me, inst_type);
         st_damaris_end_iteration();
+        return;
 	}
 #endif
+
+    // TODO need to test to make sure inst still works correctly w/out damaris enabled
+    if (engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
+        st_collect_engine_data(me, inst_type);
+    if (model_modes[inst_type])
+        st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, inst_type);
 
     // if damaris is enabled, g_st_disable_out == 1
     if (inst_type == GVT_INST && !g_st_disable_out)
