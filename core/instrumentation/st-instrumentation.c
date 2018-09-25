@@ -149,7 +149,8 @@ void st_inst_sample(tw_pe *me, int inst_type)
     if (g_st_damaris_enabled)
 	{
         st_damaris_expose_data(me, inst_type);
-        st_damaris_end_iteration();
+        if (inst_type == GVT_INST)
+            st_damaris_end_iteration();
         return;
 	}
 #endif
