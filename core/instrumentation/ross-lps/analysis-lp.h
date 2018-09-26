@@ -52,6 +52,7 @@ struct analysis_state
     model_sample_data *model_samples_head;
     model_sample_data *model_samples_current;
     model_sample_data *model_samples_tail;
+    tw_statistics last_pe_stats;
 };
 
 void analysis_init(analysis_state *s, tw_lp *lp);

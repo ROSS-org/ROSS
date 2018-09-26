@@ -51,6 +51,15 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->num_lps = idx;
     s->num_lps_sim = sim_idx;
 
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        // schedule 1st sampling event
+        st_create_sample_event(lp);
+        return;
+    }
+#endif
+
     // setup memory to use for model samples
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
@@ -87,7 +96,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
         }
     }
 
-    // schedule 1st sampling event 
+    // schedule 1st sampling event
     st_create_sample_event(lp);
 }
 
@@ -97,6 +106,40 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     tw_lp *model_lp;
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
+
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        //st_inst_sample(lp->pe, VT_INST);
+        double real_ts = (double)tw_clock_read() / g_tw_clock_rate;
+        st_damaris_start_sample(0.0, real_ts, lp->pe->GVT, VT_INST);
+
+        if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS)
+        {
+            printf("PE %ld: sampling sim engine data type: %d\n", g_tw_mynode, VT_INST);
+            // collect data for each entity
+            if (g_st_pe_data && lp->kp->id == 0)
+                st_damaris_sample_pe_data(lp->pe, &s->last_pe_stats, VT_INST);
+            if (g_st_kp_data)
+                st_damaris_sample_kp_data(VT_INST, &lp->kp->id);
+            if (g_st_lp_data)
+                st_damaris_sample_lp_data(VT_INST, s->lp_list_sim, s->num_lps_sim);
+        }
+
+        if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+        {
+            // this will call our model's sampling callback forward handler
+            printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
+            st_damaris_sample_model_data(s->lp_list, s->num_lps);
+        }
+
+        st_damaris_finish_sample();
+
+        // create next sampling event
+        st_create_sample_event(lp);
+        return;
+    }
+#endif
 
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
@@ -128,14 +171,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     if (g_tw_synchronization_protocol != SEQUENTIAL &&
             (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS))
     {
-#ifdef USE_DAMARIS
-        if (g_st_damaris_enabled)
-            st_damaris_expose_data(lp->pe, VT_INST);
-        else
-            st_collect_engine_data(lp->pe, VT_INST);
-#else
         st_collect_engine_data(lp->pe, VT_INST);
-#endif
     }
     
     // create next sampling event
@@ -148,6 +184,18 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     int i, j;
 
     lp->pe->stats.s_alp_e_rbs++;
+
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        // what do i need to do here?
+        // perhaps just signal to damaris that this particular event has been invalidated
+        // so then damaris can delete/flag/whatever
+        // TODO also need to provide RC?
+        //model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
+        return;
+    }
+#endif
 
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
@@ -197,6 +245,15 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        // what do i need to do here?
+        // perhaps just signal to damaris that this particular event has been committed
+        // so then damaris knows this model data is correct
+        return;
+    }
+#endif
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
         // write committed data to buffer

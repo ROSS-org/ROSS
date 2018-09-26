@@ -21,7 +21,8 @@ void specialized_lp_setup()
             g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
     {
         g_st_use_analysis_lps = 1;
-        st_buffer_init(ANALYSIS_LP);
+        if (!g_st_damaris_enabled)
+            st_buffer_init(ANALYSIS_LP);
     }
     else
         return;
