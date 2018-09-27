@@ -112,7 +112,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     {
         //st_inst_sample(lp->pe, VT_INST);
         double real_ts = (double)tw_clock_read() / g_tw_clock_rate;
-        st_damaris_start_sample(0.0, real_ts, lp->pe->GVT, VT_INST);
+        st_damaris_start_sample(tw_now(lp), 0.0, lp->pe->GVT, VT_INST);
 
         if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS)
         {
