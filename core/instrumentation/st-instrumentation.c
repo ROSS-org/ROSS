@@ -150,7 +150,7 @@ void st_inst_sample(tw_pe *me, int inst_type)
 	{
         st_damaris_expose_data(me, inst_type);
         if (inst_type == GVT_INST)
-            st_damaris_end_iteration();
+            st_damaris_end_iteration(me->GVT);
         return;
 	}
 #endif

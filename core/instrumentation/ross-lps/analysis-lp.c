@@ -18,6 +18,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     // set our id relative to all analysis LPs
     s->analysis_id = lp->gid - analysis_start_gid;
     s->num_lps = ceil((double)g_tw_nlp / g_tw_nkp);
+    s->event_id = 0;
 
     // create list of LPs this is responsible for
     s->lp_list = (tw_lpid*)tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
@@ -63,7 +64,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     // setup memory to use for model samples
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
-        s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
+        s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count);
         s->model_samples_current = s->model_samples_head;
         model_sample_data *sample = s->model_samples_head;
         for (i = 0; i < g_st_sample_count; i++)
@@ -79,7 +80,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
                 sample->next = NULL;
                 s->model_samples_tail = sample;
             }
-            else 
+            else
             {
                 sample->next = sample + 1;
                 sample->next->prev = sample;
@@ -111,25 +112,29 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     if (g_st_damaris_enabled)
     {
         //st_inst_sample(lp->pe, VT_INST);
+        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
         double real_ts = (double)tw_clock_read() / g_tw_clock_rate;
-        st_damaris_start_sample(tw_now(lp), 0.0, lp->pe->GVT, VT_INST);
+        printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
+        st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
+                kp_gid, s->event_id);
 
         if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS)
         {
-            printf("PE %ld: sampling sim engine data type: %d\n", g_tw_mynode, VT_INST);
-            // collect data for each entity
-            if (g_st_pe_data && lp->kp->id == 0)
-                st_damaris_sample_pe_data(lp->pe, &s->last_pe_stats, VT_INST);
-            if (g_st_kp_data)
-                st_damaris_sample_kp_data(VT_INST, &lp->kp->id);
-            if (g_st_lp_data)
-                st_damaris_sample_lp_data(VT_INST, s->lp_list_sim, s->num_lps_sim);
+            // Not going to worry about supported sim engine data in this mode right now
+            //printf("PE %ld: sampling sim engine data type: %d\n", g_tw_mynode, VT_INST);
+            //// collect data for each entity
+            //if (g_st_pe_data && lp->kp->id == 0)
+            //    st_damaris_sample_pe_data(lp->pe, &s->last_pe_stats, VT_INST);
+            //if (g_st_kp_data)
+            //    st_damaris_sample_kp_data(VT_INST, &lp->kp->id);
+            //if (g_st_lp_data)
+            //    st_damaris_sample_lp_data(VT_INST, s->lp_list_sim, s->num_lps_sim);
         }
 
         if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
         {
             // this will call our model's sampling callback forward handler
-            printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
+            //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
             st_damaris_sample_model_data(s->lp_list, s->num_lps);
         }
 
@@ -137,6 +142,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
         // create next sampling event
         st_create_sample_event(lp);
+        s->event_id++;
         return;
     }
 #endif
@@ -173,7 +179,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     {
         st_collect_engine_data(lp->pe, VT_INST);
     }
-    
+
     // create next sampling event
     st_create_sample_event(lp);
 }
@@ -188,6 +194,10 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
     {
+        s->event_id--;
+        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+        printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
+        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
         // what do i need to do here?
         // perhaps just signal to damaris that this particular event has been invalidated
         // so then damaris can delete/flag/whatever
@@ -203,7 +213,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         model_sample_data *sample;
         // start at end, because it's most likely closer to the timestamp we're looking for
         for (sample = s->model_samples_current->prev; sample != NULL; sample = sample->prev)
-        { 
+        {
             //sample = &s->model_samples[i];
             if (sample->timestamp == m->timestamp)
             {
@@ -240,7 +250,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             }
         }
     }
-    
+
 }
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
@@ -282,7 +292,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                     memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
                     memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
                     if (g_tw_synchronization_protocol != SEQUENTIAL)
-                        st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz); 
+                        st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz);
                     else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
                         fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
                 }
@@ -335,7 +345,7 @@ static void st_create_sample_event(tw_lp *lp)
 tw_peid analysis_map(tw_lpid gid)
 {
     tw_lpid local_id = gid - analysis_start_gid;
-    return local_id / g_tw_nkp; // because there is 1 LP for each KP 
+    return local_id / g_tw_nkp; // because there is 1 LP for each KP
 }
 
 tw_lptype analysis_lp[] = {
