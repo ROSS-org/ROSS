@@ -114,7 +114,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         //st_inst_sample(lp->pe, VT_INST);
         int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
         double real_ts = (double)tw_clock_read() / g_tw_clock_rate;
-        printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
+        //printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
         st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
                 kp_gid, s->event_id);
 
@@ -196,7 +196,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     {
         s->event_id--;
         int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-        printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
+        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
         st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
         st_damaris_set_rc_data(m->rc_data, m->offset);
         for (i = 0; i < s->num_lps; i++)
