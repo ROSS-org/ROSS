@@ -20,7 +20,8 @@ struct analysis_msg
 {
     tw_lpid src;
     tw_stime timestamp;
-
+    void *rc_data;
+    size_t offset;
 };
 
 struct lp_metadata

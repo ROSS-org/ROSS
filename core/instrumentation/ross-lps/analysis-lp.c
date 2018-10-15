@@ -137,8 +137,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
             st_damaris_sample_model_data(s->lp_list, s->num_lps);
         }
-
-        st_damaris_finish_sample();
+        size_t size;
+        m->rc_data = st_damaris_finish_sample(&m->offset);
 
         // create next sampling event
         st_create_sample_event(lp);
@@ -198,11 +198,15 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
         printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
         st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
-        // what do i need to do here?
-        // perhaps just signal to damaris that this particular event has been invalidated
-        // so then damaris can delete/flag/whatever
-        // TODO also need to provide RC?
-        //model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
+        st_damaris_set_rc_data(m->rc_data, m->offset);
+        for (i = 0; i < s->num_lps; i++)
+        {
+            model_lp = tw_getlocal_lp(s->lp_list[i]);
+            if (model_lp->model_types == NULL || model_lp->model_types->sample_struct_sz == 0)
+                continue;
+            model_lp->model_types->sample_revent_fn(model_lp->cur_state, NULL, model_lp, NULL);
+        }
+        st_damaris_delete_rc_data();
         return;
     }
 #endif
@@ -258,9 +262,9 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
     {
-        // what do i need to do here?
-        // perhaps just signal to damaris that this particular event has been committed
-        // so then damaris knows this model data is correct
+        // I don't think we need to do anything else here
+        // Damaris ranks will be updated on GVT value, so they will know
+        // what is committed and speculative
         return;
     }
 #endif
