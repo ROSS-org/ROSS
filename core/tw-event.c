@@ -222,7 +222,7 @@ jump_over_rc_event_handler:
     if (event->delta_buddy) {
         tw_clock start = tw_clock_read();
         buddy_free(event->delta_buddy);
-        g_tw_pe[0]->stats.s_buddy += (tw_clock_read() - start);
+        g_tw_pe->stats.s_buddy += (tw_clock_read() - start);
         event->delta_buddy = 0;
     }
 

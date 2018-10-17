@@ -66,7 +66,7 @@ tw_memory_free(tw_lp * lp, tw_memory * m, tw_fd fd)
 	tw_memoryq	*q;
 
 	/* If seq sim, just reclaim buffer now. */
-	if((tw_nnodes() * g_tw_npe) == 1)
+	if(tw_nnodes() == 1)
 		q = tw_pe_getqueue(lp->pe, fd);
 	else
 		q = tw_kp_getqueue(lp->kp, fd);
@@ -117,7 +117,7 @@ tw_memory_init(size_t n_mem, size_t d_sz, tw_stime mult)
 	tw_error(TW_LOC, "ROSS memory library disabled!");
 #endif
 
-	return tw_pe_memory_init(tw_getpe(0), n_mem, d_sz, mult);
+	return tw_pe_memory_init(g_tw_pe, n_mem, d_sz, mult);
 }
 
 #endif

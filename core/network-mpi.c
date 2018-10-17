@@ -134,26 +134,25 @@ tw_net_start(void)
     }
 
   // Check after tw_nnodes is defined
-  if(tw_nnodes() == 1 && g_tw_npe == 1) {
+  if(tw_nnodes() == 1) {
       // force the setting of SEQUENTIAL protocol
       if (g_tw_synchronization_protocol == NO_SYNCH) {
           g_tw_synchronization_protocol = SEQUENTIAL;
       } else if(g_tw_synchronization_protocol == CONSERVATIVE || g_tw_synchronization_protocol == OPTIMISTIC) {
           g_tw_synchronization_protocol = SEQUENTIAL;
-          fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
+          fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enough PEs defined.\n");
       }
   }
 
-  tw_pe_create(1);
-  tw_pe_init(0, g_tw_mynode);
+  tw_pe_init(g_tw_mynode);
 
   //If we're in (some variation of) optimistic mode, we need this hash
   if (g_tw_synchronization_protocol == OPTIMISTIC ||
       g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
       g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
-    g_tw_pe[0]->hash_t = tw_hash_create();
+    g_tw_pe->hash_t = tw_hash_create();
   } else {
-    g_tw_pe[0]->hash_t = NULL;
+    g_tw_pe->hash_t = NULL;
   }
 
   if (send_buffer < 1)
@@ -167,7 +166,7 @@ tw_net_start(void)
   g_tw_net_device_size = read_buffer;
 
   // pre-post all the Irecv operations
-  recv_begin( g_tw_pe[0] );
+  recv_begin(g_tw_pe);
 }
 
 void

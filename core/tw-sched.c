@@ -435,9 +435,7 @@ void tw_sched_init(tw_pe * me) {
     * the scheduler loop, and to print out the stats before
     * finishing if someone should type CTRL-c
     */
-    if (me->local_master) {
-        g_tw_sim_started = 1;
-    }
+    g_tw_sim_started = 1;
 }
 
 /*************************************************************************/
@@ -517,7 +515,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
     unsigned int msg_i;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
     }
 
@@ -619,7 +617,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -636,7 +634,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
 
@@ -667,7 +665,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
 
     tw_net_barrier();
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -684,7 +682,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
 
     g_tw_gvt_realtime_interval = g_tw_gvt_interval * g_tw_clock_rate / 1000;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE AND REAL TIME GVT ***\n\n");
     }
 
@@ -718,7 +716,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
 
     tw_net_barrier();
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 

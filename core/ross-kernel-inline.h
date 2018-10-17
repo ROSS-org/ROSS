@@ -64,17 +64,6 @@ static inline tw_kp *
   return g_tw_kp[id];
 }
 
-static inline tw_pe * 
-     tw_getpe(tw_peid id)
-{
-#ifdef ROSS_runtime_checks  
-  if (id >= g_tw_npe)
-    tw_error(TW_LOC, "ID %d exceeded MAX PEs", id);
-#endif /* ROSS_runtime_checks */
-  
-  return g_tw_pe[id];
-}
-
 #ifdef ROSS_MEMORY
 static inline tw_memoryq * 
      tw_kp_getqueue(tw_kp * kp, tw_fd fd)

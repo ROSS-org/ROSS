@@ -428,7 +428,7 @@ struct tw_pe {
     tw_event *cancel_q; /**< @brief List of canceled events */
     tw_pq *pq; /**< @brief Priority queue used to sort events */
     tw_kp *kp_list; /**< @brief */
-    tw_pe **pe_next; /**< @brief Single linked list of PE structs */
+    //tw_pe **pe_next; /**< @brief Single linked list of PE structs */
 
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
@@ -451,8 +451,8 @@ struct tw_pe {
     tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
     unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
-    unsigned char master; /**< @brief Master across all compute nodes */
-    unsigned char local_master; /**< @brief Master for this node */
+    //unsigned char master; /**< @brief Master across all compute nodes */
+    //unsigned char local_master; /**< @brief Master for this node */
     unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */

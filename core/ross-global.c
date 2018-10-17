@@ -74,14 +74,12 @@ unsigned long long g_tw_gvt_interval_start_cycles = 0;
 
 tw_stime     g_tw_ts_end = 100000.0;
 
-	/*
-	 * g_tw_npe             -- Number of PEs on this processor (usually one)
-	 * g_tw_pe              -- Public PE object array (on this processor)
-	 * g_tw_events_per_pe   -- Number of events to place in for each PE.
-	 *                         MUST be > 1 because of abort buffer.
-	 */
-tw_peid		g_tw_npe = 1;
-tw_pe		**g_tw_pe;
+/*
+ * g_tw_pe              -- Public PE pointer
+ * g_tw_events_per_pe   -- Number of events to place in for each PE.
+ *                         MUST be > 1 because of abort buffer.
+ */
+tw_pe *g_tw_pe = NULL;
 unsigned int    g_tw_events_per_pe = 2048;
 /** Number of extra events allocated per PE.  Command-line customizable. */
 unsigned int    g_tw_events_per_pe_extra = 0;

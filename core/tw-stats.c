@@ -32,73 +32,68 @@ show_4f(const char *name, double v)
 #endif
 
 void
-tw_get_stats(tw_pe * me, tw_statistics *s)
+tw_get_stats(tw_pe * pe, tw_statistics *s)
 {
-	tw_pe	*pe;
-	tw_kp	*kp;
+	tw_kp *kp;
 
 	unsigned int i;
 
-	if (me != g_tw_pe[0])
+	if (pe != g_tw_pe)
 		return;
 
 	if (0 == g_tw_sim_started)
 		return;
 
+    tw_wtime rt;
 
-	for(pe = NULL; (pe = tw_pe_next(pe));)
-	{
-		tw_wtime rt;
+    tw_wall_sub(&rt, &pe->end_time, &pe->start_time);
 
-		tw_wall_sub(&rt, &pe->end_time, &pe->start_time);
+    s->s_max_run_time = ROSS_MAX(s->s_max_run_time, tw_wall_to_double(&rt));
+    s->s_nevent_abort += pe->stats.s_nevent_abort;
+    s->s_pq_qsize += tw_pq_get_size(pe->pq);
 
-		s->s_max_run_time = ROSS_MAX(s->s_max_run_time, tw_wall_to_double(&rt));
-		s->s_nevent_abort += pe->stats.s_nevent_abort;
-		s->s_pq_qsize += tw_pq_get_size(me->pq);
+    s->s_nsend_net_remote += pe->stats.s_nsend_net_remote;
+    s->s_nsend_loc_remote += pe->stats.s_nsend_loc_remote;
 
-		s->s_nsend_net_remote += pe->stats.s_nsend_net_remote;
-		s->s_nsend_loc_remote += pe->stats.s_nsend_loc_remote;
+    s->s_nsend_network += pe->stats.s_nsend_network;
+    s->s_nread_network += pe->stats.s_nread_network;
+    s->s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
 
-		s->s_nsend_network += pe->stats.s_nsend_network;
-		s->s_nread_network += pe->stats.s_nread_network;
-		s->s_nsend_remote_rb += pe->stats.s_nsend_remote_rb;
-
-		s->s_total += pe->stats.s_total;
-		s->s_init += pe->stats.s_init;
-		s->s_net_read += pe->stats.s_net_read;
-        s->s_net_other += pe->stats.s_net_other;
-		s->s_gvt += pe->stats.s_gvt;
-		s->s_fossil_collect += pe->stats.s_fossil_collect;
-		s->s_event_abort += pe->stats.s_event_abort;
-		s->s_event_process += pe->stats.s_event_process;
-		s->s_pq += pe->stats.s_pq;
-		s->s_rollback += pe->stats.s_rollback;
-		s->s_cancel_q += pe->stats.s_cancel_q;
-        s->s_pe_event_ties += pe->stats.s_pe_event_ties;
-        s->s_min_detected_offset = g_tw_min_detected_offset;
-        s->s_avl += pe->stats.s_avl;
-        s->s_buddy += pe->stats.s_buddy;
-        s->s_lz4 += pe->stats.s_lz4;
-        s->s_stat_comp += pe->stats.s_stat_comp;
-        s->s_stat_write += pe->stats.s_stat_write;
-        s->s_events_past_end += pe->stats.s_events_past_end;
+    s->s_total += pe->stats.s_total;
+    s->s_init += pe->stats.s_init;
+    s->s_net_read += pe->stats.s_net_read;
+    s->s_net_other += pe->stats.s_net_other;
+    s->s_gvt += pe->stats.s_gvt;
+    s->s_fossil_collect += pe->stats.s_fossil_collect;
+    s->s_event_abort += pe->stats.s_event_abort;
+    s->s_event_process += pe->stats.s_event_process;
+    s->s_pq += pe->stats.s_pq;
+    s->s_rollback += pe->stats.s_rollback;
+    s->s_cancel_q += pe->stats.s_cancel_q;
+    s->s_pe_event_ties += pe->stats.s_pe_event_ties;
+    s->s_min_detected_offset = g_tw_min_detected_offset;
+    s->s_avl += pe->stats.s_avl;
+    s->s_buddy += pe->stats.s_buddy;
+    s->s_lz4 += pe->stats.s_lz4;
+    s->s_stat_comp += pe->stats.s_stat_comp;
+    s->s_stat_write += pe->stats.s_stat_write;
+    s->s_events_past_end += pe->stats.s_events_past_end;
 #ifdef USE_RIO
-        s->s_rio_load += pe->stats.s_rio_load;
-        s->s_rio_lp_init += pe->stats.s_rio_lp_init;
+    s->s_rio_load += pe->stats.s_rio_load;
+    s->s_rio_lp_init += pe->stats.s_rio_lp_init;
 #endif
-        s->s_alp_nevent_processed = pe->stats.s_alp_nevent_processed;
-        s->s_alp_e_rbs = pe->stats.s_alp_e_rbs;
+    s->s_alp_nevent_processed = pe->stats.s_alp_nevent_processed;
+    s->s_alp_e_rbs = pe->stats.s_alp_e_rbs;
 
-		for(i = 0; i < g_tw_nkp; i++)
-		{
-			kp = tw_getkp(i);
-			s->s_nevent_processed += kp->s_nevent_processed;
-			s->s_e_rbs += kp->s_e_rbs;
-			s->s_rb_total += kp->s_rb_total;
-			s->s_rb_secondary += kp->s_rb_secondary;
-		}
+    for(i = 0; i < g_tw_nkp; i++)
+    {
+        kp = tw_getkp(i);
+        s->s_nevent_processed += kp->s_nevent_processed;
+        s->s_e_rbs += kp->s_e_rbs;
+        s->s_rb_total += kp->s_rb_total;
+        s->s_rb_secondary += kp->s_rb_secondary;
+    }
 
-	}
 
 	s->s_fc_attempts = g_tw_fossil_attempts;
 	s->s_net_events = s->s_nevent_processed - s->s_e_rbs;
@@ -195,7 +190,7 @@ tw_stats(tw_pe *me)
         show_lld("Total Events Scheduled Past End Time", s.s_events_past_end);
 
 	printf("\nTW Memory Statistics:\n");
-	show_lld("Events Allocated",(1+g_tw_events_per_pe+g_tw_events_per_pe_extra) * g_tw_npe);
+	show_lld("Events Allocated", 1 + g_tw_events_per_pe + g_tw_events_per_pe_extra);
 	show_lld("Memory Allocated", m_alloc / 1024);
 	show_lld("Memory Wasted", m_waste / 1024);
 

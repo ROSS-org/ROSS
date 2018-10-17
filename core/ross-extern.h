@@ -47,8 +47,7 @@ extern size_t		g_tw_memory_sz;
 extern tw_stime         g_tw_lookahead;
 extern tw_stime         g_tw_min_detected_offset;
 
-extern tw_peid  g_tw_npe;
-extern tw_pe **g_tw_pe;
+extern tw_pe *g_tw_pe;
 extern unsigned int      g_tw_events_per_pe;
 extern unsigned int      g_tw_events_per_pe_extra;
 
@@ -129,10 +128,8 @@ extern void	 tw_kp_fossil_memory(tw_kp * me);
 /*
  * tw-pe.c
  */
-extern tw_pe		*tw_pe_next(tw_pe * last);
 extern void		 tw_pe_settype(tw_pe *, const tw_petype * type);
-extern void		 tw_pe_create(tw_peid npe);
-extern void		 tw_pe_init(tw_peid id, tw_peid global);
+extern void		 tw_pe_init(tw_peid global);
 extern void		 tw_pe_fossil_collect(tw_pe * me);
 extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem,
 					   size_t d_sz, tw_stime mult);

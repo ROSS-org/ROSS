@@ -126,15 +126,12 @@ static void early_sanity_check(void) {
     }
 #endif
 
-    if (!g_tw_npe) {
-        tw_error(TW_LOC, "need at least one PE");
-    }
     if (!g_tw_nlp) {
         tw_error(TW_LOC, "need at least one LP");
     }
     if (!nkp_per_pe) {
-        tw_printf(TW_LOC, "number of KPs (%u) must be >= PEs (%u), adjusting.", g_tw_nkp, g_tw_npe);
-        g_tw_nkp = g_tw_npe;
+        tw_printf(TW_LOC, "number of KPs (%u) must be >= 1, adjusting.", g_tw_nkp);
+        g_tw_nkp = 1;
     }
 }
 
@@ -142,12 +139,10 @@ static void early_sanity_check(void) {
  * map: map LPs->KPs->PEs linearly
  */
 void map_linear(void) {
-    tw_pe   *pe;
 
     unsigned int nlp_per_kp;
     tw_lpid  lpid;
     tw_kpid  kpid;
-    unsigned int i;
     unsigned int j;
 
     // may end up wasting last KP, but guaranteed each KP has == nLPs
@@ -161,36 +156,32 @@ void map_linear(void) {
 
 #if VERIFY_MAPPING
     printf("NODE %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
+    // TODO make pe->id the same as g_tw_mynode?
+    printf("\tPE %d\n", g_tw_pe->id);
 #endif
 
-    for(kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
-#if VERIFY_MAPPING
-        printf("\tPE %d\n", pe->id);
-#endif
-
-        for(i = 0; i < nkp_per_pe; i++, kpid++) {
-            tw_kp_onpe(kpid, pe);
+    for(kpid = 0, lpid = 0; kpid < nkp_per_pe; kpid++) {
+        tw_kp_onpe(kpid, g_tw_pe);
 
 #if VERIFY_MAPPING
-            printf("\t\tKP %d", kpid);
+        printf("\t\tKP %d", kpid);
 #endif
 
-            for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
-                tw_lp_onpe(lpid, pe, g_tw_lp_offset+lpid);
-                tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+        for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
+            tw_lp_onpe(lpid, g_tw_pe, g_tw_lp_offset+lpid);
+            tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
-                if(0 == j % 20) {
-                    printf("\n\t\t\t");
-                }
-                printf("%lld ", lpid+g_tw_lp_offset);
-#endif
+            if(0 == j % 20) {
+                printf("\n\t\t\t");
             }
-
-#if VERIFY_MAPPING
-            printf("\n");
+            printf("%lld ", lpid+g_tw_lp_offset);
 #endif
         }
+
+#if VERIFY_MAPPING
+        printf("\n");
+#endif
     }
 
     if(!g_tw_lp[g_tw_nlp-1]) {
@@ -203,7 +194,7 @@ void map_linear(void) {
 }
 
 void map_round_robin(void) {
-    tw_pe   * pe = g_tw_pe[0]; // ASSUMPTION: only 1 pe
+    tw_pe   * pe = g_tw_pe; // ASSUMPTION: only 1 pe
 
     tw_kpid kpid;
     tw_lpid lpid;
@@ -248,7 +239,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
      * Construct the KP array.
      */
     if( g_tw_nkp == 1 && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG ) { // if it is the default, then check with the overide param
-        g_tw_nkp = nkp_per_pe * g_tw_npe;
+        g_tw_nkp = nkp_per_pe;
     }
     // else assume the application overloaded and has BRAINS to set its own g_tw_nkp
 
@@ -466,63 +457,49 @@ static void tw_delta_alloc(tw_pe *pe) {
 }
 
 static tw_pe * setup_pes(void) {
-    tw_pe   *pe;
-    tw_pe   *master;
+    tw_pe   *pe = g_tw_pe;
 
-    unsigned int i;
-    int j;
-    (void) j;
     unsigned int num_events_per_pe;
 
     num_events_per_pe = 1 + g_tw_events_per_pe + g_tw_events_per_pe_extra;
 
-    master = g_tw_pe[0];
-
-    if (!master) {
+    if (!pe) {
         tw_error(TW_LOC, "No PE configured on this node.");
     }
 
-    if (g_tw_mynode == g_tw_masternode) {
-        master->master = 1;
-    }
-    master->local_master = 1;
-
-    for(i = 0; i < g_tw_npe; i++) {
-        pe = g_tw_pe[i];
-        if (g_tw_buddy_alloc) {
-            g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
-            if (g_tw_buddy_master == NULL) {
-                tw_error(TW_LOC, "create_buddy_table() failed.");
-            }
-            tw_delta_alloc(pe);
+    // TODO need to make sure we don't break this stuff
+    if (g_tw_buddy_alloc) {
+        g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
+        if (g_tw_buddy_master == NULL) {
+            tw_error(TW_LOC, "create_buddy_table() failed.");
         }
-        pe->pq = tw_pq_create();
+        tw_delta_alloc(pe);
+    }
+    pe->pq = tw_pq_create();
 
-        tw_eventq_alloc(&pe->free_q, num_events_per_pe);
-        pe->abort_event = tw_eventq_shift(&pe->free_q);
+    tw_eventq_alloc(&pe->free_q, num_events_per_pe);
+    pe->abort_event = tw_eventq_shift(&pe->free_q);
 #ifdef USE_RIO
-        tw_clock start = tw_clock_read();
-        for (j = 0; j < g_io_events_buffered_per_rank; j++) {
-            tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
-        }
-        pe->stats.s_rio_load = (tw_clock_read() - start);
-#endif
+    int i;
+    tw_clock start = tw_clock_read();
+    for (i = 0; i < g_io_events_buffered_per_rank; i++) {
+        tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe->free_q));
     }
+    pe->stats.s_rio_load = (tw_clock_read() - start);
+#endif
 
     if (g_tw_mynode == g_tw_masternode) {
         printf("\nROSS Core Configuration: \n");
-        printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
+        printf("\t%-50s %11u\n", "Total PEs", tw_nnodes());
         fprintf(g_tw_csv, "%u,", tw_nnodes());
-
-        printf("\t%-50s [Nodes (%u) x PE_per_Node (%lu)] %lu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
-        //fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
 
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
+        // TODO need to do an allreduce call to get actual total number of LPs (e.g., for CODES)
         printf("\t%-50s %11llu\n", "Total LPs",
-	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
+	       ((unsigned long long)tw_nnodes() * g_tw_nlp));
+        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%.2lf,", g_tw_ts_end);
@@ -564,7 +541,7 @@ static tw_pe * setup_pes(void) {
         printf("\n");
 #endif
     }
-    return master;
+    return pe;
 }
 
 // This is the default lp type mapping function
