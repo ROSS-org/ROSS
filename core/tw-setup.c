@@ -120,12 +120,6 @@ void tw_init(int *argc, char ***argv) {
 }
 
 static void early_sanity_check(void) {
-#ifdef ROSS_MEMORY
-    if(0 == g_tw_memory_nqueues) {
-        tw_error(TW_LOC, "ROSS memory library enabled!");
-    }
-#endif
-
     if (!g_tw_nlp) {
         tw_error(TW_LOC, "need at least one LP");
     }
@@ -226,10 +220,6 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
     unsigned int  i;
 
     g_tw_nlp = nlp;
-
-#ifdef ROSS_MEMORY
-    g_tw_memory_sz = sizeof(tw_memory);
-#endif
 
     g_tw_msg_sz = msg_sz;
 

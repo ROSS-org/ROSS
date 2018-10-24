@@ -41,9 +41,6 @@ extern uint32_t		g_tw_avl_node_count;
 
 extern unsigned int g_tw_lz4_knob;
 
-extern unsigned int	g_tw_memory_nqueues;
-extern size_t		g_tw_memory_sz;
-
 extern tw_stime         g_tw_lookahead;
 extern tw_stime         g_tw_min_detected_offset;
 
@@ -120,10 +117,6 @@ extern void     tw_kp_put_back_output_buffer(tw_out *out);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
-#ifdef ROSS_MEMORY
-extern void	 tw_kp_fossil_memoryq(tw_kp * me, tw_fd);
-extern void	 tw_kp_fossil_memory(tw_kp * me);
-#endif
 
 /*
  * tw-pe.c
@@ -172,13 +165,6 @@ extern void tw_snapshot_restore(tw_lp *lp, size_t state_sz);
 extern   void     tw_wall_now(tw_wtime * t);
 extern   void     tw_wall_sub(tw_wtime * r, tw_wtime * a, tw_wtime * b);
 extern   double   tw_wall_to_double(tw_wtime * t);
-
-/*
- * tw-memory.c
- */
-#ifdef ROSS_MEMORY
-extern size_t	tw_memory_allocate(tw_memoryq *);
-#endif
 
 /*
  * tw-util.c

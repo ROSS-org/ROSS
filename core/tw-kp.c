@@ -155,11 +155,6 @@ tw_init_kps(tw_pe * me)
         kp->kp_stats = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
         for (j = 0; j < 3; j++)
             kp->last_stats[j] = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
-
-#ifdef ROSS_MEMORY
-		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
-					sizeof(tw_memoryq), g_tw_memory_nqueues);
-#endif
 	}
 }
 
@@ -191,71 +186,3 @@ tw_kp_put_back_output_buffer(tw_out *out)
     }
 }
 
-#ifdef ROSS_MEMORY
-void
-tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
-{
-	tw_memoryq	*q;
-
-	tw_memory      *b;
-	tw_memory      *tail;
-
-	tw_memory      *last;
-
-	tw_stime	gvt = kp->pe->GVT;
-
-	int             cnt;
-
-	q = &kp->pmemory_q[fd];
-	tail = q->tail;
-
-	if(0 == q->size || tail->ts >= gvt)
-		return;
-
-	if(q->head->ts < gvt)
-	{
-		tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd),
-				     q->head, q->tail, q->size);
-
-		q->head = q->tail = NULL;
-		q->size = 0;
-
-		return;
-	}
-
-	/*
-	 * Start direct search.
-	 */
-	last = NULL;
-	cnt = 0;
-
-	b = q->head;
-	while (b->ts >= gvt)
-	{
-		last = b;
-		cnt++;
-
-		b = b->next;
-	}
-
-	tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), b, q->tail, q->size - cnt);
-
-	/* fix what remains of our pmemory_q */
-	q->tail = last;
-	q->tail->next = NULL;
-	q->size = cnt;
-
-#if VERIFY_PE_FC_MEM
-	printf("%d: FC %d buf from FD %d \n", kp->id, cnt, fd);
-#endif
-}
-
-void
-tw_kp_fossil_memory(tw_kp * kp)
-{
-	unsigned int	 i;
-
-	for(i = 0; i < g_tw_memory_nqueues; i++)
-		tw_kp_fossil_memoryq(kp, i);
-}
-#endif

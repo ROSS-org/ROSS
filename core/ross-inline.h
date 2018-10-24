@@ -15,16 +15,6 @@ tw_event_grab(tw_pe *pe)
 
       memset(&e->state, 0, sizeof(e->state));
       memset(&e->event_id, 0, sizeof(e->event_id));
-
-#ifdef ROSS_MEMORY
-      if(e->memory)
-	{
-	  if(!e->memory->nrefs)
-	    tw_printf(TW_LOC, "membuf remaining on event: %d",
-		      e->memory->nrefs);
-	  e->memory = NULL;
-	}
-#endif
     }
   return e;
 }
@@ -112,30 +102,6 @@ tw_event_free(tw_pe *pe, tw_event *e)
    * and freed -- which is how a membuf could end up on a freed
    * event.
    */
-#ifdef ROSS_MEMORY
-  tw_memory	*next;
-  tw_memory	*m;
-
-  m = next = e->memory;
-
-  while(m)
-    {
-      next = m->next;
-
-      if(0 == --m->nrefs)
-	{
-	  if(e->state.owner >= TW_net_outq && e->state.owner <= TW_pe_sevent_q)
-	    tw_memory_unshift(e->src_lp, m, m->fd);
-	  else
-	    tw_memory_unshift(e->dest_lp, m, m->fd);
-	}
-
-      m = next;
-    }
-
-  e->memory = NULL;
-#endif
-
   tw_free_output_messages(e, 0);
 
   if (e->delta_buddy) {
@@ -149,93 +115,6 @@ tw_event_free(tw_pe *pe, tw_event *e)
 
   tw_eventq_unshift(&pe->free_q, e);
 }
-
-#ifdef ROSS_MEMORY
-static inline tw_memory *
-tw_event_memory_get(tw_lp * lp)
-{
-  tw_memory      *m = lp->pe->cur_event->memory;
-
-  if(m && m->next)
-    lp->pe->cur_event->memory = lp->pe->cur_event->memory->next;
-  else
-    lp->pe->cur_event->memory = NULL;
-
-  return m;
-}
-
-static inline void
-tw_event_memory_get_rc(tw_lp * lp, tw_memory * m, tw_fd fd)
-{
-  m->next = lp->pe->cur_event->memory;
-  lp->pe->cur_event->memory = m;
-}
-
-static inline void
-tw_event_memory_setfifo(tw_event * e, tw_memory * m, tw_fd fd)
-{
-  tw_memory	*b;
-
-  if(e == e->src_lp->pe->abort_event)
-    {
-      tw_memory_alloc_rc(e->src_lp, m, fd);
-      return;
-    }
-
-  m->fd = fd;
-
-  if(NULL == e->memory)
-    {
-      m->next = e->memory;
-      e->memory = m;
-    } else
-    {
-      b = e->memory;
-      while(b->next)
-	b = b->next;
-
-      b->next = m;
-      m->next = NULL;
-    }
-}
-
-static inline void
-tw_event_memory_set(tw_event * e, tw_memory * m, tw_fd fd)
-{
-  if(e == e->src_lp->pe->abort_event)
-    {
-      tw_memory_alloc_rc(e->src_lp, m, fd);
-      return;
-    }
-
-  m->next = e->memory;
-  e->memory = m;
-}
-
-static inline void
-tw_event_memory_forward(tw_event * e)
-{
-  tw_memory	*m;
-
-  if(e == e->src_lp->pe->abort_event)
-    return;
-
-  e->memory = e->src_lp->pe->cur_event->memory;
-
-  m = e->memory;
-  while(m)
-    {
-      m->nrefs++;
-      m = m->next;
-    }
-}
-
-static inline void *
-tw_memory_data(tw_memory * memory)
-{
-  return memory + 1;
-}
-#endif
 
 static inline void *
 tw_event_data(tw_event * event)

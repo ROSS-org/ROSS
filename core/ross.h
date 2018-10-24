@@ -206,11 +206,6 @@ typedef uint64_t tw_lpid;
 #  include "gvt/mpi_allreduce.h"
 #endif
 
-#ifdef ROSS_MEMORY
-#  include "tw-memoryq.h"
-#  include "tw-memory.h"
-#endif
-
 #include "instrumentation/st-instrumentation.h"
 
 #ifdef USE_DAMARIS

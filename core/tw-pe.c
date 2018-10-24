@@ -83,40 +83,7 @@ tw_pe_fossil_collect(tw_pe * me)
 	{
 		kp = tw_getkp(i);
 		tw_eventq_fossil_collect(&kp->pevent_q, me);
-
-#ifdef ROSS_MEMORY
-		tw_kp_fossil_memory(kp);
-#endif
 	}
 
 }
 
-#ifdef ROSS_MEMORY
-static int next_mem_q = 0;
-
-tw_fd
-tw_pe_memory_init(tw_pe * pe, size_t n_mem, size_t d_sz, tw_stime mult)
-{
-	tw_memoryq	*q;
-
-	int             fd;
-
-	if(!pe->memory_q)
-		pe->memory_q = tw_calloc(TW_LOC, "KP memory queues",
-					sizeof(tw_memoryq), g_tw_memory_nqueues);
-
-	fd = next_mem_q++;
-	pe->stats.s_mem_buffers_used = 0;
-
-	q = &pe->memory_q[fd];
-
-	q->size = 0;
-	q->start_size = n_mem;
-	q->d_size = d_sz;
-	q->grow = mult;
-
-	tw_memory_allocate(q);
-
-	return fd;
-}
-#endif

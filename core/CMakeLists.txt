@@ -87,13 +87,6 @@ IF(AVL_TREE)
   SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
 ENDIF(AVL_TREE)
 
-# ROSS_MEMORY is either on or off depending on whether or not we desire
-# memory buffers.  If it's not set to YES, it defaults to NO
-OPTION(ROSS_MEMORY "ROSS Memory Buffers (membufs)" OFF)
-IF(ROSS_MEMORY)
-  SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
-ENDIF(ROSS_MEMORY)
-
 IF(USE_RIO)
 	INCLUDE_DIRECTORIES(${RIO_SOURCE_DIR})
 	MESSAGE("rio: ${RIO_SOURCE_DIR}")
