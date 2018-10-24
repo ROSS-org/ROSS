@@ -43,6 +43,7 @@ typedef enum tw_lp_map tw_lp_map;
 
 /** tw_kpid -- Kernel Process (KP) id*/
 typedef tw_peid tw_kpid;
+typedef unsigned int tw_eventid;
 
 typedef unsigned long long tw_stat;
 

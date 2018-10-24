@@ -4,17 +4,19 @@
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
 
-static long id_tmp;
-
+/**
+ * @struct act_q
+ * @brief Keeps track of posted send or recv operations.
+ */
 struct act_q
 {
   const char *name;
 
-  tw_event **event_list;
-  MPI_Request *req_list;
-  int *idx_list;
-  MPI_Status *status_list;
-  unsigned int cur;
+  tw_event **event_list;    /**< list of event pointers in this queue */
+  MPI_Request *req_list;    /**< list of MPI request handles */
+  int *idx_list;            /**< indices in this queue of finished operations */
+  MPI_Status *status_list;  /**< list of MPI_Status handles */
+  unsigned int cur;         /**< index of first open spot in the queue */
 };
 
 #define EVENT_TAG 1
@@ -76,6 +78,12 @@ tw_net_init(int *argc, char ***argv)
   return mpi_opts;
 }
 
+/**
+ * @brief Initializes queues used for posted sends and receives
+ *
+ * @param[in] q pointer to the queue to be initialized
+ * @param[in] name name of the queue
+ */
 static void
 init_q(struct act_q *q, const char *name)
 {
@@ -91,11 +99,6 @@ init_q(struct act_q *q, const char *name)
   q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
   q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
   q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
-}
-
-tw_node * tw_net_onnode(tw_peid gid) {
-  id_tmp = gid;
-  return &id_tmp;
 }
 
 unsigned int
@@ -209,6 +212,16 @@ tw_net_minimum(void)
   return m;
 }
 
+/**
+ * @brief Calls MPI_Testsome on the provided queue, to check for finished operations.
+ *
+ * @param[in] q queue to check
+ * @param[in] me pointer to the PE
+ * @param[in] finish pointer to function that will perform the appropriate send/recv
+ * finish functionality
+ *
+ * @return 0 if MPI_Testsome did not return any finished operations, 1 otherwise.
+ */
 static int
 test_q(
        struct act_q *q,
@@ -272,6 +285,12 @@ test_q(
   return 1;
 }
 
+/**
+ * @brief If there are any openings in the posted_recvs queue, post more Irecvs.
+ *
+ * @param[in] me pointer to the PE
+ * @return 0 if no changes are made to the queue, 1 otherwise.
+ */
 static int
 recv_begin(tw_pe *me)
 {
@@ -310,6 +329,13 @@ recv_begin(tw_pe *me)
   return changed;
 }
 
+/**
+ * @brief Determines how to handle the newly received event.
+ *
+ * @param[in] me pointer to PE
+ * @param[in] e pointer to event that we just received
+ * @param[in] buffer not currently used
+ */
 static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
@@ -414,6 +440,13 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	   dest_pe->id);
 }
 
+/**
+ * @brief If there are any openings in the posted_sends queue, start sends
+ * for events in the outgoing queue.
+ *
+ * @param[in] me pointer to the PE
+ * @return 0 if no changes are made to the posted_sends queue, 1 otherwise.
+ */
 static int
 send_begin(tw_pe *me)
 {
@@ -422,7 +455,7 @@ send_begin(tw_pe *me)
   while (posted_sends.cur < send_buffer)
     {
       tw_event *e = tw_eventq_peek(&outq);
-      tw_node	*dest_node = NULL;
+      tw_peid dest_pe;
 
       unsigned id = posted_sends.cur;
 
@@ -432,11 +465,7 @@ send_begin(tw_pe *me)
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
 
-      dest_node = tw_net_onnode((*e->src_lp->type->map)
-				((tw_lpid) e->dest_lp));
-
-      //if(!e->state.cancel_q)
-	//e->event_id = (tw_eventid) ++me->seq_num;
+      dest_pe = (*e->src_lp->type->map) ((tw_lpid) e->dest_lp);
 
       e->send_pe = (tw_peid) g_tw_mynode;
       e->send_lp = e->src_lp->gid;
@@ -444,7 +473,7 @@ send_begin(tw_pe *me)
       if (MPI_Isend(e,
 		    (int)EVENT_SIZE(e),
 		    MPI_BYTE,
-		    (int)*dest_node,
+		    (int)dest_pe,
 		    EVENT_TAG,
 		    MPI_COMM_ROSS,
 		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
@@ -465,6 +494,14 @@ send_begin(tw_pe *me)
   return changed;
 }
 
+/**
+ * @brief Determines how to handle the buffer of event whose send operation
+ * just finished.
+ *
+ * @param[in] me pointer to PE
+ * @param[in] e pointer to event that we just received
+ * @param[in] buffer not currently used
+ */
 static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
@@ -519,6 +556,11 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 
 }
 
+/**
+ * @brief Start checks for finished operations in send/recv queues,
+ * and post new sends/recvs if possible.
+ * @param[in] me pointer to PE
+ */
 static void
 service_queues(tw_pe *me)
 {

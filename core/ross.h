@@ -183,14 +183,14 @@ typedef uint64_t tw_lpid;
 #  include "clock/bgq.h"
 #endif
 
+#include "tw-timing.h"
+#include "ross-types.h"
+#include "tw-opts.h"
+
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi.h"
 #endif
 
-#include "tw-timing.h"
-#include "ross-types.h"
-#include "tw-opts.h"
-#include "ross-network.h"
 #include "ross-gvt.h"
 #include "ross-extern.h"
 #include "ross-kernel-inline.h"

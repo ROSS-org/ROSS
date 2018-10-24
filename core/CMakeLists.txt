@@ -18,7 +18,6 @@ ross-gvt.h
 gvt/${GVT}.h
 gvt/${GVT}.c
 
-ross-network.h
 network-${NETWORK}.h
 network-${NETWORK}.c
 
