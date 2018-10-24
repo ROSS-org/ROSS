@@ -38,7 +38,7 @@ void tw_init(int *argc, char ***argv) {
 #endif
 
     tw_opt_add(tw_net_init(argc, argv));
-    
+
     // Print out the command-line so we know what we passed in
     if (tw_ismaster()) {
         for (i = 0; i < *argc; i++) {
@@ -76,8 +76,8 @@ void tw_init(int *argc, char ***argv) {
 #ifdef USE_DAMARIS
     st_damaris_ross_init();
     if (!g_st_ross_rank) // Damaris ranks only
-        return; 
-    else 
+        return;
+    else
     {
 #endif
 
@@ -86,7 +86,7 @@ void tw_init(int *argc, char ***argv) {
         struct stat buffer;
         int csv_check = stat("ross.csv", &buffer);
 
-        if (NULL == (g_tw_csv = fopen("ross.csv", "a"))) 
+        if (NULL == (g_tw_csv = fopen("ross.csv", "a")))
             tw_error(TW_LOC, "Unable to open: ross.csv\n");
 
         if (csv_check == -1)
@@ -120,7 +120,7 @@ void tw_init(int *argc, char ***argv) {
 }
 
 static void early_sanity_check(void) {
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
     if(0 == g_tw_memory_nqueues) {
         tw_error(TW_LOC, "ROSS memory library enabled!");
     }
@@ -247,7 +247,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     st_buffer_allocate();
     //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
-        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
+        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
 
     /*
      * Construct the LP array.
@@ -355,7 +355,7 @@ void tw_run(void) {
     me = setup_pes();
 
     // init instrumentation
-    st_inst_init(); 
+    st_inst_init();
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
         st_damaris_inst_init();

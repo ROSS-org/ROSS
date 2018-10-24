@@ -195,7 +195,7 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
       event_len += align - (event_len & (align - 1));
       //tw_error(TW_LOC, "REALIGNING EVENT MEMORY!\n");
     }
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   if(event_len > TW_MEMORY_BUFFER_SIZE)
   {
     tw_error(TW_LOC, "g_tw_msg_sz of %d is too large.\nThe ROSS_MEMORY maximum buffer size (including space reserved for alignment and header) is %d.\nPlease reduce the message size specified by the model using tw_define_lps().", g_tw_msg_sz, TW_MEMORY_BUFFER_SIZE);

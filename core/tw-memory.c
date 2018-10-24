@@ -1,4 +1,5 @@
 #include <ross.h>
+#define ROSS_VERIFY_MEMORY 1
 
 size_t
 tw_memory_allocate(tw_memoryq * q)
@@ -12,8 +13,8 @@ tw_memory_allocate(tw_memoryq * q)
 
 	size_t          align;
 	size_t		cnt;
-	
-	align = max(sizeof(double), sizeof(void *));
+
+	align = ROSS_MAX(sizeof(double), sizeof(void *));
         mem_len = sizeof(tw_memory) + q->d_size;
 
         if(mem_len & (align - 1))

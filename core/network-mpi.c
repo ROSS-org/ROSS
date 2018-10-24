@@ -14,7 +14,7 @@ struct act_q
   MPI_Request	 *req_list;
   int		 *idx_list;
   MPI_Status	 *status_list;
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   char		**buffers;
 #endif
 
@@ -23,7 +23,7 @@ struct act_q
 
 #define EVENT_TAG 1
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
 #define EVENT_SIZE(e) TW_MEMORY_BUFFER_SIZE
 #else
 #define EVENT_SIZE(e) g_tw_event_msg_sz
@@ -80,7 +80,7 @@ tw_net_init(int *argc, char ***argv)
 
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
-  
+
   return mpi_opts;
 }
 
@@ -88,7 +88,7 @@ static void
 init_q(struct act_q *q, const char *name)
 {
   unsigned int n;
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   unsigned int i;
 #endif
 
@@ -103,7 +103,7 @@ init_q(struct act_q *q, const char *name)
   q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
   q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
 
   for(i = 0; i < n; i++)
@@ -235,7 +235,7 @@ test_q(
 {
   int ready, i, n;
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   char *tmp;
 #endif
 
@@ -266,7 +266,7 @@ test_q(
       e = q->event_list[n];
       q->event_list[n] = NULL;
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
       finish(me, e, q->buffers[n]);
 #else
       finish(me, e, NULL);
@@ -288,8 +288,8 @@ test_q(
 	      &q->req_list[n],
 	      &q->req_list[i],
 	      sizeof(q->req_list[0]));
-	  
-#if ROSS_MEMORY
+
+#ifdef ROSS_MEMORY
 	  // swap the buffers
 	  tmp = q->buffers[n];
 	  q->buffers[n] = q->buffers[i];
@@ -319,10 +319,10 @@ recv_begin(tw_pe *me)
       {
 	  if(tw_gvt_inprogress(me))
 	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
-	  return changed;	  
+	  return changed;
       }
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
       if( MPI_Irecv(posted_recvs.buffers[id],
 		   EVENT_SIZE(e),
 		   MPI_BYTE,
@@ -359,7 +359,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   tw_pe		*dest_pe;
   tw_clock start;
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   tw_memory	*memory;
   tw_memory	*last;
 
@@ -430,7 +430,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     e->state.remote = 1;
   }
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
   mem_size = (size_t) e->memory;
   mem_fd = (tw_fd) e->prev;
 
@@ -509,7 +509,7 @@ send_begin(tw_pe *me)
 
       unsigned id = posted_sends.cur;
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
       tw_event *tmp_prev = NULL;
 
       tw_lp *tmp_lp = NULL;
@@ -539,7 +539,7 @@ send_begin(tw_pe *me)
       e->send_pe = (tw_peid) g_tw_mynode;
       e->send_lp = e->src_lp->gid;
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
       // pack pointers
       tmp_prev = e->prev;
       tmp_lp = e->src_lp;

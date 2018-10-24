@@ -120,7 +120,7 @@ extern void     tw_kp_put_back_output_buffer(tw_out *out);
 
 extern void	 tw_kp_rollback_event(tw_event *event);
 extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
 extern void	 tw_kp_fossil_memoryq(tw_kp * me, tw_fd);
 extern void	 tw_kp_fossil_memory(tw_kp * me);
 #endif

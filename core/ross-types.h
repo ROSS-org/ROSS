@@ -85,7 +85,7 @@ typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*commit_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
-typedef void (*statecp_f) (void *sv_dest, void *sv_src);
+//typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
 /**
  * tw_lptype
@@ -175,7 +175,7 @@ struct tw_memoryq {
     tw_memory *head;
     tw_memory *tail;
 
-    size_t         size;
+    size_t     size;
     size_t     start_size;
     size_t     d_size;
 

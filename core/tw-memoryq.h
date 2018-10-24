@@ -1,7 +1,7 @@
 #ifndef INC_tw_memoryq_h
 #define INC_tw_memoryq_h
 
-static inline tw_memoryq * 
+static inline tw_memoryq *
 tw_memoryq_init()
 {
 	tw_memoryq	*q;
@@ -16,7 +16,7 @@ tw_memoryq_init()
 	return q;
 }
 
-static inline void 
+static inline void
 tw_memoryq_debug(tw_memoryq * q)
 {
 #if ROSS_DEBUG
@@ -45,11 +45,11 @@ tw_memoryq_debug(tw_memoryq * q)
 		tw_error(TW_LOC, "Tail pointer not correct!");
 
 	if(cnt != q->size)
-		tw_error(TW_LOC, "Size not correct!");	
+		tw_error(TW_LOC, "Size not correct!");
 #endif
 }
 
-static inline void 
+static inline void
 tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 {
 	tw_memoryq_debug(q);
@@ -73,7 +73,7 @@ tw_memoryq_push(tw_memoryq * q, tw_memory * buf)
 	tw_memoryq_debug(q);
 }
 
-static inline void 
+static inline void
 tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
 	tw_memoryq_debug(q);
@@ -98,7 +98,7 @@ tw_memoryq_push_list(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 	tw_memoryq_debug(q);
 }
 
-static inline tw_memory * 
+static inline tw_memory *
 tw_memoryq_pop(tw_memoryq * q)
 {
 	tw_memory	*buf;
@@ -126,7 +126,7 @@ tw_memoryq_pop(tw_memoryq * q)
 	return buf;
 }
 
-static inline tw_memory * 
+static inline tw_memory *
 tw_memoryq_pop_list(tw_memoryq * q)
 {
 	tw_memory	*b;
@@ -147,9 +147,9 @@ tw_memoryq_pop_list(tw_memoryq * q)
  * The purpose of this function is to be able to remove some
  * part of a list.. could be all of list, from head to some inner
  * buffer, or from some inner buffer to tail.  I only care about the
- * last case.. 
+ * last case..
  */
-static inline void 
+static inline void
 tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 {
 	tw_memoryq_debug(q);
@@ -176,7 +176,7 @@ tw_memoryq_splice(tw_memoryq * q, tw_memory * h, tw_memory * t, int cnt)
 	tw_memoryq_debug(q);
 }
 
-static inline void 
+static inline void
 tw_memoryq_delete_any(tw_memoryq * q, tw_memory * buf)
 {
 	tw_memory	*next;

@@ -156,7 +156,7 @@ tw_init_kps(tw_pe * me)
         for (j = 0; j < 3; j++)
             kp->last_stats[j] = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
 		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
 					sizeof(tw_memoryq), g_tw_memory_nqueues);
 #endif
@@ -191,7 +191,7 @@ tw_kp_put_back_output_buffer(tw_out *out)
     }
 }
 
-#if ROSS_MEMORY
+#ifdef ROSS_MEMORY
 void
 tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 {
@@ -214,7 +214,7 @@ tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
 
 	if(q->head->ts < gvt)
 	{
-		tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), 
+		tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd),
 				     q->head, q->tail, q->size);
 
 		q->head = q->tail = NULL;
