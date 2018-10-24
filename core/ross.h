@@ -182,6 +182,9 @@ typedef uint64_t tw_lpid;
 #ifdef ROSS_CLOCK_bgq
 #  include "clock/bgq.h"
 #endif
+#ifdef ROSS_CLOCK_aarch64
+#  include "clock/aarch64.h"
+#endif
 
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi.h"
