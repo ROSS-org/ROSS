@@ -1,10 +1,10 @@
 #ifndef INC_ross_inline_h
-#define	INC_ross_inline_h
+#define INC_ross_inline_h
 
 static inline tw_event *
 tw_event_grab(tw_pe *pe)
 {
-  tw_event	*e = tw_eventq_pop(&pe->free_q);
+  tw_event *e = tw_eventq_pop(&pe->free_q);
 
   if (e)
     {
@@ -39,9 +39,9 @@ tw_free_output_messages(tw_event *e, int print_message)
 static inline tw_event *
 tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 {
-  tw_pe		*send_pe;
-  tw_event	*e;
-  tw_stime	 recv_ts;
+  tw_pe *send_pe;
+  tw_event *e;
+  tw_stime recv_ts;
 
   if (offset_ts < 0.0) {
     tw_error(TW_LOC, "Cannot send events into the past! Sending LP: %lu\n", sender->gid);

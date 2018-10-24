@@ -12,7 +12,7 @@ tw_eventq_debug(tw_eventq * q)
   tw_event	*next;
   tw_event	*last;
 
-  int		 cnt;
+  unsigned int cnt;
 
   cnt = 0;
   next = q->head;

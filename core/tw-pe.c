@@ -6,13 +6,13 @@ static void dummy_pe_f (tw_pe *pe)
 }
 
 void
-tw_pe_settype(tw_pe * pe, const tw_petype * type)
+tw_pe_settype(const tw_petype * type)
 {
-	if (!pe)
+	if (!g_tw_pe)
 		tw_error(TW_LOC, "Undefined PE!");
 
 #define copy_pef(f, d) \
-		pe->type.f = type->f ? type->f : d
+		g_tw_pe->type.f = type->f ? type->f : d
 
 	copy_pef(pre_lp_init, dummy_pe_f);
 	copy_pef(post_lp_init, dummy_pe_f);
@@ -22,45 +22,23 @@ tw_pe_settype(tw_pe * pe, const tw_petype * type)
 #undef copy_pef
 }
 
-// TODO can prob remove this function
-//tw_pe *
-//tw_pe_next(tw_pe * last)
-//{
-//	if (!last)
-//		return g_tw_pe;
-//	if (!last->pe_next)
-//		return NULL;
-//	return *last->pe_next;
-//}
-
-/**
- * @brief Allocate memory for the PE struct
- */
-//void tw_pe_create(void)
-//{
-//	g_tw_pe = (tw_pe *) tw_calloc(TW_LOC, "PE Struct", sizeof(g_tw_pe), 1);
-//}
-
 /*
  * tw_pe_init: initialize individual PE structs
  *
- * gid	-- global (across all compute nodes) PE id
  */
-// TODO prob need to edit
 void
-tw_pe_init(tw_peid gid)
+tw_pe_init(void)
 {
     if (g_tw_pe)
-		tw_error(TW_LOC, "PE %u already initialized", g_tw_pe->id);
+		tw_error(TW_LOC, "PE %u already initialized", g_tw_mynode);
 
     g_tw_pe = tw_calloc(TW_LOC, "PE Struct", sizeof(*g_tw_pe), 1);
 	tw_petype no_type;
 
 	memset(&no_type, 0, sizeof(no_type));
 
-	g_tw_pe->id = gid;
-	g_tw_pe->node = g_tw_mynode;
-	tw_pe_settype(g_tw_pe, &no_type);
+	g_tw_pe->id = g_tw_mynode;
+	tw_pe_settype(&no_type);
 
 	g_tw_pe->trans_msg_ts = DBL_MAX;
 	g_tw_pe->gvt_status = 0;
@@ -71,7 +49,7 @@ tw_pe_init(tw_peid gid)
 }
 
 void
-tw_pe_fossil_collect(tw_pe * me)
+tw_pe_fossil_collect(void)
 {
 	tw_kp	*kp;
 
@@ -82,7 +60,7 @@ tw_pe_fossil_collect(tw_pe * me)
 	for(i = 0; i < g_tw_nkp; i++)
 	{
 		kp = tw_getkp(i);
-		tw_eventq_fossil_collect(&kp->pevent_q, me);
+		tw_eventq_fossil_collect(&kp->pevent_q, g_tw_pe);
 	}
 
 }

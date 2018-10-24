@@ -44,9 +44,6 @@ typedef enum tw_lp_map tw_lp_map;
 /** tw_kpid -- Kernel Process (KP) id*/
 typedef tw_peid tw_kpid;
 
-/** tw_fd   -- used to distinguish between memory and event arrays*/
-typedef unsigned long tw_fd;
-
 typedef unsigned long long tw_stat;
 
 typedef void (*pe_init_f) (tw_pe * pe);
@@ -80,7 +77,6 @@ typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*commit_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
-//typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
 /**
  * tw_lptype
@@ -377,14 +373,12 @@ struct tw_kp {
  */
 struct tw_pe {
     tw_peid    id;
-    tw_node    node;
     tw_petype  type; /**< @brief Model defined PE type routines */
 
     tw_eventq event_q; /**< @brief Linked list of events sent to this PE */
     tw_event *cancel_q; /**< @brief List of canceled events */
     tw_pq *pq; /**< @brief Priority queue used to sort events */
     tw_kp *kp_list; /**< @brief */
-    //tw_pe **pe_next; /**< @brief Single linked list of PE structs */
 
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
@@ -403,8 +397,6 @@ struct tw_pe {
     tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
     unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
-    //unsigned char master; /**< @brief Master across all compute nodes */
-    //unsigned char local_master; /**< @brief Master for this node */
     unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */

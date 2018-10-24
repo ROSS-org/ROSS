@@ -150,7 +150,6 @@ void map_linear(void) {
 
 #if VERIFY_MAPPING
     printf("NODE %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
-    // TODO make pe->id the same as g_tw_mynode?
     printf("\tPE %d\n", g_tw_pe->id);
 #endif
 

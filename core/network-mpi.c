@@ -8,14 +8,13 @@ static long id_tmp;
 
 struct act_q
 {
-  const char	 *name;
+  const char *name;
 
-  tw_event	**event_list;
-  MPI_Request	 *req_list;
-  int		 *idx_list;
-  MPI_Status	 *status_list;
-
-  unsigned int	  cur;
+  tw_event **event_list;
+  MPI_Request *req_list;
+  int *idx_list;
+  MPI_Status *status_list;
+  unsigned int cur;
 };
 
 #define EVENT_TAG 1
@@ -127,7 +126,7 @@ tw_net_start(void)
       }
   }
 
-  tw_pe_init(g_tw_mynode);
+  tw_pe_init();
 
   //If we're in (some variation of) optimistic mode, we need this hash
   if (g_tw_synchronization_protocol == OPTIMISTIC ||
@@ -393,7 +392,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     return;
   }
 
-  if (me->node == dest_pe->node) {
+  if (me->id == dest_pe->id) {
     /* Slower, but still local send, so put into top
      * of dest_pe->event_q.
      */

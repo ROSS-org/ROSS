@@ -43,7 +43,7 @@ void tw_event_send(tw_event * event) {
             tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
                     "Event causing violation: src LP: %lu, src PE: %lu\n"
                     "dest LP %lu, dest PE %lu, recv_ts %f\n",
-                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid, 
+                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid,
                     dest_peid, recv_ts);
         }
     }
@@ -163,7 +163,7 @@ static inline void event_cancel(tw_event * event) {
             default:
                 tw_error(TW_LOC, "unknown fast local cancel owner %d", event->state.owner);
         }
-    } else if ((unsigned long)send_pe->node == dest_peid) {
+    } else if ((unsigned long)send_pe->id == dest_peid) {
         /* Slower, but still a local cancel, so put into
         * top of dest_pe->cancel_q for final deletion.
         */

@@ -1,7 +1,7 @@
 #ifndef INC_ross_extern_h
-#define	INC_ross_extern_h
+#define INC_ross_extern_h
 
-extern void	tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
+extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
 
 /*
  * tw-stats.c
@@ -17,27 +17,27 @@ extern map_local_f g_tw_custom_lp_global_to_local_map;
 extern map_custom_f g_tw_custom_initial_mapping;
 extern tw_lp_map g_tw_mapping;
 extern tw_lpid  g_tw_nlp;
-extern tw_lpid	g_tw_lp_offset;
+extern tw_lpid g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
-extern tw_lp	**g_tw_lp;
-extern tw_kp	**g_tw_kp;
+extern tw_lp **g_tw_lp;
+extern tw_kp **g_tw_kp;
 extern int      g_tw_fossil_attempts;
-extern unsigned int	g_tw_nRNG_per_lp;
-extern tw_lpid		g_tw_rng_default;
-extern tw_seed		g_tw_rng_seed;
-extern unsigned int	g_tw_mblock;
+extern unsigned int g_tw_nRNG_per_lp;
+extern tw_lpid g_tw_rng_default;
+extern tw_seed g_tw_rng_seed;
+extern unsigned int g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
 extern unsigned long long g_tw_max_opt_lookahead;
 extern unsigned long long g_tw_gvt_realtime_interval;
 extern unsigned long long g_tw_gvt_interval_start_cycles;
-extern tw_stime		g_tw_ts_end;
-extern unsigned int	g_tw_sim_started;
-extern size_t		g_tw_msg_sz;
-extern size_t		g_tw_event_msg_sz;
+extern tw_stime g_tw_ts_end;
+extern unsigned int g_tw_sim_started;
+extern size_t g_tw_msg_sz;
+extern size_t g_tw_event_msg_sz;
 extern size_t       g_tw_delta_sz;
 extern uint32_t     g_tw_buddy_alloc;
 extern buddy_list_bucket_t *g_tw_buddy_master;
-extern uint32_t		g_tw_avl_node_count;
+extern uint32_t g_tw_avl_node_count;
 
 extern unsigned int g_tw_lz4_knob;
 
@@ -48,22 +48,21 @@ extern tw_pe *g_tw_pe;
 extern unsigned int      g_tw_events_per_pe;
 extern unsigned int      g_tw_events_per_pe_extra;
 
-extern unsigned int	    g_tw_gvt_threshold;
-extern unsigned int	    g_tw_gvt_done;
+extern unsigned int g_tw_gvt_threshold;
+extern unsigned int g_tw_gvt_done;
 
-extern unsigned int	g_tw_net_device_size;
+extern unsigned int g_tw_net_device_size;
 extern tw_peid g_tw_mynode;
 extern tw_peid g_tw_masternode;
 
-extern FILE		*g_tw_csv;
+extern FILE *g_tw_csv;
 
 extern tw_lptype * g_tw_lp_types;
 extern tw_typemap_f g_tw_lp_typemap;
 
-        /*
-	 * Cycle Counter variables
-	 */
-
+/*
+ * Cycle Counter variables
+ */
 extern tw_clock g_tw_cycles_gvt;
 extern tw_clock g_tw_cycles_ev_abort;
 extern tw_clock g_tw_cycles_ev_proc;
@@ -83,8 +82,8 @@ extern unsigned long long g_tw_clock_rate;
 /*
  * tw-event.c
  */
-extern void		 tw_event_send(tw_event * event);
-extern void		 tw_event_rollback(tw_event * event);
+extern void tw_event_send(tw_event * event);
+extern void tw_event_rollback(tw_event * event);
 
 /*
  * ross-inline.h
@@ -96,11 +95,11 @@ static inline void * tw_event_data(tw_event * event);
 /*
  * tw-lp.c
  */
-extern tw_lp	*tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
-extern void		 tw_lp_settype(tw_lpid lp, tw_lptype * type);
-extern void		 tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
-extern void		 tw_lp_onkp(tw_lp * lp, tw_kp * kp);
-extern void		 tw_init_lps(tw_pe * me);
+extern tw_lp *tw_lp_next_onpe(tw_lp * last, tw_pe * pe);
+extern void tw_lp_settype(tw_lpid lp, tw_lptype * type);
+extern void tw_lp_onpe(tw_lpid index, tw_pe * pe, tw_lpid id);
+extern void tw_lp_onkp(tw_lp * lp, tw_kp * kp);
+extern void tw_init_lps(tw_pe * me);
 extern void tw_pre_run_lps(tw_pe * me);
 extern void tw_lp_setup_types();
 extern void tw_lp_suspend(tw_lp * lp, int do_orig_event_rc, int error_num );
@@ -115,17 +114,15 @@ extern void     tw_init_kps(tw_pe * me);
 extern tw_out*  tw_kp_grab_output_buffer(tw_kp *kp);
 extern void     tw_kp_put_back_output_buffer(tw_out *out);
 
-extern void	 tw_kp_rollback_event(tw_event *event);
-extern void	 tw_kp_rollback_to(tw_kp * kp, tw_stime to);
+extern void tw_kp_rollback_event(tw_event *event);
+extern void tw_kp_rollback_to(tw_kp * kp, tw_stime to);
 
 /*
  * tw-pe.c
  */
-extern void		 tw_pe_settype(tw_pe *, const tw_petype * type);
-extern void		 tw_pe_init(tw_peid global);
-extern void		 tw_pe_fossil_collect(tw_pe * me);
-extern tw_fd		 tw_pe_memory_init(tw_pe * pe, size_t n_mem,
-					   size_t d_sz, tw_stime mult);
+extern void tw_pe_settype(const tw_petype * type);
+extern void tw_pe_init(void);
+extern void tw_pe_fossil_collect(void);
 
 /*
  * tw-setup.c
@@ -170,7 +167,7 @@ extern   double   tw_wall_to_double(tw_wtime * t);
  * tw-util.c
  */
 
-#define	TW_LOC	__FILE__,__LINE__
+#define TW_LOC __FILE__,__LINE__
 extern int tw_output(tw_lp *lp, const char *fmt, ...);
 extern void tw_error(const char *file, int line, const char *fmt, ...) NORETURN;
 extern void tw_warning(const char *file, int line, const char *fmt, ...);

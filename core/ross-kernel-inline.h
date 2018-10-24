@@ -2,8 +2,8 @@
 #define INC_ross_kernel_inline_h
 #include "instrumentation/st-instrumentation.h"
 
-#define	ROSS_MAX(a,b)	((a) > (b) ? (a) : (b))
-#define	ROSS_MIN(a,b)	((a) < (b) ? (a) : (b))
+#define ROSS_MAX(a,b) ((a) > (b) ? (a) : (b))
+#define ROSS_MIN(a,b) ((a) < (b) ? (a) : (b))
 
 static inline tw_lp *
      tw_getlocal_lp(tw_lpid gid)
