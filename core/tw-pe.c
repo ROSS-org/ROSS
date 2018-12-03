@@ -32,7 +32,7 @@ tw_pe_init(void)
     if (g_tw_pe)
 		tw_error(TW_LOC, "PE %u already initialized", g_tw_mynode);
 
-    g_tw_pe = tw_calloc(TW_LOC, "PE Struct", sizeof(*g_tw_pe), 1);
+    g_tw_pe = (tw_pe*)tw_calloc(TW_LOC, "PE Struct", sizeof(*g_tw_pe), 1);
 	tw_petype no_type;
 
 	memset(&no_type, 0, sizeof(no_type));
