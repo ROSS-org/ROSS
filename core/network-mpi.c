@@ -63,6 +63,12 @@ void tw_comm_set(MPI_Comm comm)
 	custom_communicator = 1;
 }
 
+void tw_reduce_nlp()
+{
+	MPI_Allreduce(&g_tw_nlp, &g_tw_total_lps, 1, MPI_UNSIGNED_LONG_LONG,
+			MPI_SUM, MPI_COMM_ROSS);
+}
+
 const tw_optdef *
 tw_net_init(int *argc, char ***argv)
 {
@@ -80,7 +86,7 @@ tw_net_init(int *argc, char ***argv)
 
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
-  
+
   return mpi_opts;
 }
 
@@ -289,7 +295,7 @@ test_q(
 	      &q->req_list[n],
 	      &q->req_list[i],
 	      sizeof(q->req_list[0]));
-	  
+
 #if ROSS_MEMORY
 	  // swap the buffers
 	  tmp = q->buffers[n];
@@ -323,7 +329,7 @@ recv_begin(tw_pe *me)
       {
 	  if(tw_gvt_inprogress(me))
 	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
-	  return changed;	  
+	  return changed;
       }
 
 #if ROSS_MEMORY

@@ -17,6 +17,7 @@ extern map_local_f g_tw_custom_lp_global_to_local_map;
 extern map_custom_f g_tw_custom_initial_mapping;
 extern tw_lp_map g_tw_mapping;
 extern tw_lpid  g_tw_nlp;
+extern tw_lpid g_tw_total_lps;
 extern tw_lpid	g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
 extern tw_lp	**g_tw_lp;

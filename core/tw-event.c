@@ -6,6 +6,8 @@ static inline void link_causality (tw_event *nev, tw_event *cev) {
     cev->caused_by_me = nev;
 }
 
+static int mini(int a, int b){ return a < b ? a : b; }
+
 void tw_event_send(tw_event * event) {
     tw_lp     *src_lp = event->src_lp;
     tw_pe     *send_pe = src_lp->pe;
@@ -43,7 +45,7 @@ void tw_event_send(tw_event * event) {
             tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
                     "Event causing violation: src LP: %lu, src PE: %lu\n"
                     "dest LP %lu, dest PE %lu, recv_ts %f\n",
-                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid, 
+                    g_tw_lookahead, src_lp->gid, send_pe->id, event->dest_lpid,
                     dest_peid, recv_ts);
         }
     }
@@ -51,6 +53,25 @@ void tw_event_send(tw_event * event) {
     if (event->out_msgs) {
         tw_error(TW_LOC, "It is an error to send an event with pre-loaded output message.");
     }
+
+#ifdef USE_DAMARIS
+//    src_lp->lp_comm[event->dest_lpid]++;
+    send_pe->pe_comm[dest_peid]++;
+
+    // figure out dest KP global id
+    // Basing KP mapping on how CODES does it
+    // TODO need to generalize this
+    // and perhaps move to an inline function to make it cleaner
+    tw_lpid lps_per_pe_floor = g_tw_total_lps;
+    tw_lpid lps_leftover = lps_per_pe_floor % tw_nnodes();
+    lps_per_pe_floor /= tw_nnodes();
+    tw_lpid lp_start = dest_peid * lps_per_pe_floor + mini(dest_peid, lps_leftover);
+    tw_lpid lp_end = (dest_peid+1) * lps_per_pe_floor + mini((dest_peid+1), lps_leftover);
+    tw_kpid dest_kpid = ((event->dest_lpid - lp_start) % g_tw_nkp) + g_tw_nkp * dest_peid;
+    //printf("lps_per_pe_floor %lu, lp_start %lu, lp_end %lu, dest_peid %ld, dest_kpid %lu, dest_lpid %lu\n",
+    //        lps_per_pe_floor, lp_start, lp_end, dest_peid, dest_kpid, event->dest_lpid);
+    src_lp->kp->kp_comm[dest_kpid]++;
+#endif
 
     link_causality(event, send_pe->cur_event);
 

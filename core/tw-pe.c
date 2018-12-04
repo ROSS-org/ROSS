@@ -70,7 +70,9 @@ tw_pe_init(tw_peid id, tw_peid gid)
 	g_tw_pe[id] = pe;
 
 	g_tw_pe[id]->rng = tw_rand_init(31, 41);
-
+#ifdef USE_DAMARIS
+	g_tw_pe[id]->pe_comm = tw_calloc(TW_LOC, "PE Instrumentation", sizeof(int), tw_nnodes());
+#endif
 }
 
 void

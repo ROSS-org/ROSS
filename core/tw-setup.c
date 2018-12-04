@@ -38,7 +38,7 @@ void tw_init(int *argc, char ***argv) {
 #endif
 
     tw_opt_add(tw_net_init(argc, argv));
-    
+
     // Print out the command-line so we know what we passed in
     if (tw_ismaster()) {
         for (i = 0; i < *argc; i++) {
@@ -74,7 +74,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_parse(argc, argv);
 
     // init instrumentation
-    st_inst_init(); 
+    st_inst_init();
 #ifdef USE_DAMARIS
     if (!g_st_ross_rank) // Damaris ranks should not continue on here
         return;
@@ -85,7 +85,7 @@ void tw_init(int *argc, char ***argv) {
         struct stat buffer;
         int csv_check = stat("ross.csv", &buffer);
 
-        if (NULL == (g_tw_csv = fopen("ross.csv", "a"))) 
+        if (NULL == (g_tw_csv = fopen("ross.csv", "a")))
             tw_error(TW_LOC, "Unable to open: ross.csv\n");
 
         if (csv_check == -1)
@@ -251,12 +251,13 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     //st_buffer_allocate();  // TODO need this set up before setting up analysis LPs?
     //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
-        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
+        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
 
     /*
      * Construct the LP array.
      */
     g_tw_lp = (tw_lp **) tw_calloc(TW_LOC, "LPs", sizeof(*g_tw_lp), g_tw_nlp + g_st_analysis_nlp);
+	tw_reduce_nlp();
 
     switch(g_tw_mapping) {
         case LINEAR:
@@ -507,7 +508,7 @@ static tw_pe * setup_pes(void) {
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
         printf("\t%-50s %11llu\n", "Total LPs",
-	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
+	       ((unsigned long long) g_tw_total_lps));
         fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);

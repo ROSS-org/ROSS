@@ -15,9 +15,11 @@
 const tw_optdef *tw_net_init(int *argc, char ***argv);
 
 /* Setup the communicator to use instead of MPI_COMM_WORLD.
- * This function should be called before tw_net_init. 
+ * This function should be called before tw_net_init.
  */
 void tw_comm_set(MPI_Comm comm);
+
+void tw_reduce_nlp();
 
 /* Starts the network library after option parsing. */
 void tw_net_start(void);
