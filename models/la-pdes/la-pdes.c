@@ -17,7 +17,8 @@ tw_peid lapdes_map(tw_lpid gid)
 
 void lapdes_init(lapdes_state *s, tw_lp *lp)
 {
-    tw_rand_initial_seed(lp->rng, lp->gid + init_seed);
+    double seed = lp->gid + init_seed;
+    tw_rand_initial_seed(lp->rng, seed);
 
     double prob = 0.0;
 
@@ -34,9 +35,9 @@ void lapdes_init(lapdes_state *s, tw_lp *lp)
 
     unsigned long target_sends = prob * target_global_sends;
     if (target_sends > 0)
-        s->local_intersend_delay = g_tw_ts_end / target_sends;
+        s->local_intersend_delay = end_time / target_sends;
     else
-        s->local_intersend_delay = 10 * g_tw_ts_end;
+        s->local_intersend_delay = 10 * end_time;
 
     // allocate appropriate memory space
     if (p_list == 0) // uniform case
@@ -45,7 +46,7 @@ void lapdes_init(lapdes_state *s, tw_lp *lp)
         prob = p_list * pow((1 - p_list), lp->gid);
     s->list_size = (prob * n_ent * m_ent) + 1;
     s->list = tw_calloc(TW_LOC, "LA-PDES", sizeof(double), s->list_size);
-    s->ops = (prob * n_ent * m_ent) + 1;
+    s->ops = (prob * n_ent * ops_ent) + 1;
     s->active_elements = cache_friendliness * s->list_size;
     int i;
     for (i = 0; i < s->list_size; i++)
@@ -57,10 +58,9 @@ void lapdes_init(lapdes_state *s, tw_lp *lp)
     s->last_scheduled = tw_now(lp);
 
     // set up statistics
-    s->ops_min = ULLONG_MAX;
+    s->ops_min = ULLONG_MAX;  // everything else is already 0 in state struct
 
     // send first event
-    //printf("pe %ld lp %lu sending event to lp %lu at %f\n", g_tw_mynode, lp->gid, lp->gid, tw_now(lp));
     tw_event *e = tw_event_new(lp->gid, 0, lp);
     lapdes_message *msg = tw_event_data(e);
     msg->event_type = SEND;
@@ -101,14 +101,15 @@ void lapdes_send(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
 {
     s->send_count++;
     s->q_size--;
-    //s->time_sends
+    //s->time_sends[floor(tw_now(lp) / (end_time + 0.0001) * time_bins)]++;
 
     // reschedule self until q is full or time is out
-    while(s->q_size < s->q_target && !(s->last_scheduled > g_tw_ts_end))
+    while(s->q_size < s->q_target && !(s->last_scheduled > end_time))
     {
-        double own_delay = tw_rand_exponential(lp->rng, 1.0 / s->local_intersend_delay);
+        double own_delay = tw_rand_exponential(lp->rng, s->local_intersend_delay);
+        printf("own_delay %f\n", own_delay);
         s->last_scheduled += own_delay;
-        if (s->last_scheduled < g_tw_ts_end)
+        if (s->last_scheduled < end_time)
         {
             s->q_size++;
             //printf("pe %ld lp %lu sending event to lp %lu at %f\n", g_tw_mynode, lp->gid, lp->gid, tw_now(lp));
@@ -116,6 +117,7 @@ void lapdes_send(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
             lapdes_message *msg = tw_event_data(e);
             msg->event_type = SEND;
             tw_event_send(e);
+            //printf("Send: scheduling next self event at %f\n", s->last_scheduled - tw_now(lp));
         }
     }
 
@@ -124,17 +126,21 @@ void lapdes_send(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
     if (p_recv == 1.0)
         dest_id = 0;
     else if (p_recv == 0.0)
-        dest_id = tw_rand_ulong(lp->rng, 0, n_ent - 1);
+        dest_id = tw_rand_unif(lp->rng) * n_ent;
     else
     {
         double u = r_min + (1.0 - r_min) * tw_rand_unif(lp->rng);
         dest_id = (ceil(log(u) / log(1.0 - p_recv))) - 1;
     }
     //printf("pe %ld lp %lu sending event to lp %lu at %f\n", g_tw_mynode, lp->gid, dest_id, tw_now(lp));
-    tw_event *e = tw_event_new(dest_id, min_delay, lp);
-    lapdes_message *msg = tw_event_data(e);
-    msg->event_type = RECV;
-    tw_event_send(e);
+    if (tw_now(lp) + min_delay < end_time)
+    {
+        tw_event *e = tw_event_new(dest_id, min_delay, lp);
+        lapdes_message *msg = tw_event_data(e);
+        msg->event_type = RECV;
+        tw_event_send(e);
+        //printf("Send: sending event to %lu at %f\n", dest_id, min_delay);
+    }
 }
 
 void lapdes_send_rc(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
@@ -164,7 +170,6 @@ void lapdes_recv(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
         for (j = 0; j < r_ops_per_element; j++)
             value += s->list[i] * tw_rand_unif(lp->rng);
     }
-    // TODO need to do anything with value?
 }
 
 void lapdes_recv_rc(lapdes_state *s, tw_bf *bf, lapdes_message *m, tw_lp *lp)
@@ -214,6 +219,32 @@ const tw_optdef app_opt[] =
     TWOPT_END()
 };
 
+// ROSS Instrumentation
+void sample_model(lapdes_state *s, tw_bf *bf, tw_lp *lp, lapdes_sample *sample)
+{
+    sample->send_count = s->send_count;
+    sample->recv_count = s->recv_count;
+    sample->ops_max = s->ops_max;
+    sample->ops_min = s->ops_min;
+    sample->ops_mean = s->ops_mean;
+}
+
+void sample_model_rc(lapdes_state *state, tw_bf *bf, tw_lp *lp, lapdes_sample *sample)
+{
+
+}
+
+st_model_types model_types[] = {
+    {NULL,
+     0,
+     NULL,
+     0,
+     (sample_event_f) sample_model,
+     (sample_revent_f) sample_model_rc,
+     sizeof(lapdes_sample)},
+    {0}
+};
+
 int
 main(int argc, char **argv, char **env)
 {
@@ -224,12 +255,13 @@ main(int argc, char **argv, char **env)
     // they have min_delay as an option, but then override it to always be 1
     min_delay = 1.0;
 
-    // TODO when they make their simian call for init sim params,
+    // when they make their simian call for init sim params,
     // they pass endTime +10*minDelay as the sim end time,
     // apparently to account for collecting statistics?
-    // I don't think we need to do that, but not sure
     if (compute_end)
         g_tw_ts_end = n_ent * s_ent;
+    end_time = g_tw_ts_end;
+    g_tw_ts_end += 1; // to allow for collection of statistics
 
     r_min = pow((1 - p_recv), n_ent);
     target_global_sends = n_ent * s_ent;
@@ -238,7 +270,10 @@ main(int argc, char **argv, char **env)
 
     int i;
     for(i = 0; i < g_tw_nlp; i++)
+    {
         tw_lp_settype(i, &mylps[0]);
+        st_model_settype(i, &model_types[0]);
+    }
 
     if( g_tw_mynode == 0 )
     {

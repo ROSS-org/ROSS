@@ -9,6 +9,7 @@
 
 typedef struct lapdes_state lapdes_state;
 typedef struct lapdes_message lapdes_message;
+typedef struct lapdes_sample lapdes_sample;
 
 enum {
     SEND,
@@ -30,12 +31,20 @@ struct lapdes_state
     unsigned long long ops_max;
     unsigned long long ops_min;
     unsigned long long ops_mean;
-    
 };
 
 struct lapdes_message
 {
     int event_type;
+};
+
+struct lapdes_sample
+{
+    unsigned long long send_count;
+    unsigned long long recv_count;
+    unsigned long long ops_max;
+    unsigned long long ops_min;
+    unsigned long long ops_mean;
 };
 
 /*
@@ -56,6 +65,7 @@ static unsigned int init_seed = 1;
 static unsigned int time_bins = 10;
 static unsigned int compute_end = 0;
 static double min_delay = 1.0;
+static tw_stime end_time = 0.0;
 
 static unsigned long target_global_sends;
 static double r_min;
