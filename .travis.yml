@@ -58,10 +58,9 @@ after_success:
   - git config --global user.email ${GIT_EMAIL}
   -
   - # clone the whole repo again, but switch to gh_pages branch
-  - git clone -b gh-pages --single-branch https://github.com/carothersc/ROSS
-  -
-  - cd ROSS
-  - git clone -b master --single-branch https://github.com/carothersc/ROSS
+  - git clone -b master --single-branch https://github.com/ross-org/ross-org.github.io
+  - cd ross-org.github.io
+  - git clone -b master --single-branch https://github.com/ross-org/ROSS
   - cd ROSS
   - mkdir build && cd build
   - ARCH=x86_64 cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
@@ -72,4 +71,4 @@ after_success:
   - mv ROSS/build/docs/html ROSS-docs/docs
   - git add ROSS-docs
   - git commit -m "Automatic doxygen build."
-  - git push https://${GH_TOKEN}@github.com/carothersc/ROSS gh-pages
+  - git push https://${GH_TOKEN}@github.com/ROSS-org/ross-org.github.io master
