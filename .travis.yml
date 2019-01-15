@@ -54,8 +54,8 @@ after_success:
   - # GIT_NAME, GIT_EMAIL and GH_TOKEN. These were passed
   - # encrypted to travis and should have been decrypted
   - # using travis' private key before this script was run.
-  - git config --global user.name "${GIT_NAME}"
-  - git config --global user.email ${GIT_EMAIL}
+  - git config --global user.name "ROSS bot"
+  - git config --global user.email ross.gh.robot@gmail.com
   -
   - # clone the whole repo again, but switch to gh_pages branch
   - git clone -b master --single-branch https://github.com/ross-org/ross-org.github.io
