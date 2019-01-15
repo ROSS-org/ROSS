@@ -175,14 +175,6 @@ init_q(struct act_q *q, const char *name)
     q->overflow_anti[0]=1;
     q->num_in_fr_q = n;
 
-//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q,q->coda, q->front );
-//  printf("dequeue twice, requeue those elements\n");
-//  fr_q_dq(q);
-//  fr_q_dq(q);
-//  fr_q_aq(q,0);
-//  fr_q_aq(q,1);
-//  printf("sizeofq = %d, numinq = %d, coda = %d, front = %d\n",q->size_of_fr_q, q->num_in_fr_q, q->coda, q->front );
-//  printf("check: num in q = %d, size of q = %d\n",q->num_in_fr_q,q->size_of_fr_q);
 
 #if ROSS_MEMORY
     q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
@@ -315,8 +307,6 @@ test_q(
     char *tmp;
 #endif
 
-//  if ( !q->cur || q->num_in_fr_q == ((q->size_of_fr_q)-1) ) //fixed this line (?) if queue is full, no elements are being processed
-//    return 0;
 
     if( q->num_in_fr_q == ((q->size_of_fr_q)-1) )
         return 0;
@@ -353,7 +343,6 @@ test_q(
 #endif
         if (indicator != q->overflow_anti[0])
         {
-//            printf("indicator was %d, is now %d\n", indicator, q->overflow_anti[0]);
             indicator= q->overflow_anti[0];
         }
         else
@@ -364,7 +353,6 @@ test_q(
 
     }
 
-//    printf("getting to it\n");
     i = 1;
     while (i < q->overflow_anti[0])
     {
@@ -373,48 +361,16 @@ test_q(
         n = q->overflow_anti[i];
         e = q->event_list[n];
         q->event_list[n] = NULL;
-//        fr_q_aq(q, n);//add n onto queue
 
-#if ROSS_MEMORY
-            finish(me, e, q->buffers[n], q, n);
-#else
-            late_recv_finish(me, e, NULL, q, n);
-#endif
+        late_recv_finish(me, e, NULL, q, n);
+        //might need an augmented version for ROSS_MEMORY?
+
         i++;
 
     }
 
     q->num_in_fr_q+=ready;
 
-
-    /* Collapse the lists to remove any holes we left. */
-    /*
-    for (i = 0, n = 0; i < q->cur; i++)//fix these lines
-    {
-      if (q->event_list[i])
-      {
-        if (i != n)
-        {
-      // swap the event pointers
-        q->event_list[n] = q->event_list[i];
-      // copy the request handles
-        memcpy(
-            &q->req_list[n],
-            &q->req_list[i],
-            sizeof(q->req_list[0]));
-
-  #if ROSS_MEMORY
-        // swap the buffers
-        tmp = q->buffers[n];
-        q->buffers[n] = q->buffers[i];
-        q->buffers[i] = tmp;
-  #endif
-        } // endif (i != n)
-        n++;
-      } // endif (q->event_list[i])
-    }
-    q->cur -= ready;//fix this line
-    */
     return 1;
 }
 
@@ -465,7 +421,6 @@ recv_begin(tw_pe *me)
 
         posted_recvs.event_list[id] = e;
         deal_with_cur(&posted_recvs);
-        // fixed in fr_q_dq //posted_recvs.cur++; //fix this line
         changed = 1;
     }
 
@@ -512,14 +467,13 @@ late_recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id
     // else, store in hash table
 
     tw_event *cancel = tw_hash_remove(me->hash_t, e, e->send_pe);
+    g_tw_pe[0]->avl_tree_size++;
 
     // NOTE: it is possible to cancel the event we
         // are currently processing at this PE since this
         // MPI module lets me read cancel events during
         // event sends over the network.
 
-
-//      printf("made it to proper cancel\n");
     cancel->state.cancel_q = 1;
     cancel->state.remote = 0;
     cancel->cancel_next = dest_pe->cancel_q;
@@ -553,18 +507,14 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id )
 
     e->dest_lp = tw_getlocal_lp((tw_lpid) e->dest_lp);//->gid);// check here
     dest_pe = e->dest_lp->pe;// check here
-//    printf("recv_finish: remote event [cancel %u] FROM: LP %lu, PE %lu, TO: LP %lu, PE %lu at TS %lf \n",
-//    	 e->state.cancel_q, (tw_lpid)e->src_lp, e->send_pe, (tw_lpid)e->dest_lp, me->id, e->recv_ts);
+
 
     // instrumentation
     e->dest_lp->kp->kp_stats->s_nread_network++;
     e->dest_lp->lp_stats->s_nread_network++;
+
     if(e->send_pe > tw_nnodes()-1)
         tw_error(TW_LOC, "bad sendpe_id: %d", e->send_pe);
-
-//    e->cancel_next = NULL;
-//    e->caused_by_me = NULL;
-//    e->cause_next = NULL;
 
 
     if(e->recv_ts < me->GVT)
@@ -587,9 +537,9 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id )
         // MPI module lets me read cancel events during
         // event sends over the network.
 
-        if(cancel!=NULL) // Temporary, for performance testing
+        if(cancel!=NULL)
         {
-//            printf("made it to proper cancel\n");
+
             e->cancel_next = NULL;
             e->caused_by_me = NULL;
             e->cause_next = NULL;
@@ -603,7 +553,6 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer, struct act_q * q, int id )
         }
         else
         {
-//            printf("hitting overflow, storing %d in index %d\n",id, q->overflow_anti[0]);
             q->overflow_anti[q->overflow_anti[0]] = id; //add id stuff later
             q->overflow_anti[0]++;
 
