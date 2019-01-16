@@ -100,9 +100,16 @@ IF(ARCH STREQUAL x86_64)
   SET(CLOCK amd64)
 ENDIF(ARCH STREQUAL x86_64)
 
+IF(ARCH STREQUAL aarch64)
+  SET(VALID_ARCH YES)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
+  ADD_DEFINITIONS(-D_GNU_SOURCE)
+  SET(CLOCK aarch64)
+ENDIF(ARCH STREQUAL aarch64)
+
 IF(NOT VALID_ARCH)
   MESSAGE(FATAL_ERROR "ARCH not valid!\n"
-    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64 | ppc64le)")
+    "Please set ARCH to be one of (i386 | bgl | bgp | x86_64 | ppc64 | ppc64le | aarch64)")
 ENDIF(NOT VALID_ARCH)
 
 # ROSS Core code
