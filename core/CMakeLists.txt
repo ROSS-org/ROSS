@@ -68,11 +68,6 @@ instrumentation/ross-lps/analysis-lp.h
 instrumentation/ross-lps/analysis-lp.c
 instrumentation/ross-lps/specialized-lps.c)
 
-IF(USE_RIO)
-  SET(ross_srcs ${ross_srcs} rio/io-mpi.c rio/io-serialize.c)
-  INCLUDE_DIRECTORIES(rio)
-ENDIF(USE_RIO)
-
 # ROSS VERSION INFORMATION
 ## Print Date and Time at top of ROSS output
 INCLUDE (CheckFunctionExists)
@@ -98,10 +93,11 @@ IF(ROSS_MEMORY)
   SET(ross_srcs ${ross_srcs} tw-memory.c tw-memoryq.h tw-memory.h)
 ENDIF(ROSS_MEMORY)
 
+# RIO: Restart IO
+OPTION(USE_RIO "Enable RIO checkpointing library?" OFF)
 IF(USE_RIO)
-	INCLUDE_DIRECTORIES(${RIO_SOURCE_DIR})
-	MESSAGE("rio: ${RIO_SOURCE_DIR}")
-	SET(ross_srcs ${ross_srcs} ${RIO_SOURCE_DIR}/io.h)
+  SET(ross_srcs ${ross_srcs} rio/io-mpi.c rio/io-serialize.c)
+  INCLUDE_DIRECTORIES(rio)
 ENDIF(USE_RIO)
 
 # Damaris I/O and data management
