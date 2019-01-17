@@ -70,10 +70,12 @@ typedef struct {
 	double tw_normal_u2;
 	int tw_normal_flipflop;
 #endif
+	unsigned int critical_path;
 } io_lp_store;
 
 typedef struct {
 	tw_bf cv;
+	unsigned int critical_path;
 	tw_lpid dest_lp;
 	tw_lpid src_lp;
 	tw_stime recv_ts;

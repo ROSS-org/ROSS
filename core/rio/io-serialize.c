@@ -18,6 +18,7 @@ size_t io_lp_serialize (tw_lp *lp, void *buffer) {
         tmp.tw_normal_flipflop = lp->rng->tw_normal_flipflop;
 #endif
     }
+    tmp.critical_path = lp->critical_path;
 
     memcpy(buffer, &tmp, sizeof(io_lp_store));
     return sizeof(io_lp_store);
@@ -43,6 +44,8 @@ size_t io_lp_deserialize (tw_lp *lp, void *buffer) {
         lp->rng->tw_normal_flipflop = tmp.tw_normal_flipflop;
 #endif
     }
+    lp->critical_path = tmp.critical_path;
+
     return sizeof(io_lp_store);
 }
 
@@ -52,6 +55,7 @@ size_t io_event_serialize (tw_event *e, void *buffer) {
     io_event_store tmp;
 
     memcpy(&(tmp.cv), &(e->cv), sizeof(tw_bf));
+    tmp.critical_path = e->critical_path;
     tmp.dest_lp = (tw_lpid)e->dest_lp; // ROSS HACK: dest_lp is gid
     tmp.src_lp = e->src_lp->gid;
     tmp.recv_ts = e->recv_ts - g_tw_ts_end;
@@ -66,6 +70,7 @@ size_t io_event_deserialize (tw_event *e, void *buffer) {
 
     io_event_store tmp;
     memcpy(&tmp, buffer, sizeof(io_event_store));
+    e->critical_path = tmp.critical_path;
 
     memcpy(&(e->cv), &(tmp.cv), sizeof(tw_bf));
     e->dest_lp = (tw_lp *) tmp.dest_lp; // ROSS HACK: e->dest_lp is GID for a bit
