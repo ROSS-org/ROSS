@@ -1,6 +1,3 @@
-[submodule "IO"]
-	path = IO
-	url = https://github.com/gonsie/ROSSIO.git
 [submodule "models/template-model"]
 	path = models/template-model
 	url = https://github.com/nmcglohon/template-model.git
