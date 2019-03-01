@@ -2,6 +2,10 @@
 #include "analysis-lp.h"
 #include <math.h>
 #include <limits.h>
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-sim-engine.h>
+#include <instrumentation/st-model-data.h>
 
 /*
  * The code for virtual time sampling is based off of the model-net sampling for
@@ -10,6 +14,7 @@
 
 static void st_create_sample_event(tw_lp *lp);
 
+// TODO potential bug: Assumes that LPs are assigned to KPs in a round robin fashion
 void analysis_init(analysis_state *s, tw_lp *lp)
 {
     int i, j, idx = 0, sim_idx = 0;
@@ -19,6 +24,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->analysis_id = lp->gid - analysis_start_gid;
     s->num_lps = ceil((double)g_tw_nlp / g_tw_nkp);
     s->event_id = 0;
+    s->model_sample_size = 0;
 
     // create list of LPs this is responsible for
     s->lp_list = (tw_lpid*)tw_calloc(TW_LOC, "analysis LPs", sizeof(tw_lpid), s->num_lps);
@@ -40,8 +46,16 @@ void analysis_init(analysis_state *s, tw_lp *lp)
             sim_idx++;
 
             // check if this LP even needs sampling performed
-            if (cur_lp->model_types == NULL || cur_lp->model_types->sample_struct_sz == 0)
+            if (cur_lp->model_types == NULL || !cur_lp->model_types->vts_event_fn)
                 continue;
+
+            s->model_sample_size += sizeof(st_model_data);
+            for (j = 0; j < cur_lp->model_types->num_vars; j++)
+            {
+                s->model_sample_size += sizeof(model_var_md);
+                s->model_sample_size += model_var_type_size(cur_lp->model_types->model_vars[j].type) *
+                    cur_lp->model_types->model_vars[j].num_elems;
+            }
 
             s->lp_list[idx] = cur_lp->gid;
             idx++;
@@ -62,7 +76,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
 #endif
 
     // setup memory to use for model samples
-    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
+    if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count);
         s->model_samples_current = s->model_samples_head;
@@ -85,13 +99,14 @@ void analysis_init(analysis_state *s, tw_lp *lp)
                 sample->next = sample + 1;
                 sample->next->prev = sample;
             }
-            if (s->num_lps <= 0)
-                tw_error(TW_LOC, "s->num_lps <= 0!");
-            sample->lp_data = (void**) tw_calloc(TW_LOC, "analysis LPs", sizeof(void*), s->num_lps);
+            sample->lp_data = (model_lp_sample*) calloc(sizeof(model_lp_sample), s->num_lps);
+            sample->num_lps = s->num_lps;
             for (j = 0; j < s->num_lps; j++)
             {
                 cur_lp = tw_getlocal_lp(s->lp_list[j]);
-                sample->lp_data[j] = (void *) tw_calloc(TW_LOC, "analysis LPs", cur_lp->model_types->sample_struct_sz, 1);
+                sample->lp_data[j].lpid = cur_lp->gid;
+                sample->lp_data[j].num_vars = cur_lp->model_types->num_vars;
+                sample->lp_data[j].vars = (model_var_data*)calloc(sizeof(model_var_data), cur_lp->model_types->num_vars);
             }
             sample = sample->next;
         }
@@ -117,8 +132,10 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         //printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
         st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
                 kp_gid, s->event_id);
+        // TODO instead of an event_id for distinguishing samples, use the real time and save it
+        // in the analysis_msg.  Then in the reverse we can send the real time stamp instead of event_id.
 
-        if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS)
+        if (engine_modes[VT_INST])
         {
             // Not going to worry about supported sim engine data in this mode right now
             //printf("PE %ld: sampling sim engine data type: %d\n", g_tw_mynode, VT_INST);
@@ -131,7 +148,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             //    st_damaris_sample_lp_data(VT_INST, s->lp_list_sim, s->num_lps_sim);
         }
 
-        if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+        if (model_modes[VT_INST])
         {
             // this will call our model's sampling callback forward handler
             //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
@@ -147,7 +164,12 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     }
 #endif
 
-    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
+    // inst_sample() won't collect model data for VTS
+    inst_sample(lp->pe, VT_INST, lp, 0);
+
+    st_create_sample_event(lp);
+
+    if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         model_sample_data *sample = s->model_samples_current;
         // TODO handle this situation better
@@ -156,6 +178,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
         sample->timestamp = tw_now(lp);
         m->timestamp = tw_now(lp);
+        vts_start_sample(sample);
 
         // call the model sampling function for each LP on this KP
         for (i = 0; i < s->num_lps; i++)
@@ -164,24 +187,18 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 break;
 
             model_lp = tw_getlocal_lp(s->lp_list[i]);
-            if (model_lp->model_types == NULL || model_lp->model_types->sample_struct_sz == 0)
+            if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn)
                 continue;
+            //printf("%lu: Analysis LP %lu, model_lp: %lu\n", g_tw_mynode, lp->gid, model_lp->gid);
+            vts_next_lp(model_lp);
 
-            model_lp->model_types->sample_event_fn(model_lp->cur_state, bf, lp, sample->lp_data[i]);
+            model_lp->model_types->vts_event_fn(model_lp->cur_state, bf, model_lp);
         }
 
+        vts_end_sample();
         s->model_samples_current = s->model_samples_current->next;
     }
 
-    // sim engine sampling
-    if (g_tw_synchronization_protocol != SEQUENTIAL &&
-            (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS))
-    {
-        st_collect_engine_data(lp->pe, VT_INST);
-    }
-
-    // create next sampling event
-    st_create_sample_event(lp);
 }
 
 void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
@@ -202,16 +219,16 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         for (i = 0; i < s->num_lps; i++)
         {
             model_lp = tw_getlocal_lp(s->lp_list[i]);
-            if (model_lp->model_types == NULL || model_lp->model_types->sample_struct_sz == 0)
+            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn)
                 continue;
-            model_lp->model_types->sample_revent_fn(model_lp->cur_state, NULL, model_lp, NULL);
+            model_lp->model_types->vts_revent_fn(model_lp->cur_state, NULL, model_lp, NULL);
         }
         st_damaris_delete_rc_data();
         return;
     }
 #endif
 
-    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
+    if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         // need to remove sample associated with this event from the list
         model_sample_data *sample;
@@ -221,6 +238,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             //sample = &s->model_samples[i];
             if (sample->timestamp == m->timestamp)
             {
+                vts_start_sample(sample);
                 for (j = 0; j < s->num_lps; j++)
                 {
                     if (s->lp_list[j] == ULLONG_MAX)
@@ -228,11 +246,13 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
                     // first call the appropriate RC fn, to allow it to undo any state changes
                     model_lp = tw_getlocal_lp(s->lp_list[j]);
-                    if (model_lp->model_types == NULL || model_lp->model_types->sample_struct_sz == 0)
+                    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn)
                         continue;
-                    model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
+                    vts_next_lp_rev(model_lp->gid);
+                    model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
                 }
 
+                vts_end_sample();
                 sample->timestamp = 0;
 
                 if (sample->prev)
@@ -268,7 +288,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         return;
     }
 #endif
-    if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
+    if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         // write committed data to buffer
         model_sample_data *sample;
@@ -280,27 +300,31 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         {
             if (sample->timestamp == m->timestamp)
             {
-                for (j = 0; j < s->num_lps; j++)
-                {
-                    model_lp = tw_getlocal_lp(s->lp_list[j]);
-                    if (model_lp->model_types == NULL || model_lp->model_types->sample_struct_sz == 0)
-                        continue;
-                    metadata.lpid = model_lp->gid;
-                    metadata.kpid = model_lp->kp->id;
-                    metadata.peid = model_lp->pe->id;
-                    metadata.ts = m->timestamp;
-                    metadata.sample_sz = model_lp->model_types->sample_struct_sz;
-                    metadata.flag = MODEL_TYPE;
+                vts_start_sample(sample);
+                inst_sample(lp->pe, VT_INST, lp, 1);
+                //for (j = 0; j < s->num_lps; j++)
+                //{
+                //    model_lp = tw_getlocal_lp(s->lp_list[j]);
+                //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn)
+                //        continue;
+                //    //vts_next_lp_rev(model_lp->gid);
 
-                    char buffer[sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz];
-                    memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
-                    memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
-                    if (g_tw_synchronization_protocol != SEQUENTIAL)
-                        st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz);
-                    else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
-                        fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
-                }
+                //    //metadata.lpid = model_lp->gid;
+                //    //metadata.kpid = model_lp->kp->id;
+                //    //metadata.peid = model_lp->pe->id;
+                //    //metadata.ts = m->timestamp;
+                //    //metadata.sample_sz = model_lp->model_types->sample_struct_sz;
 
+                //    //char buffer[sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz];
+                //    //memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
+                //    //memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
+                //    //if (g_tw_synchronization_protocol != SEQUENTIAL)
+                //    //    st_buffer_push(VT_INST, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz);
+                //    //else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
+                //    //    fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
+                //}
+
+                vts_end_sample();
                 sample->timestamp = 0;
 
                 if (sample->prev)
@@ -369,3 +393,16 @@ void st_analysis_lp_settype(tw_lpid lpid)
     tw_lp_settype(lpid, &analysis_lp[0]);
 }
 
+tw_lpid *get_sim_lp_list(analysis_state *s, int* num_lps)
+{
+    if (num_lps)
+        *num_lps = s->num_lps_sim;
+    return s->lp_list_sim;
+}
+
+size_t get_model_data_size(analysis_state *s, int* num_lps)
+{
+    if (num_lps)
+        *num_lps = s->num_lps;
+    return s->model_sample_size;
+}

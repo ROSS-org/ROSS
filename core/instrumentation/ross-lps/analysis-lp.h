@@ -35,12 +35,27 @@ struct lp_metadata
     int flag; // 0 == PE, 1 == KP, 2 == LP, 3 == model
 };
 
+typedef struct model_var_data
+{
+    st_model_var var;
+    void *data;
+} model_var_data;
+
+typedef struct model_lp_sample
+{
+    tw_lpid lpid;
+    int num_vars;
+    model_var_data *vars;
+} model_lp_sample;
+
+// sample for all entities at a given sampling time
 struct model_sample_data
 {
     model_sample_data *prev;
     model_sample_data *next;
     tw_stime timestamp;
-    void **lp_data;          /* data for each LP on the associated KP at this sampling point */
+    int num_lps;
+    model_lp_sample *lp_data;          /* data for each LP on the associated KP at this sampling point */
 };
 
 struct analysis_state
@@ -55,6 +70,7 @@ struct analysis_state
     model_sample_data *model_samples_tail;
     tw_statistics last_pe_stats;
     int event_id;
+    size_t model_sample_size;
 };
 
 void analysis_init(analysis_state *s, tw_lp *lp);
@@ -64,6 +80,8 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp);
 void analysis_finish(analysis_state *s, tw_lp *lp);
 void collect_sim_engine_data(tw_pe *pe, tw_lp *lp, analysis_state *s, tw_stime current_rt);
 tw_peid analysis_map(tw_lpid gid);
+tw_lpid *get_sim_lp_list(analysis_state *s, int* num_lps);
+size_t get_model_data_size(analysis_state *s, int* num_lps);
 
 extern tw_lpid analysis_start_gid;
 void st_analysis_lp_settype(tw_lpid lpid);

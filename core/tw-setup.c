@@ -73,8 +73,6 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
-    // init instrumentation
-    st_inst_init();
 #ifdef USE_DAMARIS
     if (!g_st_ross_rank) // Damaris ranks should not continue on here
         return;
@@ -113,6 +111,7 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
+    st_inst_init();
 }
 
 static void early_sanity_check(void) {
@@ -249,9 +248,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_kp = (tw_kp **) tw_calloc(TW_LOC, "KPs", sizeof(*g_tw_kp), g_tw_nkp);
 
-    //st_buffer_allocate();  // TODO need this set up before setting up analysis LPs?
-    //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
-        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
+    specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
 
     /*
      * Construct the LP array.
@@ -280,8 +277,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
             tw_error(TW_LOC, "Bad value for g_tw_mapping %d \n", g_tw_mapping);
     }
 
-    //if (g_tw_mapping == CUSTOM)
-        specialized_lp_init_mapping();
+    specialized_lp_init_mapping();
 
     // init LP RNG stream(s)
     for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
@@ -380,6 +376,8 @@ void tw_run(void) {
 #endif
 
     tw_sched_init(me);
+    st_inst_finish_setup(); // has to be called after tw_sched_init()
+
     me->stats.s_init = tw_clock_read() - init_start;
 
     switch(g_tw_synchronization_protocol) {

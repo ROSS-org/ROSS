@@ -1,5 +1,9 @@
 #include <ross.h>
 #include <sys/stat.h>
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-sim-engine.h>
+#include <instrumentation/st-model-data.h>
 
 char g_st_stats_out[INST_MAX_LENGTH] = {0};
 char g_st_stats_path[4096] = {0};
@@ -11,7 +15,6 @@ int g_st_disable_out = 0;
 int g_st_model_stats = 0;
 int g_st_engine_stats = 0;
 
-int g_st_gvt_sampling = 0;
 int g_st_num_gvt = 10;
 
 int g_st_rt_sampling = 0;
@@ -21,8 +24,11 @@ tw_clock g_st_rt_samp_start_cycles = 0;
 tw_stime g_st_vt_interval = 1000000;
 tw_stime g_st_sampling_end = 0;
 
-int engine_modes[NUM_INST_MODES];
-int model_modes[NUM_INST_MODES];
+short model_modes[NUM_INST_MODES] = {0};
+short engine_modes[NUM_INST_MODES] = {0};
+static size_t engine_data_sizes[NUM_INST_MODES] = {0};
+static size_t model_data_sizes[NUM_INST_MODES] = {0};
+static int model_num_lps[NUM_INST_MODES] = {0};
 
 static char config_file[1024];
 
@@ -67,9 +73,9 @@ void print_settings()
     printf("g_st_ev_trace:\t\t%d\n", g_st_ev_trace);
 }
 
-// TODO this has become a mess and could definitely be waaaay better
 // should be called from tw_init, so this ensures we have all instrumentation global variables
 // set by the end of tw_init(), which may be used by models
+// TODO do we still need to make this true? currently called from tw_run()
 void st_inst_init(void)
 {
 #ifdef USE_DAMARIS
@@ -86,7 +92,6 @@ void st_inst_init(void)
 
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
     {
-        g_st_gvt_sampling = 1;
         engine_modes[GVT_INST] = 1;
     }
     if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
@@ -94,15 +99,22 @@ void st_inst_init(void)
         g_st_rt_sampling = 1;
         engine_modes[RT_INST] = 1;
     }
+    if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS)
+    {
+        engine_modes[VT_INST] = 1;
+    }
     if (g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS)
     {
-        g_st_gvt_sampling = 1;
         model_modes[GVT_INST] = 1;
     }
     if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
     {
         g_st_rt_sampling = 1;
         model_modes[RT_INST] = 1;
+    }
+    if (g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
+    {
+        model_modes[VT_INST] = 1;
     }
 
     if (g_st_rt_sampling)
@@ -120,25 +132,46 @@ void st_inst_init(void)
     }
 #endif
 
+}
+
+void st_inst_finish_setup()
+{
+    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
+        return;
+
+    engine_data_sizes[GVT_INST] = calc_sim_engine_sample_size();
+    engine_data_sizes[RT_INST] = calc_sim_engine_sample_size();
+    // engine_data_sizes[VT_INST] has to be recalculated each time, for now
+    model_data_sizes[GVT_INST] = calc_model_sample_size(GVT_INST, &model_num_lps[GVT_INST]);
+    model_data_sizes[RT_INST] = calc_model_sample_size(RT_INST, &model_num_lps[RT_INST]);
+    //model_data_sizes[VT_INST] = calc_model_sample_size(VT_INST, &model_num_lps[VT_INST]);
+    // potentially different size per KP
+
     st_buffer_allocate();
 
     // setup appropriate flags for various instrumentation modes
     // set up files and buffers for necessary instrumentation modes
-    if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
-        st_buffer_init(GVT_COL);
-    if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
-        st_buffer_init(RT_COL);
+    if (engine_modes[GVT_INST] || model_modes[GVT_INST])
+        st_buffer_init(GVT_INST);
+    if (engine_modes[RT_INST] || model_modes[RT_INST])
+        st_buffer_init(RT_INST);
+    if (engine_modes[VT_INST] || model_modes[VT_INST])
+        st_buffer_init(VT_INST);
 
     if (g_st_ev_trace)
-        st_buffer_init(EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_init(MODEL_COL);
+        st_buffer_init(ET_INST);
+
 }
 
 // warning: when calling from GVT, all PEs must call else deadlock
 // this function doesn't do any checking on the correct time to do sampling
 // assumes the caller is only making the call when it is time to sample
 void st_inst_sample(tw_pe *me, int inst_type)
+{
+    inst_sample(me, inst_type, NULL, 0);
+}
+
+void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 {
     //printf("pe %ld about to sample for mode %d\n", g_tw_mynode, inst_type);
     tw_clock current_rt = tw_clock_read();
@@ -155,11 +188,82 @@ void st_inst_sample(tw_pe *me, int inst_type)
 	}
 #endif
 
-    // TODO need to test to make sure inst still works correctly w/out damaris enabled
-    if (engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
-        st_collect_engine_data(me, inst_type);
+    size_t buf_size = 0;
+    char* buf_ptr;
+    sample_metadata* sample_md;
+    if (engine_modes[inst_type] || model_modes[inst_type])
+    {
+        buf_size = sizeof(sample_metadata);
+        if (inst_type == VT_INST && engine_modes[VT_INST])
+            engine_data_sizes[VT_INST] = calc_sim_engine_sample_size_vts(lp);
+        if (!vts_commit && engine_modes[inst_type])
+            buf_size += engine_data_sizes[inst_type];
+
+        if (model_modes[inst_type] && inst_type != VT_INST)
+            buf_size += model_data_sizes[inst_type];
+        else if (model_modes[inst_type] && inst_type == VT_INST && vts_commit)
+        {
+            model_data_sizes[inst_type] = get_model_data_size(lp->cur_state, &model_num_lps[inst_type]);
+            buf_size += model_data_sizes[inst_type];
+            printf("%lu: size = %lu\n", g_tw_mynode, model_data_sizes[inst_type]);
+        }
+        //printf("st_inst_sample: buf_size %lu\n", buf_size);
+
+        if (buf_size > sizeof(sample_metadata))
+        {
+            buf_ptr = st_buffer_pointer(inst_type, buf_size);
+
+            sample_md = (sample_metadata*)buf_ptr;
+            buf_ptr += sizeof(*sample_md);
+            buf_size -= sizeof(*sample_md);
+            //printf("sizeof sample_md %lu\n", sizeof(*sample_md));
+
+            bzero(sample_md, sizeof(*sample_md));
+            sample_md->last_gvt = me->GVT;
+            sample_md->rts = (double)tw_clock_read() / g_tw_clock_rate;
+            //if(inst_type == VT_INST)
+            //{
+            //    // TODO this happens only at commit time, so this is incorrect
+            //    //sample_md->vts = tw_now(lp);
+            //    //printf("sample_md->vts %f\n", sample_md->vts);
+            //}
+
+            sample_md->peid = (unsigned int)g_tw_mynode;
+            sample_md->num_model_lps = model_num_lps[inst_type];
+        }
+        else
+        {
+            buf_size = 0;
+            //printf("%lu: Not writing data! vts_commit = %d\n", g_tw_mynode, vts_commit);
+        }
+    }
+
+    if (!vts_commit && buf_size && engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
+    {
+        if (inst_type == VT_INST)
+            sample_md->vts = tw_now(lp);
+        st_collect_engine_data(me, inst_type, buf_ptr, engine_data_sizes[inst_type], sample_md, lp);
+        buf_ptr += engine_data_sizes[inst_type];
+        buf_size -= engine_data_sizes[inst_type];
+    }
     if (model_modes[inst_type])
-        st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, inst_type);
+    {
+        if (inst_type != VT_INST)
+        {
+            sample_md->has_model = 1;
+            st_collect_model_data(me, inst_type, buf_ptr, model_data_sizes[inst_type]);
+            buf_size -= model_data_sizes[inst_type];
+        }
+        else if (inst_type == VT_INST && vts_commit)
+        {
+            sample_md->has_model = 1;
+            st_collect_model_data_vts(me, lp, inst_type, buf_ptr, sample_md, model_data_sizes[inst_type]);
+            buf_size -= model_data_sizes[inst_type];
+        }
+    }
+
+    if (buf_size != 0)
+        tw_error(TW_LOC, "buf_size = %lu", buf_size);
 
     // if damaris is enabled, g_st_disable_out == 1
     if (inst_type == GVT_INST && !g_st_disable_out)
@@ -171,16 +275,14 @@ void st_inst_dump()
     if (g_st_disable_out)
         return;
 
-    if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
-        st_buffer_write(0, GVT_COL);
-    if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
-        st_buffer_write(0, RT_COL);
+    if (engine_modes[GVT_INST] || model_modes[GVT_INST])
+        st_buffer_write(0, GVT_INST);
+    if (engine_modes[RT_INST] || model_modes[RT_INST])
+        st_buffer_write(0, RT_INST);
     if (g_st_ev_trace)
-        st_buffer_write(0, EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_write(0, MODEL_COL);
+        st_buffer_write(0, ET_INST);
     if (g_st_use_analysis_lps)
-        st_buffer_write(0, ANALYSIS_LP);
+        st_buffer_write(0, VT_INST);
 }
 
 void st_inst_finalize(tw_pe *me)
@@ -188,19 +290,17 @@ void st_inst_finalize(tw_pe *me)
     if (g_st_disable_out)
         return;
 
-    if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
-        st_buffer_finalize(GVT_COL);
-    if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
+    if (engine_modes[GVT_INST] || model_modes[GVT_INST])
+        st_buffer_finalize(GVT_INST);
+    if (engine_modes[RT_INST] || model_modes[RT_INST])
     {
         // collect data one final time to account for time between last sample and sim end time
-        st_collect_engine_data(me, RT_COL);
-        st_buffer_finalize(RT_COL);
+        st_inst_sample(me, RT_INST);
+        st_buffer_finalize(RT_INST);
     }
     if (g_st_ev_trace)
-        st_buffer_finalize(EV_TRACE);
-    if (g_st_model_stats)
-        st_buffer_finalize(MODEL_COL);
+        st_buffer_finalize(ET_INST);
     if (g_st_use_analysis_lps)
-        st_buffer_finalize(ANALYSIS_LP);
+        st_buffer_finalize(VT_INST);
 
 }

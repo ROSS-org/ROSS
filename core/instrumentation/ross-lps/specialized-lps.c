@@ -1,29 +1,26 @@
 #include "ross.h"
 #include "analysis-lp.h"
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
 
 /*
  * This file is for general set up functions related to setting up any
  * ROSS specialized LPs.
  *
- * TODO add some output on these LPs, add some counters that can be subtracted from other counters, so we're not including this in the model info
  */
 
 int g_st_use_analysis_lps = 0;
 tw_lpid g_st_analysis_nlp = 0;
-int g_st_sample_count = 65536;
+int g_st_sample_count = 4096;
 
 tw_lpid analysis_start_gid = 0;
 tw_lpid g_st_total_model_lps = 0;
 
 void specialized_lp_setup()
 {
-    if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS || 
+    if (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS ||
             g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS)
-    {
         g_st_use_analysis_lps = 1;
-        if (!g_st_damaris_enabled)
-            st_buffer_init(ANALYSIS_LP);
-    }
     else
         return;
 

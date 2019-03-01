@@ -1,8 +1,17 @@
 #include <ross.h>
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-model-data.h>
 
 st_model_types *g_st_model_types = NULL;
 static int model_type_warned = 0;
 
+// used to help track the current sample details
+// since model collection will call a model callback function
+// fine to use the same one for different sampling modes, because
+// its temporary and is serial
+static model_buffer cur_buf;
+static vts_model_sample cur_vts_data;
 
 // if model uses tw_lp_setup_types() to set lp->type, it will also call
 // this function to set up the functions types for model-level data collection
@@ -37,57 +46,333 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
     }
 }
 
+// TODO for VTS, this isn't correctly calculating on a KP basis
+size_t calc_model_sample_size(int inst_mode, int *num_lps)
+{
+    *num_lps = 0;
+
+    if (!model_modes[inst_mode])
+        return 0;
+
+    size_t total_size = 0;
+    size_t type_size = 0;
+    unsigned int lpid = 0, i = 0;
+    tw_lp* clp;
+
+    for (lpid = 0; lpid < g_tw_nlp; lpid++)
+    {
+        clp = g_tw_lp[lpid];
+        if (inst_mode != VT_INST && (!clp->model_types || !clp->model_types->rt_event_fn))
+            continue;
+        if (inst_mode == VT_INST && (!clp->model_types || !clp->model_types->vts_event_fn))
+            continue;
+
+        (*num_lps)++;
+        total_size += sizeof(st_model_data);
+        // loop through this LP's variables
+        //printf("\t%s\n", clp->model_types->lp_name);
+        for (i = 0; i < clp->model_types->num_vars; i++)
+        {
+            total_size += sizeof(model_var_md);
+            type_size = model_var_type_size(clp->model_types->model_vars[i].type);
+            total_size += type_size * clp->model_types->model_vars[i].num_elems;
+            //printf("\t\t%s: %lu\n", clp->model_types->model_vars[i].var_name, type_size * clp->model_types->model_vars[i].num_elems);
+        }
+        //printf("total_size %lu\n", total_size);
+    }
+
+    return total_size;
+}
+
+// TODO how to correctly get the size for a given KP
+// perhaps calculate it in analysis init, and save it in the lp state?
+//size_t calc_model_sample_size_vts(int inst_mode, tw_lp* lp)
+//{
+//    if (!model_modes[inst_mode])
+//        return 0;
+//
+//    size_t total_size = 0;
+//    size_t type_size = 0;
+//    unsigned int lpid = 0, i = 0;
+//    tw_lp* clp;
+//
+//    for (lpid = 0; lpid < g_tw_nlp; lpid++)
+//    {
+//        clp = g_tw_lp[lpid];
+//        if (inst_mode != VT_INST && (!clp->model_types || !clp->model_types->rt_event_fn))
+//            continue;
+//        if (inst_mode == VT_INST && (!clp->model_types || !clp->model_types->vts_event_fn))
+//            continue;
+//
+//        total_size += sizeof(st_model_data);
+//        // loop through this LP's variables
+//        //printf("\t%s\n", clp->model_types->lp_name);
+//        for (i = 0; i < clp->model_types->num_vars; i++)
+//        {
+//            total_size += sizeof(model_var_md);
+//            type_size = model_var_type_size(clp->model_types->model_vars[i].type);
+//            total_size += type_size * clp->model_types->model_vars[i].num_elems;
+//            //printf("\t\t%s: %lu\n", clp->model_types->model_vars[i].var_name, type_size * clp->model_types->model_vars[i].num_elems);
+//        }
+//        //printf("total_size %lu\n", total_size);
+//    }
+//
+//    return total_size;
+//}
+
+int get_num_model_lps(int inst_mode)
+{
+    if (!model_modes[inst_mode])
+        return 0;
+
+    unsigned int lpid = 0;
+    tw_lp* clp;
+    int total = 0;
+
+    for (lpid = 0; lpid < g_tw_nlp; lpid++)
+    {
+        if (clp->model_types && clp->model_types->rt_event_fn)
+            total++;
+    }
+    return total;
+}
+
+size_t model_var_type_size(st_model_typename type)
+{
+    if (type == MODEL_INT)
+        return sizeof(int);
+    else if (type == MODEL_LONG)
+        return sizeof(long);
+    else if (type == MODEL_FLOAT)
+        return sizeof(float);
+    else if (type == MODEL_DOUBLE)
+        return sizeof(double);
+    return 0;
+}
+
 /*
  * This function allows for ROSS to collect model level data, when not using Analysis LPs.
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
  * Loop through all LPs on this PE and collect stats
  */
-void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
+void st_collect_model_data(tw_pe *pe, int inst_mode, char *buffer, size_t data_size)
 {
     tw_clock start_cycle_time = tw_clock_read();
-    int index, lpid = 0;
-    int total_sz = 0;
-    tw_lp *clp;
-    sample_metadata sample_md;
-    model_metadata model_md;
-    sample_md.flag = MODEL_TYPE;
-    sample_md.sample_sz = sizeof(model_md);
-    sample_md.real_time = current_rt;
-    model_md.peid = (unsigned int) g_tw_mynode;
-    model_md.gvt = (float) pe->GVT;
-    model_md.stats_type = stats_type;
 
-    for (lpid = 0; lpid < g_tw_nlp; lpid++) 
+    cur_buf.buffer = buffer;
+    cur_buf.cur_pos = buffer;
+    cur_buf.total_size = data_size;
+    cur_buf.cur_size = 0;
+    cur_buf.inst_mode = inst_mode;
+
+    unsigned int lpid = 0;
+    tw_lp *clp;
+
+    for (lpid = 0; lpid < g_tw_nlp; lpid++)
     {
-        index = 0;
         clp = g_tw_lp[lpid];
-        if (!clp->model_types || !clp->model_types->model_stat_fn)
+        // TODO check function based on inst_mode
+        if (!clp->model_types || !clp->model_types->rt_event_fn)
         {
             // may not want to collect model stats on every LP type, so if not defined, just continue
             continue;
         }
 
-        sample_md.ts = tw_now(clp);
-        model_md.kpid = (unsigned int) clp->kp->id;
-        model_md.lpid = (unsigned int) clp->gid;
-        model_md.model_sz = (unsigned int) clp->model_types->mstat_sz;
-        total_sz = sizeof(sample_md) + sizeof(model_md) + model_md.model_sz;
-        char buffer[total_sz];
-        memcpy(&buffer[0], &sample_md, sizeof(sample_md));
-        index += sizeof(sample_md);
-        memcpy(&buffer[index], &model_md, sizeof(model_md));
-        index += sizeof(model_md);
+        st_model_data* model_data = (st_model_data*)cur_buf.cur_pos;
+        cur_buf.cur_pos += sizeof(*model_data);
+        cur_buf.cur_size += sizeof(*model_data);
+        //printf("size of st_model_data %lu\n", sizeof(st_model_data));
 
-        if (model_md.model_sz > 0)
-        {
-            (*clp->model_types->model_stat_fn)(clp->cur_state, clp, &buffer[index]);
+        model_data->lpid = (unsigned int) clp->gid;
+        model_data->kpid = (unsigned int) clp->kp->id;
+        model_data->num_vars = clp->model_types->num_vars;
+        //printf("%u, %u, %d\n", model_data->kpid, model_data->lpid, model_data->num_vars);
 
-            if (g_tw_synchronization_protocol != SEQUENTIAL)
-                st_buffer_push(MODEL_COL, &buffer[0], total_sz);
-            else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
-                fwrite(buffer, total_sz, 1, seq_model);
-        }
+        (*clp->model_types->rt_event_fn)(clp->cur_state, clp);
+
     }
+
+    if (cur_buf.cur_size != cur_buf.total_size)
+        tw_error(TW_LOC, "Model data caused buffer overflow!\n");
+
     pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
 
+void st_collect_model_data_vts(tw_pe *pe, tw_lp* lp, int inst_mode, char* buffer,
+        sample_metadata *sample_md, size_t data_size)
+{
+    if (inst_mode != VT_INST)
+        return;
+    model_sample_data *sample = cur_vts_data.cur_sample;
+    sample_md->vts = sample->timestamp;
+    int i, j;
+    char *cur_buf_ptr = buffer;
+    size_t cur_size = 0;
+    for (i = 0; i < sample->num_lps; i++)
+    {
+        model_lp_sample *cur_lp = &sample->lp_data[i];
+        st_model_data *model_data = (st_model_data*)cur_buf_ptr;
+        cur_buf_ptr += sizeof(*model_data);
+        cur_size += sizeof(*model_data);
+
+        model_data->lpid = (unsigned int) cur_lp->lpid;
+        model_data->kpid = (unsigned int) lp->kp->id;
+        model_data->num_vars = cur_lp->num_vars;
+
+        for (j = 0; j < cur_lp->num_vars; j++)
+        {
+            model_var_data *var_data = &cur_lp->vars[j];
+            model_var_md* cur_var = (model_var_md*)cur_buf_ptr;
+            cur_buf_ptr += sizeof(*cur_var);
+            cur_size += sizeof(*cur_var);
+
+            cur_var->var_id = j;
+            cur_var->num_elems = var_data->var.num_elems;
+            cur_var->type = var_data->var.type;
+            size_t type_size = model_var_type_size(cur_var->type);
+            size_t size = cur_var->num_elems * type_size;
+            //printf("sizeof data %lu\n", data_size);
+
+            // TODO can we remove the memcpy somehow?
+            memcpy(cur_buf_ptr, var_data->data, size);
+            cur_buf_ptr += size;
+            cur_size += size;
+        }
+    }
+    if (cur_size != data_size)
+        tw_error(TW_LOC, "Model data caused buffer overflow! cur_size %lu, data_size %lu\n", cur_size, data_size);
+}
+
+int variable_id_lookup(tw_lp* lp, const char* var_name)
+{
+    if (!lp->model_types || !lp->model_types->model_vars)
+        tw_error(TW_LOC, "Couldn't find var_name %s in st_model_types for LP %lu!\n", var_name, lp->gid);
+
+    int i;
+    for (i = 0; i < lp->model_types->num_vars; i++)
+    {
+        if (strcmp(lp->model_types->model_vars[i].var_name, var_name) == 0)
+            return i;
+    }
+
+    return -1;
+}
+
+void vts_start_sample(model_sample_data* sample)
+{
+    //printf("%lu: starting sample ts %f\n", g_tw_mynode, sample->timestamp);
+    cur_vts_data.in_progress = 1;
+    cur_vts_data.cur_sample = sample;
+    cur_vts_data.cur_lp = NULL;
+}
+
+void vts_next_lp(tw_lp* lp)
+{
+    if (!cur_vts_data.cur_lp)
+        cur_vts_data.cur_lp = &cur_vts_data.cur_sample->lp_data[0];
+    else
+        (cur_vts_data.cur_lp)++;
+
+    //printf("%lu: next LP %lu (given), %lu (saved), num vars = %d\n", g_tw_mynode, lp->gid,
+    //        cur_vts_data.cur_lp->lpid, cur_vts_data.cur_lp->num_vars);
+    //cur_vts_data.cur_lp->lpid = lp->gid;
+    //cur_vts_data.cur_lp->num_vars = lp->model_types->num_vars;
+    cur_vts_data.cur_var = &cur_vts_data.cur_lp->vars[0];
+}
+
+void vts_next_lp_rev(tw_lpid id)
+{
+    if (!cur_vts_data.cur_lp)
+        cur_vts_data.cur_lp = &cur_vts_data.cur_sample->lp_data[0];
+    else
+        (cur_vts_data.cur_lp)++;
+    
+    if (id != cur_vts_data.cur_lp->lpid)
+        tw_error(TW_LOC, "returning incorrect LP data! requesting %lu, but have %lu", id, cur_vts_data.cur_lp->lpid);
+}
+
+void vts_end_sample()
+{
+    //printf("%lu: ending sample ts %f\n", g_tw_mynode, cur_vts_data.cur_sample->timestamp);
+    cur_vts_data.in_progress = 0;
+    cur_vts_data.cur_sample == NULL;
+    cur_vts_data.cur_lp = NULL;
+    cur_vts_data.cur_var = NULL;
+}
+
+void vts_save_model_variable(tw_lp* lp, const char* var_name, void* data)
+{
+    //printf("%lu: vts_save_model_var lp %lu\n", g_tw_mynode, lp->gid);
+    model_var_data *cur_var = cur_vts_data.cur_var;
+    int var_id = variable_id_lookup(lp, var_name);
+    cur_var->var = lp->model_types->model_vars[var_id];
+    size_t type_size = model_var_type_size(cur_var->var.type);
+    cur_var->data = calloc(type_size, cur_var->var.num_elems);
+    memcpy(cur_var->data, data, type_size * cur_var->var.num_elems);
+    (cur_vts_data.cur_var)++;
+}
+
+/**
+ * @brief Save model variable sample
+ *
+ * To be called by the model sampling event forward handler
+ */
+// TODO may need instrumentation type for storing for RC
+// TODO how to store for RC
+void st_save_model_variable(tw_lp* lp, const char* var_name, void* data)
+{
+    if (cur_vts_data.in_progress)
+    {
+        // we're in a VTS sampling point
+        vts_save_model_variable(lp, var_name, data);
+        return;
+    }
+
+    // GVT and RT modes should do this instead
+    // setup metadata for this variable in the buffer
+    model_var_md* cur_var = (model_var_md*)cur_buf.cur_pos;
+    cur_buf.cur_pos += sizeof(*cur_var);
+    cur_buf.cur_size += sizeof(*cur_var);
+    //printf("sizeof variable %s %lu\n", var_name, sizeof(*cur_var));
+
+    // look up var_name to find id
+    cur_var->var_id  = variable_id_lookup(lp, var_name);
+    cur_var->num_elems = lp->model_types->model_vars[cur_var->var_id].num_elems;
+    cur_var->type = lp->model_types->model_vars[cur_var->var_id].type;
+    size_t type_size = model_var_type_size(cur_var->type);
+    size_t data_size = cur_var->num_elems * type_size;
+    //printf("sizeof data %lu\n", data_size);
+
+    // TODO can we remove the memcpy somehow?
+    memcpy(cur_buf.cur_pos, data, data_size);
+    cur_buf.cur_pos += data_size;
+    cur_buf.cur_size += data_size;
+
+    if (cur_buf.cur_size > cur_buf.total_size)
+        tw_error(TW_LOC, "Model data caused buffer overflow! cur_size %lu, total_size %lu\n",
+                cur_buf.cur_size, cur_buf.total_size);
+}
+
+/**
+ * @brief Retrieve model variable sample for reverse computation
+ *
+ * To be called by the model sampling event reverse handler
+ */
+void* st_get_model_variable(tw_lp* lp, const char* var_name, size_t* data_size)
+{
+    if (!cur_vts_data.in_progress)
+        tw_error(TW_LOC, "Should not be returning model VTS data!");
+    
+    model_lp_sample* cur_lp = cur_vts_data.cur_lp;
+
+    if (lp->gid != cur_lp->lpid)
+        tw_error(TW_LOC, "wrong LP!");
+
+    int var_id = variable_id_lookup(lp, var_name);
+    model_var_data* var = &cur_lp->vars[var_id];
+    *data_size = model_var_type_size(var->var.type) * var->var.num_elems;
+    return var->data;
+    //if (!data)
+    //    tw_error(TW_LOC, "data pointer needs to be initialized!");
+    //memcpy(data, var->data, model_var_type_size(var->var.type) * var->var.num_elems);
+}

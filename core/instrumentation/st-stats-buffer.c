@@ -1,6 +1,13 @@
 #include <ross.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-model-data.h>
+
+#define st_buffer_free_space(buf) (buf->size - buf->count)
+#define st_buffer_write_ptr(buf) (buf->buffer + buf->write_pos)
+#define st_buffer_read_ptr(buf) (buf->buffer + buf->read_pos)
 
 static long missed_bytes = 0;
 static MPI_Offset *prev_offsets = NULL;
@@ -9,8 +16,8 @@ char stats_directory[INST_MAX_LENGTH];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
-static const char *file_suffix[NUM_COL_TYPES];
-FILE *seq_ev_trace, *seq_model, *seq_analysis;
+static const char *file_suffix[NUM_INST_MODES];
+FILE *seq_ev_trace, *seq_analysis;
 static st_stats_buffer **g_st_buffer;
 
 void st_buffer_allocate()
@@ -39,19 +46,19 @@ void st_buffer_allocate()
     MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
 
     // allocate buffer pointers
-    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
+    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_INST_MODES);
 
     // setup MPI file offsets
     if (!prev_offsets)
     {
-        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_COL_TYPES); 
-        for (i = 0; i < NUM_COL_TYPES; i++)
+        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_INST_MODES);
+        for (i = 0; i < NUM_INST_MODES; i++)
             prev_offsets[i] = 0;
     }
 
     // set up file handlers
     if (!buffer_fh)
-        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_File), NUM_COL_TYPES);
+        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_File), NUM_INST_MODES);
 
 }
 
@@ -66,9 +73,8 @@ void st_buffer_init(int type)
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";
     file_suffix[1] = "rt";
-    file_suffix[2] = "analysis-lps";
+    file_suffix[2] = "vt";
     file_suffix[3] = "evtrace";
-    file_suffix[4] = "model";
     
     g_st_buffer[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     g_st_buffer[type]->size  = g_st_buffer_size;
@@ -84,15 +90,43 @@ void st_buffer_init(int type)
             sprintf(g_st_stats_out, "ross-stats");
         sprintf(filename, "%s/%s-%s.bin", stats_directory, g_st_stats_out, file_suffix[type]);
         if (g_tw_synchronization_protocol != SEQUENTIAL)
+        {
             MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, &buffer_fh[type]);
+            write_file_metadata(type);
+        }
         else if (strcmp(file_suffix[type], "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_ev_trace = fopen(filename, "w");
-        else if (strcmp(file_suffix[type], "model") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
-            seq_model = fopen(filename, "w");
-        else if (type == ANALYSIS_LP && g_tw_synchronization_protocol == SEQUENTIAL)
+        else if (type == VT_INST && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_analysis = fopen(filename, "w");
         
     }
+}
+
+// get a pointer into the buffer for writing data
+// means we can't use circular buffer
+char* st_buffer_pointer(int type, size_t size)
+{
+    char* buf_ptr = NULL;
+    if (!g_st_disable_out && st_buffer_free_space(g_st_buffer[type]) < size)
+    {
+        if (!buffer_overflow_warned)
+        {
+            printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
+            buffer_overflow_warned = 1;
+            printf("tw_now() = %f\n", tw_now(g_tw_lp[0]));
+        }
+        missed_bytes += size;
+        size = 0; // if we can't push it all, don't push anything to buffer
+    }
+
+    if (g_st_buffer[type]->size - g_st_buffer[type]->write_pos >=  size)
+    {
+        buf_ptr = st_buffer_write_ptr(g_st_buffer[type]);
+        g_st_buffer[type]->write_pos += size;
+    }
+    g_st_buffer[type]->count += size;
+
+    return buf_ptr;
 }
 
 /* write stats to buffer
@@ -132,6 +166,38 @@ void st_buffer_push(int type, char *data, int size)
     }
     g_st_buffer[type]->count += size;
     //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(g_st_buffer[type]));
+}
+
+void write_file_metadata(int type)
+{
+    MPI_Offset offset = prev_offsets[type];
+    MPI_File *fh = &buffer_fh[type];
+    MPI_Status status;
+
+    file_metadata file_md;
+    file_md.num_pe = tw_nnodes();
+    file_md.num_kp_pe = (unsigned int)g_tw_nkp;
+    file_md.inst_mode = type;
+    //tw_lpid *num_lp_pe = calloc(sizeof(tw_lpid), tw_nnodes());
+    //MPI_Gather(&g_tw_nlp, 1, MPI_UNSIGNED_LONG, num_lp_pe, 1, MPI_UNSIGNED_LONG,
+    //        g_tw_masternode, MPI_COMM_ROSS);
+    //int *num_model_lps = calloc(sizeof(int), tw_nnodes());
+    //int num_mlps = get_num_model_lps(type);
+    //MPI_Gather(&num_mlps, 1, MPI_INT, num_model_lps, 1, MPI_INT,
+    //        g_tw_masternode, MPI_COMM_ROSS);
+
+
+    if (g_tw_mynode == g_tw_masternode)
+    {
+        MPI_File_write_at(*fh, offset, &file_md, sizeof(file_md), MPI_BYTE, &status);
+        offset += sizeof(file_md);
+        //MPI_File_write_at(*fh, offset, num_lp_pe, sizeof(tw_lpid) * tw_nnodes(), MPI_BYTE, &status);
+        //offset += sizeof(tw_lpid) * tw_nnodes();
+        //MPI_File_write_at(*fh, offset, num_model_lps, sizeof(int) * tw_nnodes(), MPI_BYTE, &status);
+        //offset += sizeof(int) * tw_nnodes();
+    }
+    prev_offsets[type] += sizeof(file_md);
+
 }
 
 /* determine whether to dump buffer to file 

@@ -1,4 +1,7 @@
 #include <ross.h>
+#include <instrumentation/st-stats-buffer.h>
+#include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-event-trace.h>
 
 int g_st_ev_trace = 0;
 
@@ -41,7 +44,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     {
         memcpy(&buffer[0], &ev_data, sizeof(ev_data));
         if (g_tw_synchronization_protocol != SEQUENTIAL)
-            st_buffer_push(EV_TRACE, &buffer[0], total_sz);
+            st_buffer_push(ET_INST, &buffer[0], total_sz);
         else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
             fwrite(buffer, total_sz, 1, seq_ev_trace);
 

@@ -110,26 +110,41 @@ tw_lptype       mylps[] = {
 	{0},
 };
 
-void event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
+/*** Start implementation for ROSS instrumentation ***/
+void phold_event_trace(phold_message *m, tw_lp *lp, char *buffer, int *collect_flag)
 {
     return;
 }
 
-void phold_stats_collect(phold_state *s, tw_lp *lp, char *buffer)
+void phold_sampling(phold_state *s, tw_lp *lp)
 {
-    // just testing
-    int a = 1;
-    memcpy(buffer, &a, sizeof(a));
     return;
 }
+
+void phold_vt_sampling(phold_state* s, tw_bf* bf, tw_lp* lp)
+{
+    return;
+}
+
+void phold_vt_sampling_rc(phold_state* s, tw_bf* bf, tw_lp* lp)
+{
+    return;
+}
+
+char phold_lp_name[] = "phold_lp\0";
 
 st_model_types model_types[] = {
-    {(ev_trace_f) event_trace,
-     0,
-    (model_stat_f) phold_stats_collect,
-    sizeof(int)},
+    {phold_lp_name,
+    NULL,
+    0,
+    (vts_event_f) phold_vt_sampling,
+    (vts_revent_f) phold_vt_sampling_rc,
+    (rt_event_f) phold_sampling,
+    (ev_trace_f) phold_event_trace,
+    0},
     {0}
 };
+/*** End implementation for ROSS instrumentation ***/
 
 const tw_optdef app_opt[] =
 {
