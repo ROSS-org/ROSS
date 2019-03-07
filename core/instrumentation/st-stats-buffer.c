@@ -111,9 +111,8 @@ char* st_buffer_pointer(int type, size_t size)
     {
         if (!buffer_overflow_warned)
         {
-            printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
             buffer_overflow_warned = 1;
-            printf("tw_now() = %f\n", tw_now(g_tw_lp[0]));
+            tw_error(TW_LOC, "No room left in instrumentation buffer! Rerun with larger buffer\n");
         }
         missed_bytes += size;
         size = 0; // if we can't push it all, don't push anything to buffer

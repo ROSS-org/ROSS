@@ -49,6 +49,9 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
 // TODO for VTS, this isn't correctly calculating on a KP basis
 size_t calc_model_sample_size(int inst_mode, int *num_lps)
 {
+    if (inst_mode == VT_INST)
+        tw_error(TW_LOC, "VTS calculates model sample size in the Analysis LPs!");
+    
     *num_lps = 0;
 
     if (!model_modes[inst_mode])
@@ -65,9 +68,9 @@ size_t calc_model_sample_size(int inst_mode, int *num_lps)
         if (inst_mode != VT_INST &&
                 (!clp->model_types || !clp->model_types->rt_event_fn || clp->model_types->num_vars <= 0))
             continue;
-        if (inst_mode == VT_INST &&
-                (!clp->model_types || !clp->model_types->vts_event_fn || clp->model_types->num_vars <= 0))
-            continue;
+        //if (inst_mode == VT_INST &&
+        //        (!clp->model_types || !clp->model_types->vts_event_fn || clp->model_types->num_vars <= 0))
+        //    continue;
 
         (*num_lps)++;
         total_size += sizeof(st_model_data);
@@ -159,6 +162,9 @@ size_t model_var_type_size(st_model_typename type)
  */
 void st_collect_model_data(tw_pe *pe, int inst_mode, char *buffer, size_t data_size)
 {
+    if (inst_mode == VT_INST)
+        tw_error(TW_LOC, "Should not be called for VTS!");
+
     tw_clock start_cycle_time = tw_clock_read();
 
     cur_buf.buffer = buffer;

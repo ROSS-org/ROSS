@@ -46,7 +46,8 @@ void analysis_init(analysis_state *s, tw_lp *lp)
             sim_idx++;
 
             // check if this LP even needs sampling performed
-            if (cur_lp->model_types == NULL || !cur_lp->model_types->vts_event_fn)
+            if (cur_lp->model_types == NULL || !cur_lp->model_types->vts_event_fn
+                    || cur_lp->model_types->num_vars <= 0)
                 continue;
 
             s->model_sample_size += sizeof(st_model_data);
@@ -187,7 +188,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 break;
 
             model_lp = tw_getlocal_lp(s->lp_list[i]);
-            if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn)
+            if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn
+                    || model_lp->model_types->num_vars <= 0)
                 continue;
             //printf("%lu: Analysis LP %lu, model_lp: %lu\n", g_tw_mynode, lp->gid, model_lp->gid);
             vts_next_lp(model_lp);
@@ -219,7 +221,8 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         for (i = 0; i < s->num_lps; i++)
         {
             model_lp = tw_getlocal_lp(s->lp_list[i]);
-            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn)
+            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
+                    || cur_lp->model_types->num_vars <= 0)
                 continue;
             model_lp->model_types->vts_revent_fn(model_lp->cur_state, NULL, model_lp, NULL);
         }
@@ -246,7 +249,8 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
                     // first call the appropriate RC fn, to allow it to undo any state changes
                     model_lp = tw_getlocal_lp(s->lp_list[j]);
-                    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn)
+                    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
+                            || model_lp->model_types->num_vars <= 0)
                         continue;
                     vts_next_lp_rev(model_lp->gid);
                     model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
@@ -305,7 +309,8 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 //for (j = 0; j < s->num_lps; j++)
                 //{
                 //    model_lp = tw_getlocal_lp(s->lp_list[j]);
-                //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn)
+                //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn
+                //    || cur_lp->model_types->num_vars <= 0)
                 //        continue;
                 //    //vts_next_lp_rev(model_lp->gid);
 
