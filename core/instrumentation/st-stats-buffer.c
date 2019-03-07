@@ -9,16 +9,20 @@
 #define st_buffer_write_ptr(buf) (buf->buffer + buf->write_pos)
 #define st_buffer_read_ptr(buf) (buf->buffer + buf->read_pos)
 
-static long missed_bytes = 0;
-static MPI_Offset *prev_offsets = NULL;
-static MPI_File *buffer_fh = NULL;
-char stats_directory[INST_MAX_LENGTH];
 int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
+
+static long missed_bytes = 0;
 static int buffer_overflow_warned = 0;
+
+static char stats_directory[INST_MAX_LENGTH];
 static const char *file_suffix[NUM_INST_MODES];
-FILE *seq_ev_trace, **seq_fh;
-static st_stats_buffer **g_st_buffer;
+
+static MPI_Offset *prev_offsets = NULL;
+static MPI_File *buffer_fh = NULL;
+static FILE **seq_fh;
+FILE *seq_ev_trace;
+static st_stats_buffer **buffer_list;
 
 void st_buffer_allocate()
 {
@@ -43,7 +47,7 @@ void st_buffer_allocate()
     }
 
     // allocate buffer pointers
-    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)",
+    buffer_list = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)",
             sizeof(st_stats_buffer*), NUM_INST_MODES);
 
     if (g_tw_synchronization_protocol == SEQUENTIAL)
@@ -73,10 +77,6 @@ void st_buffer_allocate()
 
 }
 
-/* initialize circular buffer for stats collection
- * basically the read position marks the beginning of used space in the buffer
- * while the write postion marks the end of used space in the buffer
- */
 void st_buffer_init(int type)
 {
     printf("st_buffer_init(): type = %d\n", type);
@@ -87,12 +87,12 @@ void st_buffer_init(int type)
     file_suffix[2] = "vt";
     file_suffix[3] = "evtrace";
     
-    g_st_buffer[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
-    g_st_buffer[type]->size  = g_st_buffer_size;
-    g_st_buffer[type]->write_pos = 0;
-    g_st_buffer[type]->read_pos = 0;
-    g_st_buffer[type]->count = 0;
-    g_st_buffer[type]->buffer = (char*) tw_calloc(TW_LOC, "statistics collection (buffer)", 1, g_st_buffer[type]->size);
+    buffer_list[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
+    buffer_list[type]->size  = g_st_buffer_size;
+    buffer_list[type]->write_pos = 0;
+    buffer_list[type]->read_pos = 0;
+    buffer_list[type]->count = 0;
+    buffer_list[type]->buffer = (char*) tw_calloc(TW_LOC, "statistics collection (buffer)", 1, buffer_list[type]->size);
 
     // set up MPI File
     if (!g_st_disable_out)
@@ -121,7 +121,7 @@ void st_buffer_init(int type)
 char* st_buffer_pointer(int type, size_t size)
 {
     char* buf_ptr = NULL;
-    if (!g_st_disable_out && st_buffer_free_space(g_st_buffer[type]) < size)
+    if (!g_st_disable_out && st_buffer_free_space(buffer_list[type]) < size)
     {
         if (!buffer_overflow_warned)
         {
@@ -132,12 +132,12 @@ char* st_buffer_pointer(int type, size_t size)
         size = 0; // if we can't push it all, don't push anything to buffer
     }
 
-    if (g_st_buffer[type]->size - g_st_buffer[type]->write_pos >=  size)
+    if (buffer_list[type]->size - buffer_list[type]->write_pos >=  size)
     {
-        buf_ptr = st_buffer_write_ptr(g_st_buffer[type]);
-        g_st_buffer[type]->write_pos += size;
+        buf_ptr = st_buffer_write_ptr(buffer_list[type]);
+        buffer_list[type]->write_pos += size;
     }
-    g_st_buffer[type]->count += size;
+    buffer_list[type]->count += size;
 
     return buf_ptr;
 }
@@ -149,7 +149,7 @@ char* st_buffer_pointer(int type, size_t size)
 void st_buffer_push(int type, char *data, int size)
 {
     int size1, size2;
-    if (!g_st_disable_out && st_buffer_free_space(g_st_buffer[type]) < size)
+    if (!g_st_disable_out && st_buffer_free_space(buffer_list[type]) < size)
     {
         if (!buffer_overflow_warned)
         {
@@ -163,22 +163,22 @@ void st_buffer_push(int type, char *data, int size)
 
     if (size)
     {
-        if ((size1 = g_st_buffer[type]->size - g_st_buffer[type]->write_pos) >= size)
+        if ((size1 = buffer_list[type]->size - buffer_list[type]->write_pos) >= size)
         {
             // can use only one memcpy here
-            memcpy(st_buffer_write_ptr(g_st_buffer[type]), data, size);
-            g_st_buffer[type]->write_pos += size;
+            memcpy(st_buffer_write_ptr(buffer_list[type]), data, size);
+            buffer_list[type]->write_pos += size;
         }
         else // data to be stored wraps around end of physical array
         {
             size2 = size - size1;
-            memcpy(st_buffer_write_ptr(g_st_buffer[type]), data, size1);
-            memcpy(g_st_buffer[type]->buffer, data + size1, size2);
-            g_st_buffer[type]->write_pos = size2;
+            memcpy(st_buffer_write_ptr(buffer_list[type]), data, size1);
+            memcpy(buffer_list[type]->buffer, data + size1, size2);
+            buffer_list[type]->write_pos = size2;
         }
     }
-    g_st_buffer[type]->count += size;
-    //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(g_st_buffer[type]));
+    buffer_list[type]->count += size;
+    //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(buffer_list[type]));
 }
 
 void write_file_metadata(int type)
@@ -226,11 +226,11 @@ void st_buffer_write(int end_of_sim, int type)
     int write_sizes[tw_nnodes()];
     tw_clock start_cycle_time = tw_clock_read();
 
-    my_write_size = g_st_buffer[type]->count;
+    my_write_size = buffer_list[type]->count;
     if (g_tw_synchronization_protocol == SEQUENTIAL)
     {
         if ((double) my_write_size / g_st_buffer_size >= g_st_buffer_free_percent / 100.0 || end_of_sim)
-            fwrite(st_buffer_read_ptr(g_st_buffer[type]), my_write_size, 1, seq_fh[type]);
+            fwrite(st_buffer_read_ptr(buffer_list[type]), my_write_size, 1, seq_fh[type]);
         return;
     }
 
@@ -262,13 +262,13 @@ void st_buffer_write(int end_of_sim, int type)
         MPI_Status status;
         g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
         start_cycle_time = tw_clock_read();
-        MPI_File_write_at_all(*fh, offset, st_buffer_read_ptr(g_st_buffer[type]), my_write_size, MPI_BYTE, &status);
+        MPI_File_write_at_all(*fh, offset, st_buffer_read_ptr(buffer_list[type]), my_write_size, MPI_BYTE, &status);
         g_tw_pe[0]->stats.s_stat_write += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
-        g_st_buffer[type]->write_pos = 0;
-        g_st_buffer[type]->read_pos = 0;
-        g_st_buffer[type]->count = 0;
+        buffer_list[type]->write_pos = 0;
+        buffer_list[type]->read_pos = 0;
+        buffer_list[type]->count = 0;
         buffer_overflow_warned = 0;
     }
     else
