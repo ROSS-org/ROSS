@@ -269,7 +269,7 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
     if (inst_type == GVT_INST && !g_st_disable_out)
         st_inst_dump();
     // GVT mode doesn't work in sequential
-    if (g_tw_synchronization_protocol && !g_st_disable_out)
+    if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
         st_inst_dump();
 }
 
