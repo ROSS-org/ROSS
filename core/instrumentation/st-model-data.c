@@ -191,6 +191,7 @@ void st_collect_model_data(tw_pe *pe, int inst_mode, char *buffer, size_t data_s
         cur_buf.cur_size += sizeof(*model_data);
         //printf("size of st_model_data %lu\n", sizeof(st_model_data));
 
+        memcpy(model_data->lp_name, clp->model_types->lp_name, lp_name_len);
         model_data->lpid = (unsigned int) clp->gid;
         model_data->kpid = (unsigned int) clp->kp->id;
         model_data->num_vars = clp->model_types->num_vars;
@@ -201,7 +202,8 @@ void st_collect_model_data(tw_pe *pe, int inst_mode, char *buffer, size_t data_s
     }
 
     if (cur_buf.cur_size != cur_buf.total_size)
-        tw_error(TW_LOC, "Model data caused buffer overflow!\n");
+        tw_error(TW_LOC, "Model data caused buffer overflow! cur_size %lu, data_size %lu\n",
+                cur_buf.cur_size, cur_buf.total_size);
 
     pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
@@ -223,6 +225,7 @@ void st_collect_model_data_vts(tw_pe *pe, tw_lp* lp, int inst_mode, char* buffer
         cur_buf_ptr += sizeof(*model_data);
         cur_size += sizeof(*model_data);
 
+        memcpy(model_data->lp_name, cur_lp->lp_name, lp_name_len);
         model_data->lpid = (unsigned int) cur_lp->lpid;
         model_data->kpid = (unsigned int) lp->kp->id;
         model_data->num_vars = cur_lp->num_vars;

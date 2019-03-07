@@ -43,6 +43,7 @@ typedef struct model_var_data
 
 typedef struct model_lp_sample
 {
+    const char* lp_name;
     tw_lpid lpid;
     int num_vars;
     model_var_data *vars;

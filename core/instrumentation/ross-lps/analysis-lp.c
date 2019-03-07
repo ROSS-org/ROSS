@@ -105,6 +105,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
             for (j = 0; j < s->num_lps; j++)
             {
                 cur_lp = tw_getlocal_lp(s->lp_list[j]);
+                sample->lp_data[j].lp_name = cur_lp->model_types->lp_name;
                 sample->lp_data[j].lpid = cur_lp->gid;
                 sample->lp_data[j].num_vars = cur_lp->model_types->num_vars;
                 sample->lp_data[j].vars = (model_var_data*)calloc(sizeof(model_var_data), cur_lp->model_types->num_vars);

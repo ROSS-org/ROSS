@@ -13,8 +13,10 @@
 
 st_model_types *g_st_model_types;
 
+#define lp_name_len 16
 typedef struct st_model_data
 {
+    char lp_name[lp_name_len];
     unsigned int kpid;
     unsigned int lpid;
     int num_vars;
