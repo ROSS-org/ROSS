@@ -494,6 +494,8 @@ void tw_scheduler_sequential(tw_pe * me) {
 
     printf("*** END SIMULATION ***\n\n");
 
+    st_inst_finalize(me);
+
     tw_stats(me);
 
     (*me->type.final)(me);

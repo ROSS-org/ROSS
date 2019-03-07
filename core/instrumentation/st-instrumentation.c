@@ -205,7 +205,7 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
         {
             model_data_sizes[inst_type] = get_model_data_size(lp->cur_state, &model_num_lps[inst_type]);
             buf_size += model_data_sizes[inst_type];
-            printf("%lu: size = %lu\n", g_tw_mynode, model_data_sizes[inst_type]);
+            //printf("%lu: size = %lu\n", g_tw_mynode, model_data_sizes[inst_type]);
         }
         //printf("st_inst_sample: buf_size %lu\n", buf_size);
 
@@ -246,7 +246,7 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
         buf_ptr += engine_data_sizes[inst_type];
         buf_size -= engine_data_sizes[inst_type];
     }
-    if (model_modes[inst_type])
+    if (buf_size && model_modes[inst_type])
     {
         if (inst_type != VT_INST)
         {
@@ -267,6 +267,9 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 
     // if damaris is enabled, g_st_disable_out == 1
     if (inst_type == GVT_INST && !g_st_disable_out)
+        st_inst_dump();
+    // GVT mode doesn't work in sequential
+    if (g_tw_synchronization_protocol && !g_st_disable_out)
         st_inst_dump();
 }
 

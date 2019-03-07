@@ -17,7 +17,7 @@ int g_st_buffer_size = 8000000;
 int g_st_buffer_free_percent = 15;
 static int buffer_overflow_warned = 0;
 static const char *file_suffix[NUM_INST_MODES];
-FILE *seq_ev_trace, *seq_analysis;
+FILE *seq_ev_trace, **seq_fh;
 static st_stats_buffer **g_st_buffer;
 
 void st_buffer_allocate()
@@ -42,23 +42,34 @@ void st_buffer_allocate()
             sprintf(stats_directory, "%s", g_st_stats_path);
     }
 
+    // allocate buffer pointers
+    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)",
+            sizeof(st_stats_buffer*), NUM_INST_MODES);
+
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+    {
+        if (!seq_fh)
+            seq_fh = (FILE**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(FILE*),
+                   NUM_INST_MODES);
+        return;
+    }
+
     // make sure everyone has the directory name
     MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
-
-    // allocate buffer pointers
-    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_INST_MODES);
 
     // setup MPI file offsets
     if (!prev_offsets)
     {
-        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_INST_MODES);
+        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)",
+                sizeof(MPI_Offset), NUM_INST_MODES);
         for (i = 0; i < NUM_INST_MODES; i++)
             prev_offsets[i] = 0;
     }
 
     // set up file handlers
     if (!buffer_fh)
-        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_File), NUM_INST_MODES);
+        buffer_fh = (MPI_File*) tw_calloc(TW_LOC, "statistics collection (buffer)",
+                sizeof(MPI_File), NUM_INST_MODES);
 
 }
 
@@ -96,8 +107,11 @@ void st_buffer_init(int type)
         }
         else if (strcmp(file_suffix[type], "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_ev_trace = fopen(filename, "w");
-        else if (type == VT_INST && g_tw_synchronization_protocol == SEQUENTIAL)
-            seq_analysis = fopen(filename, "w");
+        else if (g_tw_synchronization_protocol == SEQUENTIAL)
+        {
+            seq_fh[type] = fopen(filename, "w");
+            write_file_metadata(type);
+        }
         
     }
 }
@@ -169,10 +183,6 @@ void st_buffer_push(int type, char *data, int size)
 
 void write_file_metadata(int type)
 {
-    MPI_Offset offset = prev_offsets[type];
-    MPI_File *fh = &buffer_fh[type];
-    MPI_Status status;
-
     file_metadata file_md;
     file_md.num_pe = tw_nnodes();
     file_md.num_kp_pe = (unsigned int)g_tw_nkp;
@@ -185,7 +195,15 @@ void write_file_metadata(int type)
     //MPI_Gather(&num_mlps, 1, MPI_INT, num_model_lps, 1, MPI_INT,
     //        g_tw_masternode, MPI_COMM_ROSS);
 
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+    {
+        fwrite(&file_md, sizeof(file_md), 1, seq_fh[type]);
+        return;
+    }
 
+    MPI_Offset offset = prev_offsets[type];
+    MPI_File *fh = &buffer_fh[type];
+    MPI_Status status;
     if (g_tw_mynode == g_tw_masternode)
     {
         MPI_File_write_at(*fh, offset, &file_md, sizeof(file_md), MPI_BYTE, &status);
@@ -196,15 +214,12 @@ void write_file_metadata(int type)
         //offset += sizeof(int) * tw_nnodes();
     }
     prev_offsets[type] += sizeof(file_md);
-
 }
 
 /* determine whether to dump buffer to file 
  * should only be called at GVT! */
 void st_buffer_write(int end_of_sim, int type)
 {
-    MPI_Offset offset = prev_offsets[type];
-    MPI_File *fh = &buffer_fh[type];
     int write_to_file = 0;
     int my_write_size = 0;
     int i;
@@ -212,6 +227,15 @@ void st_buffer_write(int end_of_sim, int type)
     tw_clock start_cycle_time = tw_clock_read();
 
     my_write_size = g_st_buffer[type]->count;
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+    {
+        if ((double) my_write_size / g_st_buffer_size >= g_st_buffer_free_percent / 100.0 || end_of_sim)
+            fwrite(st_buffer_read_ptr(g_st_buffer[type]), my_write_size, 1, seq_fh[type]);
+        return;
+    }
+
+    MPI_Offset offset = prev_offsets[type];
+    MPI_File *fh = &buffer_fh[type];
 
     MPI_Allgather(&my_write_size, 1, MPI_INT, &write_sizes[0], 1, MPI_INT, MPI_COMM_ROSS);
     if (end_of_sim)
@@ -260,6 +284,11 @@ void st_buffer_finalize(int type)
 
     printf("PE %ld: There were %ld bytes of data missed because of buffer overflow\n", g_tw_mynode, missed_bytes);
 
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+    {
+        fclose(seq_fh[type]);
+        return;
+    }
     MPI_File_close(&buffer_fh[type]);
 
 }

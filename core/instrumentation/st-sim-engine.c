@@ -14,6 +14,9 @@ static tw_stat last_all_reduce_cnt = 0;
 
 size_t calc_sim_engine_sample_size()
 {
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+        return 0;
+
     size_t total_size = 0;
     if (g_st_pe_data)
         total_size += sizeof(st_pe_stats);
@@ -28,6 +31,9 @@ size_t calc_sim_engine_sample_size()
 // differing numbers of lps per analysis LP?
 size_t calc_sim_engine_sample_size_vts(tw_lp *lp)
 {
+    if (g_tw_synchronization_protocol == SEQUENTIAL)
+        return 0;
+
     size_t total_size = 0;
     if (g_st_pe_data && lp->kp->id == 0)
         total_size += sizeof(st_pe_stats);
