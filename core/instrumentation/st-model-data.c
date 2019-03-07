@@ -62,9 +62,11 @@ size_t calc_model_sample_size(int inst_mode, int *num_lps)
     for (lpid = 0; lpid < g_tw_nlp; lpid++)
     {
         clp = g_tw_lp[lpid];
-        if (inst_mode != VT_INST && (!clp->model_types || !clp->model_types->rt_event_fn))
+        if (inst_mode != VT_INST &&
+                (!clp->model_types || !clp->model_types->rt_event_fn || clp->model_types->num_vars <= 0))
             continue;
-        if (inst_mode == VT_INST && (!clp->model_types || !clp->model_types->vts_event_fn))
+        if (inst_mode == VT_INST &&
+                (!clp->model_types || !clp->model_types->vts_event_fn || clp->model_types->num_vars <= 0))
             continue;
 
         (*num_lps)++;
@@ -131,7 +133,7 @@ int get_num_model_lps(int inst_mode)
 
     for (lpid = 0; lpid < g_tw_nlp; lpid++)
     {
-        if (clp->model_types && clp->model_types->rt_event_fn)
+        if (clp->model_types && clp->model_types->rt_event_fn && clp->model_types->num_vars > 0)
             total++;
     }
     return total;
@@ -172,7 +174,7 @@ void st_collect_model_data(tw_pe *pe, int inst_mode, char *buffer, size_t data_s
     {
         clp = g_tw_lp[lpid];
         // TODO check function based on inst_mode
-        if (!clp->model_types || !clp->model_types->rt_event_fn)
+        if (!clp->model_types || !clp->model_types->rt_event_fn || clp->model_types->num_vars <= 0)
         {
             // may not want to collect model stats on every LP type, so if not defined, just continue
             continue;
@@ -245,7 +247,7 @@ void st_collect_model_data_vts(tw_pe *pe, tw_lp* lp, int inst_mode, char* buffer
 
 int variable_id_lookup(tw_lp* lp, const char* var_name)
 {
-    if (!lp->model_types || !lp->model_types->model_vars)
+    if (!lp->model_types || !lp->model_types->model_vars || lp->model_types->num_vars <= 0)
         tw_error(TW_LOC, "Couldn't find var_name %s in st_model_types for LP %lu!\n", var_name, lp->gid);
 
     int i;
