@@ -193,7 +193,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                     || model_lp->model_types->num_vars <= 0)
                 continue;
             //printf("%lu: Analysis LP %lu, model_lp: %lu\n", g_tw_mynode, lp->gid, model_lp->gid);
-            vts_next_lp(model_lp);
+            vts_next_lp(model_lp->gid);
 
             model_lp->model_types->vts_event_fn(model_lp->cur_state, bf, model_lp);
         }

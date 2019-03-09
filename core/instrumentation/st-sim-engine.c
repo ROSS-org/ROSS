@@ -6,8 +6,6 @@
 #include <instrumentation/ross-lps/analysis-lp.h>
 
 
-//#define __STDC_FORMAT_MACROS 1
-
 long g_st_current_interval = 0;
 static tw_statistics last_pe_stats[3];
 static tw_stat last_all_reduce_cnt = 0;
@@ -29,6 +27,7 @@ size_t calc_sim_engine_sample_size()
 
 // has to be calculated at each sample because may have
 // differing numbers of lps per analysis LP?
+// TODO can save in the Analysis LP state instead of recalculating
 size_t calc_sim_engine_sample_size_vts(tw_lp *lp)
 {
     if (g_tw_synchronization_protocol == SEQUENTIAL)

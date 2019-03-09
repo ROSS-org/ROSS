@@ -72,7 +72,25 @@ struct st_model_types {
     size_t ev_sz;                /**< @brief size of data collected from model for each event */
 };
 
+/**
+ * @brief Set up model_types for the given LP
+ *
+ * This is called by tw_lp_setup_types() and does not need to be directly called by the user.
+ * If the model uses tw_lp_settype() instead, see documentation for st_model_settype().
+ * Requires that g_st_model_types is defined.
+ *
+ * @param[in] lp LP for which to set model_types
+ */
 void st_model_setup_types(tw_lp *lp);
+
+/**
+ * @brief Set up model_types for the given LP
+ *
+ * If the model uses tw_lp_settype(), use this function to also set up model_types.
+ *
+ * @param[in] i local id of LP
+ * @param[in] model_types pointer to st_model_types for specified LP
+ */
 void st_model_settype(tw_lpid i, st_model_types *model_types);
 void st_save_model_variable(tw_lp* lp, const char* var_name, void* data);
 void* st_get_model_variable(tw_lp* lp, const char* var_name, size_t* data_size);
