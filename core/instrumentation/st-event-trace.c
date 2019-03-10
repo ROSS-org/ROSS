@@ -9,16 +9,16 @@ static short evtype_warned = 0;
 
 // collect src LP, dest LP, virtual time stamp, real time start
 // model can implement callback function to collect model level data, e.g. event type
-void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
+void st_collect_event_data(tw_event *cev)
 {
-    tw_clock start_cycle_time = tw_clock_read();
+    tw_clock real_ts = tw_clock_read();
     int collect_flag = 1;
     st_event_data ev_data;
     ev_data.src_lp = (unsigned int) cev->send_lp;
     ev_data.dest_lp = (unsigned int) cev->dest_lp->gid;
     ev_data.send_vts = (float) cev->send_ts;
     ev_data.recv_vts = (float) cev->recv_ts;
-    ev_data.real_ts = (float) recv_rt;
+    ev_data.real_ts = (float) real_ts;
     int total_sz = sizeof(ev_data);
 
     if (!cev->dest_lp->model_types && !evtype_warned && g_tw_mynode == g_tw_masternode)
@@ -49,6 +49,6 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
             fwrite(buffer, total_sz, 1, seq_ev_trace);
 
     }
-    g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
+    g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - real_ts;
 }
 

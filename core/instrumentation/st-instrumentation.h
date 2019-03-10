@@ -203,7 +203,7 @@ typedef enum{
 
 extern int g_st_ev_trace;
 
-void st_collect_event_data(tw_event *cev, tw_stime recv_rt);
+void st_collect_event_data(tw_event *cev);
 
 /*
  * ross-lps/analysis-lp.c
