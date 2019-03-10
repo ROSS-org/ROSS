@@ -21,14 +21,13 @@ static const char *file_suffix[NUM_INST_MODES];
 static MPI_Offset *prev_offsets = NULL;
 static MPI_File *buffer_fh = NULL;
 static FILE **seq_fh;
-FILE *seq_ev_trace;
 static st_stats_buffer **buffer_list;
 
 void st_buffer_allocate()
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps))
         return;
-    
+
     int i, rc;
 
     // setup directory for instrumentation output
@@ -86,7 +85,7 @@ void st_buffer_init(int type)
     file_suffix[1] = "rt";
     file_suffix[2] = "vt";
     file_suffix[3] = "evtrace";
-    
+
     buffer_list[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer_list[type]->size  = g_st_buffer_size;
     buffer_list[type]->write_pos = 0;
@@ -105,14 +104,11 @@ void st_buffer_init(int type)
             MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, &buffer_fh[type]);
             write_file_metadata(type);
         }
-        else if (strcmp(file_suffix[type], "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)
-            seq_ev_trace = fopen(filename, "w");
         else if (g_tw_synchronization_protocol == SEQUENTIAL)
         {
             seq_fh[type] = fopen(filename, "w");
             write_file_metadata(type);
         }
-        
     }
 }
 
@@ -187,13 +183,6 @@ void write_file_metadata(int type)
     file_md.num_pe = tw_nnodes();
     file_md.num_kp_pe = (unsigned int)g_tw_nkp;
     file_md.inst_mode = type;
-    //tw_lpid *num_lp_pe = calloc(sizeof(tw_lpid), tw_nnodes());
-    //MPI_Gather(&g_tw_nlp, 1, MPI_UNSIGNED_LONG, num_lp_pe, 1, MPI_UNSIGNED_LONG,
-    //        g_tw_masternode, MPI_COMM_ROSS);
-    //int *num_model_lps = calloc(sizeof(int), tw_nnodes());
-    //int num_mlps = get_num_model_lps(type);
-    //MPI_Gather(&num_mlps, 1, MPI_INT, num_model_lps, 1, MPI_INT,
-    //        g_tw_masternode, MPI_COMM_ROSS);
 
     if (g_tw_synchronization_protocol == SEQUENTIAL)
     {
@@ -208,10 +197,6 @@ void write_file_metadata(int type)
     {
         MPI_File_write_at(*fh, offset, &file_md, sizeof(file_md), MPI_BYTE, &status);
         offset += sizeof(file_md);
-        //MPI_File_write_at(*fh, offset, num_lp_pe, sizeof(tw_lpid) * tw_nnodes(), MPI_BYTE, &status);
-        //offset += sizeof(tw_lpid) * tw_nnodes();
-        //MPI_File_write_at(*fh, offset, num_model_lps, sizeof(int) * tw_nnodes(), MPI_BYTE, &status);
-        //offset += sizeof(int) * tw_nnodes();
     }
     prev_offsets[type] += sizeof(file_md);
 }

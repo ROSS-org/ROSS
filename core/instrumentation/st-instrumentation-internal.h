@@ -6,7 +6,6 @@
 /* st-stats-buffer.c */
 extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
-extern FILE *seq_ev_trace, *seq_analysis;
 
 /* st-instrumentation.c */
 typedef struct sample_metadata sample_metadata;

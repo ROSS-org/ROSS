@@ -43,10 +43,7 @@ void st_collect_event_data(tw_event *cev)
     if (collect_flag)
     {
         memcpy(&buffer[0], &ev_data, sizeof(ev_data));
-        if (g_tw_synchronization_protocol != SEQUENTIAL)
-            st_buffer_push(ET_INST, &buffer[0], total_sz);
-        else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
-            fwrite(buffer, total_sz, 1, seq_ev_trace);
+        st_buffer_push(ET_INST, &buffer[0], total_sz);
 
     }
     g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - real_ts;
