@@ -87,6 +87,7 @@ void st_inst_init(void)
 #endif
     specialized_lp_run();
 
+    // setup appropriate flags for various instrumentation modes
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
         return;
 
@@ -148,18 +149,6 @@ void st_inst_finish_setup()
     // potentially different size per KP
 
     st_buffer_allocate();
-
-    // setup appropriate flags for various instrumentation modes
-    // set up files and buffers for necessary instrumentation modes
-    if (engine_modes[GVT_INST] || model_modes[GVT_INST])
-        st_buffer_init(GVT_INST);
-    if (engine_modes[RT_INST] || model_modes[RT_INST])
-        st_buffer_init(RT_INST);
-    if (engine_modes[VT_INST] || model_modes[VT_INST])
-        st_buffer_init(VT_INST);
-
-    if (g_st_ev_trace)
-        st_buffer_init(ET_INST);
 
 }
 
