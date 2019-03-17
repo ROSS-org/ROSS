@@ -154,7 +154,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         {
             // this will call our model's sampling callback forward handler
             //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
-            st_damaris_sample_model_data(s->lp_list, s->num_lps);
+            st_damaris_sample_model_data(VT_INST, s->lp_list, s->num_lps);
         }
         size_t size;
         m->rc_data = st_damaris_finish_sample(&m->offset);
@@ -223,9 +223,9 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         {
             model_lp = tw_getlocal_lp(s->lp_list[i]);
             if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
-                    || cur_lp->model_types->num_vars <= 0)
+                    || model_lp->model_types->num_vars <= 0)
                 continue;
-            model_lp->model_types->vts_revent_fn(model_lp->cur_state, NULL, model_lp, NULL);
+            model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
         }
         st_damaris_delete_rc_data();
         return;

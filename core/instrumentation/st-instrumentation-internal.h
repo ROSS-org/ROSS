@@ -8,6 +8,10 @@ extern int g_st_buffer_size;
 extern int g_st_buffer_free_percent;
 
 /* st-instrumentation.c */
+size_t engine_data_sizes[NUM_INST_MODES];
+size_t model_data_sizes[NUM_INST_MODES];
+int model_num_lps[NUM_INST_MODES];
+
 typedef struct sample_metadata sample_metadata;
 
 typedef struct file_metadata

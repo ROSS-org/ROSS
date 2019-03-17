@@ -26,9 +26,9 @@ tw_stime g_st_sampling_end = 0;
 
 short model_modes[NUM_INST_MODES] = {0};
 short engine_modes[NUM_INST_MODES] = {0};
-static size_t engine_data_sizes[NUM_INST_MODES] = {0};
-static size_t model_data_sizes[NUM_INST_MODES] = {0};
-static int model_num_lps[NUM_INST_MODES] = {0};
+size_t engine_data_sizes[NUM_INST_MODES] = {0};
+size_t model_data_sizes[NUM_INST_MODES] = {0};
+int model_num_lps[NUM_INST_MODES] = {0};
 
 static char config_file[1024];
 
@@ -170,7 +170,8 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
     // new method should mean that this gets called regardless at GVT
     if (g_st_damaris_enabled)
 	{
-        st_damaris_expose_data(me, inst_type);
+        if (engine_modes[inst_type] || model_modes[inst_type])
+            st_damaris_expose_data(me, inst_type, lp, vts_commit);
         if (inst_type == GVT_INST)
             st_damaris_end_iteration(me->GVT);
         return;

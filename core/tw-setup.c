@@ -73,6 +73,7 @@ void tw_init(int *argc, char ***argv) {
     // by now all options must be in
     tw_opt_parse(argc, argv);
 
+    st_inst_init();
 #ifdef USE_DAMARIS
     if (!g_st_ross_rank) // Damaris ranks should not continue on here
         return;
@@ -111,7 +112,6 @@ void tw_init(int *argc, char ***argv) {
 
     tw_net_start();
     tw_gvt_start();
-    st_inst_init();
 }
 
 static void early_sanity_check(void) {
