@@ -124,15 +124,6 @@ void st_inst_init(void)
         g_st_rt_samp_start_cycles = tw_clock_read();
     }
 
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-    {
-        st_damaris_inst_init(config_file);
-        g_st_disable_out = 1;
-        return; // no need to set up buffers in this case
-    }
-#endif
-
 }
 
 void st_inst_finish_setup()
@@ -147,6 +138,15 @@ void st_inst_finish_setup()
     model_data_sizes[RT_INST] = calc_model_sample_size(RT_INST, &model_num_lps[RT_INST]);
     //model_data_sizes[VT_INST] = calc_model_sample_size(VT_INST, &model_num_lps[VT_INST]);
     // potentially different size per KP
+
+#ifdef USE_DAMARIS
+    if (g_st_damaris_enabled)
+    {
+        st_damaris_inst_init(config_file);
+        g_st_disable_out = 1;
+        return; // no need to set up buffers in this case
+    }
+#endif
 
     st_buffer_allocate();
 

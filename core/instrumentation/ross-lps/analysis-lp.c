@@ -67,15 +67,6 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     s->num_lps = idx;
     s->num_lps_sim = sim_idx;
 
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-    {
-        // schedule 1st sampling event
-        st_create_sample_event(lp);
-        return;
-    }
-#endif
-
     // setup memory to use for model samples
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
@@ -125,46 +116,32 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
 
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-    {
-        //st_inst_sample(lp->pe, VT_INST);
-        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-        double real_ts = (double)tw_clock_read() / g_tw_clock_rate;
-        //printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
-        st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
-                kp_gid, s->event_id);
-        // TODO instead of an event_id for distinguishing samples, use the real time and save it
-        // in the analysis_msg.  Then in the reverse we can send the real time stamp instead of event_id.
-
-        if (engine_modes[VT_INST])
-        {
-            // Not going to worry about supported sim engine data in this mode right now
-            //printf("PE %ld: sampling sim engine data type: %d\n", g_tw_mynode, VT_INST);
-            //// collect data for each entity
-            //if (g_st_pe_data && lp->kp->id == 0)
-            //    st_damaris_sample_pe_data(lp->pe, &s->last_pe_stats, VT_INST);
-            //if (g_st_kp_data)
-            //    st_damaris_sample_kp_data(VT_INST, &lp->kp->id);
-            //if (g_st_lp_data)
-            //    st_damaris_sample_lp_data(VT_INST, s->lp_list_sim, s->num_lps_sim);
-        }
-
-        if (model_modes[VT_INST])
-        {
-            // this will call our model's sampling callback forward handler
-            //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
-            st_damaris_sample_model_data(VT_INST, s->lp_list, s->num_lps);
-        }
-        size_t size;
-        m->rc_data = st_damaris_finish_sample(&m->offset);
-
-        // create next sampling event
-        st_create_sample_event(lp);
-        s->event_id++;
-        return;
-    }
-#endif
+//#ifdef USE_DAMARIS
+//    if (g_st_damaris_enabled)
+//    {
+//        //st_inst_sample(lp->pe, VT_INST);
+//        //int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+//        //printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
+//        //st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
+//        //        kp_gid, s->event_id);
+//        // TODO instead of an event_id for distinguishing samples, use the real time and save it
+//        // in the analysis_msg.  Then in the reverse we can send the real time stamp instead of event_id.
+//
+//        //if (model_modes[VT_INST])
+//        //{
+//        //    // this will call our model's sampling callback forward handler
+//        //    //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
+//        //    st_damaris_sample_model_data(VT_INST, s->lp_list, s->num_lps);
+//        //}
+//        //size_t size;
+//        //m->rc_data = st_damaris_finish_sample(&m->offset);
+//
+//        //// create next sampling event
+//        //st_create_sample_event(lp);
+//        //s->event_id++;
+//        //return;
+//    }
+//#endif
 
     // inst_sample() won't collect model data for VTS
     inst_sample(lp->pe, VT_INST, lp, 0);
@@ -211,26 +188,26 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_e_rbs++;
 
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-    {
-        s->event_id--;
-        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
-        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
-        st_damaris_set_rc_data(m->rc_data, m->offset);
-        for (i = 0; i < s->num_lps; i++)
-        {
-            model_lp = tw_getlocal_lp(s->lp_list[i]);
-            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
-                    || model_lp->model_types->num_vars <= 0)
-                continue;
-            model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
-        }
-        st_damaris_delete_rc_data();
-        return;
-    }
-#endif
+//#ifdef USE_DAMARIS
+//    if (g_st_damaris_enabled)
+//    {
+//        s->event_id--;
+//        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+//        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
+//        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
+//        st_damaris_set_rc_data(m->rc_data, m->offset);
+//        for (i = 0; i < s->num_lps; i++)
+//        {
+//            model_lp = tw_getlocal_lp(s->lp_list[i]);
+//            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
+//                    || model_lp->model_types->num_vars <= 0)
+//                continue;
+//            model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
+//        }
+//        st_damaris_delete_rc_data();
+//        return;
+//    }
+//#endif
 
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
@@ -284,15 +261,6 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
-#ifdef USE_DAMARIS
-    if (g_st_damaris_enabled)
-    {
-        // I don't think we need to do anything else here
-        // Damaris ranks will be updated on GVT value, so they will know
-        // what is committed and speculative
-        return;
-    }
-#endif
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         // write committed data to buffer
