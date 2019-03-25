@@ -3,7 +3,7 @@
 #ifndef __GNUC__
 #  error gcc asm extensions required
 #endif
-#ifndef __ppc__
+#if !(defined __ppc__ || defined __PPC__)
 #  error only ppc platform supported
 #endif
 
