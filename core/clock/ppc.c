@@ -7,7 +7,7 @@
 #  error only ppc platform supported
 #endif
 
-static tw_clock tw_clock_read(void)
+tw_clock tw_clock_read(void)
 {
 	unsigned long tbu;
 	unsigned long tb1;
