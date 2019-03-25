@@ -5,12 +5,12 @@ There are many ways to contribute to ROSS:
 - Create and release a model.
   Like any simulation engine, ROSS is always looking for new models and new model developers.
   This is also the best way to learn about ROSS and its API.
-- File a bug or request a feature through [GitHub Issues](http://github.com/carothersc/ROSS/issues).
+- File a bug or request a feature through [GitHub Issues](http://github.com/ROSS-org/ROSS/issues).
   We are always looking to improve ROSS to make it more stable for our users.
   Feature requests and related discussions are located here as well.
 - The best way to ensure a bug or feature request is addressed is to do it yourself!
   Spelunking through the ROSS core can be a enlightening journey.
-  Once you've made the change, feel free to create a [pull request](https://github.com/carothersc/ROSS/pulls).
+  Once you've made the change, feel free to create a [pull request](https://github.com/ROSS-org/ROSS/pulls).
   Between our continuous integration testing and our experienced ROSS core team, we will ensure your change is safe before deploying it to the master branch.
 
 ## Small Changes
@@ -40,12 +40,12 @@ First, the new feature or major change must pass all of the existing TravisCI te
 Next, the test coverage must increase (or at least stay the same).
 For new features, this usually means that a new test must written.
 There are typically two options for a test:
-- Add a new test to PHOLD model (see [models/phold/CMakeLists.txt](https://github.com/carothersc/ROSS/blob/master/models/phold/CMakeLists.txt)).
+- Add a new test to PHOLD model (see [models/phold/CMakeLists.txt](https://github.com/ROSS-org/ROSS/blob/master/models/phold/CMakeLists.txt)).
 - Create a new model which tests your feature and add this model to the ROSS-Models repository.
 
 ### ROSS Model Changes
 
-The [ROSS-Models repository](http://github.com/carothersc/ROSS-Models) contains models which are no longer under development.
+The [ROSS-Models repository](http://github.com/ROSS-org/ROSS-Models) contains models which are no longer under development.
 If your new feature is a major API change to ROSS, the models in this repository must be updated.
 The workflow to update the ROSS-Models submodule is as follows:
 
@@ -72,7 +72,7 @@ Here you can fork the CODES repository and create a pull request with any requir
 
 In order to keep our documentation up-to-date, any new feature or major change must be documented before it is merged into the master branch.
 The easiest way to document the change is to create a new blog post for our website.
-The [contributing guide](https://github.com/carothersc/ROSS/blob/gh-pages/CONTRIBUTING.md) in our gh-pages branch documents this process.
+The [website contributing guide](https://github.com/ROSS-org/ross-org.github.io/blob/master/CONTRIBUTING.md) documents this process.
 
 ## Versioning and New Releases
 
