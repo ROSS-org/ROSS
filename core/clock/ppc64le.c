@@ -1,6 +1,6 @@
 #include <ross.h>
 
-extern unsigned long long g_tw_clock_rate
+extern unsigned long long g_tw_clock_rate;
 
 static const tw_optdef clock_opts [] =
 {
