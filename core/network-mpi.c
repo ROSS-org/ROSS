@@ -26,8 +26,7 @@ struct act_q
     int coda;//add, back of queue but back is already a variable somewhere
     int size_of_fr_q;//add, size of queue array
     int num_in_fr_q;//add, number of elements in queue
-//    int reset_var;// a variable determining if the queue has been reset lately.
-// Deal with filling queue, then plateauing
+    int reset_var;// a variable determining if the queue has been reset lately.
 
 };
 
@@ -47,21 +46,20 @@ static unsigned int read_buffer = 16;
 static unsigned int send_buffer = 1024;
 static int world_size = 1;
 
-int deal_with_cur(struct act_q *q)// this is for MPI_testsome input
+void deal_with_cur(struct act_q *q)// this is for MPI_testsome input
 {
     if(q->cur < (q->size_of_fr_q-1))//checks to see if
     {
         q->cur++;
-        return 1;
+        return;
     }
     else
     {  //not sure if best placement is here or in fr_q_chq. probably fr_q_chq.
-        //q->reset_var = 0;
-        return 1;
+        return;
     }
 }
 
-void fr_q_reset(struct act_q *q)//experimental
+void old_fr_q_reset(struct act_q *q)//experimental
 {
     if(q->num_in_fr_q == (q->size_of_fr_q-1)) //if the queue is filled with free
     {
@@ -85,13 +83,12 @@ void fr_q_reset(struct act_q *q)//experimental
 
 }
 
-void new_fr_q_reset(struct act_q *q)//experimental
+void fr_q_reset(struct act_q *q)//experimental
 {
     if(q->num_in_fr_q == (q->size_of_fr_q-1))//if the queue is filled with free
     {
-//        q->reset_var = 1;
         //resets queue to default positions
-
+        q->reset_var = 1;
         q->front = 0;
         q->coda  = 0;
         q->cur   = 0;
@@ -114,6 +111,7 @@ void fr_q_chq(struct act_q *q, int *frontOrCoda) //free index queue; check for m
     }
     else//mess with queue
     {
+        q->reset_var = 0;
         *frontOrCoda = 0;
         return;
     }
@@ -124,6 +122,7 @@ void fr_q_aq(struct act_q *q, int ele) // free index queue; add to queue
 
     q->free_idx_list[q->coda] = ele;
     q->coda++;
+    q->num_in_fr_q++;
     fr_q_chq(q,&q->coda);//wraps the queue array around
 
 }
@@ -137,16 +136,16 @@ int fr_q_dq(struct act_q *q) // free index queue; dequeue
     q->front++;
     q->num_in_fr_q--;//can we get rid of this here?
     fr_q_chq(q, &q->front);// wraps the queue array around
-
     return rv;
+
 }
 
-int new_send_fr_q_dq(struct act_q *q) // free index queue; dequeue
+int send_fr_q_dq(struct act_q *q) // free index queue; dequeue
 {
-/*
+
     int rv;
 
-    if(q->reset_var != 1) // if not recently reset, take from front of queue
+    if(q->reset_var == 0) // if not recently reset, take from front of queue
     {
         rv =q->free_idx_list[q->front];
         q->front++;
@@ -154,18 +153,16 @@ int new_send_fr_q_dq(struct act_q *q) // free index queue; dequeue
         fr_q_chq(q, &q->front);// wraps the queue array around
     }
     else //if recently reset, return q->front. This works because front will just give the numbers sequentially so we
-         //don't need an explicit assignment
-    {
+    {    //don't need an explicit assignment
+
         rv = q->front;
         q->front++;
         q->num_in_fr_q--;
-        fr_q_chq(q,&q->front);// wraps the queue array around
+        fr_q_chq( q, &q->front );// wraps the queue array around
 
     }
-
     return rv;
 
-*/
 }
 
 
@@ -226,10 +223,16 @@ init_q(struct act_q *q, const char *name)
 #endif
 
     if(q == &posted_sends)
+    {
+        q->reset_var = 1;
         n = send_buffer;
+    }
     else
-        n = read_buffer;
+    {
+        q->reset_var = 0;
 
+        n = read_buffer;
+    }
     q->name = name;
     q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
     q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
@@ -240,9 +243,9 @@ init_q(struct act_q *q, const char *name)
     q->overflow_anti = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), (n/2)+2);// queue, at most (n/2) can be out of order, first element is # of elements in queue
     q->front = 0;// front of queue
     q->coda  = 0;// end of queue
-    q->size_of_fr_q=n+1;// for wraparound
- //   q->cur = 0;
-//    q->num_in_fr_q = 0;
+    q->size_of_fr_q = n+1;// for wraparound
+    q->reset_var = 1;
+    q->num_in_fr_q = 0; // number of elements in queue
 
     int i = 0;
     while(i<n) // initializes the queue
@@ -251,7 +254,7 @@ init_q(struct act_q *q, const char *name)
         i++;
     }
     q->overflow_anti[0]=1;
-    q->num_in_fr_q = n;// number of elements in queue
+//    q->num_in_fr_q = n;// number of elements in queue
 
 
 #if ROSS_MEMORY
@@ -405,7 +408,7 @@ test_q_recv(
         return 0;
 
     q->overflow_anti[0]=1;
-    q->num_in_fr_q+=ready;
+//    q->num_in_fr_q+=ready;
 
     while ( i < ready)
     {
@@ -505,7 +508,7 @@ test_q_send(
     }
 
 
-    q->num_in_fr_q+=ready;
+ //   q->num_in_fr_q+=ready;
 //  after all elements are removed from queue, checks if queue is empty and resets ordering if so.
     fr_q_reset(q);
 
@@ -560,7 +563,7 @@ recv_begin(tw_pe *me)
         deal_with_cur(&posted_recvs);
         changed = 1;
     }
-
+    posted_recvs.num_in_fr_q = 0;
     return changed;
 }
 
@@ -800,7 +803,7 @@ send_begin(tw_pe *me)
         if(e == me->abort_event)
             tw_error(TW_LOC, "Sending abort event!");
 
-        int id =  fr_q_dq(&posted_sends);// fixed, grabs from front of queue, moves front up one element
+        int id =  send_fr_q_dq(&posted_sends);// fixed, grabs from front of queue, moves front up one element
         dest_node = tw_net_onnode((*e->src_lp->type->map)
                                           ((tw_lpid) e->dest_lp));
 
