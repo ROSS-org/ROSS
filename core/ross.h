@@ -182,6 +182,9 @@ typedef uint64_t tw_lpid;
 #ifdef ROSS_CLOCK_bgq
 #  include "clock/bgq.h"
 #endif
+#ifdef ROSS_CLOCK_aarch64
+#  include "clock/aarch64.h"
+#endif
 
 #include "tw-timing.h"
 #include "ross-types.h"
@@ -215,7 +218,7 @@ typedef uint64_t tw_lpid;
 #include "tw-eventq.h"
 
 #ifdef USE_RIO
-#include "../IO/io.h"
+#include "rio/io.h"
 #endif
 
 #include "ross-inline.h"

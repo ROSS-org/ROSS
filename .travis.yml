@@ -23,24 +23,24 @@ before_install:
  - mpirun --version
 script:
  - mkdir cxx-build && cd cxx-build
- - ARCH=x86_64 CC=mpicc cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
+ - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
  - export MPICH_CC=clang++
  - make
  - unset MPICH_CC
  - cd ..
  - mkdir release && cd release
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
  - mkdir build && cd build
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
  - cd ..
  - mkdir build2 && cd build2
- - ARCH=x86_64 CC=mpicc MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
@@ -56,17 +56,16 @@ after_success:
   - # GIT_NAME, GIT_EMAIL and GH_TOKEN. These were passed
   - # encrypted to travis and should have been decrypted
   - # using travis' private key before this script was run.
-  - git config --global user.name "${GIT_NAME}"
-  - git config --global user.email ${GIT_EMAIL}
+  - git config --global user.name "ROSS bot"
+  - git config --global user.email ross.gh.robot@gmail.com
   -
   - # clone the whole repo again, but switch to gh_pages branch
-  - git clone -b gh-pages --single-branch https://github.com/carothersc/ROSS
-  -
-  - cd ROSS
-  - git clone -b master --single-branch https://github.com/carothersc/ROSS
+  - git clone -b master --single-branch https://github.com/ross-org/ross-org.github.io
+  - cd ross-org.github.io
+  - git clone -b master --single-branch https://github.com/ross-org/ROSS
   - cd ROSS
   - mkdir build && cd build
-  - ARCH=x86_64 cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
+  - cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
   - cd ../..
   - git rm -r ROSS-docs
@@ -74,4 +73,4 @@ after_success:
   - mv ROSS/build/docs/html ROSS-docs/docs
   - git add ROSS-docs
   - git commit -m "Automatic doxygen build."
-  - git push https://${GH_TOKEN}@github.com/carothersc/ROSS gh-pages
+  - git push https://${GH_TOKEN}@github.com/ROSS-org/ross-org.github.io master
