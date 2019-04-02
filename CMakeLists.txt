@@ -109,9 +109,10 @@ IF(VALID_ARCH)
   MESSAGE(STATUS "Using C_FLAGS: ${CMAKE_C_FLAGS}")
   MESSAGE(STATUS "Using CLOCK: ${CLOCK}")
 ELSE(VALID_ARCH)
-  MESSAGE(FATAL_ERROR "System architecture not recognized!\n"
+  MESSAGE(WARNING "System architecture not recognized!\n"
     "Found: ${CMAKE_SYSTEM_PROCESSOR}\n"
-    "Expected: i386 | x86_64 | ppc64 | ppc64le | aarch64")
+    "Falling back to get-time-of-day clock implementation.")
+  SET(CLOCK gtod)
 ENDIF(VALID_ARCH)
 
 ## MPI
