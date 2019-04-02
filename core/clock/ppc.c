@@ -3,11 +3,11 @@
 #ifndef __GNUC__
 #  error gcc asm extensions required
 #endif
-#ifndef __ppc__
+#if !(defined __ppc__ || defined __PPC__)
 #  error only ppc platform supported
 #endif
 
-static tw_clock tw_clock_read(void)
+tw_clock tw_clock_read(void)
 {
 	unsigned long tbu;
 	unsigned long tb1;
