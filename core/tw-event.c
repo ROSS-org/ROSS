@@ -54,7 +54,7 @@ void tw_event_send(tw_event * event) {
         tw_error(TW_LOC, "It is an error to send an event with pre-loaded output message.");
     }
 
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
 //    src_lp->lp_comm[event->dest_lpid]++;
     send_pe->pe_comm[dest_peid]++;
 

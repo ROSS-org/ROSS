@@ -100,7 +100,7 @@ tw_init_lps(tw_pe * me)
         lp->lp_stats = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
         for (j = 0; j < 3; j++)
             lp->last_stats[j] = (st_lp_stats*) tw_calloc(TW_LOC, "LP instrumentation", sizeof(st_lp_stats), 1);
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
 //        lp->lp_comm = (int*) tw_calloc(TW_LOC, "LP Instrumentation", sizeof(int), g_tw_total_lps);
 #endif
 

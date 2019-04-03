@@ -186,7 +186,7 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     if (g_st_damaris_enabled)
         st_damaris_ross_finalize();
     else

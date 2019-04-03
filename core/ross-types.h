@@ -366,7 +366,7 @@ struct tw_lp {
     struct st_model_types *model_types;
     struct st_lp_stats *lp_stats;
     struct st_lp_stats *last_stats[3];
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     int *lp_comm;
 #endif
 
@@ -412,7 +412,7 @@ struct tw_kp {
     long s_rb_secondary; /**< @brief Number of secondary rollbacks by this LP */
     struct st_kp_stats *kp_stats;
     struct st_kp_stats *last_stats[3];
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     int *kp_comm;
 #endif
 
@@ -486,7 +486,7 @@ struct tw_pe {
 #endif
 
     tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     int *pe_comm;
 #endif
 };

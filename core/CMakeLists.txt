@@ -100,13 +100,12 @@ IF(USE_RIO)
   INCLUDE_DIRECTORIES(rio)
 ENDIF(USE_RIO)
 
-# Damaris I/O and data management
-OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
-if (USE_DAMARIS)
+# RISA I/O and data management
+OPTION(USE_RISA "Build with RISA library (for in situ vis/analysis)?" OFF)
+if (USE_RISA)
     ADD_SUBDIRECTORY(damaris)
-    INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
-    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/include/core/damaris.h)
-ENDIF(USE_DAMARIS)
+    INCLUDE_DIRECTORIES(${RISA_INCLUDE})
+ENDIF(USE_RISA)
 
 # Use debugging-friendly memory allocation
 OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)

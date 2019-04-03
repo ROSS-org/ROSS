@@ -78,7 +78,7 @@ void print_settings()
 // TODO do we still need to make this true? currently called from tw_run()
 void st_inst_init(void)
 {
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     st_damaris_ross_init();
     if (!g_st_ross_rank) // Damaris ranks only
         return;
@@ -139,7 +139,7 @@ void st_inst_finish_setup()
     //model_data_sizes[VT_INST] = calc_model_sample_size(VT_INST, &model_num_lps[VT_INST]);
     // potentially different size per KP
 
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     if (g_st_damaris_enabled)
     {
         st_damaris_inst_init(config_file);
@@ -165,7 +165,7 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
     //printf("pe %ld about to sample for mode %d\n", g_tw_mynode, inst_type);
     tw_clock current_rt = tw_clock_read();
 
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
     // new method should mean that this gets called regardless at GVT
     if (g_st_damaris_enabled)

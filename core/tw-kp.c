@@ -157,7 +157,7 @@ tw_init_kps(tw_pe * me)
         kp->kp_stats = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
         for (j = 0; j < 3; j++)
             kp->last_stats[j] = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
         kp->kp_comm = (int*) tw_calloc(TW_LOC, "KP Instrumentation", sizeof(int), g_tw_nkp*tw_nnodes());
 #endif
 

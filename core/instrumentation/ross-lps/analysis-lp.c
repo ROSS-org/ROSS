@@ -116,7 +116,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
 
-//#ifdef USE_DAMARIS
+//#ifdef USE_RISA
 //    if (g_st_damaris_enabled)
 //    {
 //        //st_inst_sample(lp->pe, VT_INST);
@@ -188,7 +188,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_e_rbs++;
 
-//#ifdef USE_DAMARIS
+//#ifdef USE_RISA
 //    if (g_st_damaris_enabled)
 //    {
 //        s->event_id--;

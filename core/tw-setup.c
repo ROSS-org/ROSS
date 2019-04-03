@@ -62,7 +62,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_gvt_setup());
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     tw_opt_add(st_damaris_opts());
 #endif
     tw_opt_add(st_special_lp_opts());
@@ -74,7 +74,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_parse(argc, argv);
 
     st_inst_init();
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     if (!g_st_ross_rank) // Damaris ranks should not continue on here
         return;
 #endif
@@ -425,7 +425,7 @@ void tw_run(void) {
 }
 
 void tw_end(void) {
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     if(g_st_ross_rank)
     {
 #endif
@@ -433,7 +433,7 @@ void tw_end(void) {
         fprintf(g_tw_csv, "\n");
         fclose(g_tw_csv);
     }
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     } // end if(g_st_ross_rank)
 #endif
 
@@ -531,7 +531,7 @@ static tw_pe * setup_pes(void) {
         }
         printf("\n");
 
-#ifdef USE_DAMARIS
+#ifdef USE_RISA
     st_damaris_init_print();
 #endif
 
