@@ -217,8 +217,7 @@ typedef uint64_t tw_lpid;
 #include "instrumentation/st-instrumentation.h"
 
 #ifdef USE_RISA
-#include "damaris/include/core/damaris.h"
-#include "damaris/include/core/model-c.h"
+#include "damaris/include/core/risa-api.h"
 #endif
 
 #include "tw-eventq.h"

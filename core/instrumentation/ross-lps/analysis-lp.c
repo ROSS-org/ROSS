@@ -164,24 +164,24 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     lp->pe->stats.s_alp_e_rbs++;
 
 #ifdef USE_RISA
-    if (g_st_damaris_enabled)
-    {
-//        s->event_id--;
-        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
-        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
-        //st_damaris_set_rc_data(m->rc_data, m->offset);
-        //for (i = 0; i < s->num_lps; i++)
-        //{
-        //    model_lp = tw_getlocal_lp(s->lp_list[i]);
-        //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
-        //            || model_lp->model_types->num_vars <= 0)
-        //        continue;
-        //    model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
-        //}
-        //st_damaris_delete_rc_data();
-        //return;
-    }
+    //if (g_st_risa_enabled)
+    //{
+//  //      s->event_id--;
+    //    int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+    //    //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
+    //    risa_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
+    //    //st_damaris_set_rc_data(m->rc_data, m->offset);
+    //    //for (i = 0; i < s->num_lps; i++)
+    //    //{
+    //    //    model_lp = tw_getlocal_lp(s->lp_list[i]);
+    //    //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
+    //    //            || model_lp->model_types->num_vars <= 0)
+    //    //        continue;
+    //    //    model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
+    //    //}
+    //    //st_damaris_delete_rc_data();
+    //    //return;
+    //}
 #endif
 
     if ((model_modes[VT_INST]) && s->num_lps > 0)
@@ -195,10 +195,10 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             if (sample->vts == m->timestamp)
             {
 #ifdef USE_RISA
-                if (g_st_damaris_enabled)
+                if (g_st_risa_enabled)
                 {
                     int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-                    st_damaris_invalidate_sample(sample->vts, sample->rts, kp_gid);
+                    risa_invalidate_sample(sample->vts, sample->rts, kp_gid);
                 }
 #endif
                 vts_start_sample(sample);
@@ -257,10 +257,10 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             if (sample->vts == m->timestamp)
             {
 #ifdef USE_RISA
-                if (g_st_damaris_enabled)
+                if (g_st_risa_enabled)
                 {
                     int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-                    st_damaris_validate_sample(sample->vts, sample->rts, kp_gid);
+                    risa_validate_sample(sample->vts, sample->rts, kp_gid);
                 }
 #endif
                 vts_start_sample(sample);

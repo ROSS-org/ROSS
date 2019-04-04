@@ -63,7 +63,7 @@ void tw_init(int *argc, char ***argv) {
     tw_opt_add(tw_clock_setup());
     tw_opt_add(st_inst_opts());
 #ifdef USE_RISA
-    tw_opt_add(st_damaris_opts());
+    tw_opt_add(risa_opts());
 #endif
     tw_opt_add(st_special_lp_opts());
 #ifdef USE_RIO
@@ -532,7 +532,7 @@ static tw_pe * setup_pes(void) {
         printf("\n");
 
 #ifdef USE_RISA
-    st_damaris_init_print();
+    risa_init_print();
 #endif
 
         // moved these so ross.csv stays consistent

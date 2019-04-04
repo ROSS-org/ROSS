@@ -79,11 +79,11 @@ void print_settings()
 void st_inst_init(void)
 {
 #ifdef USE_RISA
-    st_damaris_ross_init();
+    risa_init();
     if (!g_st_ross_rank) // Damaris ranks only
         return;
 
-    st_damaris_parse_config(&config_file[0]);
+    risa_parse_config(&config_file[0]);
 #endif
     specialized_lp_run();
 
@@ -140,9 +140,9 @@ void st_inst_finish_setup()
     // potentially different size per KP
 
 #ifdef USE_RISA
-    if (g_st_damaris_enabled)
+    if (g_st_risa_enabled)
     {
-        st_damaris_inst_init(config_file);
+        risa_inst_init(config_file);
         g_st_disable_out = 1;
         return; // no need to set up buffers in this case
     }
@@ -168,12 +168,12 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 #ifdef USE_RISA
     // need to make sure damaris_end_iteration is called if GVT instrumentation not turned on
     // new method should mean that this gets called regardless at GVT
-    if (g_st_damaris_enabled)
+    if (g_st_risa_enabled)
 	{
         if (engine_modes[inst_type] || model_modes[inst_type])
-            st_damaris_expose_data(me, inst_type, lp, vts_commit);
+            risa_expose_data(me, inst_type, lp, vts_commit);
         if (inst_type == GVT_INST)
-            st_damaris_end_iteration(me->GVT);
+            risa_end_iteration(me->GVT);
         return;
 	}
 #endif

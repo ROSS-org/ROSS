@@ -187,8 +187,8 @@ void
 tw_net_stop(void)
 {
 #ifdef USE_RISA
-    if (g_st_damaris_enabled)
-        st_damaris_ross_finalize();
+    if (g_st_risa_enabled)
+        risa_finalize();
     else
     {
         if (!custom_communicator) {
