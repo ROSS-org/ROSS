@@ -149,7 +149,8 @@ void st_collect_model_data_vts(tw_pe *pe, tw_lp* lp, int inst_mode, char* buffer
         return;
 
     model_sample_data *sample = cur_vts_data.cur_sample;
-    sample_md->vts = sample->timestamp;
+    sample_md->vts = sample->vts;
+    sample_md->rts = sample->rts;
     int i, j;
     char *cur_buf_ptr = buffer;
     size_t cur_size = 0;

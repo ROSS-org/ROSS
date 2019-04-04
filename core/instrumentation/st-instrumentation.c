@@ -220,6 +220,10 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 
             sample_md->peid = (unsigned int)g_tw_mynode;
             sample_md->num_model_lps = model_num_lps[inst_type];
+            if (inst_type == VT_INST)
+                sample_md->kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+            else
+                sample_md->kp_gid = -1;
         }
         else
         {

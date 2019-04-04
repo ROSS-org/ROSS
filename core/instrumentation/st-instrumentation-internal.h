@@ -27,6 +27,7 @@ struct sample_metadata
     double vts;
     double rts;
     unsigned int peid;
+    int kp_gid;
     int has_pe;
     int has_kp;
     int has_lp;

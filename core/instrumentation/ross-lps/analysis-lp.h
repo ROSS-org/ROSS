@@ -54,7 +54,8 @@ struct model_sample_data
 {
     model_sample_data *prev;
     model_sample_data *next;
-    tw_stime timestamp;
+    tw_stime vts;
+    tw_stime rts;
     int num_lps;
     model_lp_sample *lp_data;          /* data for each LP on the associated KP at this sampling point */
 };

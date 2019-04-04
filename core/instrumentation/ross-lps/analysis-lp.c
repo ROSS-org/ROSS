@@ -116,38 +116,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
 
-//#ifdef USE_RISA
-//    if (g_st_damaris_enabled)
-//    {
-//        //st_inst_sample(lp->pe, VT_INST);
-//        //int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-//        //printf("[R-D] KP %d sampling data with event_id %d\n", kp_gid, s->event_id);
-//        //st_damaris_start_sample_vt(tw_now(lp), 0.0, lp->pe->GVT, VT_INST,
-//        //        kp_gid, s->event_id);
-//        // TODO instead of an event_id for distinguishing samples, use the real time and save it
-//        // in the analysis_msg.  Then in the reverse we can send the real time stamp instead of event_id.
-//
-//        //if (model_modes[VT_INST])
-//        //{
-//        //    // this will call our model's sampling callback forward handler
-//        //    //printf("PE %ld: sampling model data type: %d\n", g_tw_mynode, VT_INST);
-//        //    st_damaris_sample_model_data(VT_INST, s->lp_list, s->num_lps);
-//        //}
-//        //size_t size;
-//        //m->rc_data = st_damaris_finish_sample(&m->offset);
-//
-//        //// create next sampling event
-//        //st_create_sample_event(lp);
-//        //s->event_id++;
-//        //return;
-//    }
-//#endif
-
-    // inst_sample() won't collect model data for VTS
-    inst_sample(lp->pe, VT_INST, lp, 0);
-
-    st_create_sample_event(lp);
-
+    printf("PE %ld KP %lu: analysis_event at %f\n", g_tw_mynode, lp->kp->id, tw_now(lp));
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         model_sample_data *sample = s->model_samples_current;
@@ -155,7 +124,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         if (sample == s->model_samples_tail)
             printf("WARNING: last available sample space for analysis lp!\n");
 
-        sample->timestamp = tw_now(lp);
+        sample->vts = tw_now(lp);
+        sample->rts = tw_clock_read() / g_tw_clock_rate;
         m->timestamp = tw_now(lp);
         vts_start_sample(sample);
 
@@ -179,6 +149,10 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         s->model_samples_current = s->model_samples_current->next;
     }
 
+    // inst_sample() won't collect model data for VTS, if not using RISA
+    inst_sample(lp->pe, VT_INST, lp, 0);
+
+    st_create_sample_event(lp);
 }
 
 void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
@@ -186,28 +160,29 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     tw_lp *model_lp;
     int i, j;
 
+    printf("PE %ld KP %lu: analysis_event_rc at %f\n", g_tw_mynode, lp->kp->id, tw_now(lp));
     lp->pe->stats.s_alp_e_rbs++;
 
-//#ifdef USE_RISA
-//    if (g_st_damaris_enabled)
-//    {
+#ifdef USE_RISA
+    if (g_st_damaris_enabled)
+    {
 //        s->event_id--;
-//        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
-//        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
-//        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
-//        st_damaris_set_rc_data(m->rc_data, m->offset);
-//        for (i = 0; i < s->num_lps; i++)
-//        {
-//            model_lp = tw_getlocal_lp(s->lp_list[i]);
-//            if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
-//                    || model_lp->model_types->num_vars <= 0)
-//                continue;
-//            model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
-//        }
-//        st_damaris_delete_rc_data();
-//        return;
-//    }
-//#endif
+        int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+        //printf("[R-D] KP %d invalidating data with event_id %d\n", kp_gid, s->event_id);
+        st_damaris_invalidate_sample(tw_now(lp), kp_gid, s->event_id);
+        //st_damaris_set_rc_data(m->rc_data, m->offset);
+        //for (i = 0; i < s->num_lps; i++)
+        //{
+        //    model_lp = tw_getlocal_lp(s->lp_list[i]);
+        //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_revent_fn
+        //            || model_lp->model_types->num_vars <= 0)
+        //        continue;
+        //    model_lp->model_types->vts_revent_fn(model_lp->cur_state, bf, model_lp);
+        //}
+        //st_damaris_delete_rc_data();
+        //return;
+    }
+#endif
 
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
@@ -217,8 +192,15 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         for (sample = s->model_samples_current->prev; sample != NULL; sample = sample->prev)
         {
             //sample = &s->model_samples[i];
-            if (sample->timestamp == m->timestamp)
+            if (sample->vts == m->timestamp)
             {
+#ifdef USE_RISA
+                if (g_st_damaris_enabled)
+                {
+                    int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+                    st_damaris_invalidate_sample(sample->vts, sample->rts, kp_gid);
+                }
+#endif
                 vts_start_sample(sample);
                 for (j = 0; j < s->num_lps; j++)
                 {
@@ -235,7 +217,8 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 }
 
                 vts_end_sample();
-                sample->timestamp = 0;
+                sample->vts = 0;
+                sample->rts = 0;
 
                 if (sample->prev)
                     sample->prev->next = sample->next;
@@ -271,8 +254,15 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         // start at beginning
         for (sample = s->model_samples_head; sample != NULL; sample = sample->next)
         {
-            if (sample->timestamp == m->timestamp)
+            if (sample->vts == m->timestamp)
             {
+#ifdef USE_RISA
+                if (g_st_damaris_enabled)
+                {
+                    int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
+                    st_damaris_validate_sample(sample->vts, sample->rts, kp_gid);
+                }
+#endif
                 vts_start_sample(sample);
                 inst_sample(lp->pe, VT_INST, lp, 1);
                 //for (j = 0; j < s->num_lps; j++)
@@ -299,7 +289,8 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                 //}
 
                 vts_end_sample();
-                sample->timestamp = 0;
+                sample->vts = 0;
+                sample->rts = 0;
 
                 if (sample->prev)
                     sample->prev->next = sample->next;
