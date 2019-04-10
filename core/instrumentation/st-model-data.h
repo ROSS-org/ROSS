@@ -4,7 +4,7 @@
 #include <instrumentation/st-instrumentation.h>
 #include <instrumentation/ross-lps/analysis-lp.h>
 
-st_model_types *g_st_model_types;
+extern st_model_types *g_st_model_types;
 
 #define lp_name_len 16
 

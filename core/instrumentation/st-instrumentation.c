@@ -18,6 +18,7 @@ int g_st_engine_stats = 0;
 int g_st_num_gvt = 10;
 
 int g_st_rt_sampling = 0;
+tw_clock g_st_rt_int_ms = 1;
 tw_clock g_st_rt_interval = 1000;
 tw_clock g_st_rt_samp_start_cycles = 0;
 
@@ -39,7 +40,7 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("engine-stats", g_st_engine_stats, "Collect sim engine level stats; 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 All sampling modes"),
     TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 all sampling modes"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
-    TWOPT_ULONGLONG("rt-interval", g_st_rt_interval, "real time sampling interval in ms"),
+    TWOPT_ULONGLONG("rt-interval", g_st_rt_int_ms, "real time sampling interval in ms"),
     TWOPT_STIME("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
     TWOPT_STIME("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
     TWOPT_UINT("pe-data", g_st_pe_data, "Turn on/off collection of sim engine data at PE level"),
@@ -120,7 +121,7 @@ void st_inst_init(void)
 
     if (g_st_rt_sampling)
     {
-        g_st_rt_interval = g_st_rt_interval * g_tw_clock_rate / 1000;
+        g_st_rt_interval = g_st_rt_int_ms * g_tw_clock_rate / 1000;
         g_st_rt_samp_start_cycles = tw_clock_read();
     }
 
@@ -171,7 +172,22 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
     if (g_st_risa_enabled)
 	{
         if (engine_modes[inst_type] || model_modes[inst_type])
-            risa_expose_data(me, inst_type, lp, vts_commit);
+        {
+            switch (inst_type)
+            {
+                case GVT_INST:
+                    risa_expose_data_gvt(me, inst_type);
+                    break;
+                case RT_INST:
+                    risa_expose_data_rts(me, inst_type);
+                    break;
+                case VT_INST:
+                    risa_expose_data_vts(me, inst_type, lp, vts_commit);
+                    break;
+                default:
+                    break;
+            }
+        }
         if (inst_type == GVT_INST)
             risa_end_iteration(me->GVT);
         return;

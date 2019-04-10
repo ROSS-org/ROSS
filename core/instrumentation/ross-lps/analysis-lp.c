@@ -116,18 +116,20 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     lp->pe->stats.s_alp_nevent_processed++; //don't undo in RC
 
-    printf("PE %ld KP %lu: analysis_event at %f\n", g_tw_mynode, lp->kp->id, tw_now(lp));
+    model_sample_data *sample = NULL;
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
-        model_sample_data *sample = s->model_samples_current;
+        sample = s->model_samples_current;
         // TODO handle this situation better
         if (sample == s->model_samples_tail)
             printf("WARNING: last available sample space for analysis lp!\n");
 
         sample->vts = tw_now(lp);
-        sample->rts = tw_clock_read() / g_tw_clock_rate;
+        sample->rts = tw_clock_read() / (double)g_tw_clock_rate;
         m->timestamp = tw_now(lp);
         vts_start_sample(sample);
+        //printf("PE %ld KP %lu: analysis_event at %f (rt %f)\n", g_tw_mynode, lp->kp->id,
+        //        sample->vts, sample->rts);
 
         // call the model sampling function for each LP on this KP
         for (i = 0; i < s->num_lps; i++)
@@ -147,10 +149,21 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
         vts_end_sample();
         s->model_samples_current = s->model_samples_current->next;
+#ifdef USE_RISA
+        if (g_st_risa_enabled)
+        {
+            vts_start_sample(sample);
+            inst_sample(lp->pe, VT_INST, lp, 0);
+            vts_end_sample(sample);
+        }
+#endif
     }
 
     // inst_sample() won't collect model data for VTS, if not using RISA
-    inst_sample(lp->pe, VT_INST, lp, 0);
+#ifdef USE_RISA
+    if (!g_st_risa_enabled)
+#endif
+        inst_sample(lp->pe, VT_INST, lp, 0);
 
     st_create_sample_event(lp);
 }
@@ -158,9 +171,8 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
     tw_lp *model_lp;
-    int i, j;
+    int j;
 
-    printf("PE %ld KP %lu: analysis_event_rc at %f\n", g_tw_mynode, lp->kp->id, tw_now(lp));
     lp->pe->stats.s_alp_e_rbs++;
 
 #ifdef USE_RISA
@@ -186,6 +198,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
+        //printf("PE %ld KP %lu: analysis_event_rc at time %f\n", g_tw_mynode, lp->kp->id, m->timestamp);
         // need to remove sample associated with this event from the list
         model_sample_data *sample;
         // start at end, because it's most likely closer to the timestamp we're looking for
@@ -244,13 +257,14 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 {
+    //printf("PE %ld KP %lu: analysis_commit at %f\n", g_tw_mynode, lp->kp->id, tw_now(lp));
     if ((model_modes[VT_INST]) && s->num_lps > 0)
     {
         // write committed data to buffer
         model_sample_data *sample;
-        int i, j;
-        tw_lp *model_lp;
-        lp_metadata metadata;
+        //int i, j;
+        //tw_lp *model_lp;
+        //lp_metadata metadata;
         // start at beginning
         for (sample = s->model_samples_head; sample != NULL; sample = sample->next)
         {
@@ -262,33 +276,16 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                     int kp_gid = (int)(g_tw_mynode * g_tw_nkp) + (int)lp->kp->id;
                     risa_validate_sample(sample->vts, sample->rts, kp_gid);
                 }
+                else
+                {
 #endif
                 vts_start_sample(sample);
                 inst_sample(lp->pe, VT_INST, lp, 1);
-                //for (j = 0; j < s->num_lps; j++)
-                //{
-                //    model_lp = tw_getlocal_lp(s->lp_list[j]);
-                //    if (model_lp->model_types == NULL || !model_lp->model_types->vts_event_fn
-                //    || cur_lp->model_types->num_vars <= 0)
-                //        continue;
-                //    //vts_next_lp_rev(model_lp->gid);
-
-                //    //metadata.lpid = model_lp->gid;
-                //    //metadata.kpid = model_lp->kp->id;
-                //    //metadata.peid = model_lp->pe->id;
-                //    //metadata.ts = m->timestamp;
-                //    //metadata.sample_sz = model_lp->model_types->sample_struct_sz;
-
-                //    //char buffer[sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz];
-                //    //memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
-                //    //memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
-                //    //if (g_tw_synchronization_protocol != SEQUENTIAL)
-                //    //    st_buffer_push(VT_INST, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz);
-                //    //else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
-                //    //    fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
-                //}
-
                 vts_end_sample();
+#ifdef USE_RISA
+                }
+#endif
+
                 sample->vts = 0;
                 sample->rts = 0;
 

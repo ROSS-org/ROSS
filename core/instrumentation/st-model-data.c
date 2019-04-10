@@ -240,7 +240,7 @@ void vts_next_lp_rev(tw_lpid id)
 void vts_end_sample()
 {
     cur_vts_data.in_progress = 0;
-    cur_vts_data.cur_sample == NULL;
+    cur_vts_data.cur_sample = NULL;
     cur_vts_data.cur_lp = NULL;
     cur_vts_data.cur_var = NULL;
 }

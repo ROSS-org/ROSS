@@ -42,5 +42,6 @@ extern void st_inst_dump();
 void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit);
 
 extern int g_st_engine_stats;
+extern tw_clock g_st_rt_int_ms;
 
 #endif // ST_INSTRUMENTATION_INTERNAL_H
