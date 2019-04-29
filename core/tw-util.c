@@ -47,7 +47,7 @@ tw_output(tw_lp *lp, const char *fmt, ...)
     va_start(ap, fmt);
     ret = vsnprintf(out->message, sizeof(out->message), fmt, ap);
     va_end(ap);
-    if (ret >= 0 && ret < sizeof(out->message)) {
+    if (ret >= 0 && (unsigned)ret < sizeof(out->message)) {
         // Should be successful
     }
     else {
@@ -163,7 +163,7 @@ pool_alloc(size_t len)
 	void *r;
 
 	for (p = main_pool; p; p = p->next_pool)
-		if ((p->end_free - p->next_free >= len))
+		if ((unsigned)(p->end_free - p->next_free) >= len)
 			break;
 
 	if (!p) {

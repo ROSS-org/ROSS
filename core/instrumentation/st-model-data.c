@@ -45,7 +45,8 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
 void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
 {
     tw_clock start_cycle_time = tw_clock_read();
-    int index, lpid = 0;
+    int index;
+    tw_lpid lpid = 0;
     int total_sz = 0;
     tw_lp *clp;
     sample_metadata sample_md;

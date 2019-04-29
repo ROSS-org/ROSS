@@ -10,6 +10,8 @@ notifications:
     on_failure: always
 env:
  - secure: "BbB1KVY0Yb6DJwxdfFDF1PJwSx9euNfNX94oDKftiH8LE0nEzfS6xZc2sBkWTWOThHml9ttBkDIx/NhxEThOjyVcX6uv4kibP6moV5EqxqC+kLoZSEZnVuAdTJfGRKBdzmRp66R5a/GiMzzz/F3+smdVFMb6XR06sPQa5TQZjEc="
+git:
+  submodules: false
 before_install:
  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
  - sudo apt-get update -q
@@ -21,29 +23,31 @@ before_install:
  - mpirun --version
 script:
  - mkdir cxx-build && cd cxx-build
- - cmake -DCMAKE_BUILD_TYPE=Release ..
+ - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
  - export MPICH_CC=clang++
  - make
  - unset MPICH_CC
  - cd ..
  - mkdir release && cd release
- - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
  - mkdir build && cd build
- - MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
  - cd ..
  - mkdir build2 && cd build2
- - MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
 branches:
-  only: master
+  only:
+  - master
+  - develop
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - ## the following automatically builds the doxygen

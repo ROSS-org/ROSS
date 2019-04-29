@@ -24,8 +24,8 @@ extern void tw_gvt_step2(tw_pe *);
  * Provide a mechanism to force a GVT computation outside of the 
  * GVT interval (optional)
  */
-extern void tw_gvt_force_update(tw_pe *);
-extern void tw_gvt_force_update_realtime(tw_pe *);
+extern void tw_gvt_force_update(void);
+extern void tw_gvt_force_update_realtime(void);
 
 /* Set the PE GVT value */
 extern int tw_gvt_set(tw_pe * pe, tw_stime LVT);
