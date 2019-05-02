@@ -8,7 +8,7 @@
 
 // ROSS Core
 #cmakedefine HAVE_CTIME 1
-#define ROSS_VERSION "${GIT_SHA1}"
+#define ROSS_VERSION "${VERSION_SHORT}"
 #cmakedefine AVL_TREE 1
 #cmakedefine USE_BGPM
 #cmakedefine RAND_NORMAL

@@ -74,9 +74,26 @@ CHECK_FUNCTION_EXISTS(ctime HAVE_CTIME)
 
 ## Print ROSS Git Hash
 # From http://stackoverflow.com/questions/1435953/how-can-i-pass-git-sha1-to-compiler-as-definition-using-cmake
+# Now following this approach (which is based on the previous):
+# http://ipenguin.ws/2012/11/cmake-automatically-use-git-tags-as.html
+# This way lets us use the actual version numbers of ROSS, instead of the git commit
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 INCLUDE(GetGitRevisionDescription)
-GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
+#GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
+
+git_describe(VERSION --tags --dirty=-d)
+
+#parse the version information into pieces.
+string(REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${VERSION}")
+string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
+set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cpp.in
+                ${CMAKE_CURRENT_BINARY_DIR}/version.cpp)
+set(version_file "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
+SET(ross_srcs ${ross_srcs} ${version_file})
 
 # Data Structure for remote Events
 # If AVL_TREE is OFF, ROSS reverts to hashing

@@ -1,0 +1,4 @@
+#include "../version.h"
+
+const std::string ROSS_VERSION = "@VERSION@";
+const std::string ROSS_VERSION_SHORT = "@VERSION_SHORT@";

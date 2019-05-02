@@ -54,7 +54,7 @@ void tw_init(int *argc, char ***argv) {
         time(&raw_time);
         printf("%s\n", ctime(&raw_time));
 #endif
-        printf("ROSS Revision: %s\n\n", ROSS_VERSION);
+        printf("ROSS Version: %s\n\n", ROSS_VERSION);
     }
 #endif
 
