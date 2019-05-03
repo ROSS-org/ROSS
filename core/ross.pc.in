@@ -6,7 +6,7 @@ ross_libs=-lROSS -lm
 
 Name: ROSS
 Description: Rensselaer's Optimistic Simulation System
-Version: 1.0
+Version: @VERSION_SHORT@
 URL: https://github.com/ROSS-org/ROSS
 Requires:
 Libs: ${ross_ldflags} ${ross_libs}
