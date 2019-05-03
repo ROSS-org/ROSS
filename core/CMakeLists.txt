@@ -118,7 +118,7 @@ ENDIF(USE_RIO)
 # Damaris I/O and data management
 OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
 if (USE_DAMARIS)
-    ADD_SUBDIRECTORY(damaris)
+    ADD_SUBDIRECTORY(risa)
     INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
