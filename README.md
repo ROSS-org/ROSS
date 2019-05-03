@@ -6,6 +6,8 @@ You may find the now-deprecated version at the [ROSS-Legacy tag](https://github.
 Using this repository you can compare files from the new `ROSS/core` to `ROSS/ross`.
 For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/ROSS-org/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
 
+For the most recent docs and other important posts about ROSS, see the [ROSS webpage](http://ross-org.github.io).
+
 [![Build Status](https://travis-ci.com/ROSS-org/ROSS.svg?branch=master)](https://travis-ci.com/ROSS-org/ROSS)
 [![codecov.io](http://codecov.io/github/ROSS-org/ROSS/coverage.svg?branch=master)](http://codecov.io/github/ROSS-org/ROSS?branch=master)
 [![Doxygen](https://img.shields.io/badge/doxygen-reference-blue.svg)](http://ross-org.github.io/ROSS-docs/docs/html)
@@ -27,7 +29,7 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
 ## Requirements
 
 1. ROSS is written in C standard and thus requires a C compiler (C11 is prefered, but not required).
-2. The build system is [CMake](http://cmake.org), and we require version 2.8 or higher.
+2. The build system is [CMake](http://cmake.org), and we require version 3.5 or higher.
 3. ROSS relies on MPI.
    We recommend the [MPICH](http://www.mpich.org) implementation.
 
@@ -47,7 +49,7 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
   git submodule update
   ```
   Currently, ROSS includes one submodule:
-  - [damaris aka RISA](https://github.com/ROSS-org/RISA) ROSS In Situ Analysis
+  - [RISA](https://github.com/ROSS-org/RISA) ROSS In Situ Analysis
 
 3. *Optional* Symlink your model to ROSS.
 Please [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.
