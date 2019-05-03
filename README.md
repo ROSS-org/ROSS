@@ -52,13 +52,13 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
   - [RISA](https://github.com/ROSS-org/RISA) ROSS In Situ Analysis
 
 3. *Optional* Symlink your model to ROSS.
-Please [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.
+Please [this blog post](https://ross-org.github.io/setup/build-model-with-ross.html) for details about creating and integrating a model with ROSS.
   ```
   ln -s ~/path-to/your-existing-model models/your-model-name
   ```
 
 4. Create a build directory.
-ROSS developers typically do out-of-tree builds.  See the [Installation page](https://github.com/ROSS-org/ROSS/wiki/Installation) for more details.
+ROSS developers typically do out-of-tree builds.  See the [Installation page](https://ross-org.github.io/setup/installation.html) for more details.
   ```
   cd ~/directory-of-builds/
   mkdir ROSS-build
@@ -74,7 +74,7 @@ ROSS developers typically do out-of-tree builds.  See the [Installation page](ht
   ```
 
 6. Run your model.
-See [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Running-the-Simulator) for details about the ROSS command line options.
+See [this blog post](https://ross-org.github.io/setup/running-sim.html) for details about the ROSS command line options.
   ```
   cd ~/directory-of-builds/ROSS-build/models/your-model
   ./your-model --synch=1               // sequential mode
