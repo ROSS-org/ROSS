@@ -90,10 +90,9 @@ string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${VER
 string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cpp.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cpp.in
                 ${CMAKE_CURRENT_BINARY_DIR}/version.cpp)
 set(version_file "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
-SET(ross_srcs ${ross_srcs} ${version_file})
 
 # Data Structure for remote Events
 # If AVL_TREE is OFF, ROSS reverts to hashing
@@ -144,7 +143,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
-ADD_LIBRARY(ROSS_obj OBJECT ${ross_srcs})
+ADD_LIBRARY(ROSS_obj OBJECT ${ross_srcs} ${version_file})
 
 OPTION(ROSS_BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
 SET(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
