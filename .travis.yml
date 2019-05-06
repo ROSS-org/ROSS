@@ -43,6 +43,7 @@ script:
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - clang --version
  - gcov --version
+ - lcov --version
  - make coveralls
 branches:
   only: master
