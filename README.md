@@ -46,9 +46,8 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
   git submodule init
   git submodule update
   ```
-  Currently, ROSS includes three submodules:
-  - [ROSS-Models](http://github.com/ROSS-org/ROSS-Models) is a set of existing models
-  - [template-model](http://github.com/ROSS-org/template-model) is a starting place for new models
+  Currently, ROSS includes one submodule:
+  - [damaris aka RISA](https://github.com/ROSS-org/RISA) ROSS In Situ Analysis
 
 3. *Optional* Symlink your model to ROSS.
 Please [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.

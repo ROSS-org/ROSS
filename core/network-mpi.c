@@ -4,30 +4,24 @@
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
 
-static long id_tmp;
-
+/**
+ * @struct act_q
+ * @brief Keeps track of posted send or recv operations.
+ */
 struct act_q
 {
-  const char	 *name;
+  const char *name;
 
-  tw_event	**event_list;
-  MPI_Request	 *req_list;
-  int		 *idx_list;
-  MPI_Status	 *status_list;
-#if ROSS_MEMORY
-  char		**buffers;
-#endif
-
-  unsigned int	  cur;
+  tw_event **event_list;    /**< list of event pointers in this queue */
+  MPI_Request *req_list;    /**< list of MPI request handles */
+  int *idx_list;            /**< indices in this queue of finished operations */
+  MPI_Status *status_list;  /**< list of MPI_Status handles */
+  unsigned int cur;         /**< index of first open spot in the queue */
 };
 
 #define EVENT_TAG 1
 
-#if ROSS_MEMORY
-#define EVENT_SIZE(e) TW_MEMORY_BUFFER_SIZE
-#else
 #define EVENT_SIZE(e) g_tw_event_msg_sz
-#endif
 
 static struct act_q posted_sends;
 static struct act_q posted_recvs;
@@ -80,17 +74,20 @@ tw_net_init(int *argc, char ***argv)
 
   g_tw_masternode = 0;
   g_tw_mynode = my_rank;
-  
+
   return mpi_opts;
 }
 
+/**
+ * @brief Initializes queues used for posted sends and receives
+ *
+ * @param[in] q pointer to the queue to be initialized
+ * @param[in] name name of the queue
+ */
 static void
 init_q(struct act_q *q, const char *name)
 {
   unsigned int n;
-#if ROSS_MEMORY
-  unsigned int i;
-#endif
 
   if(q == &posted_sends)
     n = send_buffer;
@@ -102,18 +99,6 @@ init_q(struct act_q *q, const char *name)
   q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
   q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
   q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
-
-#if ROSS_MEMORY
-  q->buffers = tw_calloc(TW_LOC, name, sizeof(*q->buffers), n);
-
-  for(i = 0; i < n; i++)
-    q->buffers[i] = tw_calloc(TW_LOC, "", TW_MEMORY_BUFFER_SIZE, 1);
-#endif
-}
-
-tw_node * tw_net_onnode(tw_peid gid) {
-  id_tmp = gid;
-  return &id_tmp;
 }
 
 unsigned int
@@ -134,26 +119,25 @@ tw_net_start(void)
     }
 
   // Check after tw_nnodes is defined
-  if(tw_nnodes() == 1 && g_tw_npe == 1) {
+  if(tw_nnodes() == 1) {
       // force the setting of SEQUENTIAL protocol
       if (g_tw_synchronization_protocol == NO_SYNCH) {
           g_tw_synchronization_protocol = SEQUENTIAL;
       } else if(g_tw_synchronization_protocol == CONSERVATIVE || g_tw_synchronization_protocol == OPTIMISTIC) {
           g_tw_synchronization_protocol = SEQUENTIAL;
-          fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enought PEs defined.\n");
+          fprintf(stderr, "Warning: Defaulting to Sequential Simulation, not enough PEs defined.\n");
       }
   }
 
-  tw_pe_create(1);
-  tw_pe_init(0, g_tw_mynode);
+  tw_pe_init();
 
   //If we're in (some variation of) optimistic mode, we need this hash
   if (g_tw_synchronization_protocol == OPTIMISTIC ||
       g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
       g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
-    g_tw_pe[0]->hash_t = tw_hash_create();
+    g_tw_pe->hash_t = tw_hash_create();
   } else {
-    g_tw_pe[0]->hash_t = NULL;
+    g_tw_pe->hash_t = NULL;
   }
 
   if (send_buffer < 1)
@@ -167,7 +151,7 @@ tw_net_start(void)
   g_tw_net_device_size = read_buffer;
 
   // pre-post all the Irecv operations
-  recv_begin( g_tw_pe[0] );
+  recv_begin(g_tw_pe);
 }
 
 void
@@ -199,18 +183,18 @@ tw_net_stop(void)
 }
 
 void
-tw_net_barrier(tw_pe * pe)
+tw_net_barrier(void)
 {
   if (MPI_Barrier(MPI_COMM_ROSS) != MPI_SUCCESS)
     tw_error(TW_LOC, "Failed to wait for MPI_Barrier");
 }
 
 tw_stime
-tw_net_minimum(tw_pe *me)
+tw_net_minimum(void)
 {
   tw_stime m = DBL_MAX;
   tw_event *e;
-  int i;
+  unsigned int i;
 
   e = outq.head;
   while (e) {
@@ -228,6 +212,16 @@ tw_net_minimum(tw_pe *me)
   return m;
 }
 
+/**
+ * @brief Calls MPI_Testsome on the provided queue, to check for finished operations.
+ *
+ * @param[in] q queue to check
+ * @param[in] me pointer to the PE
+ * @param[in] finish pointer to function that will perform the appropriate send/recv
+ * finish functionality
+ *
+ * @return 0 if MPI_Testsome did not return any finished operations, 1 otherwise.
+ */
 static int
 test_q(
        struct act_q *q,
@@ -235,10 +229,6 @@ test_q(
        void (*finish)(tw_pe *, tw_event *, char *))
 {
   int ready, i, n;
-
-#if ROSS_MEMORY
-  char *tmp;
-#endif
 
   if (!q->cur)
     return 0;
@@ -267,15 +257,11 @@ test_q(
       e = q->event_list[n];
       q->event_list[n] = NULL;
 
-#if ROSS_MEMORY
-      finish(me, e, q->buffers[n]);
-#else
       finish(me, e, NULL);
-#endif
     }
 
   /* Collapse the lists to remove any holes we left. */
-  for (i = 0, n = 0; i < q->cur; i++)
+  for (i = 0, n = 0; (unsigned int)i < q->cur; i++)
   {
     if (q->event_list[i])
     {
@@ -289,13 +275,7 @@ test_q(
 	      &q->req_list[n],
 	      &q->req_list[i],
 	      sizeof(q->req_list[0]));
-	  
-#if ROSS_MEMORY
-	  // swap the buffers
-	  tmp = q->buffers[n];
-	  q->buffers[n] = q->buffers[i];
-	  q->buffers[i] = tmp;
-#endif
+
       } // endif (i != n)
       n++;
     } // endif (q->event_list[i])
@@ -305,14 +285,17 @@ test_q(
   return 1;
 }
 
+/**
+ * @brief If there are any openings in the posted_recvs queue, post more Irecvs.
+ *
+ * @param[in] me pointer to the PE
+ * @return 0 if no changes are made to the queue, 1 otherwise.
+ */
 static int
 recv_begin(tw_pe *me)
 {
-  MPI_Status status;
-
   tw_event	*e = NULL;
 
-  int flag = 0;
   int changed = 0;
 
   while (posted_recvs.cur < read_buffer)
@@ -323,18 +306,9 @@ recv_begin(tw_pe *me)
       {
 	  if(tw_gvt_inprogress(me))
 	      tw_error(TW_LOC, "Out of events in GVT! Consider increasing --extramem");
-	  return changed;	  
+	  return changed;
       }
 
-#if ROSS_MEMORY
-      if( MPI_Irecv(posted_recvs.buffers[id],
-		   EVENT_SIZE(e),
-		   MPI_BYTE,
-		   MPI_ANY_SOURCE,
-		   EVENT_TAG,
-		   MPI_COMM_ROSS,
-		   &posted_recvs.req_list[id]) != MPI_SUCCESS)
-#else
 	if( MPI_Irecv(e,
 		     (int)EVENT_SIZE(e),
 		     MPI_BYTE,
@@ -342,7 +316,6 @@ recv_begin(tw_pe *me)
 		     EVENT_TAG,
 		     MPI_COMM_ROSS,
 		     &posted_recvs.req_list[id]) != MPI_SUCCESS)
-#endif
 	  {
 	    tw_event_free(me, e);
 	    return changed;
@@ -356,25 +329,19 @@ recv_begin(tw_pe *me)
   return changed;
 }
 
+/**
+ * @brief Determines how to handle the newly received event.
+ *
+ * @param[in] me pointer to PE
+ * @param[in] e pointer to event that we just received
+ * @param[in] buffer not currently used
+ */
 static void
 recv_finish(tw_pe *me, tw_event *e, char * buffer)
 {
+  (void) buffer;
   tw_pe		*dest_pe;
   tw_clock start;
-
-#if ROSS_MEMORY
-  tw_memory	*memory;
-  tw_memory	*last;
-
-  tw_fd		 mem_fd;
-
-  size_t		 mem_size;
-
-  unsigned	 position = 0;
-
-  memcpy(e, buffer, g_tw_event_msg_sz);
-  position += g_tw_event_msg_sz;
-#endif
 
   me->stats.s_nread_network++;
   me->s_nwhite_recv++;
@@ -433,33 +400,6 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     e->state.remote = 1;
   }
 
-#if ROSS_MEMORY
-  mem_size = (size_t) e->memory;
-  mem_fd = (tw_fd) e->prev;
-
-  last = NULL;
-  while(mem_size)
-    {
-      memory = tw_memory_alloc(e->dest_lp, mem_fd);
-
-      if(last)
-	last->next = memory;
-      else
-	e->memory = memory;
-
-      memcpy(memory, &buffer[position], mem_size);
-      position += mem_size;
-
-      memory->fd = mem_fd;
-      memory->nrefs = 1;
-
-      mem_size = (size_t) memory->next;
-      mem_fd = memory->fd;
-
-      last = memory;
-    }
-#endif
-
   /* NOTE: the final check in the if conditional below was added to make sure
    * that we do not execute the fast case unless the cancellation queue is
    * empty on the destination PE.  Otherwise we need to invoke the normal
@@ -478,7 +418,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
     return;
   }
 
-  if (me->node == dest_pe->node) {
+  if (me->id == dest_pe->id) {
     /* Slower, but still local send, so put into top
      * of dest_pe->event_q.
      */
@@ -500,6 +440,13 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	   dest_pe->id);
 }
 
+/**
+ * @brief If there are any openings in the posted_sends queue, start sends
+ * for events in the outgoing queue.
+ *
+ * @param[in] me pointer to the PE
+ * @return 0 if no changes are made to the posted_sends queue, 1 otherwise.
+ */
 static int
 send_begin(tw_pe *me)
 {
@@ -508,24 +455,9 @@ send_begin(tw_pe *me)
   while (posted_sends.cur < send_buffer)
     {
       tw_event *e = tw_eventq_peek(&outq);
-      tw_node	*dest_node = NULL;
+      tw_peid dest_pe;
 
       unsigned id = posted_sends.cur;
-
-#if ROSS_MEMORY
-      tw_event *tmp_prev = NULL;
-
-      tw_lp *tmp_lp = NULL;
-
-      tw_memory *memory = NULL;
-      tw_memory *m = NULL;
-
-      char *buffer = NULL;
-
-      size_t mem_size = 0;
-
-      unsigned position = 0;
-#endif
 
       if (!e)
 	break;
@@ -533,87 +465,20 @@ send_begin(tw_pe *me)
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
 
-      dest_node = tw_net_onnode((*e->src_lp->type->map)
-				((tw_lpid) e->dest_lp));
-
-      //if(!e->state.cancel_q)
-	//e->event_id = (tw_eventid) ++me->seq_num;
+      dest_pe = (*e->src_lp->type->map) ((tw_lpid) e->dest_lp);
 
       e->send_pe = (tw_peid) g_tw_mynode;
       e->send_lp = e->src_lp->gid;
 
-#if ROSS_MEMORY
-      // pack pointers
-      tmp_prev = e->prev;
-      tmp_lp = e->src_lp;
-
-      // delete when working
-      e->src_lp = NULL;
-
-      memory = NULL;
-      if(e->memory)
-	{
-	  memory = e->memory;
-	  e->memory = (tw_memory *) tw_memory_getsize(me, memory->fd);
-	  e->prev = (tw_event *) memory->fd;
-	  mem_size = (size_t) e->memory;
-	}
-
-      buffer = posted_sends.buffers[id];
-      memcpy(&buffer[position], e, g_tw_event_msg_sz);
-      position += g_tw_event_msg_sz;
-
-      // restore pointers
-      e->prev = tmp_prev;
-      e->src_lp = tmp_lp;
-
-      m = NULL;
-      while(memory)
-	{
-	  m = memory->next;
-
-	  if(m)
-	    {
-	      memory->next = (tw_memory *)
-		tw_memory_getsize(me, m->fd);
-	      memory->fd = m->fd;
-	    }
-
-	  if(position + mem_size > TW_MEMORY_BUFFER_SIZE)
-	    tw_error(TW_LOC, "Out of buffer space!");
-
-	  memcpy(&buffer[position], memory, mem_size);
-	  position += mem_size;
-
-	  memory->nrefs--;
-	  tw_memory_unshift(e->src_lp, memory, memory->fd);
-
-	  if(NULL != (memory = m))
-	    mem_size = tw_memory_getsize(me, memory->fd);
-	}
-
-      e->memory = NULL;
-
-      if (MPI_Isend(buffer,
-		    EVENT_SIZE(e),
-		    MPI_BYTE,
-		    *dest_node,
-		    EVENT_TAG,
-		    MPI_COMM_ROSS,
-		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
-	return changed;
-      }
-#else
       if (MPI_Isend(e,
 		    (int)EVENT_SIZE(e),
 		    MPI_BYTE,
-		    (int)*dest_node,
+		    (int)dest_pe,
 		    EVENT_TAG,
 		    MPI_COMM_ROSS,
 		    &posted_sends.req_list[id]) != MPI_SUCCESS) {
 	return changed;
       }
-#endif
 
       tw_eventq_pop(&outq);
       e->state.owner = e->state.cancel_q
@@ -629,9 +494,18 @@ send_begin(tw_pe *me)
   return changed;
 }
 
+/**
+ * @brief Determines how to handle the buffer of event whose send operation
+ * just finished.
+ *
+ * @param[in] me pointer to PE
+ * @param[in] e pointer to event that we just received
+ * @param[in] buffer not currently used
+ */
 static void
 send_finish(tw_pe *me, tw_event *e, char * buffer)
 {
+  (void) buffer;
   me->stats.s_nsend_network++;
   // instrumentation
   e->src_lp->kp->kp_stats->s_nsend_network++;
@@ -682,6 +556,11 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 
 }
 
+/**
+ * @brief Start checks for finished operations in send/recv queues,
+ * and post new sends/recvs if possible.
+ * @param[in] me pointer to PE
+ */
 static void
 service_queues(tw_pe *me)
 {

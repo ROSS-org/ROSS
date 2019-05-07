@@ -186,14 +186,14 @@ typedef uint64_t tw_lpid;
 #  include "clock/aarch64.h"
 #endif
 
+#include "tw-timing.h"
+#include "ross-types.h"
+#include "tw-opts.h"
+
 #ifdef ROSS_NETWORK_mpi
 #  include "network-mpi.h"
 #endif
 
-#include "tw-timing.h"
-#include "ross-types.h"
-#include "tw-opts.h"
-#include "ross-network.h"
 #include "ross-gvt.h"
 #include "ross-extern.h"
 #include "ross-kernel-inline.h"
@@ -207,11 +207,6 @@ typedef uint64_t tw_lpid;
 #ifdef ROSS_GVT_mpi_allreduce
 #  include "mpi.h"
 #  include "gvt/mpi_allreduce.h"
-#endif
-
-#ifdef ROSS_MEMORY
-#  include "tw-memoryq.h"
-#  include "tw-memory.h"
 #endif
 
 #include "instrumentation/st-instrumentation.h"

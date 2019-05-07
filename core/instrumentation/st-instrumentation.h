@@ -162,8 +162,8 @@ struct st_lp_stats{
 
 void st_collect_engine_data(tw_pe *me, int col_type);
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_lps(tw_pe *me, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md, int col_type);
+void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_type);
 
 /*
  * st-event-trace.c 

@@ -17,7 +17,7 @@ void tw_lp_setup_types () {
 		tw_error(TW_LOC, "No LP type mapping is defined");
 	}
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < g_tw_nlp; i++) {
 		tw_lp *lp = g_tw_lp[i];
 		lp->type = &g_tw_lp_types[g_tw_lp_typemap(lp->gid)];
