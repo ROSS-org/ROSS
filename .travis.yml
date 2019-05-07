@@ -46,6 +46,7 @@ script:
  - clang --version
  - gcov --version
  - lcov --version
+ - llvm-cov --version
  - make coveralls
 branches:
   only:
