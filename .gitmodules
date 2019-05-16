@@ -1,9 +1,3 @@
-[submodule "models/template-model"]
-	path = models/template-model
-	url = https://github.com/ROSS-org/template-model.git
-[submodule "models/ROSS-Models"]
-	path = models/ROSS-Models
-	url = https://github.com/carothersc/ROSS-Models
-[submodule "damaris"]
-	path = core/damaris
-	url = https://github.com/caitlinross/ROSS-damaris
+[submodule "risa"]
+	path = core/risa
+	url = https://github.com/ROSS-org/RISA

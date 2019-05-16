@@ -20,11 +20,6 @@ typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
 typedef struct avlNode *AvlTree;
 
-#ifdef ROSS_MEMORY
-typedef struct tw_memoryq tw_memoryq;
-typedef struct tw_memory tw_memory;
-#endif
-
 /**
  * Synchronization protocol used
  */
@@ -48,9 +43,7 @@ typedef enum tw_lp_map tw_lp_map;
 
 /** tw_kpid -- Kernel Process (KP) id*/
 typedef tw_peid tw_kpid;
-
-/** tw_fd   -- used to distinguish between memory and event arrays*/
-typedef unsigned long tw_fd;
+typedef unsigned int tw_eventid;
 
 typedef unsigned long long tw_stat;
 
@@ -85,7 +78,6 @@ typedef void (*event_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*revent_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*commit_f) (void *sv, tw_bf * cv, void *msg, tw_lp * me);
 typedef void (*final_f) (void *sv, tw_lp * me);
-typedef void (*statecp_f) (void *sv_dest, void *sv_src);
 
 /**
  * tw_lptype
@@ -169,39 +161,6 @@ struct tw_statistics {
     tw_clock s_rio_lp_init;
 #endif
 };
-
-#ifdef ROSS_MEMORY
-struct tw_memoryq {
-    tw_memory *head;
-    tw_memory *tail;
-
-    size_t         size;
-    size_t     start_size;
-    size_t     d_size;
-
-    tw_stime   grow;
-};
-
-/**
- * tw_memory
- * @brief Memory Buffer
- *
- * This is a memory buffer which applications can use in any way they
- * see fit.  ROSS provides API methods for handling memory buffers in the event of
- * a rollback and manages the memory in an efficient way, ie, like events.
- */
-struct tw_memory {
-    tw_memory *next; /**< \brief Next pointer for all queues except the LP RC queue */
-    tw_memory *prev; /**< \brief Prev pointer for all queues except the LP RC queue */
-
-    //tw_memory   *volatile up;
-    //int      heap_index;
-
-    tw_stime       ts; /**< \brief Time at which this event can be fossil collected */
-    tw_fd      fd; /**< \brief Source memory queue index */
-    unsigned int   nrefs; /**< \brief Number of references to this membuf (for forwarding) */
-};
-#endif
 
 struct tw_eventq {
     size_t size;
@@ -327,9 +286,6 @@ struct tw_event {
     tw_lpid      dest_lpid;
     tw_stime     send_ts;
 
-#ifdef ROSS_MEMORY
-    tw_memory   *memory;
-#endif
     tw_out *out_msgs;               /**< @brief Output messages */
 };
 
@@ -410,9 +366,6 @@ struct tw_kp {
     struct st_kp_stats *kp_stats;
     struct st_kp_stats *last_stats[3];
 
-#ifdef ROSS_MEMORY
-    tw_memoryq *pmemory_q; /**< @brief TW processed memory buffer queues */
-#endif
 };
 
 /**
@@ -421,14 +374,12 @@ struct tw_kp {
  */
 struct tw_pe {
     tw_peid    id;
-    tw_node    node;
     tw_petype  type; /**< @brief Model defined PE type routines */
 
     tw_eventq event_q; /**< @brief Linked list of events sent to this PE */
     tw_event *cancel_q; /**< @brief List of canceled events */
     tw_pq *pq; /**< @brief Priority queue used to sort events */
     tw_kp *kp_list; /**< @brief */
-    tw_pe **pe_next; /**< @brief Single linked list of PE structs */
 
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
@@ -443,16 +394,10 @@ struct tw_pe {
     unsigned avl_tree_size;
 #endif
 
-#ifdef ROSS_MEMORY
-    tw_memoryq *memory_q; /**< @brief array of free tw_memory buffers linked lists */
-#endif
-
     tw_clock clock_offset; /**< @brief Initial clock value for this PE */
     tw_clock clock_time; /**< @brief  Most recent clock value for this PE */
 
     unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
-    unsigned char master; /**< @brief Master across all compute nodes */
-    unsigned char local_master; /**< @brief Master for this node */
     unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */

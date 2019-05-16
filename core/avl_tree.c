@@ -299,10 +299,10 @@ avlDelete(AvlTree *t, tw_event *key)
 
 AvlTree avl_alloc(void)
 {
-    AvlTree head = g_tw_pe[0]->avl_list_head;
-    g_tw_pe[0]->avl_list_head = head->next;
+    AvlTree head = g_tw_pe->avl_list_head;
+    g_tw_pe->avl_list_head = head->next;
     
-    if (g_tw_pe[0]->avl_list_head == NULL) {
+    if (g_tw_pe->avl_list_head == NULL) {
         tw_error(TW_LOC,
                  "AVL tree out of memory.\nIncrease avl-size beyond %d\n",
                  (int)log2(g_tw_avl_node_count));
@@ -320,6 +320,6 @@ void avl_free(AvlTree t)
     (t)->next = NULL;
     (t)->key = NULL;
     (t)->height = 0;
-    (t)->next = g_tw_pe[0]->avl_list_head;
-    g_tw_pe[0]->avl_list_head = t;
+    (t)->next = g_tw_pe->avl_list_head;
+    g_tw_pe->avl_list_head = t;
 }

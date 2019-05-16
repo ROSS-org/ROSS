@@ -61,7 +61,6 @@ void st_buffer_allocate()
  */
 void st_buffer_init(int type)
 {
-    int i;
     char filename[INST_MAX_LENGTH];
     file_suffix[0] = "gvt";
     file_suffix[1] = "rt";
@@ -141,7 +140,7 @@ void st_buffer_write(int end_of_sim, int type)
     MPI_File *fh = &buffer_fh[type];
     int write_to_file = 0;
     int my_write_size = 0;
-    int i;
+    unsigned int i;
     int write_sizes[tw_nnodes()];
     tw_clock start_cycle_time = tw_clock_read();
 
@@ -170,10 +169,10 @@ void st_buffer_write(int end_of_sim, int type)
         //printf("rank %ld writing %d bytes at offset %lld (prev_offsets[ANALYSIS_LP] = %lld)\n", g_tw_mynode, my_write_size, offset, prev_offsets[type]);
         // dump buffer to file
         MPI_Status status;
-        g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
+        g_tw_pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
         start_cycle_time = tw_clock_read();
         MPI_File_write_at_all(*fh, offset, st_buffer_read_ptr(g_st_buffer[type]), my_write_size, MPI_BYTE, &status);
-        g_tw_pe[0]->stats.s_stat_write += tw_clock_read() - start_cycle_time;
+        g_tw_pe->stats.s_stat_write += tw_clock_read() - start_cycle_time;
 
         // reset the buffer
         g_st_buffer[type]->write_pos = 0;
@@ -182,7 +181,7 @@ void st_buffer_write(int end_of_sim, int type)
         buffer_overflow_warned = 0;
     }
     else
-        g_tw_pe[0]->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
+        g_tw_pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
 
 /* make sure we write out any remaining buffer data */

@@ -1,12 +1,12 @@
 prefix = @CMAKE_INSTALL_PREFIX@
 
 ross_cflags=-I${prefix}/include
-ross_ldflags=-L${prefix}/lib
+ross_ldflags=-L${prefix}/lib -Wl,-rpath,${prefix}/lib
 ross_libs=-lROSS -lm
 
 Name: ROSS
 Description: Rensselaer's Optimistic Simulation System
-Version: 1.0
+Version: @VERSION_SHORT@
 URL: https://github.com/ROSS-org/ROSS
 Requires:
 Libs: ${ross_ldflags} ${ross_libs}

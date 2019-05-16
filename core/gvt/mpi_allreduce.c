@@ -37,14 +37,14 @@ tw_gvt_start(void)
 }
 
 void
-tw_gvt_force_update(tw_pe *me)
+tw_gvt_force_update(void)
 {
 	gvt_force++;
 	gvt_cnt = g_tw_gvt_interval;
 }
 
 void
-tw_gvt_force_update_realtime(tw_pe *me)
+tw_gvt_force_update_realtime(void)
 {
 	gvt_force++;
         g_tw_gvt_interval_start_cycles = 0; // reset to start of time
@@ -85,10 +85,10 @@ tw_gvt_step1_realtime(tw_pe *me)
       ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
           && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
     {
-      /* if( me->node == 0 ) */
+      /* if( me->id == 0 ) */
       /* 	{ */
       /* 	  printf("GVT Step 1 RT Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", */
-      /* 		 me->node, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
+      /* 		 me->id, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
 
       /* 	} */
 
@@ -139,7 +139,7 @@ tw_gvt_step2(tw_pe *me)
 	  }
 
 	pq_min = tw_pq_minimum(me->pq);
-	net_min = tw_net_minimum(me);
+	net_min = tw_net_minimum();
 
 	lvt = me->trans_msg_ts;
 	if(lvt > pq_min)
@@ -203,12 +203,12 @@ tw_gvt_step2(tw_pe *me)
 	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME )
 	  {
 	    start = tw_clock_read();
-	    tw_pe_fossil_collect(me);
+	    tw_pe_fossil_collect();
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
 
     // do any necessary instrumentation calls
-    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) && 
+    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) &&
             g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
     {
 #ifdef USE_DAMARIS
@@ -234,7 +234,7 @@ tw_gvt_step2(tw_pe *me)
 
     if ((g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
         st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, GVT_STATS);
-    
+
     st_inst_dump();
     // done with instrumentation related stuff
 

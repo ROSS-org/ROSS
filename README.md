@@ -6,6 +6,8 @@ You may find the now-deprecated version at the [ROSS-Legacy tag](https://github.
 Using this repository you can compare files from the new `ROSS/core` to `ROSS/ross`.
 For a detailed list of changes between old ROSS and SR please visit [the wiki](https://github.com/ROSS-org/ROSS/wiki/Differences-between-Simplified-ROSS-and-ROSS-Legacy).
 
+For the most recent docs and other important posts about ROSS, see the [ROSS webpage](http://ross-org.github.io).
+
 [![Build Status](https://travis-ci.com/ROSS-org/ROSS.svg?branch=master)](https://travis-ci.com/ROSS-org/ROSS)
 [![codecov.io](http://codecov.io/github/ROSS-org/ROSS/coverage.svg?branch=master)](http://codecov.io/github/ROSS-org/ROSS?branch=master)
 [![Doxygen](https://img.shields.io/badge/doxygen-reference-blue.svg)](http://ross-org.github.io/ROSS-docs/docs/html)
@@ -27,7 +29,7 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
 ## Requirements
 
 1. ROSS is written in C standard and thus requires a C compiler (C11 is prefered, but not required).
-2. The build system is [CMake](http://cmake.org), and we require version 2.8 or higher.
+2. The build system is [CMake](http://cmake.org), and we require version 3.5 or higher.
 3. ROSS relies on MPI.
    We recommend the [MPICH](http://www.mpich.org) implementation.
 
@@ -46,18 +48,17 @@ Developed as Simplified ROSS ([gonsie/SR](http://github.com/gonsie/SR)), this ve
   git submodule init
   git submodule update
   ```
-  Currently, ROSS includes three submodules:
-  - [ROSS-Models](http://github.com/ROSS-org/ROSS-Models) is a set of existing models
-  - [template-model](http://github.com/ROSS-org/template-model) is a starting place for new models
+  Currently, ROSS includes one submodule:
+  - [RISA](https://github.com/ROSS-org/RISA) ROSS In Situ Analysis
 
 3. *Optional* Symlink your model to ROSS.
-Please [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Constructing-the-Model) for details about creating and integrating a model with ROSS.
+Please [this blog post](https://ross-org.github.io/setup/build-model-with-ross.html) for details about creating and integrating a model with ROSS.
   ```
   ln -s ~/path-to/your-existing-model models/your-model-name
   ```
 
 4. Create a build directory.
-ROSS developers typically do out-of-tree builds.  See the [Installation page](https://github.com/ROSS-org/ROSS/wiki/Installation) for more details.
+ROSS developers typically do out-of-tree builds.  See the [Installation page](https://ross-org.github.io/setup/installation.html) for more details.
   ```
   cd ~/directory-of-builds/
   mkdir ROSS-build
@@ -73,7 +74,7 @@ ROSS developers typically do out-of-tree builds.  See the [Installation page](ht
   ```
 
 6. Run your model.
-See [this wiki page](https://github.com/ROSS-org/ROSS/wiki/Running-the-Simulator) for details about the ROSS command line options.
+See [this blog post](https://ross-org.github.io/setup/running-sim.html) for details about the ROSS command line options.
   ```
   cd ~/directory-of-builds/ROSS-build/models/your-model
   ./your-model --synch=1               // sequential mode

@@ -43,7 +43,7 @@ void specialized_lp_init_mapping()
     tw_lpid lpid;
     for(lpid = 0; lpid < g_st_analysis_nlp; lpid++)
     {
-        tw_lp_onpe(g_tw_nlp + lpid, g_tw_pe[0], analysis_start_gid + g_tw_mynode * g_st_analysis_nlp + lpid);
+        tw_lp_onpe(g_tw_nlp + lpid, g_tw_pe, analysis_start_gid + g_tw_mynode * g_st_analysis_nlp + lpid);
         tw_lp_onkp(g_tw_lp[g_tw_nlp + lpid], g_tw_kp[lpid]); // analysis lpid == kpid
         st_analysis_lp_settype(g_tw_nlp + lpid);
     }
