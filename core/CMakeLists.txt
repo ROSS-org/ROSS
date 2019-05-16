@@ -81,18 +81,16 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 INCLUDE(GetGitRevisionDescription)
 #GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
 
-git_describe(VERSION --tags --dirty=-d)
+git_describe(VERSION --tags --dirty)
 
 #parse the version information into pieces.
 string(REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
 string(REGEX REPLACE "^v[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
 string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${VERSION}")
 string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
+# VERSION_SHORT used in the ross.pc file
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cpp.in
-                ${CMAKE_CURRENT_BINARY_DIR}/version.cpp)
-set(version_file "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
 
 # Data Structure for remote Events
 # If AVL_TREE is OFF, ROSS reverts to hashing
@@ -118,7 +116,7 @@ ENDIF(USE_RIO)
 # Damaris I/O and data management
 OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
 if (USE_DAMARIS)
-    ADD_SUBDIRECTORY(damaris)
+    ADD_SUBDIRECTORY(risa)
     INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
@@ -143,11 +141,9 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
-ADD_LIBRARY(ROSS_obj OBJECT ${ross_srcs} ${version_file})
-
 OPTION(ROSS_BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
 SET(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
-ADD_LIBRARY(ROSS $<TARGET_OBJECTS:ROSS_obj>)
+ADD_LIBRARY(ROSS ${ross_srcs})
 SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
 TARGET_LINK_LIBRARIES(ROSS ${ROSS_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(ROSS INTERFACE ${MPI_C_INCLUDE_PATH})
