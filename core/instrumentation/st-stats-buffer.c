@@ -137,6 +137,14 @@ char* st_buffer_pointer(int inst_mode, size_t size)
         missed_bytes += size;
         size = 0; // if we can't push it all, don't push anything to buffer
     }
+    else if (g_st_disable_out && st_buffer_free_space(buffer_list[inst_mode]) < size)
+    {
+        // reset buffer pointer since we're running in disable output
+        // mode for instrumentation layer testing
+        buffer_list[inst_mode]->write_pos = 0;
+        buffer_list[inst_mode]->read_pos = 0;
+        buffer_list[inst_mode]->count = 0;
+    }
 
     if (buffer_list[inst_mode]->size - buffer_list[inst_mode]->write_pos >=  size)
     {
