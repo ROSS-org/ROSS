@@ -349,6 +349,11 @@ unsigned instList[] = {
 #endif
 
 void tw_run(void) {
+#ifdef USE_RISA
+    if (!g_st_ross_rank)
+        return;
+#endif
+
     tw_pe *me;
 
     late_sanity_check();
