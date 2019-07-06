@@ -54,7 +54,7 @@ size_t calc_sim_engine_sample_size(void);
 size_t calc_sim_engine_sample_size_vts(tw_lp* lp);
 
 size_t calc_lvt_sample_size();
-void st_collect_lvt_data(char* buffer, size_t data_size, sample_metadata* sample_md);
+void st_collect_lvt_data(tw_pe *pe);
 
 
 #endif // ST_SIM_ENGINE_H

@@ -166,7 +166,7 @@ void st_inst_sample(tw_pe *me, int inst_type)
 {
     inst_sample(me, inst_type, NULL, 0);
     if (inst_type == GVT_INST && g_st_lvt_samp)
-        inst_sample(me, LVT_INST, NULL, 0);
+        st_collect_lvt_data(me);
 }
 
 void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
@@ -258,16 +258,9 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 
     if (!vts_commit && buf_size && engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
     {
-        if (inst_type == LVT_INST)
-        {
-            st_collect_lvt_data(buf_ptr, engine_data_sizes[inst_type], sample_md);
-        }
-        else
-        {
-            if (inst_type == VT_INST)
-                sample_md->vts = tw_now(lp);
-            st_collect_engine_data(me, inst_type, buf_ptr, engine_data_sizes[inst_type], sample_md, lp);
-        }
+        if (inst_type == VT_INST)
+            sample_md->vts = tw_now(lp);
+        st_collect_engine_data(me, inst_type, buf_ptr, engine_data_sizes[inst_type], sample_md, lp);
         buf_ptr += engine_data_sizes[inst_type];
         buf_size -= engine_data_sizes[inst_type];
     }

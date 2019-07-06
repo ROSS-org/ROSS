@@ -141,6 +141,7 @@ typedef struct st_pe_stats st_pe_stats;
 typedef struct st_kp_stats st_kp_stats;
 typedef struct st_lp_stats st_lp_stats;
 typedef struct st_kp_lvt_samp st_kp_lvt_samp;
+typedef struct st_kp_lvt_md st_kp_lvt_md;
 
 struct st_pe_stats{
     unsigned int peid;
@@ -184,8 +185,14 @@ struct st_kp_stats{
     float time_ahead_gvt;
 };
 
+struct st_kp_lvt_md
+{
+    unsigned int peid;
+    unsigned int num_kp;
+    double gvt;
+};
+
 struct st_kp_lvt_samp{
-    unsigned int kpid;
     double lvt;
 };
 

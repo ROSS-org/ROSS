@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <instrumentation/st-stats-buffer.h>
 #include <instrumentation/st-instrumentation-internal.h>
+#include <instrumentation/st-instrumentation.h>
 #include <instrumentation/st-sim-engine.h>
 #include <instrumentation/ross-lps/analysis-lp.h>
 
@@ -55,26 +56,42 @@ size_t calc_sim_engine_sample_size_vts(tw_lp *lp)
     return total_size;
 }
 
-void st_collect_lvt_data(char* buffer, size_t data_size, sample_metadata* sample_md)
+void st_collect_lvt_data(tw_pe *pe)
 {
-    char* cur_buf = buffer;
-    size_t cur_size = 0;
+    size_t buf_size = 0;
+    char* buf_ptr;
     tw_kp* kp;
     int i;
-    sample_md->has_kp = g_tw_nkp;
+    st_kp_lvt_md* sample_md;
 
-    for (i = 0; i < g_tw_nkp; i++)
+    buf_size = sizeof(st_kp_lvt_md);
+    buf_size += engine_data_sizes[LVT_INST];
+
+    if (buf_size > sizeof(st_kp_lvt_samp))
     {
-        kp = tw_getkp(i);
-        st_kp_lvt_samp* kp_stats = (st_kp_lvt_samp*)cur_buf;
-        cur_buf += sizeof(*kp_stats);
-        cur_size += sizeof(*kp_stats);
-        kp_stats->kpid = kp->id;
-        kp_stats->lvt = kp->last_time;
-    }
+        buf_ptr = st_buffer_pointer(LVT_INST, buf_size);
 
-    if (cur_size != data_size)
-        tw_error(TW_LOC, "KP LVT sampling is incorrect!");
+        sample_md = (st_kp_lvt_md*)buf_ptr;
+        buf_ptr += sizeof(*sample_md);
+        buf_size -= sizeof(*sample_md);
+
+        bzero(sample_md, sizeof(*sample_md));
+        sample_md->gvt = pe->GVT;
+        sample_md->peid = (unsigned int)g_tw_mynode;
+        sample_md->num_kp = g_tw_nkp;
+
+        for (i = 0; i < g_tw_nkp; i++)
+        {
+            kp = tw_getkp(i);
+            st_kp_lvt_samp* kp_stats = (st_kp_lvt_samp*)buf_ptr;
+            buf_ptr += sizeof(*kp_stats);
+            buf_size -= sizeof(*kp_stats);
+            kp_stats->lvt = kp->last_time;
+        }
+
+        if (buf_size != 0)
+            tw_error(TW_LOC, "KP LVT sampling is incorrect!");
+    }
 }
 
 /* wrapper to call gvt instrumentation functions depending on which granularity to use */
