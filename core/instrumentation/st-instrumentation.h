@@ -104,6 +104,7 @@ extern int g_st_num_gvt;
 extern int g_st_rt_sampling;
 extern tw_clock g_st_rt_interval;
 extern tw_clock g_st_rt_samp_start_cycles;
+extern int g_st_lvt_samp;
 
 const tw_optdef *st_inst_opts();
 void st_inst_init(void);
@@ -116,6 +117,7 @@ typedef enum {
     RT_INST,
     VT_INST,
     ET_INST,
+    LVT_INST,
     NUM_INST_MODES
 } inst_modes;
 
@@ -124,6 +126,7 @@ typedef enum{
     GVT_STATS,
     RT_STATS,
     VT_STATS,
+    LVT_STATS,
     ALL_STATS
 } stats_types_enum;
 
@@ -137,6 +140,7 @@ extern short model_modes[NUM_INST_MODES];
 typedef struct st_pe_stats st_pe_stats;
 typedef struct st_kp_stats st_kp_stats;
 typedef struct st_lp_stats st_lp_stats;
+typedef struct st_kp_lvt_samp st_kp_lvt_samp;
 
 struct st_pe_stats{
     unsigned int peid;
@@ -178,6 +182,11 @@ struct st_kp_stats{
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
     float time_ahead_gvt;
+};
+
+struct st_kp_lvt_samp{
+    unsigned int kpid;
+    double lvt;
 };
 
 struct st_lp_stats{

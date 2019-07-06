@@ -11,6 +11,7 @@ int g_st_pe_data = 1;
 int g_st_kp_data = 0;
 int g_st_lp_data = 0;
 int g_st_disable_out = 0;
+int g_st_lvt_samp = 0;
 
 int g_st_model_stats = 0;
 int g_st_engine_stats = 0;
@@ -46,6 +47,7 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("pe-data", g_st_pe_data, "Turn on/off collection of sim engine data at PE level"),
     TWOPT_UINT("kp-data", g_st_kp_data, "Turn on/off collection of sim engine data at KP level"),
     TWOPT_UINT("lp-data", g_st_lp_data, "Turn on/off collection of sim engine data at LP level"),
+    TWOPT_UINT("lvt-sampling", g_st_lvt_samp, "Enable LVT sampling for KPs"),
     TWOPT_UINT("event-trace", g_st_ev_trace, "collect detailed data on all events for specified LPs; 0, no trace, 1 full trace, 2 only events causing rollbacks, 3 only committed events"),
     TWOPT_CHAR("stats-prefix", g_st_stats_out, "prefix for filename(s) for stats output"),
     TWOPT_CHAR("stats-path", g_st_stats_path, "path to directory to save instrumentation output"),
@@ -89,8 +91,11 @@ void st_inst_init(void)
     specialized_lp_run();
 
     // setup appropriate flags for various instrumentation modes
-    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
+    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_lvt_samp))
         return;
+
+    if (g_st_lvt_samp)
+        engine_modes[LVT_INST] = 1;
 
     if (g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS)
     {
@@ -129,9 +134,10 @@ void st_inst_init(void)
 
 void st_inst_finish_setup()
 {
-    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace))
+    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_lvt_samp))
         return;
 
+    engine_data_sizes[LVT_INST] = calc_lvt_sample_size();
     engine_data_sizes[GVT_INST] = calc_sim_engine_sample_size();
     engine_data_sizes[RT_INST] = calc_sim_engine_sample_size();
     // engine_data_sizes[VT_INST] has to be recalculated each time, for now
@@ -159,6 +165,8 @@ void st_inst_finish_setup()
 void st_inst_sample(tw_pe *me, int inst_type)
 {
     inst_sample(me, inst_type, NULL, 0);
+    if (inst_type == GVT_INST && g_st_lvt_samp)
+        inst_sample(me, LVT_INST, NULL, 0);
 }
 
 void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
@@ -250,9 +258,16 @@ void inst_sample(tw_pe *me, int inst_type, tw_lp* lp, int vts_commit)
 
     if (!vts_commit && buf_size && engine_modes[inst_type] && g_tw_synchronization_protocol != SEQUENTIAL)
     {
-        if (inst_type == VT_INST)
-            sample_md->vts = tw_now(lp);
-        st_collect_engine_data(me, inst_type, buf_ptr, engine_data_sizes[inst_type], sample_md, lp);
+        if (inst_type == LVT_INST)
+        {
+            st_collect_lvt_data(buf_ptr, engine_data_sizes[inst_type], sample_md);
+        }
+        else
+        {
+            if (inst_type == VT_INST)
+                sample_md->vts = tw_now(lp);
+            st_collect_engine_data(me, inst_type, buf_ptr, engine_data_sizes[inst_type], sample_md, lp);
+        }
         buf_ptr += engine_data_sizes[inst_type];
         buf_size -= engine_data_sizes[inst_type];
     }
@@ -292,6 +307,8 @@ void st_inst_dump()
         st_buffer_write(0, GVT_INST);
     if (engine_modes[RT_INST] || model_modes[RT_INST])
         st_buffer_write(0, RT_INST);
+    if (engine_modes[LVT_INST])
+        st_buffer_write(0, LVT_INST);
     if (g_st_ev_trace)
         st_buffer_write(0, ET_INST);
     if (g_st_use_analysis_lps)
@@ -311,6 +328,8 @@ void st_inst_finalize(tw_pe *me)
         st_inst_sample(me, RT_INST);
         st_buffer_finalize(RT_INST);
     }
+    if (engine_modes[LVT_INST])
+        st_buffer_finalize(LVT_INST);
     if (g_st_ev_trace)
         st_buffer_finalize(ET_INST);
     if (g_st_use_analysis_lps)

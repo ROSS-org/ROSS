@@ -25,7 +25,7 @@ static st_stats_buffer **buffer_list;
 
 void st_buffer_allocate()
 {
-    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps))
+    if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps || g_st_lvt_samp))
         return;
 
     int i, rc;
@@ -81,6 +81,8 @@ void st_buffer_allocate()
         buffer_init(RT_INST);
     if (engine_modes[VT_INST] || model_modes[VT_INST])
         buffer_init(VT_INST);
+    if (engine_modes[LVT_INST])
+        buffer_init(LVT_INST);
 
     if (g_st_ev_trace)
         buffer_init(ET_INST);
@@ -95,6 +97,7 @@ void buffer_init(int inst_mode)
     file_suffix[1] = "rt";
     file_suffix[2] = "vt";
     file_suffix[3] = "evtrace";
+    file_suffix[4] = "lvt-samples";
 
     buffer_list[inst_mode] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     buffer_list[inst_mode]->size  = g_st_buffer_size;

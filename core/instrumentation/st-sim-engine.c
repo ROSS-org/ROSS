@@ -25,6 +25,14 @@ size_t calc_sim_engine_sample_size()
     return total_size;
 }
 
+size_t calc_lvt_sample_size()
+{
+    size_t total_size = 0;
+    if (g_st_lvt_samp)
+        total_size = sizeof(st_kp_lvt_samp) * g_tw_nkp;
+    return total_size;
+}
+
 // has to be calculated at each sample because may have
 // differing numbers of lps per analysis LP?
 // TODO can save in the Analysis LP state instead of recalculating
@@ -45,6 +53,28 @@ size_t calc_sim_engine_sample_size_vts(tw_lp *lp)
         total_size += sizeof(st_lp_stats) * num_lps;
     }
     return total_size;
+}
+
+void st_collect_lvt_data(char* buffer, size_t data_size, sample_metadata* sample_md)
+{
+    char* cur_buf = buffer;
+    size_t cur_size = 0;
+    tw_kp* kp;
+    int i;
+    sample_md->has_kp = g_tw_nkp;
+
+    for (i = 0; i < g_tw_nkp; i++)
+    {
+        kp = tw_getkp(i);
+        st_kp_lvt_samp* kp_stats = (st_kp_lvt_samp*)cur_buf;
+        cur_buf += sizeof(*kp_stats);
+        cur_size += sizeof(*kp_stats);
+        kp_stats->kpid = kp->id;
+        kp_stats->lvt = kp->last_time;
+    }
+
+    if (cur_size != data_size)
+        tw_error(TW_LOC, "KP LVT sampling is incorrect!");
 }
 
 /* wrapper to call gvt instrumentation functions depending on which granularity to use */
