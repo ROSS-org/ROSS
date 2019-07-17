@@ -33,11 +33,11 @@ gvt_print(tw_stime gvt)
         printf("GVT = %.4f", gvt);
 
     printf(").\n");
-		
+
 #ifdef AVL_TREE
     printf("AVL tree size: %d\n", g_tw_pe->avl_tree_size);
 #endif
-    
+
 	percent_complete += gvt_print_interval;
 }
 
