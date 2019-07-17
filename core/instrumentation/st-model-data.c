@@ -17,7 +17,7 @@ void st_model_setup_types(tw_lp *lp)
         fprintf(stderr, "The g_st_model_types has not been defined! No model level data will be collected\n");
         model_type_warned = 1;
     }
-    
+
 }
 
 // if model uses tw_lp_settypes(), model will also need to call
@@ -58,7 +58,7 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
     model_md.gvt = (float) TW_STIME_DBL(pe->GVT);
     model_md.stats_type = stats_type;
 
-    for (lpid = 0; lpid < g_tw_nlp; lpid++) 
+    for (lpid = 0; lpid < g_tw_nlp; lpid++)
     {
         index = 0;
         clp = g_tw_lp[lpid];
@@ -91,4 +91,3 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
     }
     pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
-

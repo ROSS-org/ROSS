@@ -128,7 +128,7 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
         kp_stats.efficiency = (float) 100.0 * (1.0 - ((float) kp_stats.s_e_rbs / (float) net_events));
     else
         kp_stats.efficiency = 0;
-    
+
     memcpy(kp->last_stats[col_type], kp->kp_stats, sizeof(st_kp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
@@ -169,7 +169,7 @@ void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_t
         lp_stats.efficiency = (float) 100.0 * (1.0 - ((float) lp_stats.s_e_rbs / (float) net_events));
     else
         lp_stats.efficiency = 0;
-    
+
     memcpy(lp->last_stats[col_type], lp->lp_stats, sizeof(st_lp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
@@ -182,4 +182,3 @@ void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_t
 
     st_buffer_push(col_type, &buffer[0], buf_size);
 }
-

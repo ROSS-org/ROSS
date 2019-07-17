@@ -54,7 +54,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
     // setup memory to use for model samples
     if ((g_st_model_stats == VT_STATS || g_st_model_stats == ALL_STATS) && s->num_lps > 0)
     {
-        s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count); 
+        s->model_samples_head = (model_sample_data*) tw_calloc(TW_LOC, "analysis LPs", sizeof(model_sample_data), g_st_sample_count);
         s->model_samples_current = s->model_samples_head;
         model_sample_data *sample = s->model_samples_head;
         for (i = 0; i < g_st_sample_count; i++)
@@ -70,7 +70,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
                 sample->next = NULL;
                 s->model_samples_tail = sample;
             }
-            else 
+            else
             {
                 sample->next = sample + 1;
                 sample->next->prev = sample;
@@ -87,7 +87,7 @@ void analysis_init(analysis_state *s, tw_lp *lp)
         }
     }
 
-    // schedule 1st sampling event 
+    // schedule 1st sampling event
     st_create_sample_event(lp);
 }
 
@@ -125,7 +125,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
     }
 
     // sim engine sampling
-    if (g_tw_synchronization_protocol != SEQUENTIAL && 
+    if (g_tw_synchronization_protocol != SEQUENTIAL &&
             (g_st_engine_stats == VT_STATS || g_st_engine_stats == ALL_STATS))
     {
 #ifdef USE_DAMARIS
@@ -138,7 +138,7 @@ void analysis_event(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
 #endif
     }
         //collect_sim_engine_data(lp->pe, lp, s, (tw_stime) tw_clock_read() / g_tw_clock_rate);
-    
+
     // create next sampling event
     st_create_sample_event(lp);
 }
@@ -156,7 +156,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         model_sample_data *sample;
         // start at end, because it's most likely closer to the timestamp we're looking for
         for (sample = s->model_samples_current->prev; sample != NULL; sample = sample->prev)
-        { 
+        {
             //sample = &s->model_samples[i];
             if (TW_STIME_CMP(sample->timestamp, m->timestamp) == 0)
             {
@@ -193,7 +193,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
             }
         }
     }
-    
+
 }
 
 void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
@@ -228,7 +228,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                     memcpy(&buffer[0], (char*)&metadata, sizeof(lp_metadata));
                     memcpy(&buffer[sizeof(lp_metadata)], (char*)sample->lp_data[j], model_lp->model_types->sample_struct_sz);
                     if (g_tw_synchronization_protocol != SEQUENTIAL)
-                        st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz); 
+                        st_buffer_push(ANALYSIS_LP, &buffer[0], sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz);
                     else if (g_tw_synchronization_protocol == SEQUENTIAL && !g_st_disable_out)
                         fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
                 }
@@ -282,7 +282,7 @@ static void st_create_sample_event(tw_lp *lp)
 tw_peid analysis_map(tw_lpid gid)
 {
     tw_lpid local_id = gid - analysis_start_gid;
-    return local_id / g_tw_nkp; // because there is 1 LP for each KP 
+    return local_id / g_tw_nkp; // because there is 1 LP for each KP
 }
 
 tw_lptype analysis_lp[] = {
@@ -301,4 +301,3 @@ void st_analysis_lp_settype(tw_lpid lpid)
 {
     tw_lp_settype(lpid, &analysis_lp[0]);
 }
-

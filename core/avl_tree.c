@@ -72,12 +72,12 @@ void
 avlSanityCheck(AvlTree root)
 {
     int i;
-    
+
     if (root != AVL_EMPTY) {
         for (i = 0; i < 2; i++) {
             avlSanityCheck(root->child[i]);
         }
-        
+
         assert(root->height == 1 + ROSS_MAX(avlGetHeight(root->child[0]), avlGetHeight(root->child[1])));
     }
 }
@@ -87,7 +87,7 @@ static void
 avlFixHeight(AvlTree t)
 {
     assert(t != AVL_EMPTY);
-    
+
     t->height = 1 + ROSS_MAX(avlGetHeight(t->child[0]), avlGetHeight(t->child[1]));
 }
 
@@ -108,15 +108,15 @@ avlRotate(AvlTree *root, int d)
     AvlTree oldRoot;
     AvlTree newRoot;
     AvlTree oldMiddle;
-    
+
     oldRoot = *root;
     newRoot = oldRoot->child[d];
     oldMiddle = newRoot->child[!d];
-    
+
     oldRoot->child[d] = oldMiddle;
     newRoot->child[!d] = oldRoot;
     *root = newRoot;
-    
+
     /* update heights */
     avlFixHeight((*root)->child[!d]);   /* old root */
     avlFixHeight(*root);                /* new root */
@@ -129,7 +129,7 @@ static void
 avlRebalance(AvlTree *t)
 {
     int d;
-    
+
     if (*t != AVL_EMPTY) {
         for (d = 0; d < 2; d++) {
             /* maybe child[d] is now too tall */
@@ -146,11 +146,11 @@ avlRebalance(AvlTree *t)
                     avlRotate(&(*t)->child[d], !d);
                     avlRotate(t, d);
                 }
-                
+
                 return;   /* avlRotate called avlFixHeight */
             }
         }
-        
+
         /* update height */
         avlFixHeight(*t);
     }
@@ -171,14 +171,14 @@ avlInsert(AvlTree *t, tw_event *key)
                      "AVL tree out of memory.\nIncrease avl-size beyond %d\n",
                      (int)log2(g_tw_avl_node_count));
         }
-        
+
         (*t)->child[0] = AVL_EMPTY;
         (*t)->child[1] = AVL_EMPTY;
-        
+
         (*t)->key = key;
-        
+
         (*t)->height = 1;
-        
+
         /* done */
         return;
     }
@@ -227,9 +227,9 @@ avlDeleteMin(AvlTree *t)
 {
     AvlTree oldroot;
     tw_event *event_with_lowest_ts = NULL;
-    
+
     assert(t != AVL_EMPTY);
-    
+
     if ((*t)->child[0] == AVL_EMPTY) {
         /* root is min value */
         oldroot = *t;
@@ -241,7 +241,7 @@ avlDeleteMin(AvlTree *t)
         /* min value is in left subtree */
         event_with_lowest_ts = avlDeleteMin(&(*t)->child[0]);
     }
-    
+
     avlRebalance(t);
     return event_with_lowest_ts;
 }
@@ -252,7 +252,7 @@ avlDelete(AvlTree *t, tw_event *key)
 {
     tw_event *target = NULL;
     AvlTree oldroot;
-    
+
     if (*t == AVL_EMPTY) {
         tw_error(TW_LOC, "We never look for non-existent events!");
         return target;
@@ -291,9 +291,9 @@ avlDelete(AvlTree *t, tw_event *key)
         // Timestamps are different
         target = avlDelete(&(*t)->child[TW_STIME_CMP(key->recv_ts, (*t)->key->recv_ts) > 0], key);
     }
-    
+
     avlRebalance(t);
-    
+
     return target;
 }
 
@@ -301,15 +301,15 @@ AvlTree avl_alloc(void)
 {
     AvlTree head = g_tw_pe->avl_list_head;
     g_tw_pe->avl_list_head = head->next;
-    
+
     if (g_tw_pe->avl_list_head == NULL) {
         tw_error(TW_LOC,
                  "AVL tree out of memory.\nIncrease avl-size beyond %d\n",
                  (int)log2(g_tw_avl_node_count));
     }
-    
+
     head->next = NULL;
-    
+
     return head;
 }
 

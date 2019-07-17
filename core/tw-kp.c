@@ -185,4 +185,3 @@ tw_kp_put_back_output_buffer(tw_out *out)
         kp->output->next = NULL;
     }
 }
-
