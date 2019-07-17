@@ -1,8 +1,8 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
-static tw_stime gvt_print_interval = 0.01;
-static tw_stime percent_complete = 0.0;
+static double gvt_print_interval = 0.01;
+static double percent_complete = 0.0;
 
 static inline int
 tw_gvt_inprogress(tw_pe * pe)
