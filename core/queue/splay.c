@@ -1,7 +1,7 @@
 /*
  * queue-splay.c :- splay tree for priority queue
- * 
- * THIS IMPLEMENTATION IS ADAPTED FROM THE DASSF 
+ *
+ * THIS IMPLEMENTATION IS ADAPTED FROM THE DASSF
  * C++ IMPLEMENTATION.
  * THEIR COPYRIGHT IS ATTACHED BELOW
  */
@@ -9,19 +9,19 @@
 /*
  * Copyright (c) 1998-2002 Dartmouth College
  *
- * Permission is hereby granted, free of charge, to any individual or 
- * institution obtaining a copy of this software and associated 
- * documentation files (the "Software"), to use, copy, modify, and 
- * distribute without restriction, provided that this copyright and 
- * permission notice is maintained, intact, in all copies and supporting 
+ * Permission is hereby granted, free of charge, to any individual or
+ * institution obtaining a copy of this software and associated
+ * documentation files (the "Software"), to use, copy, modify, and
+ * distribute without restriction, provided that this copyright and
+ * permission notice is maintained, intact, in all copies and supporting
  * documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL DARTMOUTH COLLEGE BE LIABLE FOR ANY CLAIM, DAMAGES 
- * OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+ * IN NO EVENT SHALL DARTMOUTH COLLEGE BE LIABLE FOR ANY CLAIM, DAMAGES
+ * OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
