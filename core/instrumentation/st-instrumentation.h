@@ -202,8 +202,8 @@ extern void specialized_lp_run();
 extern const tw_optdef *st_special_lp_opts(void);
 extern int g_st_use_analysis_lps;
 extern tw_lpid g_st_analysis_nlp;
-extern tw_stime g_st_vt_interval;
-extern tw_stime g_st_sampling_end;
+extern double g_st_vt_interval;
+extern double g_st_sampling_end;
 extern tw_lpid g_st_total_model_lps;
 extern int g_st_sample_count;
 

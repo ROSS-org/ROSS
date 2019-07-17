@@ -18,8 +18,8 @@ int g_st_rt_sampling = 0;
 tw_clock g_st_rt_interval = 1000;
 tw_clock g_st_rt_samp_start_cycles = 0;
 
-tw_stime g_st_vt_interval = 1000000;
-tw_stime g_st_sampling_end = 0;
+double g_st_vt_interval = 1000000;
+double g_st_sampling_end = 0;
 
 
 
