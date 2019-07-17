@@ -369,7 +369,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me))
-    me->trans_msg_ts = ROSS_MIN(me->trans_msg_ts, e->recv_ts);
+      me->trans_msg_ts = (TW_STIME_CMP(me->trans_msg_ts, e->recv_ts) < 0) ? me->trans_msg_ts : e->recv_ts;
 
   // if cancel event, retrieve and flush
   // else, store in hash table
