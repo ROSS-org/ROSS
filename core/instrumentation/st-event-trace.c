@@ -6,7 +6,7 @@ static short evtype_warned = 0;
 
 // collect src LP, dest LP, virtual time stamp, real time start
 // model can implement callback function to collect model level data, e.g. event type
-void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
+void st_collect_event_data(tw_event *cev, tw_clock recv_rt)
 {
     tw_clock start_cycle_time = tw_clock_read();
     int collect_flag = 1;
