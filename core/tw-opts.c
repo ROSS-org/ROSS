@@ -54,8 +54,8 @@ show_help(void)
 				pos += fprintf(stderr, "=n");
 				break;
 
-			case TWOPTTYPE_STIME:
-				pos += fprintf(stderr, "=ts");
+			case TWOPTTYPE_DOUBLE:
+				pos += fprintf(stderr, "=dbl");
 				break;
 
 			case TWOPTTYPE_CHAR:
@@ -96,8 +96,8 @@ show_help(void)
 					fprintf(stderr, " (default %u)", *((unsigned int*)def->value));
 					break;
 
-				case TWOPTTYPE_STIME:
-					fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
+				case TWOPTTYPE_DOUBLE:
+					fprintf(stderr, " (default %.2f)", *((double*)def->value));
 					break;
 
 				case TWOPTTYPE_CHAR:
@@ -172,8 +172,8 @@ void tw_opt_settings(FILE *outfile) {
                     fprintf(outfile, "%u", *((unsigned int*)def->value));
                     break;
 
-                case TWOPTTYPE_STIME:
-                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
+                case TWOPTTYPE_DOUBLE:
+                    fprintf(outfile, "%.2f", *((double*)def->value));
                     break;
 
                 case TWOPTTYPE_CHAR:
@@ -233,8 +233,8 @@ tw_opt_print(void)
 					fprintf(f, "%u,", *((unsigned int*)def->value));
 					break;
 
-				case TWOPTTYPE_STIME:
-					fprintf(f, "%.2f,", *((tw_stime*)def->value));
+				case TWOPTTYPE_DOUBLE:
+					fprintf(f, "%.2f,", *((double*)def->value));
 					break;
 
 				case TWOPTTYPE_CHAR:
@@ -302,9 +302,9 @@ apply_opt(const tw_optdef *def, const char *value)
 		break;
 	}
 
-	case TWOPTTYPE_STIME:
+	case TWOPTTYPE_DOUBLE:
 	{
-		tw_stime v;
+		double v;
 		char *end;
 
 		if (!value)
@@ -312,7 +312,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		v = strtod(value, &end);
 		if (*end)
 			need_argument(def);
-		*((tw_stime*)def->value) = v;
+		*((double*)def->value) = v;
 		break;
 	}
 
