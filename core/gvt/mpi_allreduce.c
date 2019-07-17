@@ -13,7 +13,7 @@ static const tw_optdef gvt_opts [] =
 {
 	TWOPT_GROUP("ROSS MPI GVT"),
 	TWOPT_UINT("gvt-interval", g_tw_gvt_interval, "GVT Interval: Iterations through scheduling loop (synch=1,2,3,4), or ms between GVTs (synch=5)"),
-	TWOPT_STIME("report-interval", gvt_print_interval,
+	TWOPT_DOUBLE("report-interval", gvt_print_interval,
 			"percent of runtime to print GVT"),
 	TWOPT_END()
 };
@@ -70,7 +70,7 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
-		(++gvt_cnt < g_tw_gvt_interval && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
+           (++gvt_cnt < g_tw_gvt_interval && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
 		return;
 
 	me->gvt_status = TW_GVT_COMPUTE;
@@ -83,7 +83,7 @@ tw_gvt_step1_realtime(tw_pe *me)
 
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
       ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
-          && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
+          && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
     {
       /* if( me->id == 0 ) */
       /* 	{ */
@@ -105,8 +105,8 @@ tw_gvt_step2(tw_pe *me)
 	long long local_white = 0;
 	long long total_white = 0;
 
-	tw_stime pq_min = DBL_MAX;
-	tw_stime net_min = DBL_MAX;
+	tw_stime pq_min = TW_STIME_MAX;
+	tw_stime net_min = TW_STIME_MAX;
 
 	tw_stime lvt;
 	tw_stime gvt;
@@ -142,9 +142,9 @@ tw_gvt_step2(tw_pe *me)
 	net_min = tw_net_minimum();
 
 	lvt = me->trans_msg_ts;
-	if(lvt > pq_min)
+	if(TW_STIME_CMP(lvt, pq_min) > 0)
 	  lvt = pq_min;
-	if(lvt > net_min)
+	if(TW_STIME_CMP(lvt, net_min) > 0)
 		lvt = net_min;
 
 	all_reduce_cnt++;
@@ -175,21 +175,21 @@ tw_gvt_step2(tw_pe *me)
 		}
 	}
 
-	if (me->GVT > gvt)
+	if (TW_STIME_CMP(me->GVT, gvt) > 0)
 	{
 		tw_error(TW_LOC, "PE %u GVT decreased %g -> %g",
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
+	if (TW_STIME_DBL(gvt) / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
 	{
 		gvt_print(gvt);
 	}
 
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;
-	me->trans_msg_ts = DBL_MAX;
-	me->GVT_prev = DBL_MAX; // me->GVT;
+	me->trans_msg_ts = TW_STIME_MAX;
+	me->GVT_prev = TW_STIME_MAX; // me->GVT;
 	me->GVT = gvt;
 	me->gvt_status = TW_GVT_NORMAL;
 
@@ -209,7 +209,7 @@ tw_gvt_step2(tw_pe *me)
 
     // do any necessary instrumentation calls
     if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) &&
-            g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
+        g_tw_gvt_done % g_st_num_gvt == 0 && TW_STIME_DBL(gvt) <= g_tw_ts_end)
     {
 #ifdef USE_DAMARIS
         if (g_st_damaris_enabled)

@@ -65,7 +65,7 @@ unsigned long long g_tw_max_opt_lookahead = ULLONG_MAX;
 unsigned long long g_tw_gvt_realtime_interval; // calculated at runtime
 unsigned long long g_tw_gvt_interval_start_cycles = 0;
 
-dobule     g_tw_ts_end = 100000.0;
+double     g_tw_ts_end = 100000.0;
 
 /*
  * g_tw_pe              -- Public PE pointer

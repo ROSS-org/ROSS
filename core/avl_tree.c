@@ -42,8 +42,8 @@ avlSearch(AvlTree t, tw_event *key)
     if (t == AVL_EMPTY) {
         return 0;
     }
-    
-    if (key->recv_ts == t->key->recv_ts) {
+
+    if (TW_STIME_CMP(key->recv_ts, t->key->recv_ts) == 0) {
         // Timestamp is the same
         if (key->event_id == t->key->event_id) {
             // Event ID is the same
@@ -63,7 +63,7 @@ avlSearch(AvlTree t, tw_event *key)
     }
     else {
         // Timestamp is different
-        return avlSearch(t->child[key->recv_ts > t->key->recv_ts], key);
+        return avlSearch(t->child[TW_STIME_CMP(key->recv_ts, t->key->recv_ts) > 0], key);
     }
 }
 
@@ -182,8 +182,8 @@ avlInsert(AvlTree *t, tw_event *key)
         /* done */
         return;
     }
-    
-    if (key->recv_ts == (*t)->key->recv_ts) {
+
+    if (TW_STIME_CMP(key->recv_ts, (*t)->key->recv_ts) == 0) {
         // We have a timestamp tie, check the event ID
         if (key->event_id == (*t)->key->event_id) {
             // We have a event ID tie, check the send_pe
@@ -203,7 +203,7 @@ avlInsert(AvlTree *t, tw_event *key)
     }
     else {
         // Timestamps are different
-        avlInsert(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);
+        avlInsert(&(*t)->child[TW_STIME_CMP(key->recv_ts, (*t)->key->recv_ts) > 0], key);
         avlRebalance(t);
     }
 }
@@ -257,8 +257,8 @@ avlDelete(AvlTree *t, tw_event *key)
         tw_error(TW_LOC, "We never look for non-existent events!");
         return target;
     }
-    
-    if (key->recv_ts == (*t)->key->recv_ts) {
+
+    if (TW_STIME_CMP(key->recv_ts, (*t)->key->recv_ts) == 0) {
         // We have a timestamp tie, check the event ID
         if (key->event_id == (*t)->key->event_id) {
             // We have a event ID tie, check the send_pe
@@ -289,7 +289,7 @@ avlDelete(AvlTree *t, tw_event *key)
     }
     else {
         // Timestamps are different
-        target = avlDelete(&(*t)->child[key->recv_ts > (*t)->key->recv_ts], key);
+        target = avlDelete(&(*t)->child[TW_STIME_CMP(key->recv_ts, (*t)->key->recv_ts) > 0], key);
     }
     
     avlRebalance(t);

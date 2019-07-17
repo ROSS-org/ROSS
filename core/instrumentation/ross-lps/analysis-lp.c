@@ -158,7 +158,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         for (sample = s->model_samples_current->prev; sample != NULL; sample = sample->prev)
         { 
             //sample = &s->model_samples[i];
-            if (sample->timestamp == m->timestamp)
+            if (TW_STIME_CMP(sample->timestamp, m->timestamp) == 0)
             {
                 for (j = 0; j < s->num_lps; j++)
                 {
@@ -172,7 +172,7 @@ void analysis_event_rc(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                     model_lp->model_types->sample_revent_fn(model_lp->cur_state, bf, lp, sample->lp_data[j]);
                 }
 
-                sample->timestamp = 0;
+                sample->timestamp = TW_STIME_CRT(0);
 
                 if (sample->prev)
                     sample->prev->next = sample->next;
@@ -210,7 +210,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
         // start at beginning
         for (sample = s->model_samples_head; sample != NULL; sample = sample->next)
         {
-            if (sample->timestamp == m->timestamp)
+            if (TW_STIME_CMP(sample->timestamp, m->timestamp) == 0)
             {
                 for (j = 0; j < s->num_lps; j++)
                 {
@@ -233,7 +233,7 @@ void analysis_commit(analysis_state *s, tw_bf *bf, analysis_msg *m, tw_lp *lp)
                         fwrite(buffer, sizeof(lp_metadata) + model_lp->model_types->sample_struct_sz, 1, seq_analysis);
                 }
 
-                sample->timestamp = 0;
+                sample->timestamp = TW_STIME_CRT(0);
 
                 if (sample->prev)
                     sample->prev->next = sample->next;
@@ -266,9 +266,9 @@ void analysis_finish(analysis_state *s, tw_lp *lp)
 
 static void st_create_sample_event(tw_lp *lp)
 {
-    if (tw_now(lp) + g_st_vt_interval <= g_st_sampling_end)
+    if (TW_STIME_DBL(tw_now(lp)) + g_st_vt_interval <= g_st_sampling_end)
     {
-        tw_event *e = tw_event_new(lp->gid, g_st_vt_interval, lp);
+        tw_event *e = tw_event_new(lp->gid,TW_STIME_CRT(g_st_vt_interval), lp);
         analysis_msg *m = (analysis_msg*) tw_event_data(e);
         m->src = lp->gid;
         tw_event_send(e);

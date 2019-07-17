@@ -192,20 +192,20 @@ tw_net_barrier(void)
 tw_stime
 tw_net_minimum(void)
 {
-  tw_stime m = DBL_MAX;
+  tw_stime m = TW_STIME_MAX;
   tw_event *e;
   unsigned int i;
 
   e = outq.head;
   while (e) {
-    if (m > e->recv_ts)
+    if (TW_STIME_CMP(m, e->recv_ts) > 0)
       m = e->recv_ts;
     e = e->next;
   }
 
   for (i = 0; i < posted_sends.cur; i++) {
     e = posted_sends.event_list[i];
-    if (m > e->recv_ts)
+    if (TW_STIME_CMP(m, e->recv_ts) > 0)
       m = e->recv_ts;
   }
 
@@ -364,7 +364,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
 
 
-  if(e->recv_ts < me->GVT)
+  if(TW_STIME_CMP(e->recv_ts, me->GVT) < 0)
     tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)",
 	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
@@ -408,7 +408,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
    * stateful models that produce incorrect results when presented with
    * duplicate messages with no rollback between them.
    */
-  if(me == dest_pe && e->dest_lp->kp->last_time <= e->recv_ts && !dest_pe->cancel_q) {
+  if(me == dest_pe && TW_STIME_CMP(e->dest_lp->kp->last_time, e->recv_ts) <= 0 && !dest_pe->cancel_q) {
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */

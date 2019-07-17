@@ -55,7 +55,7 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
     sample_md.sample_sz = sizeof(model_md);
     sample_md.real_time = current_rt;
     model_md.peid = (unsigned int) g_tw_mynode;
-    model_md.gvt = (float) pe->GVT;
+    model_md.gvt = (float) TW_STIME_DBL(pe->GVT);
     model_md.stats_type = stats_type;
 
     for (lpid = 0; lpid < g_tw_nlp; lpid++) 

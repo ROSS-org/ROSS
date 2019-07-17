@@ -121,7 +121,7 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
     kp_stats.s_rb_secondary = (unsigned int)(kp->kp_stats->s_rb_secondary - kp->last_stats[col_type]->s_rb_secondary);
     kp_stats.s_nsend_network = (unsigned int)(kp->kp_stats->s_nsend_network - kp->last_stats[col_type]->s_nsend_network);
     kp_stats.s_nread_network = (unsigned int)(kp->kp_stats->s_nread_network - kp->last_stats[col_type]->s_nread_network);
-    kp_stats.time_ahead_gvt = (float)(kp->last_time - pe->GVT);
+    kp_stats.time_ahead_gvt = (float)(TW_STIME_DBL(kp->last_time) - TW_STIME_DBL(pe->GVT));
 
     int net_events = kp_stats.s_nevent_processed - kp_stats.s_e_rbs;
     if (net_events > 0)

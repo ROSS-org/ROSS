@@ -22,15 +22,17 @@ gvt_print(tw_stime gvt)
 		return;
 	}
 
+    double ts = TW_STIME_DBL(gvt);
+
     printf("GVT #%d: simulation %d%% complete, max event queue size %u (",
                g_tw_gvt_done,
-               (int) ROSS_MIN(100, floor(100 * (gvt/g_tw_ts_end))),
+               (int) ROSS_MIN(100, floor(100 * (ts/g_tw_ts_end))),
                tw_pq_max_size(g_tw_pe->pq));
 
-    if (gvt == DBL_MAX)
+    if (ts == DBL_MAX)
         printf("GVT = %s", "MAX");
     else
-        printf("GVT = %.4f", gvt);
+        printf("GVT = %.4f", ts);
 
     printf(").\n");
 

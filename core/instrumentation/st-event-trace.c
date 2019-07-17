@@ -13,8 +13,8 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     st_event_data ev_data;
     ev_data.src_lp = (unsigned int) cev->send_lp;
     ev_data.dest_lp = (unsigned int) cev->dest_lp->gid;
-    ev_data.send_vts = (float) cev->send_ts;
-    ev_data.recv_vts = (float) cev->recv_ts;
+    ev_data.send_vts = (float) TW_STIME_DBL(cev->send_ts);
+    ev_data.recv_vts = (float) TW_STIME_DBL(cev->recv_ts);
     ev_data.real_ts = (float) recv_rt;
     int total_sz = sizeof(ev_data);
 

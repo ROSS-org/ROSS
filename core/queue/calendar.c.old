@@ -491,7 +491,7 @@ tw_pq_minimum(tw_pq *p_ptr)
 	buckettop = p_ptr->BucketTop;
 	if (p_ptr->Qsize == 0)
 	{
-		return (DBL_MAX);
+		return (TW_STIME_MAX);
 	}
 	for (i = p_ptr->LastBucket;;)
 	{

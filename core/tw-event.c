@@ -16,7 +16,7 @@ void tw_event_send(tw_event * event) {
     tw_stime   recv_ts = event->recv_ts;
 
     if (event == send_pe->abort_event) {
-        if (recv_ts < g_tw_ts_end) {
+        if (TW_STIME_DBL(recv_ts) < g_tw_ts_end) {
             send_pe->cev_abort = 1;
         }
         return;
@@ -39,7 +39,7 @@ void tw_event_send(tw_event * event) {
 
     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
-        if (recv_ts - tw_now(src_lp) < g_tw_lookahead) {
+        if (TW_STIME_DBL(recv_ts) - TW_STIME_DBL(tw_now(src_lp)) < g_tw_lookahead) {
             tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
                     "Event causing violation: src LP: %lu, src PE: %lu\n"
                     "dest LP %lu, dest PE %lu, recv_ts %f\n",
@@ -58,7 +58,7 @@ void tw_event_send(tw_event * event) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);
         dest_pe = event->dest_lp->pe;
 
-        if (send_pe == dest_pe && event->dest_lp->kp->last_time <= recv_ts) {
+        if (send_pe == dest_pe && TW_STIME_CMP(event->dest_lp->kp->last_time, recv_ts) <= 0) {
             /* Fast case, we are sending to our own PE and there is
             * no rollback caused by this send.  We cannot have any
             * transient messages on local sends so we can return.
@@ -190,12 +190,12 @@ void tw_event_rollback(tw_event * event) {
     if( dest_lp->suspend_flag &&
 	dest_lp->suspend_event == event &&
 	// Must test time stamp since events are reused once GVT sweeps by
-	dest_lp->suspend_time == event->recv_ts)
+	TW_STIME_CMP(dest_lp->suspend_time, event->recv_ts) == 0)
       {
 	// unsuspend the LP
 	dest_lp->suspend_flag = 0;
 	dest_lp->suspend_event = NULL;
-	dest_lp->suspend_time = 0.0;
+	dest_lp->suspend_time = TW_STIME_CRT(0.0);
 	dest_lp->suspend_error_number = 0;
 
 	if( dest_lp->suspend_do_orig_event_rc == 0 )

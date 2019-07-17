@@ -64,9 +64,9 @@ tw_pq_create(void)
 
 static unsigned int tw_pq_compare_less_than( tw_event *n, tw_event *e )
 {
-    if (KEY(n) < KEY(e))
+    if (TW_STIME_CMP(KEY(n), KEY(e)) < 0)
 	return 1;
-    else if (KEY(n) > KEY(e))
+    else if (TW_STIME_CMP(KEY(n), KEY(e)) > 0)
 	return 0;
     else
     {
@@ -344,7 +344,7 @@ tw_pq_delete_any(splay_tree *st, tw_event * r)
 tw_stime
 tw_pq_minimum(splay_tree *pq)
 {
-	return ((pq->least ? pq->least->recv_ts : DBL_MAX));
+	return ((pq->least ? pq->least->recv_ts : TW_STIME_MAX));
 }
 
 unsigned int

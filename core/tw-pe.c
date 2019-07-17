@@ -40,7 +40,7 @@ tw_pe_init(void)
 	g_tw_pe->id = g_tw_mynode;
 	tw_pe_settype(&no_type);
 
-	g_tw_pe->trans_msg_ts = DBL_MAX;
+	g_tw_pe->trans_msg_ts = TW_STIME_MAX;
 	g_tw_pe->gvt_status = 0;
 
     // TODO is the PE RNG ever actually used?
@@ -64,4 +64,3 @@ tw_pe_fossil_collect(void)
 	}
 
 }
-
