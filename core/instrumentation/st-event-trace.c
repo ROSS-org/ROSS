@@ -36,7 +36,7 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
 
     if (ev_data.model_data_sz > 0)
         (*cev->dest_lp->model_types->ev_trace)(tw_event_data(cev), cev->dest_lp, &buffer[sizeof(ev_data)], &collect_flag);
-    
+
     if (collect_flag)
     {
         memcpy(&buffer[0], &ev_data, sizeof(ev_data));
@@ -48,4 +48,3 @@ void st_collect_event_data(tw_event *cev, tw_stime recv_rt)
     }
     g_tw_pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
-

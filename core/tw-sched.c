@@ -246,7 +246,7 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
@@ -387,7 +387,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    break; // leave the batch function
 	  }
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
@@ -491,7 +491,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         clp->lp_stats->s_nevent_processed++;
         tw_event_free(me, cev);
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
@@ -600,7 +600,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             tw_event_free(me, cev);
 
-            if(g_st_rt_sampling && 
+            if(g_st_rt_sampling &&
                     tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
             {
                 tw_clock current_rt = tw_clock_read();
@@ -797,4 +797,3 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
     (*me->type.final)(me);
 }
-

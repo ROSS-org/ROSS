@@ -4,13 +4,13 @@
 static tw_stime gvt_print_interval = 0.01;
 static tw_stime percent_complete = 0.0;
 
-static inline int 
+static inline int
 tw_gvt_inprogress(tw_pe * pe)
 {
 	return pe->gvt_status;
 }
 
-static inline void 
+static inline void
 gvt_print(tw_stime gvt)
 {
 	if(gvt_print_interval == 1.0)

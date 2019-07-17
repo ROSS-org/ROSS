@@ -62,7 +62,7 @@ typedef enum {
 
 struct sample_metadata
 {
-    int flag; 
+    int flag;
     int sample_sz;
     tw_stime ts;
     tw_stime real_time;
@@ -166,7 +166,7 @@ void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md
 void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_type);
 
 /*
- * st-event-trace.c 
+ * st-event-trace.c
  */
 typedef enum{
     NO_TRACE,
@@ -214,7 +214,7 @@ extern int g_st_sample_count;
 typedef void (*model_stat_f) (void *sv, tw_lp *lp, char *buffer);
 typedef struct st_model_types st_model_types;
 
-/* 
+/*
  * Struct to help ROSS collect model-level data
  * */
 struct st_model_types {
