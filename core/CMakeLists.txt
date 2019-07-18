@@ -114,6 +114,13 @@ if (USE_DAMARIS)
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
 
+OPTION(USE_TW_STIME_BITS "Use bits implementation of tw_stime" OFF)
+IF(USE_TW_STIME_BITS)
+  SET(ross_srcs ${ross_srcs} time/bits.h time/bits.c)
+  INCLUDE_DIRECTORIES(time)
+ENDIF(USE_TW_STIME_BITS)
+
+
 # Use debugging-friendly memory allocation
 OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 

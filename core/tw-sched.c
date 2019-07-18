@@ -519,6 +519,10 @@ void tw_scheduler_conservative(tw_pe * me) {
         printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
     }
 
+    #ifdef USE_TW_STIME_BITS
+    tw_stime_mpi_datatype();
+    #endif
+
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
 

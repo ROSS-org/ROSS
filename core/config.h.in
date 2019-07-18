@@ -17,3 +17,4 @@
 #cmakedefine ROSS_ALLOC_DEBUG
 #cmakedefine USE_RIO
 #cmakedefine USE_DAMARIS
+#cmakedefine USE_TW_STIME_BITS
