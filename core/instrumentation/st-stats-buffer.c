@@ -17,7 +17,7 @@ void st_buffer_allocate()
 {
     if (!(g_st_engine_stats || g_st_model_stats || g_st_ev_trace || g_st_use_analysis_lps))
         return;
-    
+
     int i, rc;
 
     // setup directory for instrumentation output
@@ -39,12 +39,12 @@ void st_buffer_allocate()
     MPI_Bcast(stats_directory, INST_MAX_LENGTH, MPI_CHAR, g_tw_masternode, MPI_COMM_ROSS);
 
     // allocate buffer pointers
-    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES); 
+    g_st_buffer = (st_stats_buffer**) tw_calloc(TW_LOC, "instrumentation (buffer)", sizeof(st_stats_buffer*), NUM_COL_TYPES);
 
     // setup MPI file offsets
     if (!prev_offsets)
     {
-        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_COL_TYPES); 
+        prev_offsets = (MPI_Offset*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(MPI_Offset), NUM_COL_TYPES);
         for (i = 0; i < NUM_COL_TYPES; i++)
             prev_offsets[i] = 0;
     }
@@ -67,7 +67,7 @@ void st_buffer_init(int type)
     file_suffix[2] = "analysis-lps";
     file_suffix[3] = "evtrace";
     file_suffix[4] = "model";
-    
+
     g_st_buffer[type] = (st_stats_buffer*) tw_calloc(TW_LOC, "statistics collection (buffer)", sizeof(st_stats_buffer), 1);
     g_st_buffer[type]->size  = g_st_buffer_size;
     g_st_buffer[type]->write_pos = 0;
@@ -89,7 +89,7 @@ void st_buffer_init(int type)
             seq_model = fopen(filename, "w");
         else if (type == ANALYSIS_LP && g_tw_synchronization_protocol == SEQUENTIAL)
             seq_analysis = fopen(filename, "w");
-        
+
     }
 }
 
@@ -106,7 +106,7 @@ void st_buffer_push(int type, char *data, int size)
         {
             printf("WARNING: Stats buffer overflow on rank %lu\n", g_tw_mynode);
             buffer_overflow_warned = 1;
-            printf("tw_now() = %f\n", tw_now(g_tw_lp[0]));
+            printf("tw_now() = %f\n", TW_STIME_DBL(tw_now(g_tw_lp[0])));
         }
         missed_bytes += size;
         size = 0; // if we can't push it all, don't push anything to buffer
@@ -132,7 +132,7 @@ void st_buffer_push(int type, char *data, int size)
     //printf("PE %ld wrote %d bytes to buffer; %d bytes of free space left\n", g_tw_mynode, size, st_buffer_free_space(g_st_buffer[type]));
 }
 
-/* determine whether to dump buffer to file 
+/* determine whether to dump buffer to file
  * should only be called at GVT! */
 void st_buffer_write(int end_of_sim, int type)
 {
