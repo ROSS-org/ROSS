@@ -148,22 +148,22 @@ tw_gvt_step2(tw_pe *me)
 		lvt = net_min;
 
 	all_reduce_cnt++;
+
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
 			1,
-			MPI_DOUBLE,
+			MPI_TYPE_TW_STIME,
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
-	gvt = ROSS_MIN(gvt, me->GVT_prev);
-
-	if(gvt != me->GVT_prev)
+	if(TW_STIME_CMP(gvt, me->GVT_prev) < 0)
 	{
 		g_tw_gvt_no_change = 0;
 	} else
 	{
+                gvt = me->GVT_prev;
 		g_tw_gvt_no_change++;
 		if (g_tw_gvt_no_change >= g_tw_gvt_max_no_change) {
 			tw_error(
