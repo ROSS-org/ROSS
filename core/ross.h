@@ -185,6 +185,9 @@ typedef uint64_t tw_lpid;
 #ifdef ROSS_CLOCK_aarch64
 #  include "clock/aarch64.h"
 #endif
+#ifdef ROSS_CLOCK_armv7l
+#  include "clock/armv7l.h"
+#endif
 
 #include "tw-timing.h"
 #include "ross-types.h"
