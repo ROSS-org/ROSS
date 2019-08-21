@@ -42,7 +42,7 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
  * Loop through all LPs on this PE and collect stats
  */
-void st_collect_model_data(tw_pe *pe, tw_clock current_rt, int stats_type)
+void st_collect_model_data(tw_pe *pe, double current_rt, int stats_type)
 {
     tw_clock start_cycle_time = tw_clock_read();
     int index;

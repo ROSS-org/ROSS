@@ -65,7 +65,7 @@ struct sample_metadata
     int flag;
     int sample_sz;
     tw_stime ts;
-    tw_clock real_time;
+    double real_time;
 };
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
@@ -189,7 +189,7 @@ typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_fla
 
 extern int g_st_ev_trace;
 
-void st_collect_event_data(tw_event *cev, tw_clock recv_rt);
+void st_collect_event_data(tw_event *cev, double recv_rt);
 
 /*
  * ross-lps/analysis-lp.c
@@ -248,6 +248,6 @@ extern st_model_types *g_st_model_types;
 
 void st_model_setup_types(tw_lp *lp);
 void st_model_settype(tw_lpid i, st_model_types *model_types);
-void st_collect_model_data(tw_pe *pe, tw_clock current_rt, int stats_type);
+void st_collect_model_data(tw_pe *pe, double current_rt, int stats_type);
 
 #endif
