@@ -56,6 +56,10 @@ show_help(void)
 
 			case TWOPTTYPE_DOUBLE:
 				pos += fprintf(stderr, "=dbl");
+                                break;
+
+			case TWOPTTYPE_STIME:
+				pos += fprintf(stderr, "=ts");
 				break;
 
 			case TWOPTTYPE_CHAR:
@@ -98,6 +102,10 @@ show_help(void)
 
 				case TWOPTTYPE_DOUBLE:
 					fprintf(stderr, " (default %.2f)", *((double*)def->value));
+                                        break;
+
+				case TWOPTTYPE_STIME:
+					fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
 					break;
 
 				case TWOPTTYPE_CHAR:
@@ -176,6 +184,10 @@ void tw_opt_settings(FILE *outfile) {
                     fprintf(outfile, "%.2f", *((double*)def->value));
                     break;
 
+                case TWOPTTYPE_STIME:
+                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
+                    break;
+
                 case TWOPTTYPE_CHAR:
                     fprintf(outfile, "%s", (char *) def->value);
                     break;
@@ -235,6 +247,10 @@ tw_opt_print(void)
 
 				case TWOPTTYPE_DOUBLE:
 					fprintf(f, "%.2f,", *((double*)def->value));
+                                        break;
+
+				case TWOPTTYPE_STIME:
+					fprintf(f, "%.2f,", *((tw_stime*)def->value));
 					break;
 
 				case TWOPTTYPE_CHAR:
@@ -302,7 +318,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		break;
 	}
 
-	case TWOPTTYPE_DOUBLE:
+        case TWOPTTYPE_DOUBLE:
 	{
 		double v;
 		char *end;
@@ -313,6 +329,22 @@ apply_opt(const tw_optdef *def, const char *value)
 		if (*end)
 			need_argument(def);
 		*((double*)def->value) = v;
+		break;
+	}
+
+	case TWOPTTYPE_STIME:
+	{
+		tw_stime v;
+		char *end;
+
+                tw_warning(TW_LOC, "Option type stime (TWOPT_STIME) is deprecated. Please use double (TWOPT_DOUBLE).");
+
+		if (!value)
+			need_argument(def);
+		v = strtod(value, &end);
+		if (*end)
+			need_argument(def);
+		*((tw_stime*)def->value) = v;
 		break;
 	}
 
