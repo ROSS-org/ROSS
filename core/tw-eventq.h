@@ -198,7 +198,6 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   g_tw_event_msg_sz = event_len;
 
   // compute number of events needed for the network.
-  g_tw_gvt_threshold = (int) ceil(g_tw_net_device_size / g_tw_event_msg_sz);
   g_tw_gvt_threshold = g_tw_net_device_size;
   g_tw_events_per_pe += g_tw_gvt_threshold;
   cnt += g_tw_gvt_threshold;
