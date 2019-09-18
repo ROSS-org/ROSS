@@ -7,10 +7,15 @@ int custom_communicator = 0;
 /**
  * @struct act_q
  * @brief Keeps track of posted send or recv operations.
+ *
+ * This list structure is used *only* by the network mpi layer (this
+ * file). Within this file, two lists are used, for MPI Irecv and
+ * Isend requests. The MPI requests and statusus are linked with an
+ * event buffer through this struct.
  */
 struct act_q
 {
-  const char *name;
+  const char *name;         /**< name of the list, used in error printouts */
 
   tw_event **event_list;    /**< list of event pointers in this queue */
   MPI_Request *req_list;    /**< list of MPI request handles */
@@ -27,8 +32,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 16;
-static unsigned int send_buffer = 1024;
+static unsigned int read_buffer = 16;   /**< Number of Irecv's to buffer, length of posted_recvs queue */
+static unsigned int send_buffer = 1024; /**< Number of Isend's to buffer, length of posted_sends queue */
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -110,6 +115,7 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
+  // sets value of tw_nnodes
   if (MPI_Comm_size(MPI_COMM_ROSS, &world_size) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_ROSS)");
 
@@ -144,6 +150,9 @@ tw_net_start(void)
     tw_error(TW_LOC, "network send buffer must be >= 1");
   if (read_buffer < 1)
     tw_error(TW_LOC, "network read buffer must be >= 1");
+  // these values are command line options
+  if (send_buffer < 1) tw_error(TW_LOC, "network send buffer must be >= 1");
+  if (read_buffer < 1) tw_error(TW_LOC, "network read buffer must be >= 1");
 
   init_q(&posted_sends, "MPI send queue");
   init_q(&posted_recvs, "MPI recv queue");
