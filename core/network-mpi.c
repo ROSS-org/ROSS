@@ -90,20 +90,13 @@ tw_net_init(int *argc, char ***argv)
  * @param[in] name name of the queue
  */
 static void
-init_q(struct act_q *q, const char *name)
+init_q(struct act_q *q, const char *name, unsigned int size)
 {
-  unsigned int n;
-
-  if(q == &posted_sends)
-    n = send_buffer;
-  else
-    n = read_buffer;
-
   q->name = name;
-  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
-  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
-  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
-  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), size);
+  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), size);
+  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), size);
+  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), size);
 }
 
 unsigned int
@@ -146,16 +139,12 @@ tw_net_start(void)
     g_tw_pe->hash_t = NULL;
   }
 
-  if (send_buffer < 1)
-    tw_error(TW_LOC, "network send buffer must be >= 1");
-  if (read_buffer < 1)
-    tw_error(TW_LOC, "network read buffer must be >= 1");
   // these values are command line options
   if (send_buffer < 1) tw_error(TW_LOC, "network send buffer must be >= 1");
   if (read_buffer < 1) tw_error(TW_LOC, "network read buffer must be >= 1");
 
-  init_q(&posted_sends, "MPI send queue");
-  init_q(&posted_recvs, "MPI recv queue");
+  init_q(&posted_sends, "MPI send queue", send_buffer);
+  init_q(&posted_recvs, "MPI recv queue", read_buffer);
 
   g_tw_net_device_size = read_buffer;
 
