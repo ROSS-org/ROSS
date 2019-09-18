@@ -121,7 +121,7 @@ show_help(void)
 			cnt++;
 		}
 	}
-        
+
         // CMake used to pass options by command line flags
 	fprintf(stderr, "ROSS CMake Configuration Options:\n");
         fprintf(stderr, "  (See build-dir/core/config.h)\n");
@@ -130,7 +130,7 @@ show_help(void)
 void tw_opt_settings(FILE *outfile) {
     const tw_optdef **group = all_groups;
     unsigned cnt = 0;
-    
+
     for (; *group; group++){
         const tw_optdef *def = *group;
         for (; def->type; def++){
@@ -213,7 +213,7 @@ tw_opt_print(void)
 		const tw_optdef *def = *group;
 		for (; def->type; def++)
 		{
-			if (def->type == TWOPTTYPE_GROUP || 
+			if (def->type == TWOPTTYPE_GROUP ||
 				(def->name && 0 == strcmp(def->name, "help")))
 				continue;
 
