@@ -30,7 +30,7 @@ extern unsigned int g_tw_gvt_interval;
 extern unsigned long long g_tw_max_opt_lookahead;
 extern unsigned long long g_tw_gvt_realtime_interval;
 extern unsigned long long g_tw_gvt_interval_start_cycles;
-extern tw_stime g_tw_ts_end;
+extern double g_tw_ts_end;
 extern unsigned int g_tw_sim_started;
 extern size_t g_tw_msg_sz;
 extern size_t g_tw_event_msg_sz;
@@ -41,8 +41,8 @@ extern uint32_t g_tw_avl_node_count;
 
 extern unsigned int g_tw_lz4_knob;
 
-extern tw_stime         g_tw_lookahead;
-extern tw_stime         g_tw_min_detected_offset;
+extern double         g_tw_lookahead;
+extern double         g_tw_min_detected_offset;
 
 extern tw_pe *g_tw_pe;
 extern unsigned int      g_tw_events_per_pe;

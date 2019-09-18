@@ -18,8 +18,8 @@ int g_st_rt_sampling = 0;
 tw_clock g_st_rt_interval = 1000;
 tw_clock g_st_rt_samp_start_cycles = 0;
 
-tw_stime g_st_vt_interval = 1000000;
-tw_stime g_st_sampling_end = 0;
+double g_st_vt_interval = 1000000;
+double g_st_sampling_end = 0;
 
 
 
@@ -29,8 +29,8 @@ static const tw_optdef inst_options[] = {
     TWOPT_UINT("model-stats", g_st_model_stats, "Collect model level stats (requires model-level implementation); 0 don't collect, 1 GVT-sampling, 2 RT sampling, 3 VT sampling, 4 all sampling modes"),
     TWOPT_UINT("num-gvt", g_st_num_gvt, "number of GVT computations between GVT-based sampling points"),
     TWOPT_ULONGLONG("rt-interval", g_st_rt_interval, "real time sampling interval in ms"),
-    TWOPT_STIME("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
-    TWOPT_STIME("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
+    TWOPT_DOUBLE("vt-interval", g_st_vt_interval, "Virtual time sampling interval"),
+    TWOPT_DOUBLE("vt-samp-end", g_st_sampling_end, "End time for virtual time sampling (if different from g_tw_ts_end)"),
     TWOPT_UINT("pe-data", g_st_pe_data, "Turn on/off collection of sim engine data at PE level"),
     TWOPT_UINT("kp-data", g_st_kp_data, "Turn on/off collection of sim engine data at KP level"),
     TWOPT_UINT("lp-data", g_st_lp_data, "Turn on/off collection of sim engine data at LP level"),
