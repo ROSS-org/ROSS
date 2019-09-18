@@ -10,6 +10,11 @@ static int is_empty(const tw_optdef *def);
 static const tw_optdef *opt_groups[10];
 static unsigned int opt_index = 0;
 
+// internally set options registered with tw_opt_set
+#define I_ARGV_MAX 16
+static int    i_argc = 0;
+static char * i_argv[I_ARGV_MAX];
+
 void
 tw_opt_add(const tw_optdef *options)
 {
@@ -415,6 +420,12 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 	all_groups[i++] = basic;
 	all_groups[i] = NULL;
 
+        while (i_argc > 0) {
+            i_argc--;
+            const char *s = i_argv[i_argc];
+            match_opt(s);
+        }
+
 	while (argc > 1)
 	{
 		const char *s = argv[1];
@@ -435,4 +446,24 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 
 	*argc_p = argc;
 	*argv_p = argv;
+}
+
+/**
+ * construct internal arguments to look like command line arguments
+ * these cannot be processed until ross is fully set up and tw_opt_parse is called (from tw_init)
+ */
+void tw_opt_set(const char *opt, const char *value) {
+    if (i_argc >= I_ARGV_MAX) {
+        tw_error(TW_LOC, "Too many internal options, increase I_ARGV_MAX.");
+    }
+
+    unsigned long len = strlen(opt) + strlen(value) + 4;
+    char * s = (char *)malloc(len*sizeof(char));
+    strcpy(s, "--");
+    strcat(s, opt);
+    strcat(s, "=");
+    strcat(s, value);
+
+    i_argv[i_argc] = s;
+    i_argc++;
 }
