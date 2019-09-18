@@ -46,6 +46,15 @@ tw_pe_init(void)
     // TODO is the PE RNG ever actually used?
 	g_tw_pe->rng = tw_rand_init(31, 41);
 
+    //If we're in (some variation of) optimistic mode, we need this hash
+    if (g_tw_synchronization_protocol == OPTIMISTIC ||
+        g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
+        g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
+        g_tw_pe->hash_t = tw_hash_create();
+    } else {
+        g_tw_pe->hash_t = NULL;
+    }
+
 }
 
 void

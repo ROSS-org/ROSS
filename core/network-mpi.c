@@ -130,15 +130,6 @@ tw_net_start(void)
 
   tw_pe_init();
 
-  //If we're in (some variation of) optimistic mode, we need this hash
-  if (g_tw_synchronization_protocol == OPTIMISTIC ||
-      g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
-      g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
-    g_tw_pe->hash_t = tw_hash_create();
-  } else {
-    g_tw_pe->hash_t = NULL;
-  }
-
   // these values are command line options
   if (send_buffer < 1) tw_error(TW_LOC, "network send buffer must be >= 1");
   if (read_buffer < 1) tw_error(TW_LOC, "network read buffer must be >= 1");
