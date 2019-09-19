@@ -424,6 +424,7 @@ tw_opt_parse(int *argc_p, char ***argv_p)
             i_argc--;
             const char *s = i_argv[i_argc];
             match_opt(s);
+            free(s);
         }
 
 	while (argc > 1)
