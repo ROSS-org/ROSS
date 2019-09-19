@@ -47,18 +47,11 @@ if (COVERALLS)
     coveralls_turn_on_coverage()
 endif()
 
-# Old way to do this
-# Data Structure for Unprocessed Event List
-#SET(QUEUE calendar) #Calendar Queue
-#SET(QUEUE heap) #Push/Down Heap
-#SET(QUEUE splay) #Splay Tree
-#SET(QUEUE kp_splay) #Splay Tree in KPs
-
-# New way as of CMake 2.8
-# The default value for the QUEUE variable is splay
-# The other options are presented at config time by cmake-gui
-SET(QUEUE splay CACHE STRING "Queue type chosen by the user at configure time")
-SET_PROPERTY(CACHE QUEUE PROPERTY STRINGS splay calendar heap kp_splay)
+# Priority Queue Implementation
+SET(QUEUE splay)
+# Other queue implementations are no longer supported.
+# SET(QUEUE splay CACHE STRING "Queue type chosen by the user at configure time")
+# SET_PROPERTY(CACHE QUEUE PROPERTY STRINGS splay calendar heap kp_splay)
 
 # Random Library
 SET(RAND clcg4)
