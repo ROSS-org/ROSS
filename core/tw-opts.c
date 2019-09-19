@@ -14,6 +14,7 @@ static unsigned int opt_index = 0;
 #define I_ARGV_MAX 16
 static int    i_argc = 0;
 static char * i_argv[I_ARGV_MAX];
+static int tw_parse_called = 0;
 
 void
 tw_opt_add(const tw_optdef *options)
@@ -403,6 +404,8 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 	char **argv = *argv_p;
 	unsigned i;
 
+        tw_parse_called = 1;
+
 	program = strrchr(argv[0], '/');
 	if (program)
 		program++;
@@ -465,6 +468,12 @@ void tw_opt_set(const char *opt, const char *value) {
     strcat(s, "=");
     strcat(s, value);
 
-    i_argv[i_argc] = s;
-    i_argc++;
+    if (!tw_parse_called) {
+        // save until ROSS has been fully initialized
+        i_argv[i_argc] = s;
+        i_argc++;
+    } else {
+        match_opt(s);
+        free(s);
+    }
 }
