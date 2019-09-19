@@ -94,7 +94,7 @@ set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # Data Structure for remote Events
 # If AVL_TREE is OFF, ROSS reverts to hashing
-OPTION(AVL_TREE "Use AVL trees for optimistic mode events? (hash tabels otherwise)" ON)
+OPTION(AVL_TREE "Use AVL trees for optimistic mode events? (hash tables otherwise)" ON)
 IF(AVL_TREE)
   SET(ross_srcs ${ross_srcs} avl_tree.h avl_tree.c)
 ENDIF(AVL_TREE)
