@@ -5,6 +5,9 @@
 
 #include <ross.h>
 
+/**
+ * debug assitant fuction
+ */
 static inline void
 tw_eventq_debug(tw_eventq * q)
 {
@@ -39,6 +42,9 @@ tw_eventq_debug(tw_eventq * q)
 #endif
 }
 
+/**
+ * push the contents of one list onto another??
+ */
 static inline void
 tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 {
@@ -115,6 +121,15 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
     tw_eventq_debug(q);
 }
 
+/**
+ * Given a list, return the portion of its contents that is older than GVT to
+ * the free list.
+ *
+ * Assumptions:
+ * - The provided q is not the free_q
+ * - The head of the list has the maximum time stamp in the list. Therefore,
+ *   if the head is older than GVT, everything in the list is as well.
+ */
 static inline void
 tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
 {
@@ -164,6 +179,9 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
   }
 }
 
+/**
+ * allocate a events into a given tw_eventq
+ */
 static inline void
 tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
 {
@@ -232,6 +250,9 @@ tw_eventq_alloc(tw_eventq * q, unsigned int cnt)
   q->tail = event;
 }
 
+/**
+ * push to tail of list
+ */
 static inline void
 tw_eventq_push(tw_eventq *q, tw_event *e)
 {
@@ -252,12 +273,18 @@ tw_eventq_push(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
+/**
+ * peek to tail of list
+ */
 static inline tw_event *
 tw_eventq_peek(tw_eventq *q)
 {
   return q->tail;
 }
 
+/**
+ * pop to tail of list
+ */
 static inline tw_event *
 tw_eventq_pop(tw_eventq * q)
 {
@@ -286,6 +313,9 @@ tw_eventq_pop(tw_eventq * q)
   return t;
 }
 
+/**
+ * push to head of list
+ */
 static inline void
 tw_eventq_unshift(tw_eventq *q, tw_event *e)
 {
@@ -307,12 +337,18 @@ tw_eventq_unshift(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
+/**
+ * peek at head of list
+ */
 static inline tw_event *
 tw_eventq_peek_head(tw_eventq *q)
 {
   return q->head;
 }
 
+/**
+ * pop from head of list
+ */
 static inline tw_event *
 tw_eventq_shift(tw_eventq *q)
 {
@@ -341,6 +377,9 @@ tw_eventq_shift(tw_eventq *q)
   return h;
 }
 
+/**
+ * delete an event from anywhere in the list
+ */
 static inline void
 tw_eventq_delete_any(tw_eventq *q, tw_event *e)
 {
@@ -365,6 +404,10 @@ tw_eventq_delete_any(tw_eventq *q, tw_event *e)
   tw_eventq_debug(q);
 }
 
+/**
+ * pop the entire list.
+ * After this operation, the size of the provided q is 0.
+ */
 static inline tw_event *
 tw_eventq_pop_list(tw_eventq * q)
 {
@@ -376,7 +419,7 @@ tw_eventq_pop_list(tw_eventq * q)
   return h;
 }
 
-/*
+/**
  * The purpose of this function is to be able to remove some
  * part of a list.. could be all of list, from head to some inner
  * buffer, or from some inner buffer to tail.  I only care about the
