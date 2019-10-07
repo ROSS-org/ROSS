@@ -13,7 +13,7 @@ static inline void reset_bitfields(tw_event *revent)
     memset(&revent->cv, 0, sizeof(revent->cv));
 }
 
-/*
+/**
  * Get all events out of my event queue and spin them out into
  * the priority queue so they can be processed in time stamp
  * order.
@@ -66,7 +66,7 @@ static void tw_sched_event_q(tw_pe * me) {
     }
 }
 
-/*
+/**
  * OPT: need to link events into canq in reverse order so
  *      that when we rollback the 1st event, we should not
  *  need to do any further rollbacks.

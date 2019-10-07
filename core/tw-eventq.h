@@ -122,7 +122,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 }
 
 /**
- * Given a list, return the portion of its contents that is older than GVT to
+ * Given a list, move the portion of its contents that is older than GVT to
  * the free list.
  *
  * Assumptions:
