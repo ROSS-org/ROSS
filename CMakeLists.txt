@@ -44,6 +44,7 @@ SET(GVT mpi_allreduce)
 
 # Architecture setting and management
 SET(VALID_ARCH NO)
+OPTION(ROSS_CLOCK_OVERRIDE "override platform detection to use gtod clock" NO)
 
 IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL i386)
   SET(VALID_ARCH YES)
@@ -104,16 +105,16 @@ IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
 
 
-IF(VALID_ARCH)
+IF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
   MESSAGE(STATUS "System architecture detected: ${CMAKE_SYSTEM_PROCESSOR}")
   MESSAGE(STATUS "Using C_FLAGS: ${CMAKE_C_FLAGS}")
   MESSAGE(STATUS "Using CLOCK: ${CLOCK}")
-ELSE(VALID_ARCH)
+ELSE(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
   MESSAGE(WARNING "System architecture not recognized!\n"
     "Found: ${CMAKE_SYSTEM_PROCESSOR}\n"
     "Falling back to get-time-of-day clock implementation.")
   SET(CLOCK gtod)
-ENDIF(VALID_ARCH)
+ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
 
 ## MPI
 INCLUDE(SetupMPI)
