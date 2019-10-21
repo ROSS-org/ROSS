@@ -319,7 +319,7 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 void
 tw_rand_init_streams(tw_lp * lp, unsigned int nstreams)
 {
-	int i;
+	unsigned int i;
 
 	if(nstreams > g_tw_nRNG_per_lp)
             tw_error(TW_LOC, "LP %lu asked for more RNG streams (%d) than the global maximum (g_tw_nRNG_per_lp:%d)\n", lp->gid, nstreams, g_tw_nRNG_per_lp);

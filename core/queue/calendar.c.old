@@ -3,7 +3,7 @@
 typedef struct tw_event_head tw_event_head;
 
 /*
- * function calls 
+ * function calls
  */
 
 static tw_event *Delete(tw_pq * p_ptr, int index);
@@ -45,7 +45,7 @@ tw_pq_dequeue(tw_pq *p_ptr)
 	double          tmp;
 
 	/*
-	 * pointer to Calender queue bucket 
+	 * pointer to Calender queue bucket
 	 */
 	tw_event_head  *bucket;
 
@@ -79,7 +79,7 @@ tw_pq_dequeue(tw_pq *p_ptr)
 	}
 
 	/*
-	 * Start Direct Search 
+	 * Start Direct Search
 	 */
 	for (smallest = 0; bucket[smallest].next == NULL; smallest++)
 	{
@@ -115,7 +115,7 @@ tw_pq_dequeue(tw_pq *p_ptr)
 
 /*
  * deletes first element in Bucket[index]
- * Changes Bucket[index] 
+ * Changes Bucket[index]
  */
 static tw_event *
 Delete(tw_pq * p_ptr, int index)
@@ -188,7 +188,7 @@ Insert(tw_pq * p_ptr, int bucketindex, tw_event * NewE)
 	} else if (bucket[bucketindex].next->recv_ts >= NewE->recv_ts)
 	{
 		/*
-		 * insert at the front of this bucket 
+		 * insert at the front of this bucket
 		 */
 		NewE->next = bucket[bucketindex].next;
 		NewE->next->prev = NewE;
@@ -197,7 +197,7 @@ Insert(tw_pq * p_ptr, int bucketindex, tw_event * NewE)
 	} else
 	{
 		/*
-		 * insert somewhere else, may be at the end 
+		 * insert somewhere else, may be at the end
 		 */
 		for (p = bucket[bucketindex].next; p->next != NULL; p = p->next)
 		{
@@ -222,7 +222,7 @@ LocalInit(tw_pq * p_ptr, int qbase, int nbuck, double bwidth,
 	double          tmp;
 
 	/*
-	 * Local variables 
+	 * Local variables
 	 */
 
 	p_ptr->FirstSub = qbase;
@@ -246,7 +246,7 @@ LocalInit(tw_pq * p_ptr, int qbase, int nbuck, double bwidth,
 
 /*
  * does not change queue,
- * however, does dequeue nsamples and enqueues them back again 
+ * however, does dequeue nsamples and enqueues them back again
  */
 
 static double
@@ -326,7 +326,7 @@ NewWidth(tw_pq * p_ptr)
 /*
  * Resize computes a new calendar queue size, and copies the old calendar
  * queue into the new one. It is called when there are too many elements
- * in the calendar queue 
+ * in the calendar queue
  */
 
 static void
@@ -372,7 +372,7 @@ ReSize(tw_pq * p_ptr, int newsize)
 }
 
 /*
- * print calendar queue by going thru the buckets in turn 
+ * print calendar queue by going thru the buckets in turn
  */
 
 /*
@@ -419,7 +419,7 @@ DumpBucket(tw_pq * p_ptr, FILE * fp)
 /*
  * tw_pq_create:
  *
- * init queue to size of 2, and a width of 1.0 per bucket 
+ * init queue to size of 2, and a width of 1.0 per bucket
  */
 tw_pq *
 tw_pq_create(void)
@@ -441,7 +441,7 @@ tw_pq_create(void)
 }
 
 /*
- * Find the smallest element in the calq. Useful for debugging 
+ * Find the smallest element in the calq. Useful for debugging
  */
 
 /*
@@ -479,8 +479,8 @@ Smallest(tw_pq * p_ptr)
 */
 
 /*
- * Same as dequeue. But the smallest timestamped event is not deleted. 
- * Find minimum element in the queue 
+ * Same as dequeue. But the smallest timestamped event is not deleted.
+ * Find minimum element in the queue
  */
 tw_stime
 tw_pq_minimum(tw_pq *p_ptr)
@@ -491,7 +491,7 @@ tw_pq_minimum(tw_pq *p_ptr)
 	buckettop = p_ptr->BucketTop;
 	if (p_ptr->Qsize == 0)
 	{
-		return (DBL_MAX);
+		return (TW_STIME_MAX);
 	}
 	for (i = p_ptr->LastBucket;;)
 	{
@@ -511,7 +511,7 @@ tw_pq_minimum(tw_pq *p_ptr)
 	}
 
 	/*
-	 * Start Direct Search 
+	 * Start Direct Search
 	 */
 	for (smallest = 0; p_ptr->Bucket[smallest].next == NULL; smallest++)
 		if (smallest >= p_ptr->Nbuckets)
@@ -536,7 +536,7 @@ tw_pq_minimum(tw_pq *p_ptr)
 
 
 /*
- * Delete one element from the queue 
+ * Delete one element from the queue
  */
 void
 tw_pq_delete_any(tw_pq *p_ptr, tw_event *q)

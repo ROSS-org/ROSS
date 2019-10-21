@@ -17,7 +17,7 @@ void st_model_setup_types(tw_lp *lp)
         fprintf(stderr, "The g_st_model_types has not been defined! No model level data will be collected\n");
         model_type_warned = 1;
     }
-    
+
 }
 
 // if model uses tw_lp_settypes(), model will also need to call
@@ -42,10 +42,11 @@ void st_model_settype(tw_lpid i, st_model_types *model_types)
  * Call this function when collecting simulation level data (GVT-based and/or real time-based).
  * Loop through all LPs on this PE and collect stats
  */
-void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
+void st_collect_model_data(tw_pe *pe, double current_rt, int stats_type)
 {
     tw_clock start_cycle_time = tw_clock_read();
-    int index, lpid = 0;
+    int index;
+    tw_lpid lpid = 0;
     int total_sz = 0;
     tw_lp *clp;
     sample_metadata sample_md;
@@ -54,10 +55,10 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
     sample_md.sample_sz = sizeof(model_md);
     sample_md.real_time = current_rt;
     model_md.peid = (unsigned int) g_tw_mynode;
-    model_md.gvt = (float) pe->GVT;
+    model_md.gvt = (float) TW_STIME_DBL(pe->GVT);
     model_md.stats_type = stats_type;
 
-    for (lpid = 0; lpid < g_tw_nlp; lpid++) 
+    for (lpid = 0; lpid < g_tw_nlp; lpid++)
     {
         index = 0;
         clp = g_tw_lp[lpid];
@@ -90,4 +91,3 @@ void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type)
     }
     pe->stats.s_stat_comp += tw_clock_read() - start_cycle_time;
 }
-

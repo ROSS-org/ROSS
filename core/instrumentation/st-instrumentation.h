@@ -62,10 +62,10 @@ typedef enum {
 
 struct sample_metadata
 {
-    int flag; 
+    int flag;
     int sample_sz;
     tw_stime ts;
-    tw_stime real_time;
+    double real_time;
 };
 
 extern char g_st_stats_out[INST_MAX_LENGTH];
@@ -162,11 +162,11 @@ struct st_lp_stats{
 
 void st_collect_engine_data(tw_pe *me, int col_type);
 void st_collect_engine_data_pes(tw_pe *pe, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md, tw_statistics *s, int col_type);
-void st_collect_engine_data_lps(tw_pe *me, tw_lp *lp, sample_metadata *sample_md, tw_statistics *s, int col_type);
+void st_collect_engine_data_kps(tw_pe *me, tw_kp *kp, sample_metadata *sample_md, int col_type);
+void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_type);
 
 /*
- * st-event-trace.c 
+ * st-event-trace.c
  */
 typedef enum{
     NO_TRACE,
@@ -189,7 +189,7 @@ typedef void (*ev_trace_f) (void *msg, tw_lp *lp, char *buffer, int *collect_fla
 
 extern int g_st_ev_trace;
 
-void st_collect_event_data(tw_event *cev, tw_stime recv_rt);
+void st_collect_event_data(tw_event *cev, double recv_rt);
 
 /*
  * ross-lps/analysis-lp.c
@@ -202,8 +202,8 @@ extern void specialized_lp_run();
 extern const tw_optdef *st_special_lp_opts(void);
 extern int g_st_use_analysis_lps;
 extern tw_lpid g_st_analysis_nlp;
-extern tw_stime g_st_vt_interval;
-extern tw_stime g_st_sampling_end;
+extern double g_st_vt_interval;
+extern double g_st_sampling_end;
 extern tw_lpid g_st_total_model_lps;
 extern int g_st_sample_count;
 
@@ -214,7 +214,7 @@ extern int g_st_sample_count;
 typedef void (*model_stat_f) (void *sv, tw_lp *lp, char *buffer);
 typedef struct st_model_types st_model_types;
 
-/* 
+/*
  * Struct to help ROSS collect model-level data
  * */
 struct st_model_types {
@@ -248,6 +248,6 @@ extern st_model_types *g_st_model_types;
 
 void st_model_setup_types(tw_lp *lp);
 void st_model_settype(tw_lpid i, st_model_types *model_types);
-void st_collect_model_data(tw_pe *pe, tw_stime current_rt, int stats_type);
+void st_collect_model_data(tw_pe *pe, double current_rt, int stats_type);
 
 #endif

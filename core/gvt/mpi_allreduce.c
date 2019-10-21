@@ -13,7 +13,7 @@ static const tw_optdef gvt_opts [] =
 {
 	TWOPT_GROUP("ROSS MPI GVT"),
 	TWOPT_UINT("gvt-interval", g_tw_gvt_interval, "GVT Interval: Iterations through scheduling loop (synch=1,2,3,4), or ms between GVTs (synch=5)"),
-	TWOPT_STIME("report-interval", gvt_print_interval,
+	TWOPT_DOUBLE("report-interval", gvt_print_interval,
 			"percent of runtime to print GVT"),
 	TWOPT_END()
 };
@@ -37,14 +37,14 @@ tw_gvt_start(void)
 }
 
 void
-tw_gvt_force_update(tw_pe *me)
+tw_gvt_force_update(void)
 {
 	gvt_force++;
 	gvt_cnt = g_tw_gvt_interval;
 }
 
 void
-tw_gvt_force_update_realtime(tw_pe *me)
+tw_gvt_force_update_realtime(void)
 {
 	gvt_force++;
         g_tw_gvt_interval_start_cycles = 0; // reset to start of time
@@ -70,7 +70,7 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	if(me->gvt_status == TW_GVT_COMPUTE ||
-		(++gvt_cnt < g_tw_gvt_interval && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
+           (++gvt_cnt < g_tw_gvt_interval && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
 		return;
 
 	me->gvt_status = TW_GVT_COMPUTE;
@@ -83,12 +83,12 @@ tw_gvt_step1_realtime(tw_pe *me)
 
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
       ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
-          && (tw_pq_minimum(me->pq) - me->GVT < g_tw_max_opt_lookahead)))
+          && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
     {
-      /* if( me->node == 0 ) */
+      /* if( me->id == 0 ) */
       /* 	{ */
       /* 	  printf("GVT Step 1 RT Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", */
-      /* 		 me->node, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
+      /* 		 me->id, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
 
       /* 	} */
 
@@ -105,8 +105,8 @@ tw_gvt_step2(tw_pe *me)
 	long long local_white = 0;
 	long long total_white = 0;
 
-	tw_stime pq_min = DBL_MAX;
-	tw_stime net_min = DBL_MAX;
+	tw_stime pq_min = TW_STIME_MAX;
+	tw_stime net_min = TW_STIME_MAX;
 
 	tw_stime lvt;
 	tw_stime gvt;
@@ -139,31 +139,31 @@ tw_gvt_step2(tw_pe *me)
 	  }
 
 	pq_min = tw_pq_minimum(me->pq);
-	net_min = tw_net_minimum(me);
+	net_min = tw_net_minimum();
 
 	lvt = me->trans_msg_ts;
-	if(lvt > pq_min)
+	if(TW_STIME_CMP(lvt, pq_min) > 0)
 	  lvt = pq_min;
-	if(lvt > net_min)
+	if(TW_STIME_CMP(lvt, net_min) > 0)
 		lvt = net_min;
 
 	all_reduce_cnt++;
+
 	if(MPI_Allreduce(
 			&lvt,
 			&gvt,
 			1,
-			MPI_DOUBLE,
+			MPI_TYPE_TW_STIME,
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
-	gvt = ROSS_MIN(gvt, me->GVT_prev);
-
-	if(gvt != me->GVT_prev)
+	if(TW_STIME_CMP(gvt, me->GVT_prev) < 0)
 	{
 		g_tw_gvt_no_change = 0;
 	} else
 	{
+                gvt = me->GVT_prev;
 		g_tw_gvt_no_change++;
 		if (g_tw_gvt_no_change >= g_tw_gvt_max_no_change) {
 			tw_error(
@@ -175,21 +175,21 @@ tw_gvt_step2(tw_pe *me)
 		}
 	}
 
-	if (me->GVT > gvt)
+	if (TW_STIME_CMP(me->GVT, gvt) > 0)
 	{
 		tw_error(TW_LOC, "PE %u GVT decreased %g -> %g",
 				me->id, me->GVT, gvt);
 	}
 
-	if (gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
+	if (TW_STIME_DBL(gvt) / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))
 	{
 		gvt_print(gvt);
 	}
 
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;
-	me->trans_msg_ts = DBL_MAX;
-	me->GVT_prev = DBL_MAX; // me->GVT;
+	me->trans_msg_ts = TW_STIME_MAX;
+	me->GVT_prev = TW_STIME_MAX; // me->GVT;
 	me->GVT = gvt;
 	me->gvt_status = TW_GVT_NORMAL;
 
@@ -203,13 +203,13 @@ tw_gvt_step2(tw_pe *me)
 	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME )
 	  {
 	    start = tw_clock_read();
-	    tw_pe_fossil_collect(me);
+	    tw_pe_fossil_collect();
 	    me->stats.s_fossil_collect += tw_clock_read() - start;
 	  }
 
     // do any necessary instrumentation calls
-    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) && 
-            g_tw_gvt_done % g_st_num_gvt == 0 && gvt <= g_tw_ts_end)
+    if ((g_st_engine_stats == GVT_STATS || g_st_engine_stats == ALL_STATS) &&
+        g_tw_gvt_done % g_st_num_gvt == 0 && TW_STIME_DBL(gvt) <= g_tw_ts_end)
     {
 #ifdef USE_DAMARIS
         if (g_st_damaris_enabled)
@@ -233,8 +233,8 @@ tw_gvt_step2(tw_pe *me)
 #endif
 
     if ((g_st_model_stats == GVT_STATS || g_st_model_stats == ALL_STATS) && g_tw_gvt_done % g_st_num_gvt == 0)
-        st_collect_model_data(me, (tw_stime)tw_clock_read() / g_tw_clock_rate, GVT_STATS);
-    
+        st_collect_model_data(me, ((double)tw_clock_read()) / g_tw_clock_rate, GVT_STATS);
+
     st_inst_dump();
     // done with instrumentation related stuff
 

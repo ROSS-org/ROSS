@@ -40,26 +40,19 @@ uint32_t g_tw_avl_node_count = 18;
  17 is a good value for speed with 1 being the default value. */
 unsigned int g_tw_lz4_knob = 17;
 
-#if ROSS_MEMORY
-unsigned int	g_tw_memory_nqueues = 64;
-#else
-unsigned int	g_tw_memory_nqueues = 0;
-#endif
-
-size_t		g_tw_memory_sz = 0;
 size_t		g_tw_event_msg_sz = 0;
 
         /*
          * Minimum lookahead for a model -- model defined when
          * using the Simple Synchronization Protocol (conservative)
          */
-tw_stime g_tw_lookahead=0.005;
+double g_tw_lookahead=0.005;
 
         /*
          * Minimum detected timestamp offset used by the simulation at
          * runtime, can be used to help tune conservative protocol runs.
          */
-tw_stime g_tw_min_detected_offset=DBL_MAX;
+double g_tw_min_detected_offset=DBL_MAX;
 
 	/**
 	 * Number of messages to process at once out of the PQ before
@@ -72,16 +65,14 @@ unsigned long long g_tw_max_opt_lookahead = ULLONG_MAX;
 unsigned long long g_tw_gvt_realtime_interval; // calculated at runtime
 unsigned long long g_tw_gvt_interval_start_cycles = 0;
 
-tw_stime     g_tw_ts_end = 100000.0;
+double     g_tw_ts_end = 100000.0;
 
-	/*
-	 * g_tw_npe             -- Number of PEs on this processor (usually one)
-	 * g_tw_pe              -- Public PE object array (on this processor)
-	 * g_tw_events_per_pe   -- Number of events to place in for each PE.
-	 *                         MUST be > 1 because of abort buffer.
-	 */
-tw_peid		g_tw_npe = 1;
-tw_pe		**g_tw_pe;
+/*
+ * g_tw_pe              -- Public PE pointer
+ * g_tw_events_per_pe   -- Number of events to place in for each PE.
+ *                         MUST be > 1 because of abort buffer.
+ */
+tw_pe *g_tw_pe = NULL;
 unsigned int    g_tw_events_per_pe = 2048;
 /** Number of extra events allocated per PE.  Command-line customizable. */
 unsigned int    g_tw_events_per_pe_extra = 0;
@@ -94,8 +85,8 @@ unsigned int	g_tw_gvt_done = 0;
 	 * g_tw_masternode -- pointer to GVT net node, for GVT comp
 	 */
 unsigned int	g_tw_net_device_size = 0;
-tw_node		g_tw_mynode = -1;
-tw_node		g_tw_masternode = -1;
+tw_peid		g_tw_mynode = 0;
+tw_peid		g_tw_masternode = 0;
 
 FILE		*g_tw_csv = NULL;
 

@@ -31,10 +31,10 @@ tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 
 #if VERIFY_ROLLBACK
         printf("%d %d: rb_to %f, now = %f \n",
-		kp->pe->id, kp->id, to, kp->last_time);
+               kp->pe->id, kp->id, TW_STIME_DBL(to), TW_STIME_DBL(kp->last_time));
 #endif
 
-        while(kp->pevent_q.size && kp->pevent_q.head->recv_ts >= to)
+        while(kp->pevent_q.size && TW_STIME_CMP(kp->pevent_q.head->recv_ts, to) >= 0)
         {
                 e = tw_eventq_shift(&kp->pevent_q);
 
@@ -130,7 +130,6 @@ init_output_messages(tw_kp *kp)
 void
 tw_init_kps(tw_pe * me)
 {
-	tw_kp *prev_kp = NULL;
 	tw_kpid i;
     int j;
 
@@ -146,7 +145,6 @@ tw_init_kps(tw_pe * me)
 		kp->s_e_rbs = 0;
 		kp->s_rb_total = 0;
 		kp->s_rb_secondary = 0;
-		prev_kp = kp;
         if (g_tw_synchronization_protocol == OPTIMISTIC ||
 	    g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
 	    g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
@@ -157,11 +155,6 @@ tw_init_kps(tw_pe * me)
         kp->kp_stats = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
         for (j = 0; j < 3; j++)
             kp->last_stats[j] = (st_kp_stats*) tw_calloc(TW_LOC, "KP instrumentation", sizeof(st_kp_stats), 1);
-
-#if ROSS_MEMORY
-		kp->pmemory_q = tw_calloc(TW_LOC, "KP memory queues",
-					sizeof(tw_memoryq), g_tw_memory_nqueues);
-#endif
 	}
 }
 
@@ -191,73 +184,4 @@ tw_kp_put_back_output_buffer(tw_out *out)
         kp->output = out;
         kp->output->next = NULL;
     }
-}
-
-void
-tw_kp_fossil_memoryq(tw_kp * kp, tw_fd fd)
-{
-#if ROSS_MEMORY
-	tw_memoryq	*q;
-
-	tw_memory      *b;
-	tw_memory      *tail;
-
-	tw_memory      *last;
-
-	tw_stime	gvt = kp->pe->GVT;
-
-	int             cnt;
-
-	q = &kp->pmemory_q[fd];
-	tail = q->tail;
-
-	if(0 == q->size || tail->ts >= gvt)
-		return;
-
-	if(q->head->ts < gvt)
-	{
-		tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), 
-				     q->head, q->tail, q->size);
-
-		q->head = q->tail = NULL;
-		q->size = 0;
-
-		return;
-	}
-
-	/*
-	 * Start direct search.
-	 */
-	last = NULL;
-	cnt = 0;
-
-	b = q->head;
-	while (b->ts >= gvt)
-	{
-		last = b;
-		cnt++;
-
-		b = b->next;
-	}
-
-	tw_memoryq_push_list(tw_pe_getqueue(kp->pe, fd), b, q->tail, q->size - cnt);
-
-	/* fix what remains of our pmemory_q */
-	q->tail = last;
-	q->tail->next = NULL;
-	q->size = cnt;
-
-#if VERIFY_PE_FC_MEM
-	printf("%d: FC %d buf from FD %d \n", kp->id, cnt, fd);
-#endif
-#endif
-}
-
-void
-tw_kp_fossil_memory(tw_kp * kp)
-{
-	int	 i;
-
-	for(i = 0; i < g_tw_memory_nqueues; i++)
-		tw_kp_fossil_memoryq(kp, i);
 }

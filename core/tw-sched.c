@@ -10,15 +10,7 @@
  */
 static inline void reset_bitfields(tw_event *revent)
 {
-    if (sizeof(revent->cv) == sizeof(uint32_t)){
-        *(uint32_t*)&revent->cv = 0;
-    }
-    else if (sizeof(revent->cv) == sizeof(uint64_t)){
-        *(uint64_t*)&revent->cv = 0;
-    }
-    else{
-        memset(&revent->cv, 0, sizeof(revent->cv));
-    }
+    memset(&revent->cv, 0, sizeof(revent->cv));
 }
 
 /*
@@ -51,7 +43,7 @@ static void tw_sched_event_q(tw_pe * me) {
                 case TW_pe_event_q:
                     dest_kp = cev->dest_lp->kp;
 
-                    if (dest_kp->last_time > cev->recv_ts) {
+                    if (TW_STIME_CMP(dest_kp->last_time, cev->recv_ts) > 0) {
                         /* cev is a straggler message which has arrived
                         * after we processed events occuring after it.
                         * We need to jump back to before cev's timestamp.
@@ -175,7 +167,7 @@ static void tw_sched_batch(tw_pe * me) {
                     tw_error(TW_LOC, "Event allocation failed %d consecutive times.  Exiting.", max_alloc_fail_count);
                 }
             }
-            tw_gvt_force_update(me);
+            tw_gvt_force_update();
             break;
         }
         no_free_event_buffers = 0;
@@ -185,7 +177,7 @@ static void tw_sched_batch(tw_pe * me) {
             break;
         }
         me->stats.s_pq += tw_clock_read() - start;
-        if(cev->recv_ts == tw_pq_minimum(me->pq)) {
+        if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
 
@@ -242,7 +234,7 @@ static void tw_sched_batch(tw_pe * me) {
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 
-	    tw_gvt_force_update(me);
+	    tw_gvt_force_update();
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
@@ -254,7 +246,7 @@ static void tw_sched_batch(tw_pe * me) {
         cev->state.owner = TW_kp_pevent_q;
         tw_eventq_unshift(&ckp->pevent_q, cev);
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
@@ -270,7 +262,7 @@ static void tw_sched_batch(tw_pe * me) {
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
                 st_collect_engine_data(me, RT_COL);
             if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
-                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+                st_collect_model_data(me, ((double) current_rt) / g_tw_clock_rate, RT_STATS);
 #endif
             g_st_rt_samp_start_cycles = tw_clock_read();
         }
@@ -309,7 +301,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
                     tw_error(TW_LOC, "Event allocation failed %d consecutive times.  Exiting.", max_alloc_fail_count);
                 }
             }
-            tw_gvt_force_update_realtime(me);
+            tw_gvt_force_update_realtime();
             break;
         }
         no_free_event_buffers = 0;
@@ -319,7 +311,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
           break; // leave the batch function
         }
         me->stats.s_pq += tw_clock_read() - start;
-        if(cev->recv_ts == tw_pq_minimum(me->pq)) {
+        if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
 
@@ -377,7 +369,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 
-	    tw_gvt_force_update_realtime(me);
+	    tw_gvt_force_update_realtime();
 
 	    me->stats.s_event_abort += tw_clock_read() - start;
 
@@ -391,18 +383,18 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	/* Check if realtime GVT time interval has expired */
 	if( tw_clock_read() - g_tw_gvt_interval_start_cycles > g_tw_gvt_realtime_interval)
 	  {
-	    tw_gvt_force_update_realtime(me);
+	    tw_gvt_force_update_realtime();
 	    break; // leave the batch function
 	  }
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
             if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
                 st_collect_engine_data(me, RT_COL);
             if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
-                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+                st_collect_model_data(me, ((double)current_rt) / g_tw_clock_rate, RT_STATS);
 
             g_st_rt_samp_start_cycles = tw_clock_read();
         }
@@ -416,17 +408,17 @@ void tw_sched_init(tw_pe * me) {
     tw_init_lps(me);
     (*me->type.post_lp_init)(me);
 
-    tw_net_barrier(me);
+    tw_net_barrier();
 
     /* Second Stage Init -- all LPs are created and have proper mappings */
     tw_pre_run_lps(me);
-    tw_net_barrier(me);
+    tw_net_barrier();
 
 #ifdef USE_RIO
     tw_clock start = tw_clock_read();
     io_load_events(me);
     me->stats.s_rio_load += (tw_clock_read() - start);
-    tw_net_barrier(me);
+    tw_net_barrier();
 #endif
 
     /*
@@ -435,7 +427,7 @@ void tw_sched_init(tw_pe * me) {
     */
     if (tw_nnodes() > 1) {
         tw_net_read(me);
-        tw_net_barrier(me);
+        tw_net_barrier();
         tw_clock_init(me);
     }
 
@@ -443,9 +435,7 @@ void tw_sched_init(tw_pe * me) {
     * the scheduler loop, and to print out the stats before
     * finishing if someone should type CTRL-c
     */
-    if (me->local_master) {
-        g_tw_sim_started = 1;
-    }
+    g_tw_sim_started = 1;
 }
 
 /*************************************************************************/
@@ -453,7 +443,7 @@ void tw_sched_init(tw_pe * me) {
 /*************************************************************************/
 
 void tw_scheduler_sequential(tw_pe * me) {
-    tw_stime gvt = 0.0;
+    tw_stime gvt = TW_STIME_CRT(0.0);
 
     if(tw_nnodes() > 1) {
         tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
@@ -473,12 +463,12 @@ void tw_scheduler_sequential(tw_pe * me) {
         me->cur_event = cev;
         ckp->last_time = cev->recv_ts;
 
-        if(cev->recv_ts == tw_pq_minimum(me->pq)) {
+        if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
 
         gvt = cev->recv_ts;
-        if(gvt / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+        if(TW_STIME_DBL(gvt)/g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
             gvt_print(gvt);
         }
 
@@ -501,12 +491,12 @@ void tw_scheduler_sequential(tw_pe * me) {
         clp->lp_stats->s_nevent_processed++;
         tw_event_free(me, cev);
 
-        if(g_st_rt_sampling && 
+        if(g_st_rt_sampling &&
                 tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
         {
             tw_clock current_rt = tw_clock_read();
             if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
-                st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+                st_collect_model_data(me, ((double)current_rt) / g_tw_clock_rate, RT_STATS);
 
             g_st_rt_samp_start_cycles = tw_clock_read();
         }
@@ -525,7 +515,7 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
     unsigned int msg_i;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
     }
 
@@ -543,7 +533,7 @@ void tw_scheduler_conservative(tw_pe * me) {
         tw_sched_event_q(me);
         tw_gvt_step2(me);
 
-        if (me->GVT > g_tw_ts_end) {
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
             break;
         }
 
@@ -560,11 +550,11 @@ void tw_scheduler_conservative(tw_pe * me) {
             * Go do fossil collect immediately.
             */
             if (me->free_q.size <= g_tw_gvt_threshold) {
-                tw_gvt_force_update(me);
+                tw_gvt_force_update();
                 break;
             }
 
-            if(tw_pq_minimum(me->pq) >= me->GVT + g_tw_lookahead) {
+            if(TW_STIME_DBL(tw_pq_minimum(me->pq)) >= TW_STIME_DBL(me->GVT) + g_tw_lookahead) {
                 break;
             }
 
@@ -573,14 +563,14 @@ void tw_scheduler_conservative(tw_pe * me) {
                 break;
             }
             me->stats.s_pq += tw_clock_read() - start;
-            if(cev->recv_ts == tw_pq_minimum(me->pq)) {
+            if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
                 me->stats.s_pe_event_ties++;
             }
 
             clp = cev->dest_lp;
             ckp = clp->kp;
             me->cur_event = cev;
-            if( ckp->last_time > cev->recv_ts ){
+            if( TW_STIME_CMP(ckp->last_time, cev->recv_ts) > 0 ){
                 tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
                         "src LP %lu, src PE %lu",
                 ckp->last_time, cev->recv_ts, clp->gid, clp->pe->id,
@@ -610,14 +600,14 @@ void tw_scheduler_conservative(tw_pe * me) {
 
             tw_event_free(me, cev);
 
-            if(g_st_rt_sampling && 
+            if(g_st_rt_sampling &&
                     tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
             {
                 tw_clock current_rt = tw_clock_read();
                 if (g_st_engine_stats == RT_STATS || g_st_engine_stats == ALL_STATS)
                     st_collect_engine_data(me, RT_COL);
                 if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
-                    st_collect_model_data(me, (tw_stime)current_rt / g_tw_clock_rate, RT_STATS);
+                    st_collect_model_data(me, ((double)current_rt) / g_tw_clock_rate, RT_STATS);
 
                 g_st_rt_samp_start_cycles = tw_clock_read();
             }
@@ -627,11 +617,11 @@ void tw_scheduler_conservative(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 
-    tw_net_barrier(me);
+    tw_net_barrier();
 
     // call the model PE finalize function
     (*me->type.final)(me);
@@ -644,7 +634,7 @@ void tw_scheduler_conservative(tw_pe * me) {
 void tw_scheduler_optimistic(tw_pe * me) {
     tw_clock start;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE ***\n\n");
     }
 
@@ -663,7 +653,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_cancel_q(me);
         tw_gvt_step2(me);
 
-        if (me->GVT > g_tw_ts_end) {
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
             break;
         }
 
@@ -673,9 +663,9 @@ void tw_scheduler_optimistic(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    tw_net_barrier(me);
+    tw_net_barrier();
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -692,7 +682,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
 
     g_tw_gvt_realtime_interval = g_tw_gvt_interval * g_tw_clock_rate / 1000;
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL OPTIMISTIC SIMULATION WITH SUSPEND LP FEATURE AND REAL TIME GVT ***\n\n");
     }
 
@@ -714,7 +704,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
         tw_sched_cancel_q(me);
         tw_gvt_step2(me); // use regular step2 at this point
 
-        if (me->GVT > g_tw_ts_end) {
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
             break;
         }
 
@@ -724,9 +714,9 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_wall_now(&me->end_time);
     me->stats.s_total = tw_clock_read() - me->stats.s_total;
 
-    tw_net_barrier(me);
+    tw_net_barrier();
 
-    if ((g_tw_mynode == g_tw_masternode) && me->local_master) {
+    if (g_tw_mynode == g_tw_masternode) {
         printf("*** END SIMULATION ***\n\n");
     }
 
@@ -738,7 +728,7 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
     tw_stats(me);
 }
 
-tw_stime g_tw_rollback_time = 0.000000001;
+double g_tw_rollback_time = 0.000000001;
 
 void tw_scheduler_optimistic_debug(tw_pe * me) {
     tw_event *cev=NULL;
@@ -796,7 +786,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     // If we've run out of free events or events to process (maybe we're past end time?)
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
-    tw_kp_rollback_to( g_tw_kp[0], g_tw_rollback_time );
+    tw_kp_rollback_to( g_tw_kp[0], TW_STIME_CRT(g_tw_rollback_time) );
     printf("/******************* Completed Rollback Phase ******************************/\n");
 
     tw_wall_now(&me->end_time);
@@ -807,4 +797,3 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
     (*me->type.final)(me);
 }
-

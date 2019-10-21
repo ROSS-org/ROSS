@@ -17,12 +17,12 @@ static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
     TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
     TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
-    TWOPT_STIME("end", g_tw_ts_end, "simulation end timestamp"),
+    TWOPT_DOUBLE("end", g_tw_ts_end, "simulation end timestamp"),
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
     TWOPT_UINT("extramem", g_tw_events_per_pe_extra, "Number of extra events allocated per PE."),
     TWOPT_UINT("buddy-size", g_tw_buddy_alloc, "delta encoding buddy system allocation (2^X)"),
     TWOPT_UINT("lz4-knob", g_tw_lz4_knob, "LZ4 acceleration factor (higher = faster)"),
-    TWOPT_STIME("cons-lookahead", g_tw_lookahead, "Set g_tw_lookahead"),
+    TWOPT_DOUBLE("cons-lookahead", g_tw_lookahead, "Set g_tw_lookahead"),
     TWOPT_ULONGLONG("max-opt-lookahead", g_tw_max_opt_lookahead, "Optimistic simulation: maximum lookahead allowed in virtual clock time"),
 #ifdef AVL_TREE
     TWOPT_UINT("avl-size", g_tw_avl_node_count, "AVL Tree contains 2^avl-size nodes"),
@@ -38,7 +38,7 @@ void tw_init(int *argc, char ***argv) {
 #endif
 
     tw_opt_add(tw_net_init(argc, argv));
-    
+
     // Print out the command-line so we know what we passed in
     if (tw_ismaster()) {
         for (i = 0; i < *argc; i++) {
@@ -54,7 +54,7 @@ void tw_init(int *argc, char ***argv) {
         time(&raw_time);
         printf("%s\n", ctime(&raw_time));
 #endif
-        printf("ROSS Revision: %s\n\n", ROSS_VERSION);
+        printf("ROSS Version: %s\n\n", ROSS_VERSION);
     }
 #endif
 
@@ -76,8 +76,8 @@ void tw_init(int *argc, char ***argv) {
 #ifdef USE_DAMARIS
     st_damaris_ross_init();
     if (!g_st_ross_rank) // Damaris ranks only
-        return; 
-    else 
+        return;
+    else
     {
 #endif
 
@@ -86,7 +86,7 @@ void tw_init(int *argc, char ***argv) {
         struct stat buffer;
         int csv_check = stat("ross.csv", &buffer);
 
-        if (NULL == (g_tw_csv = fopen("ross.csv", "a"))) 
+        if (NULL == (g_tw_csv = fopen("ross.csv", "a")))
             tw_error(TW_LOC, "Unable to open: ross.csv\n");
 
         if (csv_check == -1)
@@ -120,21 +120,12 @@ void tw_init(int *argc, char ***argv) {
 }
 
 static void early_sanity_check(void) {
-#if ROSS_MEMORY
-    if(0 == g_tw_memory_nqueues) {
-        tw_error(TW_LOC, "ROSS memory library enabled!");
-    }
-#endif
-
-    if (!g_tw_npe) {
-        tw_error(TW_LOC, "need at least one PE");
-    }
     if (!g_tw_nlp) {
         tw_error(TW_LOC, "need at least one LP");
     }
     if (!nkp_per_pe) {
-        tw_printf(TW_LOC, "number of KPs (%u) must be >= PEs (%u), adjusting.", g_tw_nkp, g_tw_npe);
-        g_tw_nkp = g_tw_npe;
+        tw_printf(TW_LOC, "number of KPs (%u) must be >= 1, adjusting.", g_tw_nkp);
+        g_tw_nkp = 1;
     }
 }
 
@@ -142,13 +133,11 @@ static void early_sanity_check(void) {
  * map: map LPs->KPs->PEs linearly
  */
 void map_linear(void) {
-    tw_pe   *pe;
 
-    int  nlp_per_kp;
-    int  lpid;
-    int  kpid;
-    int  i;
-    int  j;
+    unsigned int nlp_per_kp;
+    tw_lpid  lpid;
+    tw_kpid  kpid;
+    unsigned int j;
 
     // may end up wasting last KP, but guaranteed each KP has == nLPs
     nlp_per_kp = (int)ceil((double) g_tw_nlp / (double) g_tw_nkp);
@@ -161,36 +150,31 @@ void map_linear(void) {
 
 #if VERIFY_MAPPING
     printf("NODE %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
+    printf("\tPE %d\n", g_tw_pe->id);
 #endif
 
-    for(kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
-#if VERIFY_MAPPING
-        printf("\tPE %d\n", pe->id);
-#endif
-
-        for(i = 0; i < nkp_per_pe; i++, kpid++) {
-            tw_kp_onpe(kpid, pe);
+    for(kpid = 0, lpid = 0; kpid < nkp_per_pe; kpid++) {
+        tw_kp_onpe(kpid, g_tw_pe);
 
 #if VERIFY_MAPPING
-            printf("\t\tKP %d", kpid);
+        printf("\t\tKP %d", kpid);
 #endif
 
-            for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
-                tw_lp_onpe(lpid, pe, g_tw_lp_offset+lpid);
-                tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+        for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
+            tw_lp_onpe(lpid, g_tw_pe, g_tw_lp_offset+lpid);
+            tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
-                if(0 == j % 20) {
-                    printf("\n\t\t\t");
-                }
-                printf("%lld ", lpid+g_tw_lp_offset);
-#endif
+            if(0 == j % 20) {
+                printf("\n\t\t\t");
             }
-
-#if VERIFY_MAPPING
-            printf("\n");
+            printf("%lld ", lpid+g_tw_lp_offset);
 #endif
         }
+
+#if VERIFY_MAPPING
+        printf("\n");
+#endif
     }
 
     if(!g_tw_lp[g_tw_nlp-1]) {
@@ -203,10 +187,11 @@ void map_linear(void) {
 }
 
 void map_round_robin(void) {
-    tw_pe   * pe = g_tw_pe[0]; // ASSUMPTION: only 1 pe
+    tw_pe   * pe = g_tw_pe; // ASSUMPTION: only 1 pe
 
-    int  kpid, lpid;
-    int  i;
+    tw_kpid kpid;
+    tw_lpid lpid;
+    unsigned int  i;
 
     // ASSUMPTION: g_tw_nlp is the same on each rank
     int lp_stride = tw_nnodes();
@@ -231,13 +216,9 @@ void map_round_robin(void) {
  * but mainly just here.
  */
 void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
-    int  i;
+    unsigned int  i;
 
     g_tw_nlp = nlp;
-
-#ifdef ROSS_MEMORY
-    g_tw_memory_sz = sizeof(tw_memory);
-#endif
 
     g_tw_msg_sz = msg_sz;
 
@@ -247,7 +228,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
      * Construct the KP array.
      */
     if( g_tw_nkp == 1 && g_tw_synchronization_protocol != OPTIMISTIC_DEBUG ) { // if it is the default, then check with the overide param
-        g_tw_nkp = nkp_per_pe * g_tw_npe;
+        g_tw_nkp = nkp_per_pe;
     }
     // else assume the application overloaded and has BRAINS to set its own g_tw_nkp
 
@@ -255,7 +236,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     st_buffer_allocate();
     //if (g_tw_mapping == CUSTOM) // analysis LPs currently only supported for custom mapping
-        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp 
+        specialized_lp_setup(); // for ROSS analysis LPs, important for setting g_st_analysis_nlp
 
     /*
      * Construct the LP array.
@@ -363,7 +344,7 @@ void tw_run(void) {
     me = setup_pes();
 
     // init instrumentation
-    st_inst_init(); 
+    st_inst_init();
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
         st_damaris_inst_init();
@@ -465,61 +446,49 @@ static void tw_delta_alloc(tw_pe *pe) {
 }
 
 static tw_pe * setup_pes(void) {
-    tw_pe   *pe;
-    tw_pe   *master;
+    tw_pe   *pe = g_tw_pe;
 
-    int  i;
     unsigned int num_events_per_pe;
 
     num_events_per_pe = 1 + g_tw_events_per_pe + g_tw_events_per_pe_extra;
 
-    master = g_tw_pe[0];
-
-    if (!master) {
+    if (!pe) {
         tw_error(TW_LOC, "No PE configured on this node.");
     }
 
-    if (g_tw_mynode == g_tw_masternode) {
-        master->master = 1;
-    }
-    master->local_master = 1;
-
-    for(i = 0; i < g_tw_npe; i++) {
-        pe = g_tw_pe[i];
-        if (g_tw_buddy_alloc) {
-            g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
-            if (g_tw_buddy_master == NULL) {
-                tw_error(TW_LOC, "create_buddy_table() failed.");
-            }
-            tw_delta_alloc(pe);
+    // TODO need to make sure we don't break this stuff
+    if (g_tw_buddy_alloc) {
+        g_tw_buddy_master = create_buddy_table(g_tw_buddy_alloc);
+        if (g_tw_buddy_master == NULL) {
+            tw_error(TW_LOC, "create_buddy_table() failed.");
         }
-        pe->pq = tw_pq_create();
+        tw_delta_alloc(pe);
+    }
+    pe->pq = tw_pq_create();
 
-        tw_eventq_alloc(&pe->free_q, num_events_per_pe);
-        pe->abort_event = tw_eventq_shift(&pe->free_q);
+    tw_eventq_alloc(&pe->free_q, num_events_per_pe);
+    pe->abort_event = tw_eventq_shift(&pe->free_q);
 #ifdef USE_RIO
-        tw_clock start = tw_clock_read();
-        for (i = 0; i < g_io_events_buffered_per_rank; i++) {
-            tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe[0]->free_q));
-        }
-        pe->stats.s_rio_load = (tw_clock_read() - start);
-#endif
+    int i;
+    tw_clock start = tw_clock_read();
+    for (i = 0; i < g_io_events_buffered_per_rank; i++) {
+        tw_eventq_push(&g_io_free_events, tw_eventq_pop(&g_tw_pe->free_q));
     }
+    pe->stats.s_rio_load = (tw_clock_read() - start);
+#endif
 
     if (g_tw_mynode == g_tw_masternode) {
         printf("\nROSS Core Configuration: \n");
-        printf("\t%-50s %11u\n", "Total Nodes", tw_nnodes());
+        printf("\t%-50s %11u\n", "Total PEs", tw_nnodes());
         fprintf(g_tw_csv, "%u,", tw_nnodes());
-
-        printf("\t%-50s [Nodes (%u) x PE_per_Node (%lu)] %lu\n", "Total Processors", tw_nnodes(), g_tw_npe, (tw_nnodes() * g_tw_npe));
-        //fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_npe));
 
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
+        // TODO need to do an allreduce call to get actual total number of LPs (e.g., for CODES)
         printf("\t%-50s %11llu\n", "Total LPs",
-	       ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * (unsigned long long)g_tw_npe * g_tw_nlp));
+	       ((unsigned long long)tw_nnodes() * g_tw_nlp));
+        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * g_tw_nlp));
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%.2lf,", g_tw_ts_end);
@@ -561,11 +530,12 @@ static tw_pe * setup_pes(void) {
         printf("\n");
 #endif
     }
-    return master;
+    return pe;
 }
 
 // This is the default lp type mapping function
 // valid ONLY if there is one lp type
 tw_lpid map_onetype (tw_lpid gid) {
+    (void) gid;
     return 0;
 }

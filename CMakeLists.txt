@@ -10,6 +10,35 @@ INCLUDE(CTest)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
 
+# Follow section based on Spack doc: 
+# https://spack.readthedocs.io/en/latest/workflows.html#write-the-cmake-build
+# enable @rpath in the install name for any shared library being built
+# note: it is planned that a future version of CMake will enable this by default
+set(CMAKE_MACOSX_RPATH 1)
+
+# Always use full RPATH
+# http://www.cmake.org/Wiki/CMake_RPATH_handling
+# http://www.kitware.com/blog/home/post/510
+
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# the RPATH to be used when installing, but only if it's not a system directory
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+ENDIF("${isSystemDir}" STREQUAL "-1")
+
+# end of spack-related addition
+
 # We probably don't want this to run on every build.
 option(COVERALLS "Generate coveralls data" OFF)
 
@@ -90,12 +119,12 @@ IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64le)
   SET(CLOCK ppc64le)
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64le)
 
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64)
+IF((${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL amd64))
   SET(VALID_ARCH YES)
   SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
   ADD_DEFINITIONS(-D_GNU_SOURCE)
   SET(CLOCK amd64)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64)
+ENDIF((${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL amd64))
 
 IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
   SET(VALID_ARCH YES)
@@ -104,6 +133,12 @@ IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
   SET(CLOCK aarch64)
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
 
+IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
+  SET(VALID_ARCH YES)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  ADD_DEFINITIONS(-D_GNU_SOURCE)
+  SET(CLOCK armv7l)
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
 
 IF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
   MESSAGE(STATUS "System architecture detected: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -115,6 +150,7 @@ ELSE(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
     "Falling back to get-time-of-day clock implementation.")
   SET(CLOCK gtod)
 ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
+
 
 ## MPI
 INCLUDE(SetupMPI)

@@ -1,7 +1,7 @@
 /*
  * queue-splay.c :- splay tree for priority queue
- * 
- * THIS IMPLEMENTATION IS ADAPTED FROM THE DASSF 
+ *
+ * THIS IMPLEMENTATION IS ADAPTED FROM THE DASSF
  * C++ IMPLEMENTATION.
  * THEIR COPYRIGHT IS ATTACHED BELOW
  */
@@ -9,19 +9,19 @@
 /*
  * Copyright (c) 1998-2002 Dartmouth College
  *
- * Permission is hereby granted, free of charge, to any individual or 
- * institution obtaining a copy of this software and associated 
- * documentation files (the "Software"), to use, copy, modify, and 
- * distribute without restriction, provided that this copyright and 
- * permission notice is maintained, intact, in all copies and supporting 
+ * Permission is hereby granted, free of charge, to any individual or
+ * institution obtaining a copy of this software and associated
+ * documentation files (the "Software"), to use, copy, modify, and
+ * distribute without restriction, provided that this copyright and
+ * permission notice is maintained, intact, in all copies and supporting
  * documentation.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL DARTMOUTH COLLEGE BE LIABLE FOR ANY CLAIM, DAMAGES 
- * OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+ * IN NO EVENT SHALL DARTMOUTH COLLEGE BE LIABLE FOR ANY CLAIM, DAMAGES
+ * OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
@@ -64,9 +64,9 @@ tw_pq_create(void)
 
 static unsigned int tw_pq_compare_less_than( tw_event *n, tw_event *e )
 {
-    if (KEY(n) < KEY(e))
+    if (TW_STIME_CMP(KEY(n), KEY(e)) < 0)
 	return 1;
-    else if (KEY(n) > KEY(e))
+    else if (TW_STIME_CMP(KEY(n), KEY(e)) > 0)
 	return 0;
     else
     {
@@ -344,7 +344,7 @@ tw_pq_delete_any(splay_tree *st, tw_event * r)
 tw_stime
 tw_pq_minimum(splay_tree *pq)
 {
-	return ((pq->least ? pq->least->recv_ts : DBL_MAX));
+	return ((pq->least ? pq->least->recv_ts : TW_STIME_MAX));
 }
 
 unsigned int

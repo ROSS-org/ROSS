@@ -19,17 +19,8 @@ tw_sigsegv(int sig)
 
 	if (once)
 	{
-		tw_pe *master = NULL;
-		tw_pe *pe = NULL;
-
-		while(NULL != (pe = tw_pe_next(pe)))
-		{
-			if (pe->local_master == 1)
-				master = pe;
-		}
-
-		if (master)
-			tw_stats(master);
+		if (g_tw_pe)
+			tw_stats(g_tw_pe);
 	}
 
 	once = 0;

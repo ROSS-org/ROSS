@@ -54,6 +54,10 @@ show_help(void)
 				pos += fprintf(stderr, "=n");
 				break;
 
+			case TWOPTTYPE_DOUBLE:
+				pos += fprintf(stderr, "=dbl");
+                                break;
+
 			case TWOPTTYPE_STIME:
 				pos += fprintf(stderr, "=ts");
 				break;
@@ -96,6 +100,10 @@ show_help(void)
 					fprintf(stderr, " (default %u)", *((unsigned int*)def->value));
 					break;
 
+				case TWOPTTYPE_DOUBLE:
+					fprintf(stderr, " (default %.2f)", *((double*)def->value));
+                                        break;
+
 				case TWOPTTYPE_STIME:
 					fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
 					break;
@@ -121,7 +129,7 @@ show_help(void)
 			cnt++;
 		}
 	}
-        
+
         // CMake used to pass options by command line flags
 	fprintf(stderr, "ROSS CMake Configuration Options:\n");
         fprintf(stderr, "  (See build-dir/core/config.h)\n");
@@ -130,7 +138,7 @@ show_help(void)
 void tw_opt_settings(FILE *outfile) {
     const tw_optdef **group = all_groups;
     unsigned cnt = 0;
-    
+
     for (; *group; group++){
         const tw_optdef *def = *group;
         for (; def->type; def++){
@@ -170,6 +178,10 @@ void tw_opt_settings(FILE *outfile) {
 
                 case TWOPTTYPE_UINT:
                     fprintf(outfile, "%u", *((unsigned int*)def->value));
+                    break;
+
+                case TWOPTTYPE_DOUBLE:
+                    fprintf(outfile, "%.2f", *((double*)def->value));
                     break;
 
                 case TWOPTTYPE_STIME:
@@ -213,7 +225,7 @@ tw_opt_print(void)
 		const tw_optdef *def = *group;
 		for (; def->type; def++)
 		{
-			if (def->type == TWOPTTYPE_GROUP || 
+			if (def->type == TWOPTTYPE_GROUP ||
 				(def->name && 0 == strcmp(def->name, "help")))
 				continue;
 
@@ -232,6 +244,10 @@ tw_opt_print(void)
 				case TWOPTTYPE_UINT:
 					fprintf(f, "%u,", *((unsigned int*)def->value));
 					break;
+
+				case TWOPTTYPE_DOUBLE:
+					fprintf(f, "%.2f,", *((double*)def->value));
+                                        break;
 
 				case TWOPTTYPE_STIME:
 					fprintf(f, "%.2f,", *((tw_stime*)def->value));
@@ -302,10 +318,26 @@ apply_opt(const tw_optdef *def, const char *value)
 		break;
 	}
 
+        case TWOPTTYPE_DOUBLE:
+	{
+		double v;
+		char *end;
+
+		if (!value)
+			need_argument(def);
+		v = strtod(value, &end);
+		if (*end)
+			need_argument(def);
+		*((double*)def->value) = v;
+		break;
+	}
+
 	case TWOPTTYPE_STIME:
 	{
 		tw_stime v;
 		char *end;
+
+                tw_warning(TW_LOC, "Option type stime (TWOPT_STIME) is deprecated. Please use double (TWOPT_DOUBLE).");
 
 		if (!value)
 			need_argument(def);
