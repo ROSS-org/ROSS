@@ -33,6 +33,12 @@ script:
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
+ - mkdir build-gtod && cd build-gtod
+ - MPICH_CC=clag cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON -DROSS_CLOCK_OVERRIDE=ON ..
+ - make
+ - CTEST_OUTPUT_ON_FAILURE=1 ctest -R SCHED
+ - make coveralls
+ - cd ..
  - mkdir build && cd build
  - MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
