@@ -34,7 +34,7 @@ script:
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - cd ..
  - mkdir build-gtod && cd build-gtod
- - MPICH_CC=clag cmake -DCMAKE_BUILD_TYPE=Debug -DROSS_BUILD_MODELS=ON -ROSS_CLOCK_OVERRIDE=ON ..
+ - MPICH_CC=clag cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON -DROSS_CLOCK_OVERRIDE=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 ctest -R SCHED
  - cd ..
