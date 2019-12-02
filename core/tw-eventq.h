@@ -126,10 +126,10 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
   int	 cnt;
 
   /* Nothing to collect from this event list? */
-  if (!t || t->recv_ts >= gvt)
+  if (!t || (TW_STIME_CMP(t->recv_ts, gvt) >= 0))
     return;
 
-  if (h->recv_ts < gvt)
+  if (TW_STIME_CMP(h->recv_ts, gvt) < 0)
     {
       /* Everything in the queue can be collected */
       tw_eventq_push_list(&pe->free_q, h, t, q->size);
@@ -145,7 +145,7 @@ tw_eventq_fossil_collect(tw_eventq *q, tw_pe *pe)
     tw_event *n;
 
     /* Search the leading part of the list... */
-    for (h = t->prev, cnt = 1; h && h->recv_ts < gvt; cnt++)
+    for (h = t->prev, cnt = 1; h && (TW_STIME_CMP(h->recv_ts, gvt) < 0); cnt++)
       h = h->prev;
 
     /* t isn't eligible for collection; its the new head */

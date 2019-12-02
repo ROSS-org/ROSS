@@ -153,11 +153,11 @@ st_model_types model_types[] = {
 const tw_optdef app_opt[] =
 {
 	TWOPT_GROUP("PHOLD Model"),
-	TWOPT_STIME("remote", percent_remote, "desired remote event rate"),
+	TWOPT_DOUBLE("remote", percent_remote, "desired remote event rate"),
 	TWOPT_UINT("nlp", nlp_per_pe, "number of LPs per processor"),
-	TWOPT_STIME("mean", mean, "exponential distribution mean for timestamps"),
-	TWOPT_STIME("mult", mult, "multiplier for event memory allocation"),
-	TWOPT_STIME("lookahead", lookahead, "lookahead for events"),
+	TWOPT_DOUBLE("mean", mean, "exponential distribution mean for timestamps"),
+	TWOPT_DOUBLE("mult", mult, "multiplier for event memory allocation"),
+	TWOPT_DOUBLE("lookahead", lookahead, "lookahead for events"),
 	TWOPT_UINT("start-events", g_phold_start_events, "number of initial messages per LP"),
 	TWOPT_UINT("stagger", stagger, "Set to 1 to stagger event uniformly across 0 to end time."),
 	TWOPT_UINT("memory", optimistic_memory, "additional memory buffers"),

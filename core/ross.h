@@ -148,6 +148,12 @@ typedef unsigned long tw_peid;
 
 /* tw_stime -- Simulation time value for sim clock (NOT wall!) */
 typedef double tw_stime;
+#define MPI_TYPE_TW_STIME   MPI_DOUBLE
+#define TW_STIME_CRT(x)     (x)
+#define TW_STIME_DBL(x)     (x)
+#define TW_STIME_CMP(x, y)  (((x) < (y)) ? -1 : ((x) > (y)))
+#define TW_STIME_ADD(x, y)  ((x) + (y))
+#define TW_STIME_MAX        DBL_MAX
 
 /* tw_lpid -- Logical Process "LP" id */
 //typedef unsigned long long tw_lpid;
@@ -184,6 +190,12 @@ typedef uint64_t tw_lpid;
 #endif
 #ifdef ROSS_CLOCK_aarch64
 #  include "clock/aarch64.h"
+#endif
+#ifdef ROSS_CLOCK_armv7l
+#  include "clock/armv7l.h"
+#endif
+#ifdef ROSS_CLOCK_gtod
+#  include "clock/gtod.h"
 #endif
 
 #include "tw-timing.h"

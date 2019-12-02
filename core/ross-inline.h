@@ -43,24 +43,24 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   tw_event *e;
   tw_stime recv_ts;
 
-  if (offset_ts < 0.0) {
+  if (TW_STIME_DBL(offset_ts) < 0.0) {
     tw_error(TW_LOC, "Cannot send events into the past! Sending LP: %lu\n", sender->gid);
   }
 
   send_pe = sender->pe;
-  recv_ts = tw_now(sender) + offset_ts;
+  recv_ts = TW_STIME_ADD(tw_now(sender), offset_ts);
 
   if(g_tw_synchronization_protocol == CONSERVATIVE)
   {
     /* keep track of the smallest timestamp offset we have seen */
-    if(offset_ts < g_tw_min_detected_offset)
-      g_tw_min_detected_offset = offset_ts;
+  if(TW_STIME_DBL(offset_ts) < g_tw_min_detected_offset)
+    g_tw_min_detected_offset = TW_STIME_DBL(offset_ts);
   }
 
   /* If this event will be past the end time, or there
    * are no more free events available, use abort event.
    */
-  if (recv_ts >= g_tw_ts_end) {
+  if (TW_STIME_DBL(recv_ts) >= g_tw_ts_end) {
 #ifdef USE_RIO
     e = io_event_grab(send_pe);
 #else

@@ -121,14 +121,14 @@ void st_collect_engine_data_kps(tw_pe *pe, tw_kp *kp, sample_metadata *sample_md
     kp_stats.s_rb_secondary = (unsigned int)(kp->kp_stats->s_rb_secondary - kp->last_stats[col_type]->s_rb_secondary);
     kp_stats.s_nsend_network = (unsigned int)(kp->kp_stats->s_nsend_network - kp->last_stats[col_type]->s_nsend_network);
     kp_stats.s_nread_network = (unsigned int)(kp->kp_stats->s_nread_network - kp->last_stats[col_type]->s_nread_network);
-    kp_stats.time_ahead_gvt = (float)(kp->last_time - pe->GVT);
+    kp_stats.time_ahead_gvt = (float)(TW_STIME_DBL(kp->last_time) - TW_STIME_DBL(pe->GVT));
 
     int net_events = kp_stats.s_nevent_processed - kp_stats.s_e_rbs;
     if (net_events > 0)
         kp_stats.efficiency = (float) 100.0 * (1.0 - ((float) kp_stats.s_e_rbs / (float) net_events));
     else
         kp_stats.efficiency = 0;
-    
+
     memcpy(kp->last_stats[col_type], kp->kp_stats, sizeof(st_kp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
@@ -169,7 +169,7 @@ void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_t
         lp_stats.efficiency = (float) 100.0 * (1.0 - ((float) lp_stats.s_e_rbs / (float) net_events));
     else
         lp_stats.efficiency = 0;
-    
+
     memcpy(lp->last_stats[col_type], lp->lp_stats, sizeof(st_lp_stats));
 
     memcpy(&buffer[index], sample_md, sizeof(*sample_md));
@@ -182,4 +182,3 @@ void st_collect_engine_data_lps(tw_lp *lp, sample_metadata *sample_md, int col_t
 
     st_buffer_push(col_type, &buffer[0], buf_size);
 }
-

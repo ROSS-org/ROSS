@@ -46,13 +46,13 @@ size_t		g_tw_event_msg_sz = 0;
          * Minimum lookahead for a model -- model defined when
          * using the Simple Synchronization Protocol (conservative)
          */
-tw_stime g_tw_lookahead=0.005;
+double g_tw_lookahead=0.005;
 
         /*
          * Minimum detected timestamp offset used by the simulation at
          * runtime, can be used to help tune conservative protocol runs.
          */
-tw_stime g_tw_min_detected_offset=DBL_MAX;
+double g_tw_min_detected_offset=DBL_MAX;
 
 	/**
 	 * Number of messages to process at once out of the PQ before
@@ -65,7 +65,7 @@ unsigned long long g_tw_max_opt_lookahead = ULLONG_MAX;
 unsigned long long g_tw_gvt_realtime_interval; // calculated at runtime
 unsigned long long g_tw_gvt_interval_start_cycles = 0;
 
-tw_stime     g_tw_ts_end = 100000.0;
+double     g_tw_ts_end = 100000.0;
 
 /*
  * g_tw_pe              -- Public PE pointer
