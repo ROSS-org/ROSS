@@ -2,7 +2,7 @@
 
 MPI_Datatype MPI_TYPE_TW_STIME;
 
-int tw_stime_cmp(tw_stime x, tw_stime y) {
+int tw_stime_bits_cmp(tw_stime x, tw_stime y) {
     if(x.t < y.t) return -1;
     if(x.t > y.t) return  1;
     for(int i = 0; i < TW_STIME_BITS_SIZE; i++) {
@@ -12,7 +12,7 @@ int tw_stime_cmp(tw_stime x, tw_stime y) {
     return 0;
 }
 
-tw_stime tw_stime_add(tw_stime x, tw_stime y) {
+tw_stime tw_stime_bits_add(tw_stime x, tw_stime y) {
     tw_stime rv;
     rv.t = x.t + y.t;
     for (int i = 0; i < TW_STIME_BITS_SIZE; i++) {
@@ -21,13 +21,13 @@ tw_stime tw_stime_add(tw_stime x, tw_stime y) {
     return rv;
 }
 
-tw_stime tw_stime_max(void) {
+tw_stime tw_stime_bits_max(void) {
     tw_stime rv;
     rv.t = DBL_MAX;
     return rv;
 }
 
-tw_stime tw_stime_create(double x){
+tw_stime tw_stime_bits_create(double x){
     tw_stime rv;
     rv.t = x;
     for (int i = 0; i < TW_STIME_BITS_SIZE; i++) {
@@ -36,7 +36,7 @@ tw_stime tw_stime_create(double x){
     return rv;
 }
 
-void tw_stime_mpi_datatype(void) {
+void tw_stime_bits_mpi_datatype(void) {
     int structlen = 2;
 
     int blocklens[structlen];

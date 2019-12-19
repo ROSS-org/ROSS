@@ -9,17 +9,17 @@ typedef struct tw_stime {
 } tw_stime;
 
 extern MPI_Datatype MPI_TYPE_TW_STIME;
-void tw_stime_mpi_datatype(void);
+void tw_stime_bits_mpi_datatype(void);
 
-int tw_stime_cmp(tw_stime x, tw_stime y);
-tw_stime tw_stime_add(tw_stime x, tw_stime y);
-tw_stime tw_stime_max(void);
-tw_stime tw_stime_create(double x);
+int tw_stime_bits_cmp(tw_stime x, tw_stime y);
+tw_stime tw_stime_bits_add(tw_stime x, tw_stime y);
+tw_stime tw_stime_bits_max(void);
+tw_stime tw_stime_bits_create(double x);
 
-#define TW_STIME_CRT(x)     (tw_stime_create(x))
+#define TW_STIME_CRT(x)     (tw_stime_bits_create(x))
 #define TW_STIME_DBL(x)     (x.t)
-#define TW_STIME_CMP(x, y)  (tw_stime_cmp((x), (y)))
-#define TW_STIME_ADD(x, y)  (tw_stime_add((x), (y)))
-#define TW_STIME_MAX        (tw_stime_max())
+#define TW_STIME_CMP(x, y)  (tw_stime_bits_cmp((x), (y)))
+#define TW_STIME_ADD(x, y)  (tw_stime_bits_add((x), (y)))
+#define TW_STIME_MAX        (tw_stime_bits_max())
 
 #endif
