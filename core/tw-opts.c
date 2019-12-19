@@ -108,7 +108,7 @@ show_help(void)
 
 #ifndef USE_TW_STIME_BITS
 				case TWOPTTYPE_STIME:
-                                    fprintf(stderr, " (default %.2f)", *(TW_STIME_DBL((tw_stime*)def->value)));
+                                    fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
 					break;
 #endif
 
@@ -190,7 +190,7 @@ void tw_opt_settings(FILE *outfile) {
 
 #ifndef USE_TW_STIME_BITS
                 case TWOPTTYPE_STIME:
-                    fprintf(outfile, "%.2f", *(TW_STIME_DBL((tw_stime*)def->value)));
+                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
                     break;
 #endif
 
@@ -257,7 +257,7 @@ tw_opt_print(void)
 
 #ifndef USE_TW_STIME_BITS
 				case TWOPTTYPE_STIME:
-                                        fprintf(f, "%.2f,", *(TW_STIME_DBL((tw_stime*)def->value)));
+                                        fprintf(f, "%.2f,", *((tw_stime*)def->value));
 					break;
 #endif
 
