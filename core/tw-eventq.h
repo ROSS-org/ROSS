@@ -106,6 +106,21 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
             e->caused_by_me = NULL;
             e->state.owner = TW_pe_free_q;
         }
+
+        // check for and free rescinded messages
+        if (e->rescinded_by_me) {
+            cev = next = e->rescinded_by_me;
+            while (cev) {
+                next = cev->rescind_next;
+                cev->rescind_next = NULL;
+
+                tw_event_free(cev->src_lp->pe, cev);
+
+                cev = next;
+            }
+            e->rescinded_by_me = NULL;
+        }
+
         if (e == h) {
           break;
         }
