@@ -108,8 +108,9 @@ tw_gvt_step2(tw_pe *me)
 	tw_stime pq_min = TW_STIME_MAX;
 	tw_stime net_min = TW_STIME_MAX;
 
-	tw_stime lvt;
-	tw_stime gvt;
+
+        tw_stime lvt;
+        tw_stime gvt;
 
     tw_clock net_start;
 	tw_clock start = tw_clock_read();
@@ -149,14 +150,26 @@ tw_gvt_step2(tw_pe *me)
 
 	all_reduce_cnt++;
 
+        // Note for TW_STIME API
+        // lvt is cast to double when going into the allreduce
+        // thus, the gvt that comes out is a double
+        // and needs to be cast back to an tw_stime object
+        //
+        // must continue to use MPI_DOUBLE type... or reimplement allreduce
+
+        double lvtd = TW_STIME_DBL(lvt);
+        double gvtd;
+
 	if(MPI_Allreduce(
-			&lvt,
-			&gvt,
+			&lvtd,
+			&gvtd,
 			1,
-			MPI_TYPE_TW_STIME,
+			MPI_DOUBLE,
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
+
+        gvt = TW_STIME_CRT(gvtd);
 
 	if(TW_STIME_CMP(gvt, me->GVT_prev) < 0)
 	{
