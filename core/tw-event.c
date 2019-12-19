@@ -97,6 +97,29 @@ void tw_event_send(tw_event * event) {
     }
 }
 
+void tw_event_rescind(tw_event * event) {
+    tw_clock pq_start;
+    tw_pe *send_pe = event->src_lp->pe;
+
+    // assert dest LP is the same as the sender
+    if (event->dest_lp != event->src_lp) {
+        tw_error(TW_LOC, "Cannot rescind an event sent from a diffenet LP");
+    }
+
+    // UNDO the "fast case" from tw_event_send
+    // pq_delete_any removes the event from the PQ, leaving it ownerless
+    pq_start = tw_clock_read();
+    tw_pq_delete_any(send_pe->pq, event);
+    send_pe->stats.s_pq += tw_clock_read() - pq_start;
+
+    // keep track of the rescinded event, in case of rollback
+    // similar to link_causality
+    event->rescind_next = send_pe->cur_event->rescinded_by_me;
+    send_pe->cur_event->rescinded_by_me = event;
+
+    // final step: walk the rescinded_by_me list during rollback.
+}
+
 static inline void local_cancel(tw_pe *d, tw_event *event) {
     event->state.cancel_q = 1;
 

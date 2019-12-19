@@ -84,6 +84,7 @@ extern unsigned long long g_tw_clock_rate;
  */
 extern void tw_event_send(tw_event * event);
 extern void tw_event_rollback(tw_event * event);
+extern void tw_event_rescind(tw_event * event);
 
 /*
  * ross-inline.h
