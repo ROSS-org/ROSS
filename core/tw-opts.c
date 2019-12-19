@@ -58,9 +58,11 @@ show_help(void)
 				pos += fprintf(stderr, "=dbl");
                                 break;
 
+#ifndef USE_TW_STIME_BITS
 			case TWOPTTYPE_STIME:
 				pos += fprintf(stderr, "=ts");
 				break;
+#endif
 
 			case TWOPTTYPE_CHAR:
 				pos += fprintf(stderr, "=str");
@@ -104,9 +106,11 @@ show_help(void)
 					fprintf(stderr, " (default %.2f)", *((double*)def->value));
                                         break;
 
+#ifndef USE_TW_STIME_BITS
 				case TWOPTTYPE_STIME:
-					fprintf(stderr, " (default %.2f)", *((tw_stime*)def->value));
+                                    fprintf(stderr, " (default %.2f)", *(TW_STIME_DBL((tw_stime*)def->value)));
 					break;
+#endif
 
 				case TWOPTTYPE_CHAR:
 					fprintf(stderr, " (default %s)", (char *) def->value);
@@ -184,9 +188,11 @@ void tw_opt_settings(FILE *outfile) {
                     fprintf(outfile, "%.2f", *((double*)def->value));
                     break;
 
+#ifndef USE_TW_STIME_BITS
                 case TWOPTTYPE_STIME:
-                    fprintf(outfile, "%.2f", *((tw_stime*)def->value));
+                    fprintf(outfile, "%.2f", *(TW_STIME_DBL((tw_stime*)def->value)));
                     break;
+#endif
 
                 case TWOPTTYPE_CHAR:
                     fprintf(outfile, "%s", (char *) def->value);
@@ -249,9 +255,11 @@ tw_opt_print(void)
 					fprintf(f, "%.2f,", *((double*)def->value));
                                         break;
 
+#ifndef USE_TW_STIME_BITS
 				case TWOPTTYPE_STIME:
-					fprintf(f, "%.2f,", *((tw_stime*)def->value));
+                                        fprintf(f, "%.2f,", *(TW_STIME_DBL((tw_stime*)def->value)));
 					break;
+#endif
 
 				case TWOPTTYPE_CHAR:
 					fprintf(f, "%s,", (char *)def->value);
@@ -332,6 +340,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		break;
 	}
 
+#ifndef USE_TW_STIME_BITS
 	case TWOPTTYPE_STIME:
 	{
 		tw_stime v;
@@ -347,6 +356,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		*((tw_stime*)def->value) = v;
 		break;
 	}
+#endif
 
 	case TWOPTTYPE_CHAR:
 	{
