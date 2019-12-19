@@ -203,6 +203,7 @@ static inline void event_cancel(tw_event * event) {
 
 void tw_event_rollback(tw_event * event) {
     tw_event  *e = event->caused_by_me;
+    tw_event  *r = event->rescinded_by_me;
     tw_lp     *dest_lp = event->dest_lp;
 
     tw_free_output_messages(event, 0);
@@ -249,6 +250,21 @@ jump_over_rc_event_handler:
         event->delta_buddy = 0;
     }
 
+    // restore events rescinded by this event
+    while (r) {
+        tw_event *n = r->rescind_next;
+        r->rescind_next = NULL;
+
+        // re-do the "fast case" from tw_event_send
+        // assumption that dest LP is the sender
+        tw_clock pq_start = tw_clock_read();
+        tw_pq_enqueue(dest_lp->pe->pq, r);
+        dest_lp->pe->stats.s_pq += tw_clock_read() - pq_start;
+
+        r = n;
+    }
+
+    // cancel events caused by this event
     while (e) {
         tw_event *n = e->cause_next;
         e->cause_next = NULL;
