@@ -260,6 +260,8 @@ struct tw_event {
     tw_event *cancel_next;          /**< @brief Next event in the cancel queue for the dest_pe */
     tw_event *caused_by_me;         /**< @brief Start of event list caused by this event */
     tw_event *cause_next;           /**< @brief Next in parent's caused_by_me chain */
+    tw_event *rescinded_by_me;      /**< @brief Start of event list rescinded by this event */
+    tw_event *rescind_next;         /**< @brief Next in parent's rescinded_by_me chain */
 
     tw_eventid   event_id;          /**< @brief Unique id assigned by src_lp->pe if remote. */
 

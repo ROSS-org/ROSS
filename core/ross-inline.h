@@ -11,6 +11,8 @@ tw_event_grab(tw_pe *pe)
       e->cancel_next = NULL;
       e->caused_by_me = NULL;
       e->cause_next = NULL;
+      e->rescinded_by_me = NULL;
+      e->rescind_next = NULL;
       e->prev = e->next = NULL;
 
       memset(&e->state, 0, sizeof(e->state));
