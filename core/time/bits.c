@@ -3,9 +3,10 @@
 MPI_Datatype MPI_TYPE_TW_STIME;
 
 int tw_stime_bits_cmp(tw_stime x, tw_stime y) {
+    int i;
     if(x.t < y.t) return -1;
     if(x.t > y.t) return  1;
-    for(int i = 0; i < TW_STIME_BITS_SIZE; i++) {
+    for(i = 0; i < TW_STIME_BITS_SIZE; i++) {
         if(x.bits[i] < y.bits[i]) return -1;
         if(x.bits[i] > y.bits[i]) return  1;
     }
@@ -13,9 +14,10 @@ int tw_stime_bits_cmp(tw_stime x, tw_stime y) {
 }
 
 tw_stime tw_stime_bits_add(tw_stime x, tw_stime y) {
+    int i;
     tw_stime rv;
     rv.t = x.t + y.t;
-    for (int i = 0; i < TW_STIME_BITS_SIZE; i++) {
+    for (i = 0; i < TW_STIME_BITS_SIZE; i++) {
         rv.bits[i] = x.bits[i] + y.bits[i];
     }
     return rv;
@@ -28,9 +30,10 @@ tw_stime tw_stime_bits_max(void) {
 }
 
 tw_stime tw_stime_bits_create(double x){
+    int i;
     tw_stime rv;
     rv.t = x;
-    for (int i = 0; i < TW_STIME_BITS_SIZE; i++) {
+    for (i = 0; i < TW_STIME_BITS_SIZE; i++) {
         rv.bits[i] = 0;
     }
     return rv;
