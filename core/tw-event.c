@@ -41,6 +41,7 @@ void tw_event_send(tw_event * event) {
              if (lazy_q_annihilate(send_pe, event)) {
                  // optimization achieved
                  // we can free this event
+                 send_pe->stats.s_n_lazy_opts++;
                  tw_event_free(send_pe, event);
                  return;
              }

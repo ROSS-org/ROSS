@@ -160,6 +160,8 @@ struct tw_statistics {
     tw_clock s_rio_load;
     tw_clock s_rio_lp_init;
 #endif
+
+    tw_stat s_n_lazy_opts;
 };
 
 // TODO: there is no initialization of this object???

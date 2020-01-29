@@ -85,6 +85,8 @@ tw_get_stats(tw_pe * pe, tw_statistics *s)
     s->s_alp_nevent_processed = pe->stats.s_alp_nevent_processed;
     s->s_alp_e_rbs = pe->stats.s_alp_e_rbs;
 
+    s->s_n_lazy_opts = pe->stats.s_n_lazy_opts;
+
     for(i = 0; i < g_tw_nkp; i++)
     {
         kp = tw_getkp(i);
@@ -113,7 +115,7 @@ void st_print_analysis_LP_stats(tw_statistics *s)
 	show_lld("Events Rolled Back", model_e_rbs);
 	show_lld("Net Events Processed", model_net);
 	show_2f("Efficiency", 100.0 * (1.0 - ((double) model_e_rbs / (double) model_net)));
-    
+
     printf("\nAnalysis LPs:\n");
 	show_lld("Total Events Processed", s->s_alp_nevent_processed);
 	show_lld("Events Rolled Back", s->s_alp_e_rbs);
@@ -179,6 +181,7 @@ tw_stats(tw_pe *me)
 	show_lld("Secondary Roll Backs ", s.s_rb_secondary);
 	show_lld("Fossil Collect Attempts", s.s_fc_attempts);
 	show_lld("Total GVT Computations", g_tw_gvt_done);
+        show_lld("Total Lazy Rollback Optimizations", s.s_n_lazy_opts);
 
 	printf("\n");
 	show_lld("Net Events Processed", s.s_net_events);
@@ -237,7 +240,7 @@ tw_stats(tw_pe *me)
 #endif
 
 	tw_gvt_stats(stdout);
-    
+
     if (g_st_use_analysis_lps)
         st_print_analysis_LP_stats(&s);
 #endif
