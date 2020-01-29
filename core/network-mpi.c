@@ -675,10 +675,10 @@ tw_net_cancel(tw_event *e)
       // e->state.cancel_asend =0 (maybe we shoud make this 1)
       // e->state.cancel_q =0
 
-      tw_eventq_push(&(e->src_lp->pe->lazy_q), e);
-      // TODO: is 'push' the right thing to do?
       src_pe->stats.s_n_lazy_events++;
       e->state.owner = TW_pe_lazy_q;
+      tw_eventq_unshift(&src_pe->lazy_q, e);
+
     break;
 
   default:
