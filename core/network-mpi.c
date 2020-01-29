@@ -365,8 +365,8 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
 
 
   if(TW_STIME_CMP(e->recv_ts, me->GVT) < 0)
-    tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)",
-	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
+    tw_error(TW_LOC, "PE %d: Received straggler at GVT %f from %d: %lf (antimsg? %d)",
+	     me->id, me->GVT, e->send_pe, e->recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me))
       me->trans_msg_ts = (TW_STIME_CMP(me->trans_msg_ts, e->recv_ts) < 0) ? me->trans_msg_ts : e->recv_ts;
