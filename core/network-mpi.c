@@ -538,9 +538,9 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
                 tw_error(TW_LOC, "shit we are fucked. lazy_q not in order");
             }
         }
-
-        tw_eventq_unshift(&pe->lazy_q, e);
+        pe->stats.s_n_lazy_events++;
         e->state.owner = TW_pe_lazy_q;
+        tw_eventq_unshift(&pe->lazy_q, e);
     } else {
       /* Event finished transmission and was not cancelled.
        * Add to our sent event queue so we can retain the
@@ -677,6 +677,7 @@ tw_net_cancel(tw_event *e)
 
       tw_eventq_push(&(e->src_lp->pe->lazy_q), e);
       // TODO: is 'push' the right thing to do?
+      src_pe->stats.s_n_lazy_events++;
       e->state.owner = TW_pe_lazy_q;
     break;
 

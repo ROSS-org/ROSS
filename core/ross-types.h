@@ -161,6 +161,7 @@ struct tw_statistics {
     tw_clock s_rio_lp_init;
 #endif
 
+    tw_stat s_n_lazy_events;
     tw_stat s_n_lazy_opts;
 };
 
