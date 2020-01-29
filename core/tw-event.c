@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <assert.h>
+#include "lazy_rollback.h"
 
 static inline void link_causality (tw_event *nev, tw_event *cev) {
     nev->cause_next = cev->caused_by_me;
@@ -29,6 +30,22 @@ void tw_event_send(tw_event * event) {
         return;
     }
 #endif
+
+     // check the lazy_q
+     if (send_pe->lazy_q.size != 0) {
+         // TODO: is this send or recv TS?????
+         if (TW_STIME_CMP(event->send_ts, tw_eventq_peek_head(&send_pe->lazy_q)->send_ts) > 0) {
+             // we need to send some anti messages
+             lazy_rollback_catchup_to(send_pe, event->send_ts);
+         } else {
+             if (lazy_q_annihilate(send_pe, event)) {
+                 // optimization achieved
+                 // we can free this event
+                 tw_event_free(send_pe, event);
+                 return;
+             }
+         }
+     }
 
      // moved from network-mpi.c in order to give all events a seq_num
 	event->event_id = (tw_eventid) ++send_pe->seq_num;

@@ -1,4 +1,5 @@
 #include <ross.h>
+#include "lazy_rollback.h"
 
 /**
  * \brief Reset the event bitfield prior to entering the event handler
@@ -23,6 +24,16 @@ static void tw_sched_event_q(tw_pe * me) {
     tw_kp       *dest_kp;
     tw_event    *cev;
     tw_event    *nev;
+
+    // hi-jacking this function to do the lazy cancellation stuff
+    // this function is called from conservative, optimistic, and optimistic realtime.
+    // in reality, the event_q should never have anything in it
+    // because this is a hack for shared memory (multiple PE) ROSS
+    // which doesn't exist any more. There are never multiple PEs per MPI rank.
+    // and tw_nnodes is the number of MPI ranks which are running.
+    // In ROSS terms 'node' == 'mpi rank'
+
+    lazy_rollback_catchup_to(me, me->GVT);
 
     while (me->event_q.size) {
         cev = tw_eventq_pop_list(&me->event_q);
