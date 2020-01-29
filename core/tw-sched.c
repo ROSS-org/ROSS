@@ -25,16 +25,6 @@ static void tw_sched_event_q(tw_pe * me) {
     tw_event    *cev;
     tw_event    *nev;
 
-    // hi-jacking this function to do the lazy cancellation stuff
-    // this function is called from conservative, optimistic, and optimistic realtime.
-    // in reality, the event_q should never have anything in it
-    // because this is a hack for shared memory (multiple PE) ROSS
-    // which doesn't exist any more. There are never multiple PEs per MPI rank.
-    // and tw_nnodes is the number of MPI ranks which are running.
-    // In ROSS terms 'node' == 'mpi rank'
-
-    lazy_rollback_catchup_to(me, me->GVT);
-
     while (me->event_q.size) {
         cev = tw_eventq_pop_list(&me->event_q);
 
@@ -191,6 +181,9 @@ static void tw_sched_batch(tw_pe * me) {
         if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
+
+        // todo: maybe we're too aggressive in calling this
+        lazy_rollback_catchup_to(me, cev->recv_ts);
 
         clp = cev->dest_lp;
 
@@ -662,9 +655,14 @@ void tw_scheduler_optimistic(tw_pe * me) {
             me->stats.s_net_read += tw_clock_read() - start;
         }
 
+
         tw_gvt_step1(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
+
+        // todo: maybe we're too aggressive in calling this
+        lazy_rollback_catchup_to(me, tw_pq_minimum(me->pq));
+
         tw_gvt_step2(me);
 
         if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
