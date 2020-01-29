@@ -30,6 +30,9 @@ lz4.h
 lz4.c
 tw-state.c
 
+lazy_rollback.h
+lazy_rollback.c
+
 ross-extern.h
 ross-global.c
 
