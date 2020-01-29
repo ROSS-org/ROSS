@@ -207,21 +207,24 @@ static void tw_sched_batch(tw_pe * me) {
 	reset_bitfields(cev);
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
-	if( !(clp->suspend_flag) )
-            {
-                // state-save and update the LP's critical path
-                unsigned int prev_cp = clp->critical_path;
-                clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-                (*clp->type->event)(clp->cur_state, &cev->cv,
-                                    tw_event_data(cev), clp);
-                if (g_st_ev_trace == FULL_TRACE)
-                    st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
-                cev->critical_path = prev_cp;
+	if( !(clp->suspend_flag) ) {
+            // state-save and update the LP's critical path
+            unsigned int prev_cp = clp->critical_path;
+            clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+
+            (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+
+            if (g_st_ev_trace == FULL_TRACE) {
+                st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
             }
+
+            cev->critical_path = prev_cp;
+        }
 	ckp->s_nevent_processed++;
-    // instrumentation
-    ckp->kp_stats->s_nevent_processed++;
-    clp->lp_stats->s_nevent_processed++;
+
+        // instrumentation
+        ckp->kp_stats->s_nevent_processed++;
+        clp->lp_stats->s_nevent_processed++;
 	me->stats.s_event_process += tw_clock_read() - start;
 
 	/* We ran out of events while processing this event.  We

@@ -167,7 +167,7 @@ tw_gvt_step2(tw_pe *me)
 			MPI_DOUBLE,
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
-			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
+            tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
 
         gvt = TW_STIME_CRT(gvtd);
 
