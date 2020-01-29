@@ -162,6 +162,7 @@ struct tw_statistics {
 #endif
 };
 
+// TODO: there is no initialization of this object???
 struct tw_eventq {
     size_t size;
     tw_event *head;

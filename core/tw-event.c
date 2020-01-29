@@ -68,6 +68,7 @@ void tw_event_send(tw_event * event) {
             send_pe->stats.s_pq += tw_clock_read() - pq_start;
             return;
         } else {
+            // ALERT: DEAD CODE! NOW ONLY 1 PE per MPI RANK
             /* Slower, but still local send, so put into top of
             * dest_pe->event_q.
             */

@@ -419,6 +419,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   }
 
   if (me->id == dest_pe->id) {
+      // ALERT: DEAD CODE! NOW ONLY 1 PE per MPI RANK
     /* Slower, but still local send, so put into top
      * of dest_pe->event_q.
      */

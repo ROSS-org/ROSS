@@ -197,16 +197,16 @@ static void tw_sched_batch(tw_pe * me) {
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) )
-	  {
-        // state-save and update the LP's critical path
-        unsigned int prev_cp = clp->critical_path;
-        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-	    (*clp->type->event)(clp->cur_state, &cev->cv,
-				tw_event_data(cev), clp);
-        if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
-        cev->critical_path = prev_cp;
-	  }
+            {
+                // state-save and update the LP's critical path
+                unsigned int prev_cp = clp->critical_path;
+                clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+                (*clp->type->event)(clp->cur_state, &cev->cv,
+                                    tw_event_data(cev), clp);
+                if (g_st_ev_trace == FULL_TRACE)
+                    st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
+                cev->critical_path = prev_cp;
+            }
 	ckp->s_nevent_processed++;
     // instrumentation
     ckp->kp_stats->s_nevent_processed++;
@@ -219,27 +219,27 @@ static void tw_sched_batch(tw_pe * me) {
 
 	if (me->cev_abort)
 	  {
-	    start = tw_clock_read();
-	    me->stats.s_nevent_abort++;
-        // instrumentation
-        ckp->kp_stats->s_nevent_abort++;
-        clp->lp_stats->s_nevent_abort++;
-	    me->cev_abort = 0;
+              start = tw_clock_read();
+              me->stats.s_nevent_abort++;
+              // instrumentation
+              ckp->kp_stats->s_nevent_abort++;
+              clp->lp_stats->s_nevent_abort++;
+              me->cev_abort = 0;
 
-	    tw_event_rollback(cev);
-        pq_start = tw_clock_read();
-	    tw_pq_enqueue(me->pq, cev);
-        me->stats.s_pq += tw_clock_read() - pq_start;
+              tw_event_rollback(cev);
+              pq_start = tw_clock_read();
+              tw_pq_enqueue(me->pq, cev);
+              me->stats.s_pq += tw_clock_read() - pq_start;
 
-	    cev = tw_eventq_peek(&ckp->pevent_q);
-	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
+              cev = tw_eventq_peek(&ckp->pevent_q);
+              ckp->last_time = cev ? cev->recv_ts : me->GVT;
 
-	    tw_gvt_force_update();
+              tw_gvt_force_update();
 
-	    me->stats.s_event_abort += tw_clock_read() - start;
+              me->stats.s_event_abort += tw_clock_read() - start;
 
 
-	    break;
+              break;
 	  } // END ABORT CHECK
 
 	/* Thread current event into processed queue of kp */
