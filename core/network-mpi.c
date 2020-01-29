@@ -533,8 +533,10 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
 
         tw_pe *pe = e->src_lp->pe;
         tw_event *lqh = tw_eventq_peek_head(&pe->lazy_q);
-        if (TW_STIME_CMP(e->send_ts, lqh->send_ts) != 0) {
-            tw_error(TW_LOC, "shit we are fucked. lazy_q not in order");
+        if (lqh) {
+            if (TW_STIME_CMP(e->send_ts, lqh->send_ts) != 0) {
+                tw_error(TW_LOC, "shit we are fucked. lazy_q not in order");
+            }
         }
 
         tw_eventq_unshift(&pe->lazy_q, e);
