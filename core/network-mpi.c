@@ -518,9 +518,27 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
        * send another message to pass the cancel flag to
        * the other node.
        */
-      e->state.cancel_asend = 0;
-      e->state.cancel_q = 1;
-      tw_eventq_push(&outq, e);
+        // e->state.cancel_asend = 0;
+        // e->state.cancel_q = 1;
+        // tw_eventq_push(&outq, e);
+
+        /* LAZY ROLLBACK
+         * Instead of immediatly sending out as antimsg,
+         * put this event in the PE's lazy_q
+         */
+
+        // Current values:
+        // e->state.cancel_asend =1
+        // e->state.cancel_q =0
+
+        tw_pe *pe = e->src_lp->pe;
+        tw_event *lqh = tw_eventq_peek_head(&pe->lazy_q);
+        if (TW_STIME_CMP(e->send_ts, lqh->send_ts) != 0) {
+            tw_error(TW_LOC, "shit we are fucked. lazy_q not in order");
+        }
+
+        tw_eventq_unshift(&pe->lazy_q, e);
+        e->state.owner = TW_pe_lazy_q;
     } else {
       /* Event finished transmission and was not cancelled.
        * Add to our sent event queue so we can retain the
@@ -631,7 +649,13 @@ tw_net_cancel(tw_event *e)
      * another message send once the current send of
      * this message is completed.
      */
-    e->state.cancel_asend = 1;
+      e->state.cancel_asend = 1;
+
+      /* LAZY ROLLBACK
+       * When e is evaluated in send_finish,
+       * it will be placed on the KP's lazy_q
+       * (instead of resent as an antimsg)
+       */
     break;
 
   case TW_pe_sevent_q:
@@ -639,8 +663,19 @@ tw_net_cancel(tw_event *e)
      * our sent event queue.  Mark it as a cancel and
      * place it at the front of the outq.
      */
-    e->state.cancel_q = 1;
-    tw_eventq_unshift(&outq, e);
+      // e->state.cancel_q = 1;
+      // tw_eventq_unshift(&outq, e);
+
+      /* LAZY ROLLBACK
+       * Place event on the KP's lazy_q.
+       */
+      //Current values:
+      // e->state.cancel_asend =0 (maybe we shoud make this 1)
+      // e->state.cancel_q =0
+
+      tw_eventq_push(&(e->src_lp->pe->lazy_q), e);
+      // TODO: is 'push' the right thing to do?
+      e->state.owner = TW_pe_lazy_q;
     break;
 
   default:
