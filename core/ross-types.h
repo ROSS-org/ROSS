@@ -221,8 +221,9 @@ enum tw_event_owner {
     TW_net_acancel = 7,     /**< @brief Network transmission in progress */
     TW_pe_sevent_q = 8,     /**< @brief In tw_pe.sevent_q */
     TW_pe_free_q = 9,       /**< @brief In tw_pe.free_q */
+    TW_pe_lazy_q = 10,      /**< @brief In tw_pe.lazy_q */
 #ifdef USE_RIO
-    IO_buffer = 10,         /**< @brief RIO captured event */
+    IO_buffer = 11,         /**< @brief RIO captured event */
 #endif
 };
 typedef enum tw_event_owner tw_event_owner;
@@ -268,7 +269,7 @@ struct tw_event {
 
     /** Status of the event's queue location(s). */
     struct {
-        unsigned char owner;        /**< @brief Owner of the next/prev pointers; see tw_event_owner */
+        tw_event_owner owner;        /**< @brief Owner of the next/prev pointers; see tw_event_owner */
         unsigned char cancel_q;     /**< @brief Actively on a dest_lp->pe's cancel_q */
         unsigned char cancel_asend;
         unsigned char remote;       /**< @brief Indicates union addr is in 'remote' storage */
@@ -383,6 +384,7 @@ struct tw_pe {
     tw_event *cancel_q; /**< @brief List of canceled events */
     tw_pq *pq; /**< @brief Priority queue used to sort events */
     tw_kp *kp_list; /**< @brief */
+    tw_eventq lazy_q;   /**< @brief Events which may need to be rolled back */
 
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */
