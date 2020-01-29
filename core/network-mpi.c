@@ -518,18 +518,14 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
        * send another message to pass the cancel flag to
        * the other node.
        */
-        // e->state.cancel_asend = 0;
-        // e->state.cancel_q = 1;
+        e->state.cancel_asend = 0;
+        e->state.cancel_q = 1;
         // tw_eventq_push(&outq, e);
 
         /* LAZY ROLLBACK
          * Instead of immediatly sending out as antimsg,
          * put this event in the PE's lazy_q
          */
-
-        // Current values:
-        // e->state.cancel_asend =1
-        // e->state.cancel_q =0
 
         tw_pe *pe = e->src_lp->pe;
         tw_event *lqh = tw_eventq_peek_head(&pe->lazy_q);
@@ -665,16 +661,12 @@ tw_net_cancel(tw_event *e)
      * our sent event queue.  Mark it as a cancel and
      * place it at the front of the outq.
      */
-      // e->state.cancel_q = 1;
+      e->state.cancel_q = 1;
       // tw_eventq_unshift(&outq, e);
 
       /* LAZY ROLLBACK
-       * Place event on the KP's lazy_q.
+       * Place event on the PE's lazy_q.
        */
-      //Current values:
-      // e->state.cancel_asend =0 (maybe we shoud make this 1)
-      // e->state.cancel_q =0
-
       src_pe->stats.s_n_lazy_events++;
       e->state.owner = TW_pe_lazy_q;
       tw_eventq_unshift(&src_pe->lazy_q, e);
