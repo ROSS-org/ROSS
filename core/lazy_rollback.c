@@ -54,16 +54,19 @@ void lazy_rollback_catchup_to(tw_pe *pe, tw_stime timestamp) {
 
     while (cev) {
         if (TW_STIME_CMP(cev->send_ts, timestamp) < 0) {
+            tw_event *e = cev;
+            cev = cev->next;
+
+            tw_eventq_delete_any(&pe->lazy_q, e);
+
             pe->stats.s_nsend_net_remote++;
-            cev->state.owner = TW_net_asend;
+            e->state.owner = TW_net_asend;
             net_start = tw_clock_read();
-            tw_net_send(cev);
+            tw_net_send(e);
             pe->stats.s_net_other += tw_clock_read() - net_start;
         } else {
-            // todo: assuming lazy_q is ordered
             break;
         }
-        cev = cev->next;
     }
 
     return;
