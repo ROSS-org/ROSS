@@ -71,3 +71,10 @@ void lazy_rollback_catchup_to(tw_pe *pe, tw_stime timestamp) {
 
     return;
 }
+
+void lazy_q_insert(tw_pe *pe, tw_event *e) {
+    pe->stats.s_n_lazy_events++;
+    e->state.owner = TW_pe_lazy_q;
+    tw_eventq_insert_send_ts(&pe->lazy_q, e);
+    return;
+}

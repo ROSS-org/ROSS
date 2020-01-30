@@ -1,5 +1,6 @@
 #include <ross.h>
 #include <mpi.h>
+#include "lazy_rollback.h"
 
 MPI_Comm MPI_COMM_ROSS = MPI_COMM_WORLD;
 int custom_communicator = 0;
@@ -526,17 +527,8 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
          * Instead of immediatly sending out as antimsg,
          * put this event in the PE's lazy_q
          */
-
-        tw_pe *pe = e->src_lp->pe;
-        tw_event *lqh = tw_eventq_peek_head(&pe->lazy_q);
-        if (lqh) {
-            if (TW_STIME_CMP(e->send_ts, lqh->send_ts) != 0) {
-                tw_error(TW_LOC, "shit we are fucked. lazy_q not in order");
-            }
-        }
-        pe->stats.s_n_lazy_events++;
-        e->state.owner = TW_pe_lazy_q;
-        tw_eventq_unshift(&pe->lazy_q, e);
+        //tw_printf(TW_LOC, "lazy_q insert from send_finish");
+        lazy_q_insert(e->src_lp->pe, e);
     } else {
       /* Event finished transmission and was not cancelled.
        * Add to our sent event queue so we can retain the
@@ -667,9 +659,8 @@ tw_net_cancel(tw_event *e)
       /* LAZY ROLLBACK
        * Place event on the PE's lazy_q.
        */
-      src_pe->stats.s_n_lazy_events++;
-      e->state.owner = TW_pe_lazy_q;
-      tw_eventq_unshift(&src_pe->lazy_q, e);
+      //tw_printf(TW_LOC, "lazy_q insert from tw_net_cancel");
+      lazy_q_insert(src_pe, e);
 
     break;
 
