@@ -33,6 +33,7 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
                     cev->state.owner = TW_net_asend;
                     net_start = tw_clock_read();
                     tw_net_send(cev);
+                    tw_net_read(send_pe);
                     send_pe->stats.s_net_other += tw_clock_read() - net_start;
                 }
 
@@ -63,6 +64,7 @@ void lazy_rollback_catchup_to(tw_pe *pe, tw_stime timestamp) {
             e->state.owner = TW_net_asend;
             net_start = tw_clock_read();
             tw_net_send(e);
+            tw_net_read(pe);
             pe->stats.s_net_other += tw_clock_read() - net_start;
         } else {
             break;
