@@ -425,4 +425,61 @@ tw_eventq_splice(tw_eventq * q, tw_event * h, tw_event * t, int cnt)
   tw_eventq_debug(q);
 }
 
+
+/*
+ * This is somewhat of a hack for lazy rollback.
+ * We need the lazy_q to stay ordered on send_ts,
+ * but don't want to use a different data structure.
+ */
+static inline void
+tw_eventq_insert_send_ts(tw_eventq *q, tw_event *e) {
+  tw_event *h = q->head;
+  tw_event *t = q->tail;
+  tw_event *p;
+  tw_event *c;
+
+  tw_eventq_debug(q);
+
+  if (!h) {
+    e->prev = NULL;
+    e->next = NULL;
+    q->head = e;
+    q->tail = e;
+    goto exit;
+  }
+
+  if (TW_STIME_CMP(e->send_ts, h->send_ts) <= 0) {
+    e->prev = NULL;
+    e->next = h;
+    h->prev = e;
+    q->head = e;
+    goto exit;
+  }
+
+  if (TW_STIME_CMP(e->send_ts, t->send_ts) >= 0) {
+    e->prev = t;
+    e->next = NULL;
+    t->next = e;
+    q->tail = e;
+    goto exit;
+  }
+
+  p = q->head;
+  c = p->next;
+  while (c) {
+    if (TW_STIME_CMP(e->send_ts, c->send_ts) <= 0) {
+      e->prev = p;
+      p->next = e;
+      e->next = c;
+      c->prev = e;
+      goto exit;
+    }
+    p = c;
+    c = c->next;
+  }
+
+  exit:
+    q->size++;
+    tw_eventq_debug(q);
+}
 #endif
