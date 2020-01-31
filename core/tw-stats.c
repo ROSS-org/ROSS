@@ -85,8 +85,8 @@ tw_get_stats(tw_pe * pe, tw_statistics *s)
     s->s_alp_nevent_processed = pe->stats.s_alp_nevent_processed;
     s->s_alp_e_rbs = pe->stats.s_alp_e_rbs;
 
-    s->s_n_lazy_opts = pe->stats.s_n_lazy_opts;
-    s->s_n_lazy_events = pe->stats.s_n_lazy_events;
+    s->s_n_lazy_opts += pe->stats.s_n_lazy_opts;
+    s->s_n_lazy_events += pe->stats.s_n_lazy_events;
 
     for(i = 0; i < g_tw_nkp; i++)
     {
