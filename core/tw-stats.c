@@ -128,22 +128,23 @@ void
 tw_stats(tw_pe *me)
 {
     tw_statistics s;
-	bzero(&s, sizeof(s));
-	size_t m_alloc, m_waste;
-	tw_calloc_stats(&m_alloc, &m_waste);
+    bzero(&s, sizeof(s));
+    size_t m_alloc, m_waste;
+    tw_calloc_stats(&m_alloc, &m_waste);
     tw_lp *lp = NULL;
     unsigned int i;
-    for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
-    {
-        lp = tw_getlp(i);
-        if (lp->type->final)
-            (*lp->type->final) (lp->cur_state, lp);
-    }
-    tw_get_stats(me, &s);
-	s = *(tw_net_statistics(me, &s));
 
-	if (!tw_ismaster())
-		return;
+    for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
+        lp = tw_getlp(i);
+        if (lp->type->final) {
+            (*lp->type->final) (lp->cur_state, lp);
+        }
+    }
+
+    tw_get_stats(me, &s);
+    s = *(tw_net_statistics(me, &s));
+
+    if (!tw_ismaster()) return;
 
 #ifndef ROSS_DO_NOT_PRINT
 	printf("\n\t: Running Time = %.4f seconds\n", s.s_max_run_time);
