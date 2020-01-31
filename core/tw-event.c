@@ -31,6 +31,13 @@ void tw_event_send(tw_event * event) {
     }
 #endif
 
+     // moved from network-mpi.c in order to give all events a seq_num
+     event->event_id = (tw_eventid) ++send_pe->seq_num;
+
+     // call LP remote mapping function to get dest_pe
+     dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
+     event->send_lp = src_lp->gid;
+
      // check the lazy_q
      if (send_pe->lazy_q.size != 0) {
          // TODO: is this send or recv TS?????
@@ -48,14 +55,7 @@ void tw_event_send(tw_event * event) {
          }
      }
 
-     // moved from network-mpi.c in order to give all events a seq_num
-	event->event_id = (tw_eventid) ++send_pe->seq_num;
-
-    // call LP remote mapping function to get dest_pe
-    dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
-    event->send_lp = src_lp->gid;
-
-    //Trap lookahead violations
+     //Trap lookahead violations
     if (g_tw_synchronization_protocol == CONSERVATIVE) {
         if (TW_STIME_DBL(recv_ts) - TW_STIME_DBL(tw_now(src_lp)) < g_tw_lookahead) {
             tw_error(TW_LOC, "Lookahead violation: decrease g_tw_lookahead %f\n"
