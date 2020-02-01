@@ -44,7 +44,6 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
                 break;
             }
         } else {
-            // todo: can we assume that head of the lazy q should be >= current event?
             break;
         }
         cev = cev->next;

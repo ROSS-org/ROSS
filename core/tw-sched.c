@@ -182,7 +182,6 @@ static void tw_sched_batch(tw_pe * me) {
             me->stats.s_pe_event_ties++;
         }
 
-        // todo: maybe we're too aggressive in calling this
         lazy_rollback_catchup_to(me, cev->recv_ts);
 
         clp = cev->dest_lp;
@@ -660,7 +659,6 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
 
-        // todo: maybe we're too aggressive in calling this
         lazy_rollback_catchup_to(me, tw_pq_minimum(me->pq));
 
         tw_gvt_step2(me);
