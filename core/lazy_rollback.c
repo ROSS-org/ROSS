@@ -26,6 +26,10 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
 
                     // optimization achieved
                     annihilation_achieved = 1;
+
+                    // this event will be saved in the cause list
+                    // make it match in case it gets rolled back
+                    e->event_id = cev->event_id;
                     tw_event_free(send_pe, cev);
                 } else {
                     // optimization not achieved, must send cev as antimessage
