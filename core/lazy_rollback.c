@@ -43,8 +43,6 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
 
                 break;
             }
-        } else {
-            break;
         }
         cev = cev->next;
     }
