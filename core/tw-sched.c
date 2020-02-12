@@ -182,8 +182,6 @@ static void tw_sched_batch(tw_pe * me) {
             me->stats.s_pe_event_ties++;
         }
 
-        lazy_rollback_catchup_to(me, cev->recv_ts);
-
         clp = cev->dest_lp;
 
 	ckp = clp->kp;
@@ -197,6 +195,8 @@ static void tw_sched_batch(tw_pe * me) {
 
 	start = tw_clock_read();
 	reset_bitfields(cev);
+
+        lazy_rollback_catchup_to(me, cev->recv_ts);
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) ) {
@@ -225,6 +225,8 @@ static void tw_sched_batch(tw_pe * me) {
 
 	if (me->cev_abort)
 	  {
+
+              lazy_rollback_catchup_to(me, TW_STIME_MAX);
               start = tw_clock_read();
               me->stats.s_nevent_abort++;
               // instrumentation

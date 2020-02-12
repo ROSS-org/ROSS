@@ -56,21 +56,14 @@ void tw_event_send(tw_event * event) {
      link_causality(event, send_pe->cur_event);
 
      // check the lazy_q
-     if (send_pe->lazy_q.size != 0) {
-
-         if (TW_STIME_CMP(event->send_ts, tw_eventq_peek_head(&send_pe->lazy_q)->send_ts) > 0) {
-             // we need to send some anti messages
-             lazy_rollback_catchup_to(send_pe, event->send_ts);
-         } else {
-             if (lazy_q_annihilate(send_pe, event)) {
-                 // optimization achieved
-                 send_pe->stats.s_n_lazy_opts++;
-                 event->state.owner = TW_pe_sevent_q;
-                 // can't free the event yet... need to keep in cause list
-                 //tw_event_free(send_pe, event);
-                 return;
-             }
-         }
+     lazy_rollback_catchup_to(send_pe, event->send_ts);
+     if (lazy_q_annihilate(send_pe, event)) {
+         // optimization achieved
+         send_pe->stats.s_n_lazy_opts++;
+         event->state.owner = TW_pe_sevent_q;
+         // can't free the event yet... need to keep in cause list
+         //tw_event_free(send_pe, event);
+         return;
      }
 
     if (dest_peid == g_tw_mynode) {
