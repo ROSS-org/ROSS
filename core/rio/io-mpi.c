@@ -147,7 +147,7 @@ void io_read_checkpoint() {
     if (rc != 0) {
         printf("ERROR: could not MPI_File_open %s\n", filename);
     }
-	MPI_File_read_at_all(fh, offset, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
+    MPI_File_read_at_all(fh, offset, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
     MPI_File_close(&fh);
 
     printf("Rank %lu reading metadata for %lu parts from offset %lld size of %d\n", g_tw_mynode, g_tw_nkp, offset, partition_md_size);
