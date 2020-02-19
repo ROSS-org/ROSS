@@ -499,5 +499,16 @@ void io_store_checkpoint(char * master_filename, int data_file_number) {
 
         fprintf(file, "\n## RUN TIME SETTINGS\n\n");
         tw_opt_settings(file);
+        fprintf(file, "\n");
+
+        fclose(file);
+    } else {
+        FILE *file;
+        char filename[256];
+
+        sprintf(filename, "%s.txt", master_filename);
+        file = fopen(filename, "a");
+        fprintf(file, "APPEND: Data File %d Total Parts %lu\n", data_file_number, g_tw_nkp);
+        fclose(file);
     }
 }
