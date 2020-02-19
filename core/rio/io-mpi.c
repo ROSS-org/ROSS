@@ -90,6 +90,11 @@ void io_init() {
         printf("*** IO SYSTEM INIT ***\n\tFiles: %d\n\tParts: %lu\n\n", g_io_number_of_files, l0_io_total_kp);
     }
 
+#ifdef RIO_DEBUG
+    printf("Rank %lu\tLocal IO KP Offset %lu\tLocal IO LP Offset %lu\n", g_tw_mynode, l_io_kp_offset, l_io_lp_offset);
+
+#endif
+
     g_io_free_events.size = 0;
     g_io_free_events.head = g_io_free_events.tail = NULL;
     g_io_buffered_events.size = 0;
@@ -133,6 +138,8 @@ void io_read_checkpoint() {
     MPI_Type_size(MPI_IO_PART, &partition_md_size);
     MPI_Offset offset = (long long) partition_md_size * l_io_kp_offset;
 
+    printf("Rank %lu found part size %d mpi offset %lld\n", g_tw_mynode, partition_md_size, offset);
+
     io_partition my_partitions[g_tw_nkp];
 
     sprintf(filename, "%s.rio-md", g_io_checkpoint_name);
@@ -143,9 +150,11 @@ void io_read_checkpoint() {
 	MPI_File_read_at_all(fh, offset, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
     MPI_File_close(&fh);
 
+    printf("Rank %lu reading metadata for %lu parts from offset %lld size of %d\n", g_tw_mynode, g_tw_nkp, offset, partition_md_size);
+
 #ifdef RIO_DEBUG
     for (i = 0; i < g_tw_nkp; i++) {
-        printf("Rank %d read metadata\n\tpart %d\n\tfile %d\n\toffset %d\n\tsize %d\n\tlp count %d\n\tevents %d\n\n", mpi_rank,
+        printf("Rank %d read metadata index %d\n\tpart %d\n\tfile %d\n\toffset %d\n\tsize %d\n\tlp count %d\n\tevents %d\n\n", mpi_rank, i,
             my_partitions[i].part, my_partitions[i].file, my_partitions[i].offset,
             my_partitions[i].size, my_partitions[i].lp_count, my_partitions[i].ev_count);
     }
@@ -156,6 +165,7 @@ void io_read_checkpoint() {
     for (i = 0; i < g_tw_nkp; i++) {
         count_sum += my_partitions[i].lp_count;
     }
+    printf("Rank %lu found %d LPs in RIO, expected total of %llu\n", g_tw_mynode, count_sum, g_tw_nlp);
     assert(count_sum == g_tw_nlp && "ERROR: wrong number of LPs in partitions");
 
     // read size array

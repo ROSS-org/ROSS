@@ -7,7 +7,7 @@ tw_kp_onpe(tw_kpid id, tw_pe * pe)
 		tw_error(TW_LOC, "ID %d exceeded MAX KPs", id);
 
 	if(g_tw_kp[id])
-		tw_error(TW_LOC, "KP already allocated: %lld\n", id);
+                tw_error(TW_LOC, "KP already allocated: %lld (%p) has %d LPs\n", id, g_tw_kp[id], g_tw_kp[id]->lp_count);
 
 	g_tw_kp[id] = (tw_kp *) tw_calloc(TW_LOC, "Local KP", sizeof(tw_kp), 1);
 
