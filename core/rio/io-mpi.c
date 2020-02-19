@@ -389,41 +389,69 @@ void io_store_checkpoint(char * master_filename, int data_file_number) {
 
     MPI_Comm_free(&file_comm);
 
-    int amode;
-    if (l_io_append_flag) {
-        amode = MPI_MODE_CREATE | MPI_MODE_RDWR | MPI_MODE_APPEND;
-    } else {
-        amode = MPI_MODE_CREATE | MPI_MODE_RDWR;
-    }
-
-    // Write Metadata
+    // METADATA
+    // must use different MPI Write calls depending on append mode
     MPI_Datatype MPI_IO_PART;
     MPI_Type_contiguous(io_partition_field_count, MPI_INT, &MPI_IO_PART);
     MPI_Type_commit(&MPI_IO_PART);
-
     int psize;
     MPI_Type_size(MPI_IO_PART, &psize);
+    offset = (long long) psize * l_io_kp_offset;
 
-    offset = (long long) sizeof(io_partition) * l_io_kp_offset;
-    sprintf(filename, "%s.rio-md", master_filename);
-    MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
-    MPI_File_write_at_all(fh, offset, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
-    MPI_File_close(&fh);
+    int amode;
+    if (l_io_append_flag == 1) {
+        // bascially, assume 1 MPI rank
+        amode = MPI_MODE_CREATE | MPI_MODE_RDWR | MPI_MODE_APPEND;
+
+        // Write Metadata
+        sprintf(filename, "%s.rio-md", master_filename);
+        MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
+        MPI_File_write_all(fh, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
+        MPI_File_close(&fh);
+
+        printf("Rank %lu storing metadata for %lu parts / kps\n", g_tw_mynode, g_tw_nkp);
 
 #ifdef RIO_DEBUG
-    for (cur_kp = 0; cur_kp < g_tw_nkp; cur_kp++) {
-        printf("Rank %d storing metadata\n\tpart %d\n\tfile %d\n\toffset:\t%lu\n\tsize %lu\n\tlp count %d\n\tevents %d\n\n", mpi_rank,
-            my_partitions[cur_kp].part, my_partitions[cur_kp].file, my_partitions[cur_kp].offset,
-            my_partitions[cur_kp].size, my_partitions[cur_kp].lp_count, my_partitions[cur_kp].ev_count);
-    }
+        for (cur_kp = 0; cur_kp < g_tw_nkp; cur_kp++) {
+            printf("Rank %d storing metadata\n\tpart %d\n\tfile %d\n\toffset:\t%d\n\tsize %d\n\tlp count %d\n\tevents %d\n\n", mpi_rank,
+                   my_partitions[cur_kp].part, my_partitions[cur_kp].file, my_partitions[cur_kp].offset,
+                   my_partitions[cur_kp].size, my_partitions[cur_kp].lp_count, my_partitions[cur_kp].ev_count);
+        }
 #endif
 
-    // Write model size array
-    offset = sizeof(size_t) * l_io_lp_offset;
-    sprintf(filename, "%s.rio-lp", master_filename);
-    MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
-    MPI_File_write_at_all(fh, offset, all_lp_sizes, g_tw_nlp, MPI_UNSIGNED_LONG, &status);
-    MPI_File_close(&fh);
+        // Write model size array
+        offset = sizeof(size_t) * l_io_lp_offset;
+        sprintf(filename, "%s.rio-lp", master_filename);
+        MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
+        MPI_File_write_all(fh, all_lp_sizes, g_tw_nlp, MPI_UNSIGNED_LONG, &status);
+        MPI_File_close(&fh);
+
+    } else {
+        amode = MPI_MODE_CREATE | MPI_MODE_RDWR;
+
+        // Write Metadata
+        sprintf(filename, "%s.rio-md", master_filename);
+        MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
+        MPI_File_write_at_all(fh, offset, &my_partitions, g_tw_nkp, MPI_IO_PART, &status);
+        MPI_File_close(&fh);
+
+        printf("Rank %lu storing metadata for %lu parts / kps\n", g_tw_mynode, g_tw_nkp);
+
+#ifdef RIO_DEBUG
+        for (cur_kp = 0; cur_kp < g_tw_nkp; cur_kp++) {
+            printf("Rank %d storing metadata\n\tpart %d\n\tfile %d\n\toffset:\t%d\n\tsize %d\n\tlp count %d\n\tevents %d\n\n", mpi_rank,
+                   my_partitions[cur_kp].part, my_partitions[cur_kp].file, my_partitions[cur_kp].offset,
+                   my_partitions[cur_kp].size, my_partitions[cur_kp].lp_count, my_partitions[cur_kp].ev_count);
+        }
+#endif
+
+        // Write model size array
+        offset = sizeof(size_t) * l_io_lp_offset;
+        sprintf(filename, "%s.rio-lp", master_filename);
+        MPI_File_open(MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, &fh);
+        MPI_File_write_at_all(fh, offset, all_lp_sizes, g_tw_nlp, MPI_UNSIGNED_LONG, &status);
+        MPI_File_close(&fh);
+    }
 
     if (l_io_append_flag == 1) {
         printf("%lu parts written\n", g_tw_nkp);
