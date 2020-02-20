@@ -196,7 +196,9 @@ static void tw_sched_batch(tw_pe * me) {
 	start = tw_clock_read();
 	reset_bitfields(cev);
 
+#ifndef NO_LAZY
         lazy_rollback_catchup_to(me, cev->recv_ts);
+#endif
 
 	// if NOT A SUSPENDED LP THEN FORWARD PROC EVENTS
 	if( !(clp->suspend_flag) ) {
@@ -225,8 +227,9 @@ static void tw_sched_batch(tw_pe * me) {
 
 	if (me->cev_abort)
 	  {
-
+#ifndef NO_LAZY
               lazy_rollback_catchup_to(me, TW_STIME_MAX);
+#endif
               start = tw_clock_read();
               me->stats.s_nevent_abort++;
               // instrumentation
@@ -661,7 +664,9 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
 
+#ifndef NO_LAZY
         lazy_rollback_catchup_to(me, tw_pq_minimum(me->pq));
+#endif
 
         tw_gvt_step2(me);
 

@@ -55,6 +55,7 @@ void tw_event_send(tw_event * event) {
 
      link_causality(event, send_pe->cur_event);
 
+#ifndef NO_LAZY
      // check the lazy_q
      lazy_rollback_catchup_to(send_pe, event->send_ts);
      if (lazy_q_annihilate(send_pe, event)) {
@@ -65,6 +66,7 @@ void tw_event_send(tw_event * event) {
          //tw_event_free(send_pe, event);
          return;
      }
+#endif
 
     if (dest_peid == g_tw_mynode) {
         event->dest_lp = tw_getlocal_lp((tw_lpid) event->dest_lp);

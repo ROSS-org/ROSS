@@ -23,7 +23,9 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
                     memcmp(&cev->delta_size, &e->delta_size, (sizeof(size_t))) == 0 && // todo check delta_buddy?
                     cev->critical_path == e->critical_path &&
                     memcmp(tw_event_data(cev), tw_event_data(e), g_tw_msg_sz) == 0) {
-
+#ifdef LAZY_OVERHEAD
+                    goto label_lazy_overhead;
+#endif
                     // optimization achieved
                     annihilation_achieved = 1;
 
@@ -33,6 +35,7 @@ int lazy_q_annihilate (tw_pe *pe, tw_event *e) {
                     tw_event_free(send_pe, cev);
                 } else {
                     // optimization not achieved, must send cev as antimessage
+                label_lazy_overhead:
                     send_pe->stats.s_nsend_net_remote++;
                     cev->state.owner = TW_net_asend;
                     net_start = tw_clock_read();

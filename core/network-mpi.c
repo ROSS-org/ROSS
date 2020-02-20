@@ -521,14 +521,16 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
        */
         e->state.cancel_asend = 0;
         e->state.cancel_q = 1;
-        // tw_eventq_push(&outq, e);
-
+#ifdef NO_LAZY
+        tw_eventq_push(&outq, e);
+#else
         /* LAZY ROLLBACK
          * Instead of immediatly sending out as antimsg,
          * put this event in the PE's lazy_q
          */
         //tw_printf(TW_LOC, "lazy_q insert from send_finish");
         lazy_q_insert(e->src_lp->pe, e);
+#endif
     } else {
       /* Event finished transmission and was not cancelled.
        * Add to our sent event queue so we can retain the
@@ -654,13 +656,15 @@ tw_net_cancel(tw_event *e)
      * place it at the front of the outq.
      */
       e->state.cancel_q = 1;
-      // tw_eventq_unshift(&outq, e);
-
+#ifdef NO_LAZY
+      tw_eventq_unshift(&outq, e);
+#else
       /* LAZY ROLLBACK
        * Place event on the PE's lazy_q.
        */
       //tw_printf(TW_LOC, "lazy_q insert from tw_net_cancel");
       lazy_q_insert(src_pe, e);
+#endif
 
     break;
 
