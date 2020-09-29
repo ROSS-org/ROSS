@@ -379,7 +379,6 @@ struct tw_pe {
     tw_eventq event_q; /**< @brief Linked list of events sent to this PE */
     tw_event *cancel_q; /**< @brief List of canceled events */
     tw_pq *pq; /**< @brief Priority queue used to sort events */
-    tw_kp *kp_list; /**< @brief */
 
     tw_eventq free_q; /**< @brief Linked list of free tw_events */
     tw_event *abort_event; /**< @brief Placeholder event for when free_q is empty */

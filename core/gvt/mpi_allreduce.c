@@ -13,8 +13,7 @@ static const tw_optdef gvt_opts [] =
 {
 	TWOPT_GROUP("ROSS MPI GVT"),
 	TWOPT_UINT("gvt-interval", g_tw_gvt_interval, "GVT Interval: Iterations through scheduling loop (synch=1,2,3,4), or ms between GVTs (synch=5)"),
-	TWOPT_DOUBLE("report-interval", gvt_print_interval,
-			"percent of runtime to print GVT"),
+	TWOPT_DOUBLE("report-interval", gvt_print_interval, "percent of runtime to print GVT"),
 	TWOPT_END()
 };
 
