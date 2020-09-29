@@ -7,10 +7,15 @@ int custom_communicator = 0;
 /**
  * @struct act_q
  * @brief Keeps track of posted send or recv operations.
+ *
+ * This list structure is used *only* by the network mpi layer (this
+ * file). Within this file, two lists are used, for MPI Irecv and
+ * Isend requests. The MPI requests and statusus are linked with an
+ * event buffer through this struct.
  */
 struct act_q
 {
-  const char *name;
+  const char *name;         /**< name of the list, used in error printouts */
 
   tw_event **event_list;    /**< list of event pointers in this queue */
   MPI_Request *req_list;    /**< list of MPI request handles */
@@ -27,8 +32,8 @@ static struct act_q posted_sends;
 static struct act_q posted_recvs;
 static tw_eventq outq;
 
-static unsigned int read_buffer = 16;
-static unsigned int send_buffer = 1024;
+static unsigned int read_buffer = 16;   /**< Number of Irecv's to buffer, length of posted_recvs queue */
+static unsigned int send_buffer = 1024; /**< Number of Isend's to buffer, length of posted_sends queue */
 static int world_size = 1;
 
 static const tw_optdef mpi_opts[] = {
@@ -85,20 +90,13 @@ tw_net_init(int *argc, char ***argv)
  * @param[in] name name of the queue
  */
 static void
-init_q(struct act_q *q, const char *name)
+init_q(struct act_q *q, const char *name, unsigned int size)
 {
-  unsigned int n;
-
-  if(q == &posted_sends)
-    n = send_buffer;
-  else
-    n = read_buffer;
-
   q->name = name;
-  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), n);
-  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), n);
-  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), n);
-  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), n);
+  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(tw_event *), size);
+  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(MPI_Request), size);
+  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(int), size);
+  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(MPI_Status), size);
 }
 
 unsigned int
@@ -110,6 +108,7 @@ tw_nnodes(void)
 void
 tw_net_start(void)
 {
+  // sets value of tw_nnodes
   if (MPI_Comm_size(MPI_COMM_ROSS, &world_size) != MPI_SUCCESS)
     tw_error(TW_LOC, "Cannot get MPI_Comm_size(MPI_COMM_ROSS)");
 
@@ -131,22 +130,12 @@ tw_net_start(void)
 
   tw_pe_init();
 
-  //If we're in (some variation of) optimistic mode, we need this hash
-  if (g_tw_synchronization_protocol == OPTIMISTIC ||
-      g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
-      g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
-    g_tw_pe->hash_t = tw_hash_create();
-  } else {
-    g_tw_pe->hash_t = NULL;
-  }
+  // these values are command line options
+  if (send_buffer < 1) tw_error(TW_LOC, "network send buffer must be >= 1");
+  if (read_buffer < 1) tw_error(TW_LOC, "network read buffer must be >= 1");
 
-  if (send_buffer < 1)
-    tw_error(TW_LOC, "network send buffer must be >= 1");
-  if (read_buffer < 1)
-    tw_error(TW_LOC, "network read buffer must be >= 1");
-
-  init_q(&posted_sends, "MPI send queue");
-  init_q(&posted_recvs, "MPI recv queue");
+  init_q(&posted_sends, "MPI send queue", send_buffer);
+  init_q(&posted_recvs, "MPI recv queue", read_buffer);
 
   g_tw_net_device_size = read_buffer;
 

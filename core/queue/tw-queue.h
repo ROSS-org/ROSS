@@ -13,4 +13,3 @@ unsigned int tw_pq_max_size(tw_pq *);
 #ifdef ROSS_QUEUE_kp_splay
 tw_eventpq * tw_eventpq_create(void);
 #endif
-

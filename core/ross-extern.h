@@ -144,12 +144,6 @@ extern void tw_scheduler_optimistic_debug(tw_pe * me);
 extern void tw_scheduler_optimistic_realtime(tw_pe * me);
 
 /*
- * tw-signal.c
- */
-extern void     tw_sigsegv(int sig);
-extern void     tw_sigterm(int sig);
-
-/*
  * tw-state.c
  */
 extern void tw_snapshot(tw_lp *lp, size_t state_sz);
