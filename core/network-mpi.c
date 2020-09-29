@@ -93,10 +93,10 @@ static void
 init_q(struct act_q *q, const char *name, unsigned int size)
 {
   q->name = name;
-  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(*q->event_list), size);
-  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(*q->req_list), size);
-  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(*q->idx_list), size);
-  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(*q->status_list), size);
+  q->event_list = (tw_event **) tw_calloc(TW_LOC, name, sizeof(tw_event *), size);
+  q->req_list = (MPI_Request *) tw_calloc(TW_LOC, name, sizeof(MPI_Request), size);
+  q->idx_list = (int *) tw_calloc(TW_LOC, name, sizeof(int), size);
+  q->status_list = (MPI_Status *) tw_calloc(TW_LOC, name, sizeof(MPI_Status), size);
 }
 
 unsigned int
