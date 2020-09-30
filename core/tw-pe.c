@@ -41,7 +41,7 @@ tw_pe_init(void)
     memset(&no_type, 0, sizeof(no_type));
     tw_pe_settype(&no_type);
 
-    g_tw_pe->trans_msg_ts = DBL_MAX;
+    g_tw_pe->trans_msg_ts = TW_STIME_MAX;
     g_tw_pe->gvt_status = 0;
 
     // TODO is the PE RNG ever actually used?
