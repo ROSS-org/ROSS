@@ -55,6 +55,7 @@ branches:
   - master
   - develop
 after_success:
+  - if: branch=master AND type=push
   - bash <(curl -s https://codecov.io/bash)
   - ## the following automatically builds the doxygen
   - ## documentation and pushes it to the gh_pages branch
