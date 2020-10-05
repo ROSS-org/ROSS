@@ -12,6 +12,10 @@ env:
  - secure: "BbB1KVY0Yb6DJwxdfFDF1PJwSx9euNfNX94oDKftiH8LE0nEzfS6xZc2sBkWTWOThHml9ttBkDIx/NhxEThOjyVcX6uv4kibP6moV5EqxqC+kLoZSEZnVuAdTJfGRKBdzmRp66R5a/GiMzzz/F3+smdVFMb6XR06sPQa5TQZjEc="
 git:
   submodules: false
+branches:
+  only:
+  - master
+  - develop
 before_install:
  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
  - sudo apt-get update -q
@@ -28,10 +32,12 @@ script:
  - make
  - unset MPICH_CC
  - cd ..
+ - mkdir install
  - mkdir release && cd release
- - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+ - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
+ - make install
  - cd ..
  - mkdir build-gtod && cd build-gtod
  - MPICH_CC=clag cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON -DROSS_CLOCK_OVERRIDE=ON ..
@@ -50,12 +56,20 @@ script:
  - make
  - CTEST_OUTPUT_ON_FAILURE=1 make test
  - make coveralls
-branches:
-  only:
-  - master
-  - develop
+ - cd ..
 after_success:
-  - if: branch=master AND type=push
+  # run CODES integration testing for master branch only
+  - if: branch=master
+  - cd ..
+  - git clone --depth=1 --branch=master https://github.com/CODES-org/CODES.git CODES-org/CODES.git
+  - cd CODES-org/CODES
+  - ./prepare.sh
+  - mkdir build && cd build
+  -../configure PKG_CONFIG_PATH=../../ROSS-org/ROSS/install/lib/pkgconfig
+  - make
+  - make tests
+  - make check
+deploy:
   - bash <(curl -s https://codecov.io/bash)
   - ## the following automatically builds the doxygen
   - ## documentation and pushes it to the gh_pages branch
