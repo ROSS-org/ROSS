@@ -31,10 +31,10 @@ tw_kp_rollback_to(tw_kp * kp, tw_stime to)
 
 #if VERIFY_ROLLBACK
         printf("%d %d: rb_to %f, now = %f \n",
-		kp->pe->id, kp->id, to, kp->last_time);
+               kp->pe->id, kp->id, TW_STIME_DBL(to), TW_STIME_DBL(kp->last_time));
 #endif
 
-        while(kp->pevent_q.size && kp->pevent_q.head->recv_ts >= to)
+        while(kp->pevent_q.size && TW_STIME_CMP(kp->pevent_q.head->recv_ts, to) >= 0)
         {
                 e = tw_eventq_shift(&kp->pevent_q);
 
@@ -185,4 +185,3 @@ tw_kp_put_back_output_buffer(tw_out *out)
         kp->output->next = NULL;
     }
 }
-

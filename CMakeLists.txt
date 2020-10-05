@@ -47,18 +47,11 @@ if (COVERALLS)
     coveralls_turn_on_coverage()
 endif()
 
-# Old way to do this
-# Data Structure for Unprocessed Event List
-#SET(QUEUE calendar) #Calendar Queue
-#SET(QUEUE heap) #Push/Down Heap
-#SET(QUEUE splay) #Splay Tree
-#SET(QUEUE kp_splay) #Splay Tree in KPs
-
-# New way as of CMake 2.8
-# The default value for the QUEUE variable is splay
-# The other options are presented at config time by cmake-gui
-SET(QUEUE splay CACHE STRING "Queue type chosen by the user at configure time")
-SET_PROPERTY(CACHE QUEUE PROPERTY STRINGS splay calendar heap kp_splay)
+# Priority Queue Implementation
+SET(QUEUE splay)
+# Other queue implementations are no longer supported.
+# SET(QUEUE splay CACHE STRING "Queue type chosen by the user at configure time")
+# SET_PROPERTY(CACHE QUEUE PROPERTY STRINGS splay calendar heap kp_splay)
 
 # Random Library
 SET(RAND clcg4)
@@ -73,6 +66,7 @@ SET(GVT mpi_allreduce)
 
 # Architecture setting and management
 SET(VALID_ARCH NO)
+OPTION(ROSS_CLOCK_OVERRIDE "override platform detection to use gtod clock" NO)
 
 IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL i386)
   SET(VALID_ARCH YES)
@@ -132,16 +126,24 @@ IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
   SET(CLOCK aarch64)
 ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
 
+IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
+  SET(VALID_ARCH YES)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  ADD_DEFINITIONS(-D_GNU_SOURCE)
+  SET(CLOCK armv7l)
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
 
-IF(VALID_ARCH)
+IF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
   MESSAGE(STATUS "System architecture detected: ${CMAKE_SYSTEM_PROCESSOR}")
   MESSAGE(STATUS "Using C_FLAGS: ${CMAKE_C_FLAGS}")
   MESSAGE(STATUS "Using CLOCK: ${CLOCK}")
-ELSE(VALID_ARCH)
-  MESSAGE(FATAL_ERROR "System architecture not recognized!\n"
+ELSE(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
+  MESSAGE(WARNING "System architecture not recognized!\n"
     "Found: ${CMAKE_SYSTEM_PROCESSOR}\n"
-    "Expected: i386 | x86_64 | ppc64 | ppc64le | aarch64")
-ENDIF(VALID_ARCH)
+    "Falling back to get-time-of-day clock implementation.")
+  SET(CLOCK gtod)
+ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
+
 
 ## MPI
 INCLUDE(SetupMPI)
