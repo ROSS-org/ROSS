@@ -60,7 +60,7 @@ script:
   - # only run CODES integration for master branch
   - if [ $TRAVIS_BRANCH != "master" ]; then return; fi
   - cd ..
-  - git clone --depth=1 --branch=master https://github.com/CODES-org/CODES.git CODES-org/CODES.git
+  - git clone --depth=1 --branch=master https://github.com/CODES-org/CODES.git CODES-org/CODES
   - cd CODES-org/CODES
   - ./prepare.sh
   - mkdir build && cd build
