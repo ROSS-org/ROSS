@@ -67,18 +67,19 @@ after_success:
   - bash <(curl -s https://codecov.io/bash)
 before_deploy:
   - cd ROSS-org/ROSS
-  - git clone -b master --single-branch https://github.com/ROSS-org/ross-org.github.io.git
+  - git clone -b master --single-branch --depth=1 https://github.com/ROSS-org/ross-org.github.io.git
   - mkdir doc-build && cd doc-build
   - cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
   - cd ../
   - rm -r ross-org.github.io/ROSS-docs/docs
-  - mv doc-build/docs/html ross-org.github.io/ROSS-docs/
+  - mv doc-build/docs ross-org.github.io/ROSS-docs/
   - cd ross-org.github.io
 deploy:
   provider: pages
   strategy: git
   edge: true
+  skip_cleanup: true
   token: $GH_TOKEN
   repo: ross-org/ross-org.github.io
   branch: master
