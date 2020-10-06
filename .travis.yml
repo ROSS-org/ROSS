@@ -78,7 +78,8 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 deploy:
-  provider: pages: git
+  provider: pages
+  strategy: git
   edge: true
   token: $GH_TOKEN
   repo: ross-org/ross-org.github.io
