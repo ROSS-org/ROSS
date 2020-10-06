@@ -58,8 +58,8 @@ script:
   - cd CODES-org/CODES
   - ./prepare.sh
   - mkdir build && cd build
-  - CC=mpicc ../configure PKG_CONFIG_PATH=/home/travis/build/ROSS-org/ROSS/install/lib/pkgconfig
-  - CC=mpicc make
+  - CXX=mpicxx CC=mpicc ../configure PKG_CONFIG_PATH=/home/travis/build/ROSS-org/ROSS/install/lib/pkgconfig
+  - make
   - make tests
   - make check
   - cd ../../..
