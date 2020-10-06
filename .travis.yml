@@ -17,14 +17,14 @@ branches:
   - master
   - develop
 before_install:
- - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
- - sudo apt-get update -q
- - sudo apt-get install -y -qq lcov curl doxygen graphviz
- - lscpu
- - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
- - echo $CLOCK_SPEED
- - sh ./conf/travis-install-mpi.sh mpich2
- - mpirun --version
+  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
+  - sudo apt-get update -q
+  - sudo apt-get install -y -qq lcov curl doxygen graphviz
+  - lscpu
+  - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
+  - echo $CLOCK_SPEED
+  - sh ./conf/travis-install-mpi.sh mpich2
+  - mpirun --version
 script:
   - mkdir cxx-build && cd cxx-build
   - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
@@ -58,9 +58,7 @@ script:
   - make coveralls
   - cd ..
   - # only run CODES integration for master branch
-  - if [ $TRAVIS_BRANCH != "master" ]; then
-  -   return
-  - fi
+  - if [ $TRAVIS_BRANCH != "master" ]; then return; fi
   - cd ..
   - git clone --depth=1 --branch=master https://github.com/CODES-org/CODES.git CODES-org/CODES.git
   - cd CODES-org/CODES
