@@ -68,13 +68,19 @@ script:
   - make
   - make tests
   - make check
-  - # prep for docs deployment
-  - cd ../../../ROSS-org/ROSS
+  - cd ../../..
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+before_deploy:
+  - cd ROSS-org/ROSS
+  - git clone -b master --single-branch https://github.com/ROSS-org/ross-org.github.io.git
   - mkdir doc-build && cd doc-build
   - cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - cd ../
+  - rm -r ross-org.github.io/ROSS-docs/docs
+  - mv doc-build/docs/html ross-org.github.io/ROSS-docs/
+  - cd ross-org.github.io
 deploy:
   provider: pages
   strategy: git
@@ -84,4 +90,3 @@ deploy:
   branch: master
   name: ROSS bot
   email: ross.gh.robot@gmail.com
-  local_dir: docs/html
