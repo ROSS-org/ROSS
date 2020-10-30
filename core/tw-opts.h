@@ -7,7 +7,9 @@ enum tw_opttype
 	TWOPTTYPE_ULONG,       /**< value must be an "unsigned long*"      */
 	TWOPTTYPE_ULONGLONG,   /**< value must be an "unsigned long long*" */
 	TWOPTTYPE_UINT,        /**< value must be an "unsigned int*"       */
+#ifndef USE_EXTERNAL_STIME
 	TWOPTTYPE_STIME,       /**< value must be a  "tw_stime*"           */
+#endif
         TWOPTTYPE_DOUBLE,      /**< value must be a  "double *"            */
 	TWOPTTYPE_CHAR,        /**< value must be a  "char *"              */
         TWOPTTYPE_FLAG,        /**< value must be an "unsigned int*"       */
@@ -28,7 +30,9 @@ struct tw_optdef
 #define TWOPT_ULONG(n,v,h)     { TWOPTTYPE_ULONG,     (n), (h), &(v) }
 #define TWOPT_ULONGLONG(n,v,h) { TWOPTTYPE_ULONGLONG, (n), (h), &(v) }
 #define TWOPT_UINT(n,v,h)      { TWOPTTYPE_UINT,      (n), (h), &(v) }
-#define TWOPT_STIME(n,v,h)     { TWOPTTYPE_STIME,     (n), (h), &(v) }
+#ifndef USE_EXTERNAL_STIME
+  #define TWOPT_STIME(n,v,h)     { TWOPTTYPE_STIME,     (n), (h), &(v) }
+#endif
 #define TWOPT_DOUBLE(n,v,h)    { TWOPTTYPE_DOUBLE,    (n), (h), &(v) }
 #define TWOPT_CHAR(n,v,h)      { TWOPTTYPE_CHAR,      (n), (h), &(v) }
 #define TWOPT_FLAG(n,v,h)      { TWOPTTYPE_FLAG,      (n), (h), &(v) }

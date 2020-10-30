@@ -113,6 +113,15 @@ if (USE_DAMARIS)
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
 
+OPTION(USE_EXTERNAL_STIME "Use model-specific tw_stime implementation" OFF)
+IF(USE_EXTERNAL_STIME)
+  #SET(ross_srcs ${ross_srcs} ${MODEL_STIME_SRC} ${MODEL_STIME_HDR})
+  #GET_FILENAME_COMPONENT(${stime_header_path} ${MODEL_STIME_HDR} DIRECTORY)
+  #INCLUDE_DIRECTORIES(${stime_header_path})
+  SET(ross_srcs ${ross_srcs} ${MODEL_STIME_SRC})
+  INCLUDE_DIRECTORIES(${MODEL_STIME_HDR})
+ENDIF(USE_EXTERNAL_STIME)
+
 # Use debugging-friendly memory allocation
 OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 
