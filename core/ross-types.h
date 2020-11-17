@@ -315,6 +315,7 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
+    tw_rng_stream *core_rng; /**< @brief RNG stream array for ROSS non-model operation - possible alternative to a model_rng pointer array*/
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
