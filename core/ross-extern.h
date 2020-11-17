@@ -1,7 +1,7 @@
 #ifndef INC_ross_extern_h
 #define INC_ross_extern_h
 
-extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
+extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_streams);
 
 /*
  * tw-stats.c
@@ -23,6 +23,7 @@ extern tw_lp **g_tw_lp;
 extern tw_kp **g_tw_kp;
 extern int      g_tw_fossil_attempts;
 extern unsigned int g_tw_nRNG_per_lp;
+extern unsigned int g_tw_nRNG_core_per_lp; //Separate ROSS engine-only use RNG streams
 extern tw_lpid g_tw_rng_default;
 extern tw_seed g_tw_rng_seed;
 extern unsigned int g_tw_mblock;
