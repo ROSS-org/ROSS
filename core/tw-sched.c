@@ -43,6 +43,19 @@ static void tw_sched_event_q(tw_pe * me) {
                 case TW_pe_event_q:
                     dest_kp = cev->dest_lp->kp;
 
+#ifdef USE_RAND_TIEBREAKER
+                    if (tw_event_sig_compare(dest_kp->last_sig, cev->sig) > 0) {
+                        /* cev is a straggler message which has arrived
+                        * after we processed events occuring after it.
+                        * We need to jump back to before cev's timestamp.
+                        */
+                        start = tw_clock_read();
+                        tw_kp_rollback_to_sig(dest_kp, cev->sig);
+                        me->stats.s_rollback += tw_clock_read() - start;
+                        if (g_st_ev_trace == RB_TRACE)
+                           st_collect_event_data(cev, (double)start / g_tw_clock_rate);
+                    }
+#else
                     if (TW_STIME_CMP(dest_kp->last_time, cev->recv_ts) > 0) {
                         /* cev is a straggler message which has arrived
                         * after we processed events occuring after it.
@@ -54,6 +67,7 @@ static void tw_sched_event_q(tw_pe * me) {
                         if (g_st_ev_trace == RB_TRACE)
                            st_collect_event_data(cev, (double)start / g_tw_clock_rate);
                     }
+#endif
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
                     me->stats.s_pq += tw_clock_read() - start;
@@ -177,15 +191,22 @@ static void tw_sched_batch(tw_pe * me) {
             break;
         }
         me->stats.s_pq += tw_clock_read() - start;
+#ifndef USE_RAND_TIEBREAKER
+        // Note: I don't believe this captures all event ties
         if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
+#endif
 
         clp = cev->dest_lp;
 
 	ckp = clp->kp;
 	me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+    ckp->last_sig = cev->sig;
+#else
 	ckp->last_time = cev->recv_ts;
+#endif
 
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
@@ -232,7 +253,11 @@ static void tw_sched_batch(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - pq_start;
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
+#ifdef USE_RAND_TIEBREAKER
+        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+#else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
+#endif
 
 	    tw_gvt_force_update();
 
@@ -311,15 +336,22 @@ static void tw_sched_batch_realtime(tw_pe * me) {
           break; // leave the batch function
         }
         me->stats.s_pq += tw_clock_read() - start;
+#ifndef USE_RAND_TIEBREAKER
+        // Note: I don't believe this captures all event ties
         if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
+#endif
 
         clp = cev->dest_lp;
 
 	ckp = clp->kp;
 	me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+    ckp->last_sig = cev->sig;
+#else
 	ckp->last_time = cev->recv_ts;
+#endif
 
 	/* Save state if no reverse computation is available */
 	if (!clp->type->revent) {
@@ -367,7 +399,11 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         me->stats.s_pq += tw_clock_read() - pq_start;
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
+#ifdef USE_RAND_TIEBREAKER
+        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+#else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
+#endif
 
 	    tw_gvt_force_update_realtime();
 
@@ -461,11 +497,16 @@ void tw_scheduler_sequential(tw_pe * me) {
         tw_kp *ckp = clp->kp;
 
         me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+        ckp->last_sig = cev->sig;
+#else
         ckp->last_time = cev->recv_ts;
 
+        // Note: I believe that this doesn't fully capture all event ties
         if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
             me->stats.s_pe_event_ties++;
         }
+#endif
 
         gvt = cev->recv_ts;
         if(TW_STIME_DBL(gvt)/g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
@@ -533,9 +574,12 @@ void tw_scheduler_conservative(tw_pe * me) {
         tw_sched_event_q(me);
         tw_gvt_step2(me);
 
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
+#ifdef USE_RAND_TIEBREAKER
+        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
+#else
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
+#endif
             break;
-        }
 
         // put "batch" loop directly here
         /* Process g_tw_mblock events, or until the PQ is empty
@@ -554,22 +598,39 @@ void tw_scheduler_conservative(tw_pe * me) {
                 break;
             }
 
-            if(TW_STIME_DBL(tw_pq_minimum(me->pq)) >= TW_STIME_DBL(me->GVT) + g_tw_lookahead) {
+#ifdef USE_RAND_TIEBREAKER
+            if(TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) >= TW_STIME_DBL(me->GVT_sig.recv_ts) + g_tw_lookahead)
+#else
+            if(TW_STIME_DBL(tw_pq_minimum(me->pq)) >= TW_STIME_DBL(me->GVT) + g_tw_lookahead)
+#endif
                 break;
-            }
 
             start = tw_clock_read();
             if (!(cev = tw_pq_dequeue(me->pq))) {
                 break;
             }
             me->stats.s_pq += tw_clock_read() - start;
+
+#ifndef USE_RAND_TIEBREAKER
+            //Note: I believe that this doesn't really capture all event ties
             if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
                 me->stats.s_pe_event_ties++;
             }
+#endif
 
             clp = cev->dest_lp;
             ckp = clp->kp;
             me->cur_event = cev;
+
+#ifdef USE_RAND_TIEBREAKER
+            if (tw_event_sig_compare(ckp->last_sig, cev->sig) > 0) {
+                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
+                        "src LP %lu, src PE %lu",
+                ckp->last_sig.recv_ts, cev->recv_ts, clp->gid, clp->pe->id,
+                cev->send_lp, cev->send_pe);
+            }
+            ckp->last_sig = cev->sig;
+#else
             if( TW_STIME_CMP(ckp->last_time, cev->recv_ts) > 0 ){
                 tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
                         "src LP %lu, src PE %lu",
@@ -577,6 +638,7 @@ void tw_scheduler_conservative(tw_pe * me) {
                 cev->send_lp, cev->send_pe);
             }
             ckp->last_time = cev->recv_ts;
+#endif
 
             start = tw_clock_read();
             reset_bitfields(cev);
@@ -653,9 +715,13 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_cancel_q(me);
         tw_gvt_step2(me);
 
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
+#ifdef USE_RAND_TIEBREAKER
+        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
             break;
-        }
+#else
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
+            break;
+#endif
 
         tw_sched_batch(me);
     }
@@ -704,9 +770,13 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
         tw_sched_cancel_q(me);
         tw_gvt_step2(me); // use regular step2 at this point
 
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end) {
+#ifdef USE_RAND_TIEBREAKER
+        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
             break;
-        }
+#else
+        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
+            break;
+#endif
 
         tw_sched_batch_realtime(me);
     }
@@ -760,7 +830,11 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         tw_kp *ckp = clp->kp;
 
         me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+        ckp->last_sig = cev->sig;
+#else
         ckp->last_time = cev->recv_ts;
+#endif
 
         /* don't update GVT */
         reset_bitfields(cev);
@@ -786,7 +860,11 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     // If we've run out of free events or events to process (maybe we're past end time?)
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
+#ifdef USE_RAND_TIEBREAKER
+    tw_kp_rollback_to_sig( g_tw_kp[0], (tw_event_sig){g_tw_rollback_time,0});
+#else
     tw_kp_rollback_to( g_tw_kp[0], TW_STIME_CRT(g_tw_rollback_time) );
+#endif
     printf("/******************* Completed Rollback Phase ******************************/\n");
 
     tw_wall_now(&me->end_time);

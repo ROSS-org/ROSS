@@ -114,6 +114,9 @@ if (USE_DAMARIS)
     SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
 ENDIF(USE_DAMARIS)
 
+# Use deterministic unbiased RNG tiebreaker for event ties
+OPTION(USE_RAND_TIEBREAKER "Build with deterministic unbiased tiebreaker for event ties" ON)
+
 # Use debugging-friendly memory allocation
 OPTION(ROSS_ALLOC_DEBUG "Use naive allocator to be more friendly to memory debugging tools" OFF)
 

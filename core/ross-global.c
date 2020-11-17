@@ -13,6 +13,7 @@
 	 * g_tw_kp          -- Public KP object array (on this processor)
 	 * g_tw_fossil_attempts  -- Number of times fossil_collect is called
          * g_tw_nRNG_per_lp -- Number of RNG per LP
+	 * g_tw_nRNG_core_per_lp -- Number of ROSS core RNG per LP for use by ROSS engine exclusively
 	 */
 
 tw_synch     g_tw_synchronization_protocol=NO_SYNCH;
@@ -27,6 +28,7 @@ tw_lp		**g_tw_lp = NULL;
 tw_kp		**g_tw_kp = NULL;
 int             g_tw_fossil_attempts = 0;
 unsigned int    g_tw_nRNG_per_lp = 1;
+unsigned int    g_tw_nRNG_core_per_lp = 1;
 tw_lpid         g_tw_rng_default = 1;
 tw_seed        g_tw_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;

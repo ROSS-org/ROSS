@@ -270,7 +270,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
     // init LP RNG stream(s)
     for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
         if(g_tw_rng_default == 1) {
-            tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
+            tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp, g_tw_nRNG_core_per_lp);
         }
     }
 
