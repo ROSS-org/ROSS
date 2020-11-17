@@ -95,6 +95,15 @@ extern void tw_net_barrier(void);
  */
 extern tw_stime tw_net_minimum(void);
 
+#ifdef USE_RAND_TIEBREAKER
+/**
+ * @brief Obtain the event signature for the lowest ordered event inside the network buffers.
+ *
+ * @return minimum event signature for this PE's network buffers
+ */
+extern tw_event_sig tw_net_minimum_sig(void);
+#endif
+
 /**
  * @brief Function to reduce all the statistics for output.
  * @attention Notice that the MPI_Reduce "count" parameter is greater than one.

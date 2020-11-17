@@ -240,6 +240,13 @@ typedef struct tw_out {
     char message[256 - 2*sizeof(void *)];
 } tw_out;
 
+#ifdef USE_RAND_TIEBREAKER
+typedef struct tw_event_sig {
+    tw_stime recv_ts;
+    tw_stime event_tiebreaker;
+} tw_event_sig;
+#endif
+
 /**
  * tw_event:
  * @brief Event Stucture
@@ -262,6 +269,11 @@ struct tw_event {
     tw_event *cause_next;           /**< @brief Next in parent's caused_by_me chain */
 
     tw_eventid   event_id;          /**< @brief Unique id assigned by src_lp->pe if remote. */
+
+#ifdef USE_RAND_TIEBREAKER
+    tw_stime     event_tiebreaker;  /**< @brief Random value used to deterministically resolve event ties */
+    tw_event_sig sig;
+#endif
 
     /** Status of the event's queue location(s). */
     struct {
@@ -326,7 +338,11 @@ struct tw_lp {
 
     /* tw_suspend variables */
     tw_event    *suspend_event;
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig suspend_sig;
+#else
     tw_stime     suspend_time;
+#endif
     unsigned int suspend_error_number;
     unsigned int suspend_do_orig_event_rc;
     unsigned int suspend_flag;
@@ -358,7 +374,11 @@ struct tw_kp {
 #endif
 
     tw_eventq pevent_q; /**< @brief Events processed by LPs bound to this KP */
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig last_sig; /**< @brief Event signature of the current event being processed */
+#else
     tw_stime last_time; /**< @brief Time of the current event being processed */
+#endif
     tw_stat s_nevent_processed; /**< @brief Number of events processed */
 
     long s_e_rbs; /**< @brief Number of events rolled back by this LP */
@@ -400,10 +420,17 @@ struct tw_pe {
     unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
     unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig trans_msg_sig; /**< @brief Last transient messages' time signature */
+    tw_event_sig GVT_sig; /**< @brief Global Virtual Time Signature */
+    tw_event_sig GVT_prev_sig;
+    tw_event_sig LVT_sig; /**< @brief Local (to PE) Virtual Time Signature */
+#else
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */
     tw_stime GVT; /**< @brief Global Virtual Time */
     tw_stime GVT_prev;
     tw_stime LVT; /**< @brief Local (to PE) Virtual Time */
+#endif
 
 #ifdef ROSS_GVT_mpi_allreduce
     long long s_nwhite_sent;

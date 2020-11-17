@@ -81,12 +81,18 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
     }
   }
 
+  e->send_pe = sender->pe->id;
   e->dest_lp = (tw_lp *) dest_gid;
   e->dest_lpid = dest_gid;
   e->src_lp = sender;
   e->recv_ts = recv_ts;
   e->send_ts = tw_now(sender);
   e->critical_path = sender->critical_path + 1;
+
+#ifdef USE_RAND_TIEBREAKER
+  e->event_tiebreaker = tw_rand_unif(sender->core_rng); //create a random number used to deterministically break event ties, this is rolled back in tw_event_rollback() during the sender LP cancel loop
+  e->sig = (tw_event_sig){e->recv_ts, e->event_tiebreaker};
+#endif
 
   tw_free_output_messages(e, 0);
 

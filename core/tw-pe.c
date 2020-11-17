@@ -41,8 +41,12 @@ tw_pe_init(void)
     memset(&no_type, 0, sizeof(no_type));
     tw_pe_settype(&no_type);
 
+#ifdef USE_RAND_TIEBREAKER
+	g_tw_pe->trans_msg_sig = (tw_event_sig){DBL_MAX,DBL_MAX};
+#else
     g_tw_pe->trans_msg_ts = DBL_MAX;
-    g_tw_pe->gvt_status = 0;
+#endif
+	g_tw_pe->gvt_status = 0;
 
     // TODO is the PE RNG ever actually used?
     g_tw_pe->rng = tw_rand_init(31, 41);
