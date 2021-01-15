@@ -378,13 +378,13 @@ tw_pq_minimum(splay_tree *pq)
 }
 
 #ifdef USE_RAND_TIEBREAKER
-tw_event_sig
+inline tw_event_sig
 tw_pq_minimum_sig(splay_tree *pq)
 {
 	return ((pq->least ? pq->least->sig : (tw_event_sig){TW_STIME_MAX,TW_STIME_MAX}));
 }
 
-tw_eventid
+inline tw_eventid
 tw_pq_minimum_get_event_id(splay_tree *pq)
 {
 	return((pq->least ? pq->least->event_id : UINT_MAX));

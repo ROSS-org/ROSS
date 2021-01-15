@@ -6,30 +6,6 @@ static inline void link_causality (tw_event *nev, tw_event *cev) {
     cev->caused_by_me = nev;
 }
 
-#ifdef USE_RAND_TIEBREAKER
-//compares the 'new' event to the signature. If the new event is to occur
-//n_sig later (larger) than e_sig signature, return -1
-//n_sig before (smaller) than e_sig signature, return 1
-//at the signature - return 0
-inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
-{
-    int time_compare = TW_STIME_CMP(e_sig.recv_ts, n_sig.recv_ts);
-    if (time_compare != 0)
-        return time_compare;
-    else
-    {
-        if (e_sig.event_tiebreaker < n_sig.event_tiebreaker)
-            return -1;
-        else if (e_sig.event_tiebreaker > n_sig.event_tiebreaker)
-            return 1;
-        else {
-                // tw_error(TW_LOC,"Identical events (matching tiebreaker) found\n");
-                return 0;
-        }
-    }
-}
-#endif
-
 void tw_event_send(tw_event * event) {
     tw_lp     *src_lp = event->src_lp;
     tw_pe     *send_pe = src_lp->pe;

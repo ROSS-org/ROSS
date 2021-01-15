@@ -245,6 +245,28 @@ typedef struct tw_event_sig {
     tw_stime recv_ts;
     tw_stime event_tiebreaker;
 } tw_event_sig;
+
+//compares the 'new' event to the signature. If the new event is to occur
+//n_sig later (larger) than e_sig signature, return -1
+//n_sig before (smaller) than e_sig signature, return 1
+//at the signature - return 0
+static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
+{
+    int time_compare = TW_STIME_CMP(e_sig.recv_ts, n_sig.recv_ts);
+    if (time_compare != 0)
+        return time_compare;
+    else
+    {
+        if (e_sig.event_tiebreaker < n_sig.event_tiebreaker)
+            return -1;
+        else if (e_sig.event_tiebreaker > n_sig.event_tiebreaker)
+            return 1;
+        else {
+                // tw_error(TW_LOC,"Identical events (matching tiebreaker) found\n");
+                return 0;
+        }
+    }
+}
 #endif
 
 /**
