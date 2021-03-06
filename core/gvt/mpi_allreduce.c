@@ -160,17 +160,18 @@ tw_gvt_step2(tw_pe *me)
 		lvt_sig = net_min_sig;
 	}
 
+	memset(&gvt_sig, 0, sizeof(tw_event_sig));
+
 	all_reduce_cnt++;
 	if(MPI_Allreduce(
 		&lvt_sig,
 		&gvt_sig,
 		1,
-		MPI_TYPE_TW_STIME,
+	MPI_TYPE_TW_STIME,
 		MPI_MIN,
 		MPI_COMM_ROSS) != MPI_SUCCESS)
 		tw_error(TW_LOC, "MPI_Allreduce for GVT event signatures failed");
 
-	gvt_sig.event_tiebreaker = 0;
 
 	if(tw_event_sig_compare(gvt_sig, me->GVT_prev_sig) < 0)
 	{
@@ -191,8 +192,9 @@ tw_gvt_step2(tw_pe *me)
 
 	if (tw_event_sig_compare(me->GVT_sig, gvt_sig) > 0)
 	{
-		tw_error(TW_LOC, "PE %u GVT decreased %g  %g  -> %g  %g",
-				me->id, me->GVT_sig.recv_ts, me->GVT_sig.event_tiebreaker, gvt_sig.recv_ts, gvt_sig.event_tiebreaker);
+		tw_error(TW_LOC, "PE %u GVT decreased %g -> %g",
+				me->id, me->GVT_sig.recv_ts, gvt_sig.recv_ts);
+
 	}
 
 	if (TW_STIME_DBL(gvt_sig.recv_ts) / g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode))

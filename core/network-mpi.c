@@ -163,7 +163,7 @@ tw_net_abort(void)
 
 void
 tw_net_stop(void)
-{
+{ 
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
         st_damaris_ross_finalize();
@@ -215,8 +215,8 @@ tw_net_minimum(void)
 #ifdef USE_RAND_TIEBREAKER
 tw_event_sig
 tw_net_minimum_sig(void)
-{
-    tw_event_sig m = (tw_event_sig){TW_STIME_MAX, TW_STIME_MAX};
+{  
+    tw_event_sig m = tw_get_init_sig(TW_STIME_MAX, TW_STIME_MAX);
     tw_event *e;
     unsigned int i;
 
