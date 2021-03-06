@@ -13,6 +13,11 @@ static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
 static tw_clock init_start = 0;
 
+static int32_t ross_rng_seed1;
+static int32_t ross_rng_seed2;
+static int32_t ross_rng_seed3;
+static int32_t ross_rng_seed4;
+
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
     TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
@@ -27,6 +32,10 @@ static const tw_optdef kernel_options[] = {
 #ifdef AVL_TREE
     TWOPT_UINT("avl-size", g_tw_avl_node_count, "AVL Tree contains 2^avl-size nodes"),
 #endif
+    TWOPT_UINT("rng-seed1",ross_rng_seed1, "ROSS RNG Seed 1 of 4"),
+    TWOPT_UINT("rng-seed2",ross_rng_seed2, "ROSS RNG Seed 2 of 4"),
+    TWOPT_UINT("rng-seed3",ross_rng_seed3, "ROSS RNG Seed 3 of 4"),
+    TWOPT_UINT("rng-seed4",ross_rng_seed4, "ROSS RNG Seed 4 of 4"),
     TWOPT_END()
 };
 
@@ -110,6 +119,17 @@ void tw_init(int *argc, char ***argv) {
         }
     }
 
+    if(ross_rng_seed1 && ross_rng_seed2 && ross_rng_seed3 && ross_rng_seed4)
+    {
+        printf("%d %d %d %d\n",ross_rng_seed1, ross_rng_seed2, ross_rng_seed3, ross_rng_seed4);
+        g_tw_rng_seed = (int32_t*)calloc(4, sizeof(int32_t));
+        g_tw_rng_seed[0] = ross_rng_seed1;
+        g_tw_rng_seed[1] = ross_rng_seed2;
+        g_tw_rng_seed[2] = ross_rng_seed3;
+        g_tw_rng_seed[3] = ross_rng_seed4;
+    }
+    else if(ross_rng_seed1 || ross_rng_seed2 || ross_rng_seed3 || ross_rng_seed4)
+        tw_error(TW_LOC, "If using --rng-seed#, all four seeds must be specified\n");
     //tw_opt_print();
 
     tw_net_start();

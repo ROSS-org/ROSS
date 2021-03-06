@@ -366,6 +366,7 @@ rng_init(int v, int w)
 	
 	if(g_tw_rng_seed)
 	{
+        printf("Clamping Provided Seeds\n");
         clamp_seed((uint32_t*)g_tw_rng_seed);
 		for(j = 0; j < 4; j++)
 			rng->seed[j] = g_tw_rng_seed[j];
