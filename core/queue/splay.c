@@ -27,6 +27,8 @@
 
 #include <ross.h>
 
+#define ROSS_WARN_TIE_COLLISION 1
+
 #define UP(t)		((t)->up)
 #define UPUP(t)		((t)->up->up)
 #define LEFT(t)		((t)->next)
@@ -117,7 +119,14 @@ static unsigned int tw_pq_compare_less_than_rand(tw_event *n, tw_event *e)
 			else if (n->event_id > e->event_id)
 				return 0;
 			else {
-				tw_error(TW_LOC,"Identical events found - impossible\n");
+				if (ROSS_WARN_TIE_COLLISION)
+					printf("ROSS Splay Tree Warning: Identical Tiebreaker and Event IDs found - Implies RNG Collision\n");
+				if(n->send_pe < e->send_pe)
+					return 1;
+				else if (n->send_pe > e->send_pe)
+					return 0;
+				else
+					tw_error(TW_LOC,"Identical events found - impossible\n");
 			}
 		}
         else if (e->sig.tie_lineage_length > n->sig.tie_lineage_length) //give priority to one with shorter lineage
