@@ -484,6 +484,7 @@ struct tw_pe {
 #endif
 
     tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
+    tw_rng  *core_rng; /**< @brief Pointer to the core random number generator on this PE */
 };
 
 #ifdef USE_RAND_TIEBREAKER

@@ -10,6 +10,15 @@ tw_rand_init(uint32_t v, uint32_t w)
 }
 
 /*
+ * tw_rand_core_init
+ */
+tw_rng	*
+tw_rand_core_init(uint32_t v, uint32_t w)
+{
+    return rng_core_init(v, w);
+}
+
+/*
  * tw_rand_integer
  *
  * For LP # gen, return a uniform rn from low to high 

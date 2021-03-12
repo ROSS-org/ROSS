@@ -32,6 +32,7 @@ unsigned int    g_tw_nRNG_per_lp = 1;
 unsigned int    g_tw_nRNG_core_per_lp = 1;
 tw_lpid         g_tw_rng_default = 1;
 tw_seed        g_tw_rng_seed = NULL;
+tw_seed        g_tw_core_rng_seed = NULL;
 unsigned int	g_tw_sim_started = 0;
 size_t g_tw_msg_sz;
 size_t g_tw_delta_sz = 0;

@@ -27,6 +27,7 @@ extern unsigned int g_tw_nRNG_per_lp;
 extern unsigned int g_tw_nRNG_core_per_lp; //Separate ROSS engine-only use RNG streams
 extern tw_lpid g_tw_rng_default;
 extern tw_seed g_tw_rng_seed;
+extern tw_seed g_tw_core_rng_seed;
 extern unsigned int g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
 extern unsigned long long g_tw_max_opt_lookahead;

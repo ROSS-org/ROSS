@@ -47,8 +47,8 @@ tw_pe_init(void)
 #endif
 	g_tw_pe->gvt_status = 0;
 
-    // TODO is the PE RNG ever actually used?
 	g_tw_pe->rng = tw_rand_init(31, 41);
+	g_tw_pe->core_rng = tw_rand_core_init(31, 41); // Core RNG must have same v & w values as main RNG
 
 }
 

@@ -21,6 +21,8 @@
 
 // One RNG per PE
 static tw_rng	*rng = NULL;
+// Core RNG (For tiebreaker etc.)
+static tw_rng *core_rng = NULL;
 
 // default RNG seed
 int32_t seed[4] = { 11111111, 22222222, 33333333, 44444444 };
@@ -178,7 +180,7 @@ void clamp_seed(uint32_t s[4])
  */
 
 void
-rng_set_seed(tw_rng_stream * g, uint32_t s[4])
+rng_set_seed(tw_rng_stream * g, uint32_t s[4], tw_rng * the_rng)
 {
 	int	j;
 
@@ -187,7 +189,7 @@ rng_set_seed(tw_rng_stream * g, uint32_t s[4])
 	for(j = 0; j < 4; j++)
 		g->Ig[j] = s[j];
 
-	rng_init_generator(g, InitialSeed);
+	rng_init_generator(g, InitialSeed, the_rng);
 }
 
 /*
@@ -236,7 +238,7 @@ rng_put_state(tw_rng_stream * g, uint32_t s[4])
  */
 
 void
-rng_init_generator(tw_rng_stream * g, SeedType Where)
+rng_init_generator(tw_rng_stream * g, SeedType Where, tw_rng * the_rng)
 {
 	int	j;
 
@@ -248,7 +250,7 @@ rng_init_generator(tw_rng_stream * g, SeedType Where)
 				g->Lg[j] = g->Ig[j];
 				break;
 			case NewSeed:
-				g->Lg[j] = MultModM(rng->aw[j], g->Lg[j], rng->m[j]);
+				g->Lg[j] = MultModM(the_rng->aw[j], g->Lg[j], the_rng->m[j]);
 				break;
 			case LastSeed:
 				break;
@@ -259,11 +261,16 @@ rng_init_generator(tw_rng_stream * g, SeedType Where)
 }
 
 /*
- * rng_set_initial_seed                                                   
+ * tw_rand_initial_seed
+ * Takes in pointer to main RNG with which to seed the supplied tw_rng_stream *g
  */
 void
-tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
+tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id, tw_rng * the_rng)
 {
+  //If no specific PE rng is specified, use the default globally defiend PE rng
+  if (the_rng == NULL)
+    the_rng = rng;
+
 	tw_lpid mask_bit = 1;
 
 	uint32_t Ig_t[4];
@@ -275,7 +282,7 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 
 	//seed for zero
 	for(j = 0; j < 4; j++)
-		Ig_t[j] = rng->seed[j];
+		Ig_t[j] = the_rng->seed[j];
 
 	mask_bit <<= positions;
 
@@ -287,13 +294,13 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 		{
 			for(j = 0; j < 4; j++)
 			{
-				avw_t[j] = rng->avw[j];
+				avw_t[j] = the_rng->avw[j];
 
 				// exponentiate modulus
 				for(i = 0; i < positions; i++)
-					avw_t[j] = MultModM(avw_t[j], avw_t[j], rng->m[j]);
+					avw_t[j] = MultModM(avw_t[j], avw_t[j], the_rng->m[j]);
 
-				Ig_t[j] = MultModM(avw_t[j], Ig_t[j], rng->m[j]);
+				Ig_t[j] = MultModM(avw_t[j], Ig_t[j], the_rng->m[j]);
 			}
 		}
 
@@ -304,7 +311,7 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 	if(id % 2)
 	{
 		for(j = 0; j < 4; j++)
-			Ig_t[j] = MultModM(rng->avw[j], Ig_t[j], rng->m[j]);
+			Ig_t[j] = MultModM(the_rng->avw[j], Ig_t[j], the_rng->m[j]);
 	}
 
     clamp_seed(Ig_t);
@@ -312,9 +319,11 @@ tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id)
 	for(j = 0; j < 4; j++)
 		g->Ig[j] = Ig_t[j];
 
-	rng_init_generator(g, InitialSeed);
+	rng_init_generator(g, InitialSeed, the_rng);
 	//rng_write_state(g);
 }
+
+
 
 void
 tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_streams)
@@ -334,12 +343,12 @@ tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_stre
   unsigned int total_num_noncore_rngs = g_tw_nRNG_per_lp * g_tw_total_lps;
 
   for(i = 0; i < nstreams; i++) {
-            tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_nRNG_per_lp) + i);
+            tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_nRNG_per_lp) + i, rng);
   }
 
   //ROSS core rng streams should be seeded "after" lp rng streams so adjusting number of core streams doesn't change seeds of the lp rng streams
   for(j = 0; j < n_core_streams; j++) {
-            tw_rand_initial_seed(&lp->core_rng[j], total_num_noncore_rngs + (lp->gid * (g_tw_nRNG_core_per_lp)) + j);
+            tw_rand_initial_seed(&lp->core_rng[j], total_num_noncore_rngs + (lp->gid * (g_tw_nRNG_core_per_lp)) + j, core_rng);
   }
 }
 
@@ -364,19 +373,20 @@ rng_init(int v, int w)
 	rng->a[2] = 138556;
 	rng->a[3] = 49689;
 	
-	if(g_tw_rng_seed)
-	{
-        printf("Clamping Provided Seeds\n");
-        clamp_seed((uint32_t*)g_tw_rng_seed);
-		for(j = 0; j < 4; j++)
-			rng->seed[j] = g_tw_rng_seed[j];
-	} else
-	{
-		rng->seed[0] = 11111111;
-		rng->seed[1] = 22222222;
-		rng->seed[2] = 33333333;
-		rng->seed[3] = 44444444;
-	}
+  if(g_tw_rng_seed)
+  {
+    if (!g_tw_mynode)
+        printf("Clamping Provided LP Seeds\n");
+    clamp_seed((uint32_t*)g_tw_rng_seed);
+    for(j = 0; j < 4; j++)
+      rng->seed[j] = g_tw_rng_seed[j];
+  } else
+  {
+    rng->seed[0] = 11111111;
+    rng->seed[1] = 22222222;
+    rng->seed[2] = 33333333;
+    rng->seed[3] = 44444444;
+  }
 
 	for(j = 0; j < 4; j++)
 		rng->aw[j] = rng->a[j];
@@ -396,6 +406,42 @@ rng_init(int v, int w)
 		rng->b[j] = FindB(rng->a[j],(rng->m[j] - 2), rng->m[j]);
 
 	return rng;
+}
+
+/*
+ * rng_core_init
+ * Sets up the main ROSS Core RNG
+ */
+tw_rng	*
+rng_core_init(int v, int w)
+{
+  int i;
+  int j;
+
+  //Do the same for the ROSS Core RNG (Ross Engine Hidden RNGs) as was done for the regular main RNG
+  core_rng = (tw_rng *) tw_calloc(TW_LOC, "CORE_RNG", sizeof(*rng), 1);
+
+  //For RC to work properly, these should all have the same values as the main RNG
+  //If this changes, it will break reverse computation of the RNG. See rng_gen_reverse_val()
+  memcpy(core_rng, rng, sizeof(tw_rng));
+
+  //But the seeds should be different
+  if(g_tw_core_rng_seed)
+  {
+    if(!g_tw_mynode)
+      printf("Clamping Provided Core Seeds\n");
+    clamp_seed((uint32_t*)g_tw_core_rng_seed);
+    for(j = 0; j < 4; j++)
+      core_rng->seed[j] = g_tw_core_rng_seed[j];
+  } else
+  {
+    core_rng->seed[0] = 55555555;
+    core_rng->seed[1] = 66666666;
+    core_rng->seed[2] = 77777777;
+    core_rng->seed[3] = 88888888;
+  }
+
+  return core_rng;
 }
 
 /*
@@ -458,6 +504,11 @@ rng_gen_val(tw_rng_stream * g)
  * computes the reverse sequence, however does not 
  * return the uniform value computed as a performance 
  * optimization -- Chris Carothers 5/15/98            
+ *
+ * Because the ROSS Core RNGs have the exact same b & m
+ * values as the main RNG, this is safe for use on the
+ * core RNG streams. Will be an issue if this is ever
+ * not the case.
  */
 
 double

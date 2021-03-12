@@ -12,7 +12,8 @@ typedef struct tw_rng_stream tw_rng_stream;
  * Public Function Prototypes
  */
 extern tw_rng	*tw_rand_init(uint32_t v, uint32_t w);
-extern void	tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id);
+extern tw_rng   *tw_rand_core_init(uint32_t v, uint32_t w);
+extern void	    tw_rand_initial_seed(tw_rng_stream * g, tw_lpid id, tw_rng * the_rng);
 extern long     tw_rand_integer(tw_rng_stream * g, long low, long high);
 extern unsigned long tw_rand_ulong(tw_rng_stream * g, unsigned long low, unsigned long high);
 extern long     tw_rand_binomial(tw_rng_stream * g, long N, double P);
