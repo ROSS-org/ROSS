@@ -240,6 +240,12 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_nlp = nlp;
 
+    /** We can't assume that every model uses equivalent values for g_tw_nlp across PEs
+     *  so let's allreduce here to calculate how many total LPs there are in the sim.
+     */
+    if(MPI_Allreduce(&g_tw_nlp, &g_tw_total_lps, 1, MPI_UINT64_T, MPI_SUM, MPI_COMM_ROSS))
+        tw_error(TW_LOC,"MPI_Allreduce in tw_define_lps() failed: Attempted to calculate total LPs");
+
     g_tw_msg_sz = msg_sz;
 
     early_sanity_check();
@@ -505,10 +511,9 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        // TODO need to do an allreduce call to get actual total number of LPs (e.g., for CODES)
         printf("\t%-50s %11llu\n", "Total LPs",
-	       ((unsigned long long)tw_nnodes() * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * g_tw_nlp));
+	       g_tw_total_lps);
+        fprintf(g_tw_csv, "%llu,", g_tw_total_lps);
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%.2lf,", g_tw_ts_end);

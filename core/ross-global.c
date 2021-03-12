@@ -22,6 +22,7 @@ map_custom_f g_tw_custom_initial_mapping=NULL;
 tw_lp_map    g_tw_mapping=LINEAR;
 
 tw_lpid         g_tw_nlp = 0;
+tw_lpid         g_tw_total_lps = 0; //Total LPs in the simulation
 tw_lpid		g_tw_lp_offset = 0;
 tw_kpid         g_tw_nkp = 1;
 tw_lp		**g_tw_lp = NULL;
