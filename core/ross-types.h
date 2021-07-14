@@ -273,7 +273,7 @@ static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime event_tieb
     tw_event_sig e;
     memset(&e, 0, sizeof(tw_event_sig));
     e.recv_ts = recv_ts;
-    memset(e.event_tiebreaker, event_tiebreaker, MAX_TIE_CHAIN);
+    memset(e.event_tiebreaker, event_tiebreaker, sizeof(tw_stime)*MAX_TIE_CHAIN);
     // e.event_tiebreaker = event_tiebreaker;
     return e;
 }
@@ -504,10 +504,10 @@ static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
         return time_compare;
     else {
         int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
-        int j = 0;
+        //int j = 0;
         for(int i = 0; i < min_len; i++) //lexicographical ordering
         {
-            j = i;
+            //j = i;
             if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
                 return -1;
             else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
