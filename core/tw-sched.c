@@ -319,7 +319,10 @@ static void tw_sched_batch_realtime(tw_pe * me) {
             /* Suggested by Adam Crume */
             if (++no_free_event_buffers > 10) {
                 if (!warned_no_free_event_buffers) {
-                    fprintf(stderr, "WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n");
+                    fprintf(stderr, "WARNING: No free event buffers.  Try increasing memory via the --extramem option.\n
+                    In order to increase efficiency of ROSS, a \"free pool\" of events is inititally created for the system to \n
+                    grab events from. This warning means that the size of the \"free pool\" is full. Adding more memory is the spimplest \n
+                    solution, but might not be the most efficient. Visit \"url\" for more information on this warning. \n")
                     warned_no_free_event_buffers = 1;
                 }
                 if (no_free_event_buffers >= max_alloc_fail_count) {
