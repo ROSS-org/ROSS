@@ -504,10 +504,9 @@ static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
         return time_compare;
     else {
         int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
-        //int j = 0;
+        
         for(int i = 0; i < min_len; i++) //lexicographical ordering
         {
-            //j = i;
             if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
                 return -1;
             else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
