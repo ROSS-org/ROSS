@@ -264,15 +264,17 @@ static inline int tw_unique_event_id_eq(tw_unique_event_id e, tw_unique_event_id
 
 typedef struct tw_event_sig {
     tw_stime recv_ts;
+    tw_stime priority;
     tw_stime event_tiebreaker[MAX_TIE_CHAIN];
     unsigned int tie_lineage_length;
 } tw_event_sig;
 
-static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime event_tiebreaker)
+static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime priority, tw_stime event_tiebreaker)
 {
     tw_event_sig e;
     memset(&e, 0, sizeof(tw_event_sig));
     e.recv_ts = recv_ts;
+    e.priority = priority;
     memset(e.event_tiebreaker, event_tiebreaker, MAX_TIE_CHAIN);
     // e.event_tiebreaker = event_tiebreaker;
     return e;
@@ -503,23 +505,30 @@ static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
     if (time_compare != 0)
         return time_compare;
     else {
-        int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
-        int j = 0;
-        for(int i = 0; i < min_len; i++) //lexicographical ordering
-        {
-            j = i;
-            if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
-                return -1;
-            else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
+        //then we compare the user defined priority first
+        int prio_compare = TW_STIME_CMP(e_sig.priority, n_sig.priority);
+        if (prio_compare != 0)
+            return prio_compare;
+        else {
+            //if tie with user pririty then we use tiebreaker
+            int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
+            int j = 0;
+            for(int i = 0; i < min_len; i++) //lexicographical ordering
+            {
+                j = i;
+                if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
+                    return -1;
+                else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
+                    return 1;
+            }
+            if (e_sig.tie_lineage_length == n_sig.tie_lineage_length) //total tie
+                return 0;
+            else if (e_sig.tie_lineage_length > n_sig.tie_lineage_length) //give priority to one with shorter lineage
                 return 1;
+            else
+                return -1;
+            }
         }
-        if (e_sig.tie_lineage_length == n_sig.tie_lineage_length) //total tie
-            return 0;
-        else if (e_sig.tie_lineage_length > n_sig.tie_lineage_length) //give priority to one with shorter lineage
-            return 1;
-        else
-            return -1;
-    }
 }
 #endif
 

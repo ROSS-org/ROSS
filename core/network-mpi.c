@@ -216,7 +216,7 @@ tw_net_minimum(void)
 tw_event_sig
 tw_net_minimum_sig(void)
 {  
-    tw_event_sig m = tw_get_init_sig(TW_STIME_MAX, TW_STIME_MAX);
+    tw_event_sig m = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
     tw_event *e;
     unsigned int i;
 

@@ -104,35 +104,41 @@ static unsigned int tw_pq_compare_less_than_rand(tw_event *n, tw_event *e)
 		return 0;
     else
     {
-        int min_len = min_int(e->sig.tie_lineage_length, n->sig.tie_lineage_length);
-        for(int i = 0; i < min_len; i++)
-        {
-            if (e->sig.event_tiebreaker[i] < n->sig.event_tiebreaker[i])
-                return 0;
-            else if (e->sig.event_tiebreaker[i] > n->sig.event_tiebreaker[i])
-                return 1;
-        }
-        if (e->sig.tie_lineage_length == n->sig.tie_lineage_length) //total tie
-		{
-			if (n->event_id < e->event_id)
-				return 1;
-			else if (n->event_id > e->event_id)
-				return 0;
-			else {
-				if (ROSS_WARN_TIE_COLLISION)
-					printf("ROSS Splay Tree Warning: Identical Tiebreaker and Event IDs found - Implies RNG Collision\n");
-				if(n->send_pe < e->send_pe)
-					return 1;
-				else if (n->send_pe > e->send_pe)
+		if (TW_STIME_CMP(n->sig.priority, e->sig.priority) < 0)
+			return 1;
+		else if (TW_STIME_CMP(n->sig.priority, e->sig.priority) > 0)
+			return 0;
+		else {
+			int min_len = min_int(e->sig.tie_lineage_length, n->sig.tie_lineage_length);
+			for(int i = 0; i < min_len; i++)
+			{
+				if (e->sig.event_tiebreaker[i] < n->sig.event_tiebreaker[i])
 					return 0;
-				else
-					tw_error(TW_LOC,"Identical events found - impossible\n");
+				else if (e->sig.event_tiebreaker[i] > n->sig.event_tiebreaker[i])
+					return 1;
 			}
+			if (e->sig.tie_lineage_length == n->sig.tie_lineage_length) //total tie
+			{
+				if (n->event_id < e->event_id)
+					return 1;
+				else if (n->event_id > e->event_id)
+					return 0;
+				else {
+					if (ROSS_WARN_TIE_COLLISION)
+						printf("ROSS Splay Tree Warning: Identical Tiebreaker and Event IDs found - Implies RNG Collision\n");
+					if(n->send_pe < e->send_pe)
+						return 1;
+					else if (n->send_pe > e->send_pe)
+						return 0;
+					else
+						tw_error(TW_LOC,"Identical events found - impossible\n");
+				}
+			}
+			else if (e->sig.tie_lineage_length > n->sig.tie_lineage_length) //give priority to one with shorter lineage
+				return 1;
+			else
+				return 0;
 		}
-        else if (e->sig.tie_lineage_length > n->sig.tie_lineage_length) //give priority to one with shorter lineage
-            return 1;
-        else
-            return 0;
     }
 }
 #endif

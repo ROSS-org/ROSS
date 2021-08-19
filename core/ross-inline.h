@@ -33,11 +33,13 @@ tw_free_output_messages(tw_event *e, int print_message)
 }
 
 /**
+ * Creates an event with a given priority in range [0,1], lower value is higher priority
+ *
  * @bug There's a bug in this function.  We put dest_gid, which is
  * a 64-bit value, into dest_lp which may be a 32-bit pointer.
  */
 static inline tw_event *
-tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
+tw_event_new_user_prio(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender, tw_stime prio)
 {
   tw_pe *send_pe;
   tw_event *e;
@@ -45,6 +47,10 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
 
   if (TW_STIME_DBL(offset_ts) < 0.0) {
     tw_error(TW_LOC, "Cannot send events into the past! Sending LP: %lu\n", sender->gid);
+  }
+
+  if (TW_STIME_DBL(prio) < 0.0 || TW_STIME_DBL(prio) > 1.0) {
+    tw_error(TW_LOC, "Cannot specify an event priority outside of range [0.0,1.0]");
   }
 
   send_pe = sender->pe;
@@ -89,27 +95,40 @@ tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
   e->send_ts = tw_now(sender);
   e->critical_path = sender->critical_path + 1;
 
+  e->sig.priority = prio;
+
 #ifdef USE_RAND_TIEBREAKER
-tw_event *now_event = sender->kp->pe->cur_event;
-tw_stime u_rand_val = tw_rand_unif(sender->core_rng); //create a random number used to deterministically break event ties, this is rolled back in tw_event_rollback() during the sender LP cancel loop
-e->sig.recv_ts = recv_ts;
-if (offset_ts == 0) {
-  if (now_event->sig.tie_lineage_length > MAX_TIE_CHAIN)
-    tw_error(TW_LOC, "Maximum zero-offset tie chain reached (%d), increase #define in ross-types.h",MAX_TIE_CHAIN);
-  memcpy(e->sig.event_tiebreaker, now_event->sig.event_tiebreaker, sizeof(tw_stime)*(now_event->sig.tie_lineage_length));
-  e->sig.event_tiebreaker[now_event->sig.tie_lineage_length] = u_rand_val;
-  e->sig.tie_lineage_length = now_event->sig.tie_lineage_length + 1;
-}
-else {
-  e->sig.event_tiebreaker[0] = u_rand_val;
-  e->sig.tie_lineage_length = 1;
-}
+  tw_event *now_event = sender->kp->pe->cur_event;
+  tw_stime u_rand_val = tw_rand_unif(sender->core_rng); //create a random number used to deterministically break event ties, this is rolled back in tw_event_rollback() during the sender LP cancel loop
+  e->sig.recv_ts = recv_ts;
+  if (offset_ts == 0) {
+    if (now_event->sig.tie_lineage_length > MAX_TIE_CHAIN)
+      tw_error(TW_LOC, "Maximum zero-offset tie chain reached (%d), increase #define in ross-types.h",MAX_TIE_CHAIN);
+    memcpy(e->sig.event_tiebreaker, now_event->sig.event_tiebreaker, sizeof(tw_stime)*(now_event->sig.tie_lineage_length));
+    e->sig.event_tiebreaker[now_event->sig.tie_lineage_length] = u_rand_val;
+    e->sig.tie_lineage_length = now_event->sig.tie_lineage_length + 1;
+  }
+  else {
+    e->sig.event_tiebreaker[0] = u_rand_val;
+    e->sig.tie_lineage_length = 1;
+  }
 #endif
 
   tw_free_output_messages(e, 0);
 
   return e;
 }
+
+/**
+ * @bug There's a bug in this function.  We put dest_gid, which is
+ * a 64-bit value, into dest_lp which may be a 32-bit pointer.
+ */
+static inline tw_event *
+tw_event_new(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender)
+{
+  return tw_event_new_user_prio(dest_gid, offset_ts, sender, 1);
+}
+
 
 static inline void
 tw_event_free(tw_pe *pe, tw_event *e)
