@@ -275,8 +275,9 @@ static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime priority, 
     memset(&e, 0, sizeof(tw_event_sig));
     e.recv_ts = recv_ts;
     e.priority = priority;
-    memset(e.event_tiebreaker, event_tiebreaker, MAX_TIE_CHAIN);
-    // e.event_tiebreaker = event_tiebreaker;
+    for (size_t i = 0; i < MAX_TIE_CHAIN; i++) {
+        e.event_tiebreaker[i] = event_tiebreaker;
+    }
     return e;
 }
 #endif
@@ -490,10 +491,10 @@ struct tw_pe {
 };
 
 #ifdef USE_RAND_TIEBREAKER
-static inline int min_int(int x, int y) 
-{ 
+static inline int min_int(int x, int y)
+{
   return (x < y) ? x : y;
-} 
+}
 
 //compares the 'new' event to the signature. If the new event is to occur
 //n_sig later (larger) than e_sig signature, return -1
@@ -512,10 +513,8 @@ static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
         else {
             //if tie with user pririty then we use tiebreaker
             int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
-            int j = 0;
             for(int i = 0; i < min_len; i++) //lexicographical ordering
             {
-                j = i;
                 if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
                     return -1;
                 else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
