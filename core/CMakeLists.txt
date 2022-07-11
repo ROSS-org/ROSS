@@ -80,7 +80,9 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 INCLUDE(GetGitRevisionDescription)
 #GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_SHA1)
 
-git_describe(VERSION --tags --dirty)
+# changed to look at the working tree and not the latest commit hash -- allows for use of --dirty.
+git_describe_working_tree(VERSION --tags --dirty)
+message(STATUS "ROSS VERSION=${VERSION}")
 
 #parse the version information into pieces.
 string(REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
