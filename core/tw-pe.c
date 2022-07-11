@@ -22,23 +22,24 @@ tw_pe_settype(const tw_petype * type)
 #undef copy_pef
 }
 
-/*
- * tw_pe_init: initialize individual PE structs
+/**
+ * initialize individual PE structs
+ *
+ * must be called after tw_nnodes / MPI world size is set.
  *
  */
 void
 tw_pe_init(void)
 {
-    if (g_tw_pe)
-		tw_error(TW_LOC, "PE %u already initialized", g_tw_mynode);
+    if (g_tw_pe) tw_error(TW_LOC, "PE %u already initialized", g_tw_mynode);
 
     g_tw_pe = (tw_pe*)tw_calloc(TW_LOC, "PE Struct", sizeof(*g_tw_pe), 1);
-	tw_petype no_type;
 
-	memset(&no_type, 0, sizeof(no_type));
+    g_tw_pe->id = g_tw_mynode;
 
-	g_tw_pe->id = g_tw_mynode;
-	tw_pe_settype(&no_type);
+    tw_petype no_type;
+    memset(&no_type, 0, sizeof(no_type));
+    tw_pe_settype(&no_type);
 
 #ifdef USE_RAND_TIEBREAKER
 	g_tw_pe->trans_msg_sig = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
@@ -49,6 +50,15 @@ tw_pe_init(void)
 
 	g_tw_pe->rng = tw_rand_init(31, 41);
 	g_tw_pe->core_rng = tw_rand_core_init(31, 41); // Core RNG must have same v & w values as main RNG
+
+    //If we're in (some variation of) optimistic mode, we need this hash
+    if (g_tw_synchronization_protocol == OPTIMISTIC ||
+        g_tw_synchronization_protocol == OPTIMISTIC_DEBUG ||
+        g_tw_synchronization_protocol == OPTIMISTIC_REALTIME) {
+        g_tw_pe->hash_t = tw_hash_create();
+    } else {
+        g_tw_pe->hash_t = NULL;
+    }
 
 }
 

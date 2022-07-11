@@ -31,7 +31,7 @@ void tw_event_send(tw_event * event) {
 #endif
 
      // moved from network-mpi.c in order to give all events a seq_num
-	event->event_id = (tw_eventid) ++send_pe->seq_num;
+     event->event_id = (tw_eventid) ++send_pe->seq_num;
 
     // call LP remote mapping function to get dest_pe
     dest_peid = (*src_lp->type->map) ((tw_lpid) event->dest_lp);
