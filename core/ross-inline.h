@@ -95,9 +95,9 @@ tw_event_new_user_prio(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender, tw_
   e->send_ts = tw_now(sender);
   e->critical_path = sender->critical_path + 1;
 
-  e->sig.priority = prio;
 
 #ifdef USE_RAND_TIEBREAKER
+  e->sig.priority = prio;
   tw_event *now_event = sender->kp->pe->cur_event;
   tw_stime u_rand_val = tw_rand_unif(sender->core_rng); //create a random number used to deterministically break event ties, this is rolled back in tw_event_rollback() during the sender LP cancel loop
   e->sig.recv_ts = recv_ts;
