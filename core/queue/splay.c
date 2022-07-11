@@ -27,6 +27,8 @@
 
 #include <ross.h>
 
+#define ROSS_WARN_TIE_COLLISION 1
+
 #define UP(t)		((t)->up)
 #define UPUP(t)		((t)->up->up)
 #define LEFT(t)		((t)->next)
@@ -92,6 +94,54 @@ static unsigned int tw_pq_compare_less_than( tw_event *n, tw_event *e )
 	}
     }
 }
+
+#ifdef USE_RAND_TIEBREAKER
+static unsigned int tw_pq_compare_less_than_rand(tw_event *n, tw_event *e)
+{
+	if (TW_STIME_CMP(KEY(n), KEY(e)) < 0)
+		return 1;
+    else if (TW_STIME_CMP(KEY(n), KEY(e)) > 0)
+		return 0;
+    else
+    {
+		if (TW_STIME_CMP(n->sig.priority, e->sig.priority) < 0)
+			return 1;
+		else if (TW_STIME_CMP(n->sig.priority, e->sig.priority) > 0)
+			return 0;
+		else {
+			int min_len = min_int(e->sig.tie_lineage_length, n->sig.tie_lineage_length);
+			for(int i = 0; i < min_len; i++)
+			{
+				if (e->sig.event_tiebreaker[i] < n->sig.event_tiebreaker[i])
+					return 0;
+				else if (e->sig.event_tiebreaker[i] > n->sig.event_tiebreaker[i])
+					return 1;
+			}
+			if (e->sig.tie_lineage_length == n->sig.tie_lineage_length) //total tie
+			{
+				if (n->event_id < e->event_id)
+					return 1;
+				else if (n->event_id > e->event_id)
+					return 0;
+				else {
+					if (ROSS_WARN_TIE_COLLISION)
+						printf("ROSS Splay Tree Warning: Identical Tiebreaker and Event IDs found - Implies RNG Collision\n");
+					if(n->send_pe < e->send_pe)
+						return 1;
+					else if (n->send_pe > e->send_pe)
+						return 0;
+					else
+						tw_error(TW_LOC,"Identical events found - impossible\n");
+				}
+			}
+			else if (e->sig.tie_lineage_length > n->sig.tie_lineage_length) //give priority to one with shorter lineage
+				return 1;
+			else
+				return 0;
+		}
+    }
+}
+#endif
 
 static void
 splay(tw_event * node)
@@ -207,8 +257,11 @@ tw_pq_enqueue(splay_tree *st, tw_event * e)
 	{
 		for (;;)
 		{
-//			if (KEY(n) <= KEY(e))
-		    if( tw_pq_compare_less_than( n, e ) )
+#ifdef USE_RAND_TIEBREAKER
+		    if( tw_pq_compare_less_than_rand( n, e ) )
+#else
+			if (tw_pq_compare_less_than( n, e) )
+#endif
 			{
 				if (RIGHT(n))
 					n = RIGHT(n);
@@ -346,6 +399,20 @@ tw_pq_minimum(splay_tree *pq)
 {
 	return ((pq->least ? pq->least->recv_ts : TW_STIME_MAX));
 }
+
+#ifdef USE_RAND_TIEBREAKER
+inline tw_event_sig
+tw_pq_minimum_sig(splay_tree *pq)
+{
+	return ((pq->least ? pq->least->sig : (tw_event_sig){TW_STIME_MAX,TW_STIME_MAX}));
+}
+
+inline tw_eventid
+tw_pq_minimum_get_event_id(splay_tree *pq)
+{
+	return((pq->least ? pq->least->event_id : UINT_MAX));
+}
+#endif
 
 unsigned int
 tw_pq_get_size(splay_tree *st)

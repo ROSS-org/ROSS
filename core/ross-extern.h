@@ -1,7 +1,7 @@
 #ifndef INC_ross_extern_h
 #define INC_ross_extern_h
 
-extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams);
+extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_streams);
 
 /*
  * tw-stats.c
@@ -17,14 +17,17 @@ extern map_local_f g_tw_custom_lp_global_to_local_map;
 extern map_custom_f g_tw_custom_initial_mapping;
 extern tw_lp_map g_tw_mapping;
 extern tw_lpid  g_tw_nlp;
+extern tw_lpid  g_tw_total_lps; //Total LPs in the simulation
 extern tw_lpid g_tw_lp_offset;
 extern tw_kpid  g_tw_nkp;
 extern tw_lp **g_tw_lp;
 extern tw_kp **g_tw_kp;
 extern int      g_tw_fossil_attempts;
 extern unsigned int g_tw_nRNG_per_lp;
+extern unsigned int g_tw_nRNG_core_per_lp; //Separate ROSS engine-only use RNG streams
 extern tw_lpid g_tw_rng_default;
 extern tw_seed g_tw_rng_seed;
+extern tw_seed g_tw_core_rng_seed;
 extern unsigned int g_tw_mblock;
 extern unsigned int g_tw_gvt_interval;
 extern unsigned long long g_tw_max_opt_lookahead;
@@ -84,6 +87,9 @@ extern unsigned long long g_tw_clock_rate;
  */
 extern void tw_event_send(tw_event * event);
 extern void tw_event_rollback(tw_event * event);
+#ifdef USE_RAND_TIEBREAKER
+extern int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig);
+#endif
 
 /*
  * ross-inline.h
@@ -116,6 +122,9 @@ extern void     tw_kp_put_back_output_buffer(tw_out *out);
 
 extern void tw_kp_rollback_event(tw_event *event);
 extern void tw_kp_rollback_to(tw_kp * kp, tw_stime to);
+#ifdef USE_RAND_TIEBREAKER
+extern void tw_kp_rollback_to_sig(tw_kp * kp, tw_event_sig to_sig);
+#endif
 
 /*
  * tw-pe.c

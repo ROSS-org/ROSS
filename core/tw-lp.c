@@ -231,7 +231,11 @@ tw_lp_suspend(tw_lp * lp, int do_orig_event_rc, int error_num )
 
   lp->suspend_flag=1;
   lp->suspend_event = lp->pe->cur_event; // only valid prior to GVT
+#ifdef USE_RAND_TIEBREAKER
+  lp->suspend_sig = tw_now_sig(lp);
+#else
   lp->suspend_time = tw_now(lp);
+#endif
   lp->suspend_error_number = error_num;
   lp->suspend_do_orig_event_rc = do_orig_event_rc;
 

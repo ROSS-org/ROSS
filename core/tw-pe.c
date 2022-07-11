@@ -41,11 +41,15 @@ tw_pe_init(void)
     memset(&no_type, 0, sizeof(no_type));
     tw_pe_settype(&no_type);
 
-    g_tw_pe->trans_msg_ts = DBL_MAX;
-    g_tw_pe->gvt_status = 0;
+#ifdef USE_RAND_TIEBREAKER
+	g_tw_pe->trans_msg_sig = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
+#else
+	g_tw_pe->trans_msg_ts = TW_STIME_MAX;
+#endif
+	g_tw_pe->gvt_status = 0;
 
-    // TODO is the PE RNG ever actually used?
-    g_tw_pe->rng = tw_rand_init(31, 41);
+	g_tw_pe->rng = tw_rand_init(31, 41);
+	g_tw_pe->core_rng = tw_rand_core_init(31, 41); // Core RNG must have same v & w values as main RNG
 
     //If we're in (some variation of) optimistic mode, we need this hash
     if (g_tw_synchronization_protocol == OPTIMISTIC ||

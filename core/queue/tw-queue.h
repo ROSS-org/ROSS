@@ -7,6 +7,9 @@ tw_pq *tw_pq_create(void);
 void tw_pq_enqueue(tw_pq *, tw_event *);
 tw_event *tw_pq_dequeue(tw_pq *);
 tw_stime tw_pq_minimum(tw_pq *);
+#ifdef USE_RAND_TIEBREAKER
+tw_event_sig tw_pq_minimum_sig(tw_pq *);
+#endif
 void tw_pq_delete_any(tw_pq *, tw_event *);
 unsigned int tw_pq_get_size(tw_pq *);
 unsigned int tw_pq_max_size(tw_pq *);
