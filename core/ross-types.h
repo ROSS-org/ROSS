@@ -20,6 +20,8 @@ typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
 typedef struct avlNode *AvlTree;
 
+#define MAX_TIE_CHAIN 100
+
 /**
  * Synchronization protocol used
  */
@@ -240,6 +242,46 @@ typedef struct tw_out {
     char message[256 - 2*sizeof(void *)];
 } tw_out;
 
+#ifdef USE_RAND_TIEBREAKER
+typedef struct tw_causal_origin {
+    tw_peid pe_id;
+    tw_eventid event_id;
+} tw_unique_event_id;
+
+static inline int tw_unique_event_id_eq(tw_unique_event_id e, tw_unique_event_id n)
+{
+    if (e.pe_id == n.pe_id)
+    {
+        if (e.event_id == n.event_id)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+
+typedef struct tw_event_sig {
+    tw_stime recv_ts;
+    tw_stime priority;
+    tw_stime event_tiebreaker[MAX_TIE_CHAIN];
+    unsigned int tie_lineage_length;
+} tw_event_sig;
+
+static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime priority, tw_stime event_tiebreaker)
+{
+    tw_event_sig e;
+    memset(&e, 0, sizeof(tw_event_sig));
+    e.recv_ts = recv_ts;
+    e.priority = priority;
+    for (size_t i = 0; i < MAX_TIE_CHAIN; i++) {
+        e.event_tiebreaker[i] = event_tiebreaker;
+    }
+    return e;
+}
+#endif
+
 /**
  * tw_event:
  * @brief Event Stucture
@@ -262,6 +304,10 @@ struct tw_event {
     tw_event *cause_next;           /**< @brief Next in parent's caused_by_me chain */
 
     tw_eventid   event_id;          /**< @brief Unique id assigned by src_lp->pe if remote. */
+
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig sig;
+#endif
 
     /** Status of the event's queue location(s). */
     struct {
@@ -315,6 +361,7 @@ struct tw_lp {
     void *cur_state; /**< @brief Current application LP data */
     tw_lptype  *type; /**< @brief Type of this LP, including service callbacks */
     tw_rng_stream *rng; /**< @brief  RNG stream array for this LP */
+    tw_rng_stream *core_rng; /**< @brief RNG stream array for ROSS non-model operation - possible alternative to a model_rng pointer array*/
 
     unsigned int critical_path; /**< @brief Critical path value for this LP */
 
@@ -325,7 +372,11 @@ struct tw_lp {
 
     /* tw_suspend variables */
     tw_event    *suspend_event;
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig suspend_sig;
+#else
     tw_stime     suspend_time;
+#endif
     unsigned int suspend_error_number;
     unsigned int suspend_do_orig_event_rc;
     unsigned int suspend_flag;
@@ -357,7 +408,11 @@ struct tw_kp {
 #endif
 
     tw_eventq pevent_q; /**< @brief Events processed by LPs bound to this KP */
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig last_sig; /**< @brief Event signature of the current event being processed */
+#else
     tw_stime last_time; /**< @brief Time of the current event being processed */
+#endif
     tw_stat s_nevent_processed; /**< @brief Number of events processed */
 
     long s_e_rbs; /**< @brief Number of events rolled back by this LP */
@@ -399,10 +454,17 @@ struct tw_pe {
     unsigned char cev_abort; /**< @brief Current event being processed must be aborted */
     unsigned char gvt_status; /**< @brief Bits available for gvt computation */
 
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig trans_msg_sig; /**< @brief Last transient messages' time signature */
+    tw_event_sig GVT_sig; /**< @brief Global Virtual Time Signature */
+    tw_event_sig GVT_prev_sig;
+    tw_event_sig LVT_sig; /**< @brief Local (to PE) Virtual Time Signature */
+#else
     tw_stime trans_msg_ts; /**< @brief Last transient messages' time stamp */
     tw_stime GVT; /**< @brief Global Virtual Time */
     tw_stime GVT_prev;
     tw_stime LVT; /**< @brief Local (to PE) Virtual Time */
+#endif
 
 #ifdef ROSS_GVT_mpi_allreduce
     long long s_nwhite_sent;
@@ -424,6 +486,48 @@ struct tw_pe {
 #endif
 
     tw_rng  *rng; /**< @brief Pointer to the random number generator on this PE */
+    tw_rng  *core_rng; /**< @brief Pointer to the core random number generator on this PE */
 };
+
+#ifdef USE_RAND_TIEBREAKER
+static inline int min_int(int x, int y)
+{
+  return (x < y) ? x : y;
+}
+
+//compares the 'new' event to the signature. If the new event is to occur
+//n_sig later (larger) than e_sig signature, return -1
+//n_sig before (smaller) than e_sig signature, return 1
+//at the signature - return 0
+static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
+{
+    int time_compare = TW_STIME_CMP(e_sig.recv_ts, n_sig.recv_ts);
+    if (time_compare != 0)
+        return time_compare;
+    else {
+        //then we compare the user defined priority first
+        int prio_compare = TW_STIME_CMP(e_sig.priority, n_sig.priority);
+        if (prio_compare != 0)
+            return prio_compare;
+        else {
+            //if tie with user pririty then we use tiebreaker
+            int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
+            for(int i = 0; i < min_len; i++) //lexicographical ordering
+            {
+                if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
+                    return -1;
+                else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
+                    return 1;
+            }
+            if (e_sig.tie_lineage_length == n_sig.tie_lineage_length) //total tie
+                return 0;
+            else if (e_sig.tie_lineage_length > n_sig.tie_lineage_length) //give priority to one with shorter lineage
+                return 1;
+            else
+                return -1;
+            }
+        }
+}
+#endif
 
 #endif

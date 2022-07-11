@@ -28,8 +28,14 @@ void st_buffer_allocate()
         rc = mkdir(g_st_stats_path, S_IRUSR | S_IWUSR | S_IXUSR);
         if (rc == -1)
         {
-            sprintf(stats_directory, "%s-%ld-%ld", g_st_stats_path, (long)getpid(), (long)time(NULL));
-            mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
+	  // this check gets rid of the GCC warning about trunciated string inputs
+	  if( snprintf(stats_directory, sizeof(stats_directory), "%s-%ld-%ld", g_st_stats_path, (long)getpid(), (long)time(NULL)) ==
+	      sizeof(stats_directory)  )
+	    {
+	      printf("Error in st_buffer_allocate: stats_directory name lacked sufficient space and was truncaited\n");
+	      exit(-1);
+	    }
+	  mkdir(stats_directory, S_IRUSR | S_IWUSR | S_IXUSR);
         }
         else
             sprintf(stats_directory, "%s", g_st_stats_path);
@@ -80,7 +86,13 @@ void st_buffer_init(int type)
     {
         if (!g_st_stats_out[0])
             sprintf(g_st_stats_out, "ross-stats");
-        sprintf(filename, "%s/%s-%s.bin", stats_directory, g_st_stats_out, file_suffix[type]);
+	// this check gets rid of the GCC warning about trunciated string inputs
+        if( snprintf(filename, sizeof(filename), "%s/%s-%s.bin", stats_directory, g_st_stats_out, file_suffix[type]) ==
+	    sizeof(filename))
+	  {
+	    printf("Error in st_buffer_init: filename lacked sufficient space and was truncaited\n");
+	    exit(-1);
+	  }
         if (g_tw_synchronization_protocol != SEQUENTIAL)
             MPI_File_open(MPI_COMM_ROSS, filename, MPI_MODE_CREATE | MPI_MODE_EXCL | MPI_MODE_WRONLY, MPI_INFO_NULL, &buffer_fh[type]);
         else if (strcmp(file_suffix[type], "evtrace") == 0 && g_tw_synchronization_protocol == SEQUENTIAL)

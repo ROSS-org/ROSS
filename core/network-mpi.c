@@ -152,7 +152,7 @@ tw_net_abort(void)
 
 void
 tw_net_stop(void)
-{
+{ 
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
         st_damaris_ross_finalize();
@@ -200,6 +200,31 @@ tw_net_minimum(void)
 
   return m;
 }
+
+#ifdef USE_RAND_TIEBREAKER
+tw_event_sig
+tw_net_minimum_sig(void)
+{  
+    tw_event_sig m = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
+    tw_event *e;
+    unsigned int i;
+
+    e = outq.head;
+    while (e) {
+      if (tw_event_sig_compare(m, e->sig) > 0)
+        m = e->sig;
+      e = e->next;
+    }
+
+    for (i = 0; i < posted_sends.cur; i++) {
+      e = posted_sends.event_list[i];
+      if (tw_event_sig_compare(m, e->sig) > 0)
+        m = e->sig;
+    }
+
+  return m;
+}
+#endif
 
 /**
  * @brief Calls MPI_Testsome on the provided queue, to check for finished operations.
@@ -351,14 +376,22 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   e->caused_by_me = NULL;
   e->cause_next = NULL;
 
+#ifdef USE_RAND_TIEBREAKER
+  if(tw_event_sig_compare(e->sig, me->GVT_sig) < 0)
+    tw_error(TW_LOC, "%d: Received straggler from %d: %lf < GVT%lf (%d)",
+	     me->id,  e->send_pe, e->sig.recv_ts, me->GVT_sig.recv_ts, e->state.cancel_q);
 
-
+  if(tw_gvt_inprogress(me)) {
+      me->trans_msg_sig = (tw_event_sig_compare(me->trans_msg_sig, e->sig) < 0) ? me->trans_msg_sig : e->sig;
+  }
+#else
   if(TW_STIME_CMP(e->recv_ts, me->GVT) < 0)
     tw_error(TW_LOC, "%d: Received straggler from %d: %lf (%d)",
 	     me->id,  e->send_pe, e->recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me))
       me->trans_msg_ts = (TW_STIME_CMP(me->trans_msg_ts, e->recv_ts) < 0) ? me->trans_msg_ts : e->recv_ts;
+#endif
 
   // if cancel event, retrieve and flush
   // else, store in hash table
@@ -397,7 +430,11 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
    * stateful models that produce incorrect results when presented with
    * duplicate messages with no rollback between them.
    */
+#ifdef USE_RAND_TIEBREAKER
+  if(me == dest_pe && tw_event_sig_compare(e->dest_lp->kp->last_sig, e->sig) <= 0 && !dest_pe->cancel_q) {
+#else
   if(me == dest_pe && TW_STIME_CMP(e->dest_lp->kp->last_time, e->recv_ts) <= 0 && !dest_pe->cancel_q) {
+#endif
     /* Fast case, we are sending to our own PE and
      * there is no rollback caused by this send.
      */

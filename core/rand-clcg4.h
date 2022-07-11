@@ -46,9 +46,10 @@ struct tw_rng_stream
 };
 
 extern tw_rng	*rng_init(int v, int w);
+extern tw_rng   *rng_core_init(int v, int w);
 extern void     rng_set_initial_seed();
-extern void     rng_init_generator(tw_rng_stream * g, SeedType Where);
-extern void     rng_set_seed(tw_rng_stream * g, uint32_t * s);
+extern void     rng_init_generator(tw_rng_stream * g, SeedType Where, tw_rng * the_rng);
+extern void     rng_set_seed(tw_rng_stream * g, uint32_t * s, tw_rng * the_rng);
 extern void     rng_get_state(tw_rng_stream * g, uint32_t * s);
 extern void     rng_write_state(tw_rng_stream * g, FILE *f);
 extern double   rng_gen_val(tw_rng_stream * g);

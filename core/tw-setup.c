@@ -13,6 +13,16 @@ static tw_pe *setup_pes(void);
 unsigned int nkp_per_pe = 16;
 static tw_clock init_start = 0;
 
+static int32_t ross_rng_seed1;
+static int32_t ross_rng_seed2;
+static int32_t ross_rng_seed3;
+static int32_t ross_rng_seed4;
+
+static int32_t ross_core_rng_seed1;
+static int32_t ross_core_rng_seed2;
+static int32_t ross_core_rng_seed3;
+static int32_t ross_core_rng_seed4;
+
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
     TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
@@ -27,6 +37,14 @@ static const tw_optdef kernel_options[] = {
 #ifdef AVL_TREE
     TWOPT_UINT("avl-size", g_tw_avl_node_count, "AVL Tree contains 2^avl-size nodes"),
 #endif
+    TWOPT_UINT("rng-seed1",ross_rng_seed1, "ROSS RNG Seed 1 of 4"),
+    TWOPT_UINT("rng-seed2",ross_rng_seed2, "ROSS RNG Seed 2 of 4"),
+    TWOPT_UINT("rng-seed3",ross_rng_seed3, "ROSS RNG Seed 3 of 4"),
+    TWOPT_UINT("rng-seed4",ross_rng_seed4, "ROSS RNG Seed 4 of 4"),
+    TWOPT_UINT("core-rng-seed1",ross_core_rng_seed1, "ROSS Core RNG Seed 1 of 4"),
+    TWOPT_UINT("core-rng-seed2",ross_core_rng_seed2, "ROSS Core RNG Seed 2 of 4"),
+    TWOPT_UINT("core-rng-seed3",ross_core_rng_seed3, "ROSS Core RNG Seed 3 of 4"),
+    TWOPT_UINT("core-rng-seed4",ross_core_rng_seed4, "ROSS Core RNG Seed 4 of 4"),
     TWOPT_END()
 };
 
@@ -109,6 +127,32 @@ void tw_init(int *argc, char ***argv) {
             fprintf(g_tw_csv, "\n");
         }
     }
+
+    if(ross_rng_seed1 && ross_rng_seed2 && ross_rng_seed3 && ross_rng_seed4)
+    {
+        if (!g_tw_mynode)
+            printf("RNG Seeds: %d %d %d %d\n",ross_rng_seed1, ross_rng_seed2, ross_rng_seed3, ross_rng_seed4);
+        g_tw_rng_seed = (int32_t*)calloc(4, sizeof(int32_t));
+        g_tw_rng_seed[0] = ross_rng_seed1;
+        g_tw_rng_seed[1] = ross_rng_seed2;
+        g_tw_rng_seed[2] = ross_rng_seed3;
+        g_tw_rng_seed[3] = ross_rng_seed4;
+    }
+    else if(ross_rng_seed1 || ross_rng_seed2 || ross_rng_seed3 || ross_rng_seed4)
+        tw_error(TW_LOC, "If using --rng-seed#, all four seeds must be specified\n");
+
+    if(ross_core_rng_seed1 && ross_core_rng_seed2 && ross_core_rng_seed3 && ross_core_rng_seed4)
+    {
+        if (!g_tw_mynode)
+            printf("Core RNG Seeds: %d %d %d %d\n",ross_core_rng_seed1, ross_core_rng_seed2, ross_core_rng_seed3, ross_core_rng_seed4);
+        g_tw_core_rng_seed = (int32_t*)calloc(4, sizeof(int32_t));
+        g_tw_core_rng_seed[0] = ross_core_rng_seed1;
+        g_tw_core_rng_seed[1] = ross_core_rng_seed2;
+        g_tw_core_rng_seed[2] = ross_core_rng_seed3;
+        g_tw_core_rng_seed[3] = ross_core_rng_seed4;
+    }
+    else if(ross_core_rng_seed1 || ross_core_rng_seed2 || ross_core_rng_seed3 || ross_core_rng_seed4)
+        tw_error(TW_LOC, "If using --core-rng-seed#, all four seeds must be specified\n");
 
     //tw_opt_print();
 
@@ -220,6 +264,12 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
 
     g_tw_nlp = nlp;
 
+    /** We can't assume that every model uses equivalent values for g_tw_nlp across PEs
+     *  so let's allreduce here to calculate how many total LPs there are in the sim.
+     */
+    if(MPI_Allreduce(&g_tw_nlp, &g_tw_total_lps, 1, MPI_UINT64_T, MPI_SUM, MPI_COMM_ROSS))
+        tw_error(TW_LOC,"MPI_Allreduce in tw_define_lps() failed: Attempted to calculate total LPs");
+
     g_tw_msg_sz = msg_sz;
 
     early_sanity_check();
@@ -270,7 +320,7 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
     // init LP RNG stream(s)
     for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
         if(g_tw_rng_default == 1) {
-            tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp);
+            tw_rand_init_streams(g_tw_lp[i], g_tw_nRNG_per_lp, g_tw_nRNG_core_per_lp);
         }
     }
 
@@ -485,10 +535,9 @@ static tw_pe * setup_pes(void) {
         printf("\t%-50s [Nodes (%u) x KPs (%lu)] %lu\n", "Total KPs", tw_nnodes(), g_tw_nkp, (tw_nnodes() * g_tw_nkp));
         fprintf(g_tw_csv, "%lu,", (tw_nnodes() * g_tw_nkp));
 
-        // TODO need to do an allreduce call to get actual total number of LPs (e.g., for CODES)
         printf("\t%-50s %11llu\n", "Total LPs",
-	       ((unsigned long long)tw_nnodes() * g_tw_nlp));
-        fprintf(g_tw_csv, "%llu,", ((unsigned long long)tw_nnodes() * g_tw_nlp));
+	       g_tw_total_lps);
+        fprintf(g_tw_csv, "%llu,", g_tw_total_lps);
 
         printf("\t%-50s %11.2lf\n", "Simulation End Time", g_tw_ts_end);
         fprintf(g_tw_csv, "%.2lf,", g_tw_ts_end);
