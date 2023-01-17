@@ -11,7 +11,7 @@ extern const tw_optdef *tw_gvt_setup(void);
 /* start the GVT library (init vars, etc) */
 extern void tw_gvt_start(void);
 
-/* 
+/*
  * GVT computation is broken into two stages:
  * stage 1: determine if GVT computation should be started
  * stage 2: compute GVT
@@ -21,7 +21,7 @@ extern void tw_gvt_step1_realtime(tw_pe *);
 extern void tw_gvt_step2(tw_pe *);
 
 /*
- * Provide a mechanism to force a GVT computation outside of the 
+ * Provide a mechanism to force a GVT computation outside of the
  * GVT interval (optional)
  */
 extern void tw_gvt_force_update(void);
@@ -35,4 +35,7 @@ static inline int  tw_gvt_inprogress(tw_pe * pe);
 
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);
+
+/* Function to be injected/executed at every GVT */
+extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe);
 #endif

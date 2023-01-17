@@ -8,6 +8,7 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
+void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe) = NULL;
 
 static const tw_optdef gvt_opts [] =
 {
@@ -255,6 +256,10 @@ tw_gvt_step2(tw_pe *me)
 
 	g_tw_gvt_done++;
 
+    if (g_tw_gvt_arbitrary_fun) {
+        g_tw_gvt_arbitrary_fun(me);
+    }
+
 	// reset for the next gvt round -- for use in realtime GVT mode only!!
 	g_tw_gvt_interval_start_cycles = tw_clock_read();
  }
@@ -399,6 +404,10 @@ tw_gvt_step2(tw_pe *me)
     // done with instrumentation related stuff
 
 	g_tw_gvt_done++;
+
+    if (g_tw_gvt_arbitrary_fun) {
+        g_tw_gvt_arbitrary_fun(me);
+    }
 
 	// reset for the next gvt round -- for use in realtime GVT mode only!!
 	g_tw_gvt_interval_start_cycles = tw_clock_read();
