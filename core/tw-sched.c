@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <stdbool.h>
 
 /**
  * \brief Reset the event bitfield prior to entering the event handler
@@ -18,7 +19,7 @@ static inline void reset_bitfields(tw_event *revent)
  * the priority queue so they can be processed in time stamp
  * order.
  */
-static void tw_sched_event_q(tw_pe * me) {
+void tw_sched_event_q(tw_pe * me) {
     tw_clock     start;
     tw_kp       *dest_kp;
     tw_event    *cev;
@@ -85,7 +86,7 @@ static void tw_sched_event_q(tw_pe * me) {
  *      that when we rollback the 1st event, we should not
  *  need to do any further rollbacks.
  */
-static void tw_sched_cancel_q(tw_pe * me) {
+void tw_sched_cancel_q(tw_pe * me) {
     tw_clock     start=0, pq_start;
     tw_event    *cev;
     tw_event    *nev;
@@ -492,7 +493,21 @@ void tw_scheduler_sequential(tw_pe * me) {
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
 
-    while ((cev = tw_pq_dequeue(me->pq))) {
+    while (1) {
+        // Checking whether we have set up a function to be triggered in the middle of an execution
+        if (g_tw_gvt_arbitrary_fun
+            && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+            && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0
+            ) {
+            g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
+            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
+                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            }
+        }
+
+        cev = tw_pq_dequeue(me->pq);
+        if (!cev) { break; }  // Stop simulation, if there are no new events
         tw_lp *clp = cev->dest_lp;
         tw_kp *ckp = clp->kp;
 
@@ -713,7 +728,25 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_gvt_step1(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
+        if (gvt_triggered && g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled) {
+            // checking if the trigger has been activated on all PEs. If true, indicate so
+            bool const activate_trigger = tw_event_sig_compare(tw_pq_minimum_sig(me->pq), g_tw_trigger_arbitrary_fun.sig_at) >= 0;
+            bool global_triggered;
+            if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
+                tw_error(TW_LOC, "MPI_Allreduce for custom rollback and cleanup failed");
+            }
+            if (global_triggered) {
+                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+            }
+            // Calling arbitrary function
+            g_tw_gvt_arbitrary_fun(me, me->GVT_sig);
+            // Reverting arbitrary function back to normalcy
+            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
+                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            }
+        }
 
 #ifdef USE_RAND_TIEBREAKER
         if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)

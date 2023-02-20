@@ -1,4 +1,5 @@
 #include <ross.h>
+#include <assert.h>
 
 #define TW_GVT_NORMAL 0
 #define TW_GVT_COMPUTE 1
@@ -8,7 +9,9 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe) = NULL;
+void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_event_sig gvt) = NULL;
+// Holds one timestamp at which to trigger the arbitrary function
+struct trigger_arbitrary_fun g_tw_trigger_arbitrary_fun = {.active = ARBITRARY_FUN_disabled};
 
 static const tw_optdef gvt_opts [] =
 {
@@ -70,13 +73,27 @@ void
 tw_gvt_step1(tw_pe *me)
 {
 	// printf("%d\n",g_tw_max_opt_lookahead);
-	if(me->gvt_status == TW_GVT_COMPUTE ||
+	if (me->gvt_status == TW_GVT_COMPUTE) {
+        return;
+    }
+    int const still_within_interval = ++gvt_cnt < g_tw_gvt_interval;
 #ifdef USE_RAND_TIEBREAKER
-           (++gvt_cnt < g_tw_gvt_interval && (TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)))
+    int const not_past_lookahead = TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead;
 #else
-           (++gvt_cnt < g_tw_gvt_interval && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
+    int const not_past_lookahead = TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead;
 #endif
-		return;
+    int const not_past_arbitrary_fun_activation =
+           g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled
+        || tw_event_sig_compare(tw_pq_minimum_sig(me->pq), g_tw_trigger_arbitrary_fun.sig_at) < 0;
+
+    if (still_within_interval && not_past_lookahead && not_past_arbitrary_fun_activation) {
+        return;
+    }
+
+    //if (!arbitrary_fun_not_activated) {
+    //    assert(g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled);
+    //    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+    //}
 
 	me->gvt_status = TW_GVT_COMPUTE;
 }
@@ -89,10 +106,12 @@ tw_gvt_step1_realtime(tw_pe *me)
   if( (me->gvt_status == TW_GVT_COMPUTE) ||
       ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
 #ifdef USE_RAND_TIEBREAKER
-          && (TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)))
+          && (TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)
+          && (!g_tw_trigger_arbitrary_fun.active || TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) < TW_STIME_DBL(g_tw_trigger_arbitrary_fun.sig_at.recv_ts))
 #else
-          && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)))
+          && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)
 #endif
+    ))
     {
       /* if( me->id == 0 ) */
       /* 	{ */
@@ -112,6 +131,9 @@ tw_gvt_step1_realtime(tw_pe *me)
 void
 tw_gvt_step2(tw_pe *me)
 {
+	if(me->gvt_status != TW_GVT_COMPUTE)
+		return;
+
 	long long local_white = 0;
 	long long total_white = 0;
 
@@ -124,8 +146,6 @@ tw_gvt_step2(tw_pe *me)
     tw_clock net_start;
 	tw_clock start = tw_clock_read();
 
-	if(me->gvt_status != TW_GVT_COMPUTE)
-		return;
 	while(1)
 	  {
         net_start = tw_clock_read();
@@ -171,7 +191,6 @@ tw_gvt_step2(tw_pe *me)
 		MPI_MIN,
 		MPI_COMM_ROSS) != MPI_SUCCESS)
 		tw_error(TW_LOC, "MPI_Allreduce for GVT event signatures failed");
-
 
 	if(tw_event_sig_compare(gvt_sig, me->GVT_prev_sig) < 0)
 	{
@@ -256,10 +275,6 @@ tw_gvt_step2(tw_pe *me)
 
 	g_tw_gvt_done++;
 
-    if (g_tw_gvt_arbitrary_fun) {
-        g_tw_gvt_arbitrary_fun(me);
-    }
-
 	// reset for the next gvt round -- for use in realtime GVT mode only!!
 	g_tw_gvt_interval_start_cycles = tw_clock_read();
  }
@@ -322,6 +337,11 @@ tw_gvt_step2(tw_pe *me)
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
+
+    // in case the trigger time has been reached, switch it off
+    if(g_tw_trigger_arbitrary_fun.active && TW_STIME_CMP(gvt, g_tw_trigger_arbitrary_fun.at) > 0) {
+        g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+    }
 
 	if(TW_STIME_CMP(gvt, me->GVT_prev) < 0)
 	{
@@ -405,11 +425,22 @@ tw_gvt_step2(tw_pe *me)
 
 	g_tw_gvt_done++;
 
-    if (g_tw_gvt_arbitrary_fun) {
-        g_tw_gvt_arbitrary_fun(me);
-    }
-
 	// reset for the next gvt round -- for use in realtime GVT mode only!!
 	g_tw_gvt_interval_start_cycles = tw_clock_read();
  }
 #endif
+
+
+void tw_trigger_arbitrary_fun_at(tw_event_sig time) {
+    // TODO(elkin): This does not represent the current time for a sequential execution; the value
+    // never changes under sequential, thus, no warning will be triggered. Find a better alternative
+    tw_event_sig now = g_tw_pe->GVT_sig;
+
+    if (tw_event_sig_compare(now, time) >= 0) {
+        tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
+    }
+
+    g_tw_trigger_arbitrary_fun.sig_at = time;
+    //g_tw_trigger_arbitrary_fun.at = time;
+    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_enabled;
+}

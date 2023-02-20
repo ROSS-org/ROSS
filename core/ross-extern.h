@@ -151,6 +151,8 @@ extern void tw_scheduler_conservative(tw_pe * me);
 extern void tw_scheduler_optimistic(tw_pe * me);
 extern void tw_scheduler_optimistic_debug(tw_pe * me);
 extern void tw_scheduler_optimistic_realtime(tw_pe * me);
+extern void tw_sched_event_q(tw_pe * me);
+extern void tw_sched_cancel_q(tw_pe * me);
 
 /*
  * tw-state.c
