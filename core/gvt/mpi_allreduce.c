@@ -76,6 +76,7 @@ tw_gvt_step1(tw_pe *me)
 	if (me->gvt_status == TW_GVT_COMPUTE) {
         return;
     }
+
     int const still_within_interval = ++gvt_cnt < g_tw_gvt_interval;
 #ifdef USE_RAND_TIEBREAKER
     int const not_past_lookahead = TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead;
@@ -89,11 +90,6 @@ tw_gvt_step1(tw_pe *me)
     if (still_within_interval && not_past_lookahead && not_past_arbitrary_fun_activation) {
         return;
     }
-
-    //if (!arbitrary_fun_not_activated) {
-    //    assert(g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled);
-    //    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
-    //}
 
 	me->gvt_status = TW_GVT_COMPUTE;
 }
