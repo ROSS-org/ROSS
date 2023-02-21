@@ -732,9 +732,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_gvt_step2(me);
         if (gvt_triggered && g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled) {
             // checking if the trigger has been activated on all PEs. If true, indicate so
-            bool const activate_trigger = tw_event_sig_compare(tw_pq_minimum_sig(me->pq), g_tw_trigger_arbitrary_fun.sig_at) >= 0
-                && tw_event_sig_compare(tw_net_minimum_sig(), g_tw_trigger_arbitrary_fun.sig_at) >= 0
-                && tw_event_sig_compare(me->GVT_sig, g_tw_trigger_arbitrary_fun.sig_at) >= 0;
+            bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_arbitrary_fun.sig_at) >= 0;
             bool global_triggered;
             if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
                 tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
