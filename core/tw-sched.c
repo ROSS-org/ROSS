@@ -497,7 +497,8 @@ void tw_scheduler_sequential(tw_pe * me) {
         // Checking whether we have set up a function to be triggered in the middle of an execution
         if (g_tw_gvt_arbitrary_fun
             && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-            && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0
+            && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0  // the next event is ahead of our next function trigger
+            && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
             ) {
             g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
             g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
