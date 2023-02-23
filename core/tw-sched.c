@@ -187,6 +187,12 @@ static void tw_sched_batch(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
+        if (g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+                && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0) {
+            tw_gvt_force_update();
+            break;
+        }
+
         start = tw_clock_read();
         if (!(cev = tw_pq_dequeue(me->pq))) {
             break;
