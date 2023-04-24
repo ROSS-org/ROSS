@@ -1,4 +1,4 @@
-prefix = @CMAKE_INSTALL_PREFIX@
+prefix = @CMAKE_INSTALL_PREFIX_ESCAPED@
 
 ross_cflags=-I${prefix}/include
 ross_ldflags=-L${prefix}/lib -Wl,-rpath,${prefix}/lib

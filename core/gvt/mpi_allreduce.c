@@ -9,7 +9,11 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
+#ifdef USE_RAND_TIEBREAKER
 void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_event_sig gvt) = NULL;
+#else
+void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_stime gvt) = NULL;
+#endif
 // Holds one timestamp at which to trigger the arbitrary function
 struct trigger_arbitrary_fun g_tw_trigger_arbitrary_fun = {.active = ARBITRARY_FUN_disabled};
 
@@ -85,7 +89,11 @@ tw_gvt_step1(tw_pe *me)
 #endif
     int const not_past_arbitrary_fun_activation =
            g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled
+#ifdef USE_RAND_TIEBREAKER
         || tw_event_sig_compare(tw_pq_minimum_sig(me->pq), g_tw_trigger_arbitrary_fun.sig_at) < 0;
+#else
+        || tw_pq_minimum(me->pq) < g_tw_trigger_arbitrary_fun.at;
+#endif
 
     if (still_within_interval && not_past_lookahead && not_past_arbitrary_fun_activation) {
         return;
@@ -427,6 +435,7 @@ tw_gvt_step2(tw_pe *me)
 #endif
 
 
+#ifdef USE_RAND_TIEBREAKER
 void tw_trigger_arbitrary_fun_at(tw_event_sig time) {
     // TODO(elkin): This does not represent the current time for a sequential execution; the value
     // never changes under sequential, thus, no warning will be triggered. Find a better alternative
@@ -440,3 +449,18 @@ void tw_trigger_arbitrary_fun_at(tw_event_sig time) {
     //g_tw_trigger_arbitrary_fun.at = time;
     g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_enabled;
 }
+#else
+void tw_trigger_arbitrary_fun_at(tw_stime time) {
+    // TODO(elkin): This does not represent the current time for a sequential execution; the value
+    // never changes under sequential, thus, no warning will be triggered. Find a better alternative
+    tw_stime now = g_tw_pe->GVT;
+
+    if (now >= time) {
+        tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
+    }
+
+    g_tw_trigger_arbitrary_fun.at = time;
+    //g_tw_trigger_arbitrary_fun.at = time;
+    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_enabled;
+}
+#endif

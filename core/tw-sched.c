@@ -188,7 +188,11 @@ static void tw_sched_batch(tw_pe * me) {
         no_free_event_buffers = 0;
 
         if (g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+#ifdef USE_RAND_TIEBREAKER
                 && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0) {
+#else
+                && g_tw_trigger_arbitrary_fun.at <= tw_pq_minimum(me->pq)) {
+#endif
             tw_gvt_force_update();
             break;
         }
@@ -503,11 +507,19 @@ void tw_scheduler_sequential(tw_pe * me) {
         // Checking whether we have set up a function to be triggered in the middle of an execution
         if (g_tw_gvt_arbitrary_fun
             && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+#ifdef USE_RAND_TIEBREAKER
             && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0  // the next event is ahead of our next function trigger
+#else
+            && g_tw_trigger_arbitrary_fun.at <= tw_pq_minimum(me->pq)  // the next event is ahead of our next function trigger
+#endif
             && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
             ) {
             g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+#ifdef USE_RAND_TIEBREAKER
             g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
+#else
+            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.at);
+#endif
             if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
                 g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
             }
@@ -739,7 +751,11 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_gvt_step2(me);
         if (gvt_triggered && g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled) {
             // checking if the trigger has been activated on all PEs. If true, indicate so
+#ifdef USE_RAND_TIEBREAKER
             bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_arbitrary_fun.sig_at) >= 0;
+#else
+            bool const activate_trigger = me->GVT >= g_tw_trigger_arbitrary_fun.at;
+#endif
             bool global_triggered;
             if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
                 tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
@@ -748,7 +764,11 @@ void tw_scheduler_optimistic(tw_pe * me) {
                 g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
             }
             // Calling arbitrary function
+#ifdef USE_RAND_TIEBREAKER
             g_tw_gvt_arbitrary_fun(me, me->GVT_sig);
+#else
+            g_tw_gvt_arbitrary_fun(me, me->GVT);
+#endif
             // Reverting arbitrary function back to normalcy
             if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
                 g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
