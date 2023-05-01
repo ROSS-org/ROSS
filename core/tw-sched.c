@@ -14,6 +14,19 @@ static inline void reset_bitfields(tw_event *revent)
     memset(&revent->cv, 0, sizeof(revent->cv));
 }
 
+// To be used in `tw_sched_event_q`, `tw_scheduler_sequential`, `tw_sched_batch`, `tw_scheduler_optimistic`, and `tw_scheduler_optimistic_realtime`
+#ifdef USE_RAND_TIEBREAKER
+#define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare(kp->last_sig, e->sig)
+#define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(pe->pq))
+#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, e->sig)
+#define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
+#else
+#define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
+#define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_arbitrary_fun.at - tw_pq_minimum(pe->pq))
+#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
+#define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT)
+#endif
+
 /**
  * Get all events out of my event queue and spin them out into
  * the priority queue so they can be processed in time stamp
@@ -44,31 +57,17 @@ void tw_sched_event_q(tw_pe * me) {
                 case TW_pe_event_q:
                     dest_kp = cev->dest_lp->kp;
 
-#ifdef USE_RAND_TIEBREAKER
-                    if (tw_event_sig_compare(dest_kp->last_sig, cev->sig) > 0) {
+                    if (CMP_KP_TO_EVENT_TIME(dest_kp, cev) > 0) {
                         /* cev is a straggler message which has arrived
                         * after we processed events occuring after it.
                         * We need to jump back to before cev's timestamp.
                         */
                         start = tw_clock_read();
-                        tw_kp_rollback_to_sig(dest_kp, cev->sig);
+                        TRIGGER_ROLLBACK_TO_EVENT_TIME(dest_kp, cev);
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
                            st_collect_event_data(cev, (double)start / g_tw_clock_rate);
                     }
-#else
-                    if (TW_STIME_CMP(dest_kp->last_time, cev->recv_ts) > 0) {
-                        /* cev is a straggler message which has arrived
-                        * after we processed events occuring after it.
-                        * We need to jump back to before cev's timestamp.
-                        */
-                        start = tw_clock_read();
-                        tw_kp_rollback_to(dest_kp, cev->recv_ts);
-                        me->stats.s_rollback += tw_clock_read() - start;
-                        if (g_st_ev_trace == RB_TRACE)
-                           st_collect_event_data(cev, (double)start / g_tw_clock_rate);
-                    }
-#endif
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
                     me->stats.s_pq += tw_clock_read() - start;
@@ -187,12 +186,10 @@ static void tw_sched_batch(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
-        if (g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-#ifdef USE_RAND_TIEBREAKER
-                && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0) {
-#else
-                && g_tw_trigger_arbitrary_fun.at <= tw_pq_minimum(me->pq)) {
-#endif
+        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the arbitrary function
+        if (g_tw_gvt_arbitrary_fun
+                && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+                && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0) {
             tw_gvt_force_update();
             break;
         }
@@ -507,11 +504,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         // Checking whether we have set up a function to be triggered in the middle of an execution
         if (g_tw_gvt_arbitrary_fun
             && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-#ifdef USE_RAND_TIEBREAKER
-            && tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(me->pq)) <= 0  // the next event is ahead of our next function trigger
-#else
-            && g_tw_trigger_arbitrary_fun.at <= tw_pq_minimum(me->pq)  // the next event is ahead of our next function trigger
-#endif
+            && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
             && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
             ) {
             g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
@@ -775,13 +768,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
             }
         }
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
+        if (STIME_FROM_PE(me) > g_tw_ts_end)
             break;
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-            break;
-#endif
 
         tw_sched_batch(me);
     }
@@ -830,13 +818,8 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
         tw_sched_cancel_q(me);
         tw_gvt_step2(me); // use regular step2 at this point
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
+        if (STIME_FROM_PE(me) > g_tw_ts_end)
             break;
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-            break;
-#endif
 
         tw_sched_batch_realtime(me);
     }

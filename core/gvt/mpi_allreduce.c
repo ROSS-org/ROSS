@@ -73,29 +73,26 @@ tw_gvt_stats(FILE * f)
 			(double) ((double) all_reduce_cnt / (double) g_tw_gvt_done));
 }
 
+// To use in `tw_gvt_step1` and `tw_gvt_step1_realtime`
+#ifdef USE_RAND_TIEBREAKER
+#define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum_sig(pe->pq).recv_ts) - TW_STIME_DBL(pe->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)
+#define NOT_PAST_ARBITRARY_FUN_ACTIVATION(pe) (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled \
+        || tw_event_sig_compare(tw_pq_minimum_sig(pe->pq), g_tw_trigger_arbitrary_fun.sig_at) < 0)
+#else
+#define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
+#define NOT_PAST_ARBITRARY_FUN_ACTIVATION(pe) (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled \
+        || tw_pq_minimum(me->pq) < g_tw_trigger_arbitrary_fun.at)
+#endif
+
 void
 tw_gvt_step1(tw_pe *me)
 {
-	// printf("%d\n",g_tw_max_opt_lookahead);
 	if (me->gvt_status == TW_GVT_COMPUTE) {
         return;
     }
 
     int const still_within_interval = ++gvt_cnt < g_tw_gvt_interval;
-#ifdef USE_RAND_TIEBREAKER
-    int const not_past_lookahead = TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead;
-#else
-    int const not_past_lookahead = TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead;
-#endif
-    int const not_past_arbitrary_fun_activation =
-           g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled
-#ifdef USE_RAND_TIEBREAKER
-        || tw_event_sig_compare(tw_pq_minimum_sig(me->pq), g_tw_trigger_arbitrary_fun.sig_at) < 0;
-#else
-        || tw_pq_minimum(me->pq) < g_tw_trigger_arbitrary_fun.at;
-#endif
-
-    if (still_within_interval && not_past_lookahead && not_past_arbitrary_fun_activation) {
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_ARBITRARY_FUN_ACTIVATION(me)) {
         return;
     }
 
@@ -105,29 +102,15 @@ tw_gvt_step1(tw_pe *me)
 void
 tw_gvt_step1_realtime(tw_pe *me)
 {
-  unsigned long long current_rt;
-
-  if( (me->gvt_status == TW_GVT_COMPUTE) ||
-      ( ((current_rt = tw_clock_read()) - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval)
-#ifdef USE_RAND_TIEBREAKER
-          && (TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) - TW_STIME_DBL(me->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)
-          && (!g_tw_trigger_arbitrary_fun.active || TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) < TW_STIME_DBL(g_tw_trigger_arbitrary_fun.sig_at.recv_ts))
-#else
-          && (TW_STIME_DBL(tw_pq_minimum(me->pq)) - TW_STIME_DBL(me->GVT) < g_tw_max_opt_lookahead)
-#endif
-    ))
-    {
-      /* if( me->id == 0 ) */
-      /* 	{ */
-      /* 	  printf("GVT Step 1 RT Rank %ld: found start_cycles at %llu, rt interval at %llu, current time at %llu \n", */
-      /* 		 me->id, g_tw_gvt_interval_start_cycles, g_tw_gvt_realtime_interval, current_rt); */
-
-      /* 	} */
-
-    return;
+	if (me->gvt_status == TW_GVT_COMPUTE) {
+        return;
+    }
+    int const still_within_interval = tw_clock_read() - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval;
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_ARBITRARY_FUN_ACTIVATION(me)) {
+        return;
     }
 
-  me->gvt_status = TW_GVT_COMPUTE;
+    me->gvt_status = TW_GVT_COMPUTE;
 }
 
 #ifdef USE_RAND_TIEBREAKER
@@ -341,11 +324,6 @@ tw_gvt_step2(tw_pe *me)
 			MPI_MIN,
 			MPI_COMM_ROSS) != MPI_SUCCESS)
 			tw_error(TW_LOC, "MPI_Allreduce for GVT failed");
-
-    // in case the trigger time has been reached, switch it off
-    if(g_tw_trigger_arbitrary_fun.active && TW_STIME_CMP(gvt, g_tw_trigger_arbitrary_fun.at) > 0) {
-        g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
-    }
 
 	if(TW_STIME_CMP(gvt, me->GVT_prev) < 0)
 	{

@@ -36,18 +36,15 @@ static inline int  tw_gvt_inprogress(tw_pe * pe);
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);
 
-/* Function to be injected/executed at every GVT */
 #ifdef USE_RAND_TIEBREAKER
+/* Function to be injected/executed at every GVT */
 extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_event_sig gvt);
-#else
-extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_stime gvt);
-#endif
 /* Force call of arbitrary GVT function `g_tw_gvt_arbitrary_fun` even when on Sequential mode.
  * This function should only be called before any event is process, or after a GVT step, but
  * it's behaviour is undefined if called anywhere else, specially during an event call. */
-#ifdef USE_RAND_TIEBREAKER
 void tw_trigger_arbitrary_fun_at(tw_event_sig time);
 #else
+extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_stime gvt);
 void tw_trigger_arbitrary_fun_at(tw_stime time);
 #endif
 
