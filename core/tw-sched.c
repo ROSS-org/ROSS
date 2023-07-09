@@ -501,6 +501,9 @@ void tw_scheduler_sequential(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
     while (1) {
+        // This is only needed because the arbitrary function might shift events past the end of the simulation time. It should cancel such events, but it doesn't
+        if (tw_pq_minimum_sig(me->pq).recv_ts > g_tw_ts_end) { break; }  // Stop simulation if event scheduled past the end of time
+
         // Checking whether we have set up a function to be triggered in the middle of an execution
         if (g_tw_gvt_arbitrary_fun
             && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
