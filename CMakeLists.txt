@@ -156,6 +156,12 @@ ELSE(MPI_C_FOUND)
         MESSAGE("         Or force CMake to build using the correct compiler (`export CC=mpicc`)")
 ENDIF(MPI_C_FOUND)
 
+# Prevent forward events from overtaking cancel events
+OPTION(PRIORITIZE_CANCEL_EVENTS "Disable second forward event from overtaking the cancel event?" OFF)
+IF(PRIORITIZE_CANCEL_EVENTS)
+  ADD_DEFINITIONS(-DPRIORITIZE_CANCEL_EVENTS=1)
+ENDIF(PRIORITIZE_CANCEL_EVENTS)
+
 # ROSS Core code
 ADD_SUBDIRECTORY(core)
 
