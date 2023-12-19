@@ -545,7 +545,9 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        tw_clock const event_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        clp->lp_stats->s_process_event = tw_clock_read() - event_start;
         if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
         if (*clp->type->commit) {
@@ -578,6 +580,7 @@ void tw_scheduler_sequential(tw_pe * me) {
     printf("*** END SIMULATION ***\n\n");
 
     tw_stats(me);
+    tw_all_lp_stats(me);
 
     (*me->type.final)(me);
 }

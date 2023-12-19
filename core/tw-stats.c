@@ -242,3 +242,16 @@ tw_stats(tw_pe *me)
         st_print_analysis_LP_stats(&s);
 #endif
 }
+
+void
+tw_all_lp_stats(tw_pe *me)
+{
+	printf("\nTime spent processing events for each LP:\n");
+
+    for(unsigned int i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
+    {
+        tw_lp *lp = tw_getlp(i);
+	    printf("LPID: %lu  -  Processing time: %e\n", lp->gid, (double) lp->lp_stats->s_process_event / g_tw_clock_rate);
+    }
+
+}
