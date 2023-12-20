@@ -156,7 +156,7 @@ static void tw_sched_batch(tw_pe * me) {
     static int warned_no_free_event_buffers = 0;
     const int max_alloc_fail_count = 20;
 
-    tw_clock     start, pq_start;
+    tw_clock     start, end, pq_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -230,10 +230,8 @@ static void tw_sched_batch(tw_pe * me) {
         // state-save and update the LP's critical path
         unsigned int prev_cp = clp->critical_path;
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
-	    tw_clock const event_start = tw_clock_read();
 	    (*clp->type->event)(clp->cur_state, &cev->cv,
 				tw_event_data(cev), clp);
-	    clp->lp_stats->s_process_event += tw_clock_read() - event_start;
         if (g_st_ev_trace == FULL_TRACE)
             st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         cev->critical_path = prev_cp;
@@ -242,7 +240,9 @@ static void tw_sched_batch(tw_pe * me) {
     // instrumentation
     ckp->kp_stats->s_nevent_processed++;
     clp->lp_stats->s_nevent_processed++;
-	me->stats.s_event_process += tw_clock_read() - start;
+    end = tw_clock_read();
+	clp->lp_stats->s_process_event += end - start;
+	me->stats.s_event_process += end - start;
 
 	/* We ran out of events while processing this event.  We
 	 * cannot continue without doing GVT and fossil collect.
@@ -554,7 +554,9 @@ void tw_scheduler_sequential(tw_pe * me) {
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
-        clp->lp_stats->s_process_event += tw_clock_read() - event_start;
+        tw_clock const total_event_process = tw_clock_read() - event_start;
+        clp->lp_stats->s_process_event += total_event_process;
+        me->stats.s_event_process += total_event_process;
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
