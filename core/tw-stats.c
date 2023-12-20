@@ -251,7 +251,10 @@ tw_all_lp_stats(tw_pe *me)
     for(unsigned int i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
     {
         tw_lp *lp = tw_getlp(i);
-	    printf("LPID: %lu  -  Processing time: %e\n", lp->gid, (double) lp->lp_stats->s_process_event / g_tw_clock_rate);
+	    printf("LPID: %lu\t-  Processing time: %e\t-  Events processed: %u\n",
+                lp->gid,
+                (double) lp->lp_stats->s_process_event / g_tw_clock_rate,
+                lp->lp_stats->s_nevent_processed);
     }
 
 }
