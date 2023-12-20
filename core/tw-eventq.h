@@ -77,9 +77,11 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
         if (g_st_ev_trace == COMMIT_TRACE) // doesn't rely on commit function existing, so should be outside of commit function check
             st_collect_event_data(e, (double)tw_clock_read() / g_tw_clock_rate);
         tw_lp * clp = e->dest_lp;
+        tw_clock const event_start = tw_clock_read();
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &e->cv, tw_event_data(e), clp);
         }
+        clp->lp_stats->s_process_event += tw_clock_read() - event_start;
         tw_free_output_messages(e, 1);
 
         if (e->delta_buddy) {
