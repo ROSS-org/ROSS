@@ -12,73 +12,76 @@ env:
  - secure: "BbB1KVY0Yb6DJwxdfFDF1PJwSx9euNfNX94oDKftiH8LE0nEzfS6xZc2sBkWTWOThHml9ttBkDIx/NhxEThOjyVcX6uv4kibP6moV5EqxqC+kLoZSEZnVuAdTJfGRKBdzmRp66R5a/GiMzzz/F3+smdVFMb6XR06sPQa5TQZjEc="
 git:
   submodules: false
-before_install:
- - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
- - sudo apt-get update -q
- - sudo apt-get install -y -qq lcov curl doxygen graphviz
- - lscpu
- - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
- - echo $CLOCK_SPEED
- - sh ./conf/travis-install-mpi.sh mpich2
- - mpirun --version
-script:
- - mkdir cxx-build && cd cxx-build
- - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" ..
- - export MPICH_CC=clang++
- - make
- - unset MPICH_CC
- - cd ..
- - mkdir release && cd release
- - MPICH_CC=clang cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
- - make
- - CTEST_OUTPUT_ON_FAILURE=1 make test
- - cd ..
- - mkdir build-gtod && cd build-gtod
- - MPICH_CC=clag cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON -DROSS_CLOCK_OVERRIDE=ON ..
- - make
- - CTEST_OUTPUT_ON_FAILURE=1 ctest -R SCHED
- - make coveralls
- - cd ..
- - mkdir build && cd build
- - MPICH_CC=clang cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
- - make
- - CTEST_OUTPUT_ON_FAILURE=1 make test
- - make coveralls
- - cd ..
- - mkdir build2 && cd build2
- - MPICH_CC=clang cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
- - make
- - CTEST_OUTPUT_ON_FAILURE=1 make test
- - make coveralls
 branches:
   only:
   - master
   - develop
+before_install:
+  - sudo apt-add-repository -y ppa:libreoffice/libreoffice-4-2
+  - sudo apt-get update -q
+  - sudo apt-get install -y -qq lcov curl doxygen graphviz
+  - lscpu
+  - CLOCK_SPEED=`lscpu | grep "MHz" | awk '{print $3*1000*1000}'`
+  - echo $CLOCK_SPEED
+  - sh ./conf/travis-install-mpi.sh mpich2
+  - mpirun --version
+script:
+  - mkdir install
+  - mkdir release && cd release
+  - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+  - make
+  - CTEST_OUTPUT_ON_FAILURE=1 make test
+  - make install
+  - cd ..
+  - mkdir build-gtod && cd build-gtod
+  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON -DROSS_CLOCK_OVERRIDE=ON ..
+  - make
+  - CTEST_OUTPUT_ON_FAILURE=1 ctest -R SCHED
+  - make coveralls
+  - cd ..
+  - mkdir build && cd build
+  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+  - make
+  - CTEST_OUTPUT_ON_FAILURE=1 make test
+  - make coveralls
+  - cd ..
+  - mkdir build2 && cd build2
+  - cmake -DAVL_TREE=OFF -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra" -DROSS_BUILD_MODELS=ON ..
+  - make
+  - CTEST_OUTPUT_ON_FAILURE=1 make test
+  - make coveralls
+  - cd ..
+  - # only run CODES integration for master branch
+  - if [ $TRAVIS_BRANCH != "master" ]; then return; fi
+  - cd ..
+  - git clone --depth=1 --branch=master https://github.com/CODES-org/CODES.git CODES-org/CODES
+  - cd CODES-org/CODES
+  - ./prepare.sh
+  - mkdir build && cd build
+  - CXX=mpicxx CC=mpicc ../configure PKG_CONFIG_PATH=/home/travis/build/ROSS-org/ROSS/install/lib/pkgconfig
+  - make
+  - make tests
+  - make check
+  - cd ../../..
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - ## the following automatically builds the doxygen
-  - ## documentation and pushes it to the gh_pages branch
-  - ## Shamelessly stolen from http://bit.ly/1H1sawW
-  -
-  - # First, set up credentials using the environment variables
-  - # GIT_NAME, GIT_EMAIL and GH_TOKEN. These were passed
-  - # encrypted to travis and should have been decrypted
-  - # using travis' private key before this script was run.
-  - git config --global user.name "ROSS bot"
-  - git config --global user.email ross.gh.robot@gmail.com
-  -
-  - # clone the whole repo again, but switch to gh_pages branch
-  - git clone -b master --single-branch https://github.com/ross-org/ross-org.github.io
-  - cd ross-org.github.io
-  - git clone -b master --single-branch https://github.com/ross-org/ROSS
-  - cd ROSS
-  - mkdir build && cd build
+before_deploy:
+  - cd ROSS-org/ROSS
+  - git clone -b master --single-branch --depth=1 https://github.com/ROSS-org/ross-org.github.io.git
+  - mkdir doc-build && cd doc-build
   - cmake -DROSS_BUILD_DOXYGEN=ON -DDOXYGEN_CALLER_GRAPHS=ON -DDOXYGEN_CALL_GRAPHS=ON ..
   - make apidoc
-  - cd ../..
-  - git rm -r ROSS-docs
-  - mkdir -p ROSS-docs/docs
-  - mv ROSS/build/docs/html ROSS-docs/docs
-  - git add ROSS-docs
-  - git commit -m "Automatic doxygen build."
-  - git push https://${GH_TOKEN}@github.com/ROSS-org/ross-org.github.io master
+  - cd ../
+  - rm -r ross-org.github.io/ROSS-docs/docs
+  - mv doc-build/docs ross-org.github.io/ROSS-docs/
+  - cd ross-org.github.io
+deploy:
+  provider: pages
+  strategy: git
+  edge: true
+  skip_cleanup: true
+  token: $GH_TOKEN
+  repo: ross-org/ross-org.github.io
+  branch: master
+  name: ROSS bot
+  email: ross.gh.robot@gmail.com
