@@ -8,6 +8,7 @@ extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int
  */
 extern void tw_get_stats(tw_pe * me, tw_statistics *s);
 extern void tw_stats(tw_pe *me);
+extern void tw_all_lp_stats(tw_pe *me);
 
 /*
  * ross-global.c
