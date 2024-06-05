@@ -283,6 +283,12 @@ need_argument(const tw_optdef *def)
 	exit(1);
 }
 
+char *ltrim(char *s)
+{
+    while(isspace(*s)) s++;
+    return s;
+}
+
 static void
 apply_opt(const tw_optdef *def, const char *value)
 {
@@ -298,6 +304,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		if (!value)
 			need_argument(def);
 		v = strtoul(value, &end, 10);
+
 		if (*end)
 			need_argument(def);
 		switch (def->type)
@@ -353,7 +360,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		if (!value)
 			need_argument(def);
 
-		//*((char **)def->value) = tw_calloc(TW_LOC, "string arg", strlen(value) + 1, 1);
+		// *((char **)def->value) = tw_calloc(TW_LOC, "string arg", strlen(value) + 1, 1);
 		strcpy((char *) def->value, value);
 		break;
 	}
@@ -368,6 +375,19 @@ apply_opt(const tw_optdef *def, const char *value)
 		tw_net_stop();
 		exit(0);
 		break;
+
+	case TWOPTTYPE_ARGSFILE:
+	{
+		unsigned i;
+		int argc_parsed = 1;
+		char** argv_parsed = (char**)malloc(sizeof(char*));
+		strcpy(argv_parsed[0], "./");
+		strcat(argv_parsed[0], program);
+		tw_opt_parse_args_file(value, &argc_parsed, &argv_parsed);
+		tw_opt_parse(&argc_parsed, &argv_parsed);
+		free(argv_parsed);
+		break;
+	}
 
 	default:
 		tw_error(TW_LOC, "Option type not supported here.");
@@ -424,6 +444,47 @@ static int is_empty(const tw_optdef *def)
 }
 
 void
+tw_opt_parse_args_file(char* file_name, int* argc_p, char ***argv_p)
+{
+	FILE* file;
+	char* line = NULL;
+	char* token = NULL;
+	size_t len = 0, token_len;
+	ssize_t read;
+        int argc = *argc_p;
+        char** argv = *argv_p;
+
+	file = fopen(file_name, "r");
+
+	if (file == NULL) {
+		tw_error(TW_LOC, "Invalid file path!");
+		exit(EXIT_FAILURE);
+	}
+
+	while ((read = getline(&line, &len, file)) != -1) {
+		if(strcmp(line, "--\n")==0) {
+			tw_error(TW_LOC, "Line containing only -- is invalid.");
+			exit(EXIT_FAILURE);
+		}
+		if(line[0]!='#' && read!=0) {
+			line = ltrim(line);
+			while ((token = strsep(&line, " ")) && (token[0] != "#")) {
+				argc++;
+				argv = (char**)realloc(argv, sizeof(char*)*argc);
+				token_len = strlen(token);
+				argv[argc-1] = (char*)malloc(sizeof(char)*token_len);
+				argv[argc-1] = token;
+				// Change last character of line from \n to \0
+				argv[argc-1][token_len-1] = '\0';
+			}
+		}
+	}
+
+	*argc_p = argc;
+	*argv_p = argv;
+}
+
+void
 tw_opt_parse(int *argc_p, char ***argv_p)
 {
 	int argc = *argc_p;
@@ -441,7 +502,9 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 		if (!(opt_groups[i])->type || is_empty(opt_groups[i]))
 			continue;
 		if (i >= ARRAY_SIZE(all_groups))
+		{
 			tw_error(TW_LOC, "Too many tw_optdef arrays.");
+		}
 		all_groups[i] = opt_groups[i];
 	}
 	all_groups[i++] = basic;

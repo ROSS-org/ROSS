@@ -22,6 +22,7 @@ static int32_t ross_core_rng_seed1;
 static int32_t ross_core_rng_seed2;
 static int32_t ross_core_rng_seed3;
 static int32_t ross_core_rng_seed4;
+static char* ross_args_file;
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
@@ -45,6 +46,7 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("core-rng-seed2",ross_core_rng_seed2, "ROSS Core RNG Seed 2 of 4"),
     TWOPT_UINT("core-rng-seed3",ross_core_rng_seed3, "ROSS Core RNG Seed 3 of 4"),
     TWOPT_UINT("core-rng-seed4",ross_core_rng_seed4, "ROSS Core RNG Seed 4 of 4"),
+    TWOPT_ARGSFILE("args-file",ross_args_file, "ROSS Command Line Args File"),
     TWOPT_END()
 };
 
