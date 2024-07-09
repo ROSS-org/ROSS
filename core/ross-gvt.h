@@ -36,33 +36,33 @@ static inline int  tw_gvt_inprogress(tw_pe * pe);
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);
 
-#ifdef USE_RAND_TIEBREAKER
 /* Function to be injected/executed at every GVT */
-extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_event_sig gvt);
-/* Force call of arbitrary GVT function `g_tw_gvt_arbitrary_fun` even when on Sequential mode.
- * This function should only be called before any event is process, or after a GVT step, but
+extern void (*g_tw_gvt_hook) (tw_pe * pe);
+/* Force call of arbitrary GVT function `g_tw_gvt_hook` even on Sequential mode.
+ * This function should only be called before any event is processed, or after a GVT step, but
  * it's behaviour is undefined if called anywhere else, specially during an event call. */
-void tw_trigger_arbitrary_fun_at(tw_event_sig time);
-#else
-extern void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_stime gvt);
-void tw_trigger_arbitrary_fun_at(tw_stime time);
+void tw_trigger_gvt_hook_at(tw_stime time);
+#ifdef USE_RAND_TIEBREAKER
+void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time);
 #endif
 
 // Holds one timestamp at which to trigger the arbitrary function
-struct trigger_arbitrary_fun {
+struct trigger_gvt_hook {
 #ifdef USE_RAND_TIEBREAKER
     tw_event_sig sig_at;
 #else
     tw_stime at;
 #endif
-    //tw_stime at;
+    // the GVT hook can be enabled or disabled (meaning, it will be executed at
+    // some GVT state or it won't). To handle all passible cases, we use an
+    // enumeration.
     enum {
-        ARBITRARY_FUN_disabled = 0,
-        ARBITRARY_FUN_enabled, // If the function is called, it will change its state to triggered
-        ARBITRARY_FUN_triggered,  // If the flag is in the triggered state, it will be set to disabled once the function is called. If in the function call, the flag is changed to enable, it won't be reset
+        GVT_HOOK_disabled = 0, // Hook won't be executed
+        GVT_HOOK_enabled,  // Hook will be executed
+        GVT_HOOK_triggered,  // Hook is or has been executed, but it hasn't yet been enabled to be triggered again (it should be changed to `GVT_HOOK_enabled` to be executed again)
     } active;
 };
 
-extern struct trigger_arbitrary_fun g_tw_trigger_arbitrary_fun;
+extern struct trigger_gvt_hook g_tw_trigger_gvt_hook;
 
 #endif
