@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <ross.h>
+#include <string.h>
 
 static const char *program;
 static const tw_optdef *all_groups[10];
@@ -286,7 +287,15 @@ need_argument(const tw_optdef *def)
 char *ltrim(char *s)
 {
     while(isspace(*s)) s++;
+    if (*s == '\0') { return NULL; }
     return s;
+}
+
+char *strsep_isspace(char **str) {
+    char * to_ret = *str;
+    while(!isspace(**str) && **str != '\0') (*str)++;
+    **str = '\0';
+    return to_ret;
 }
 
 static void
@@ -378,13 +387,21 @@ apply_opt(const tw_optdef *def, const char *value)
 
 	case TWOPTTYPE_ARGSFILE:
 	{
-		unsigned i;
 		int argc_parsed = 1;
 		char** argv_parsed = (char**)malloc(sizeof(char*));
+
+		// Copying program name into first slot of argv
+		size_t prog_name_len = strlen(program);
+		argv_parsed[0] = malloc(prog_name_len + 3); // 1 for `\0`, and 2 for "./"
 		strcpy(argv_parsed[0], "./");
 		strcat(argv_parsed[0], program);
+		argv_parsed[0][prog_name_len+2] = '\0';
+
 		tw_opt_parse_args_file(value, &argc_parsed, &argv_parsed);
 		tw_opt_parse(&argc_parsed, &argv_parsed);
+		for (size_t i = 0; i < argc_parsed; i++) {
+			free(argv_parsed[0]);
+		}
 		free(argv_parsed);
 		break;
 	}
@@ -444,41 +461,43 @@ static int is_empty(const tw_optdef *def)
 }
 
 void
-tw_opt_parse_args_file(char* file_name, int* argc_p, char ***argv_p)
+tw_opt_parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
 {
 	FILE* file;
 	char* line = NULL;
 	char* token = NULL;
 	size_t len = 0, token_len;
 	ssize_t read;
-        int argc = *argc_p;
-        char** argv = *argv_p;
+	int argc = *argc_p;
+	char** argv = *argv_p;
 
 	file = fopen(file_name, "r");
 
 	if (file == NULL) {
 		tw_error(TW_LOC, "Invalid file path!");
-		exit(EXIT_FAILURE);
 	}
 
 	while ((read = getline(&line, &len, file)) != -1) {
 		if(strcmp(line, "--\n")==0) {
 			tw_error(TW_LOC, "Line containing only -- is invalid.");
-			exit(EXIT_FAILURE);
 		}
-		if(line[0]!='#' && read!=0) {
+		char * start_line = line;
+		if(read!=0 && line[0]!='#') {
 			line = ltrim(line);
-			while ((token = strsep(&line, " ")) && (token[0] != "#")) {
+			while (line && (token = strsep_isspace(&line)) && (token[0] != '#')) {
 				argc++;
 				argv = (char**)realloc(argv, sizeof(char*)*argc);
 				token_len = strlen(token);
-				argv[argc-1] = (char*)malloc(sizeof(char)*token_len);
-				argv[argc-1] = token;
+				argv[argc-1] = (char*)malloc(sizeof(char)*(token_len+1));
+				strcpy(argv[argc-1], token);
 				// Change last character of line from \n to \0
-				argv[argc-1][token_len-1] = '\0';
+				argv[argc-1][token_len] = '\0';
+				line = ltrim(line);
 			}
 		}
+		free(start_line);
 	}
+	free(line);
 
 	*argc_p = argc;
 	*argv_p = argv;

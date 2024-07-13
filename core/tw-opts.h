@@ -32,13 +32,13 @@ struct tw_optdef
 #define TWOPT_STIME(n,v,h)     { TWOPTTYPE_STIME,     (n), (h), &(v) }
 #define TWOPT_DOUBLE(n,v,h)    { TWOPTTYPE_DOUBLE,    (n), (h), &(v) }
 #define TWOPT_CHAR(n,v,h)      { TWOPTTYPE_CHAR,      (n), (h), &(v) }
-#define TWOPT_ARGSFILE(n,v,h)  { TWOPTTYPE_ARGSFILE,(n), (h), &(v) }
+#define TWOPT_ARGSFILE(n,v,h)  { TWOPTTYPE_ARGSFILE,  (n), (h), &(v) }
 #define TWOPT_FLAG(n,v,h)      { TWOPTTYPE_FLAG,      (n), (h), &(v) }
 #define TWOPT_END()            { (tw_opttype)0,     NULL, NULL, NULL }
 
 /** Remove options from the command line arguments. */
 extern void tw_opt_parse(int *argc, char ***argv);
-extern void tw_opt_parse_args_file(char *file_name, int *argc, char ***argv);
+extern void tw_opt_parse_args_file(const char *file_name, int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
 /** Pretty-print the option descriptions (for --help) */
