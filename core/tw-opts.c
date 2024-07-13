@@ -11,6 +11,9 @@ static int is_empty(const tw_optdef *def);
 static const tw_optdef *opt_groups[10];
 static unsigned int opt_index = 0;
 
+// We don't allow recursive invocations of the `args-file` option
+static uint args_file_depth = 0;
+
 void
 tw_opt_add(const tw_optdef *options)
 {
@@ -287,14 +290,29 @@ need_argument(const tw_optdef *def)
 char *ltrim(char *s)
 {
     while(isspace(*s)) s++;
-    if (*s == '\0') { return NULL; }
+    if (*s == '\0' || *s == '#') { return NULL; }
     return s;
 }
 
 char *strsep_isspace(char **str) {
     char * to_ret = *str;
-    while(!isspace(**str) && **str != '\0') (*str)++;
-    **str = '\0';
+    // consuming characters until we have traversed a full argument
+    // An argument doesn't have any spaces on it
+    while(!(isspace(**str) || **str == '\0' || **str == '#')) {
+        (*str)++;
+    }
+
+    switch (**str) {
+        case '\0':
+            break;
+        case '#':  // we don't care about the rest of the line
+            **str = '\0';
+            break;
+        default:  // the next character is a space, so we might check it out
+            **str = '\0';
+            (*str)++;
+    }
+
     return to_ret;
 }
 
@@ -387,6 +405,11 @@ apply_opt(const tw_optdef *def, const char *value)
 
 	case TWOPTTYPE_ARGSFILE:
 	{
+		if (args_file_depth) {
+			tw_error(TW_LOC, "--args-file cannot be invoked inside an args-file.");
+		}
+		args_file_depth++;
+
 		int argc_parsed = 1;
 		char** argv_parsed = (char**)malloc(sizeof(char*));
 
@@ -398,11 +421,23 @@ apply_opt(const tw_optdef *def, const char *value)
 		argv_parsed[0][prog_name_len+2] = '\0';
 
 		tw_opt_parse_args_file(value, &argc_parsed, &argv_parsed);
+
+		// Print out the arguments passed through the args-file
+		if (tw_ismaster()) {
+			printf("Arguments passed through --args-file:\n");
+			for (int i = 1; i < argc_parsed; i++) {
+				printf("%s\n", argv_parsed[i]);
+			}
+			printf("\n");
+		}
+
 		tw_opt_parse(&argc_parsed, &argv_parsed);
 		for (size_t i = 0; i < argc_parsed; i++) {
 			free(argv_parsed[0]);
 		}
 		free(argv_parsed);
+
+		args_file_depth--;
 		break;
 	}
 
@@ -478,26 +513,26 @@ tw_opt_parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
 	}
 
 	while ((read = getline(&line, &len, file)) != -1) {
-		if(strcmp(line, "--\n")==0) {
-			tw_error(TW_LOC, "Line containing only -- is invalid.");
-		}
 		char * start_line = line;
-		if(read!=0 && line[0]!='#') {
+		line = ltrim(line);
+		while (line && (token = strsep_isspace(&line))) {
+			argc++;
+			argv = (char**)realloc(argv, sizeof(char*)*argc);
+			token_len = strlen(token);
+			argv[argc-1] = (char*)malloc(sizeof(char)*(token_len+1));
+			strcpy(argv[argc-1], token);
+			// Change last character of line from \n to \0
+			argv[argc-1][token_len] = '\0';
 			line = ltrim(line);
-			while (line && (token = strsep_isspace(&line)) && (token[0] != '#')) {
-				argc++;
-				argv = (char**)realloc(argv, sizeof(char*)*argc);
-				token_len = strlen(token);
-				argv[argc-1] = (char*)malloc(sizeof(char)*(token_len+1));
-				strcpy(argv[argc-1], token);
-				// Change last character of line from \n to \0
-				argv[argc-1][token_len] = '\0';
-				line = ltrim(line);
+
+			// checking for disallowed `--` argument
+			if(strcmp(token, "--")==0) {
+				tw_error(TW_LOC, "Argument `--' is invalid inside of args-file.");
 			}
 		}
 		free(start_line);
 	}
-	free(line);
+	if (line) { free(line); }
 
 	*argc_p = argc;
 	*argv_p = argv;
