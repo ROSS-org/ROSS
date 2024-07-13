@@ -38,7 +38,6 @@ struct tw_optdef
 
 /** Remove options from the command line arguments. */
 extern void tw_opt_parse(int *argc, char ***argv);
-extern void tw_opt_parse_args_file(const char *file_name, int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
 /** Pretty-print the option descriptions (for --help) */

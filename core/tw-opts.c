@@ -7,6 +7,7 @@ static const tw_optdef *all_groups[10];
 
 static void need_argument(const tw_optdef *def) NORETURN;
 static int is_empty(const tw_optdef *def);
+static void parse_args_file(const char* file_name, int* argc_p, char ***argv_p);
 
 static const tw_optdef *opt_groups[10];
 static unsigned int opt_index = 0;
@@ -287,6 +288,7 @@ need_argument(const tw_optdef *def)
 	exit(1);
 }
 
+// Trims left spaces and returns NULL if the string is empty or has a comment (starts with #)
 char *ltrim(char *s)
 {
     while(isspace(*s)) s++;
@@ -294,23 +296,24 @@ char *ltrim(char *s)
     return s;
 }
 
-char *strsep_isspace(char **str) {
-    char * to_ret = *str;
+// Returns the next argument and leaves `line` pointer at the end of the argument, so that it can be consumed further
+char *next_argument(char **line) {
+    char * to_ret = *line;
     // consuming characters until we have traversed a full argument
     // An argument doesn't have any spaces on it
-    while(!(isspace(**str) || **str == '\0' || **str == '#')) {
-        (*str)++;
+    while(!(isspace(**line) || **line == '\0' || **line == '#')) {
+        (*line)++;
     }
 
-    switch (**str) {
+    switch (**line) {
         case '\0':
             break;
         case '#':  // we don't care about the rest of the line
-            **str = '\0';
+            **line = '\0';
             break;
-        default:  // the next character is a space, so we might check it out
-            **str = '\0';
-            (*str)++;
+        default:  // the next character is a space, so there might be more arguments in the same line
+            **line = '\0';
+            (*line)++;
     }
 
     return to_ret;
@@ -420,7 +423,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		strcat(argv_parsed[0], program);
 		argv_parsed[0][prog_name_len+2] = '\0';
 
-		tw_opt_parse_args_file(value, &argc_parsed, &argv_parsed);
+		parse_args_file(value, &argc_parsed, &argv_parsed);
 
 		// Print out the arguments passed through the args-file
 		if (tw_ismaster()) {
@@ -431,6 +434,7 @@ apply_opt(const tw_optdef *def, const char *value)
 			printf("\n");
 		}
 
+		// Recursive call of args-file (it is not allowed to go recursively more than once, thanks to `args_file_depth`)
 		tw_opt_parse(&argc_parsed, &argv_parsed);
 		for (size_t i = 0; i < argc_parsed; i++) {
 			free(argv_parsed[0]);
@@ -495,13 +499,13 @@ static int is_empty(const tw_optdef *def)
 	return 1;
 }
 
-void
-tw_opt_parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
+static void
+parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
 {
 	FILE* file;
 	char* line = NULL;
-	char* token = NULL;
-	size_t len = 0, token_len;
+	char* argument = NULL;
+	size_t len = 0;
 	ssize_t read;
 	int argc = *argc_p;
 	char** argv = *argv_p;
@@ -515,18 +519,20 @@ tw_opt_parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
 	while ((read = getline(&line, &len, file)) != -1) {
 		char * start_line = line;
 		line = ltrim(line);
-		while (line && (token = strsep_isspace(&line))) {
+		// Retrieve all arguments from the line
+		while (line && (argument = next_argument(&line))) {
 			argc++;
 			argv = (char**)realloc(argv, sizeof(char*)*argc);
-			token_len = strlen(token);
-			argv[argc-1] = (char*)malloc(sizeof(char)*(token_len+1));
-			strcpy(argv[argc-1], token);
-			// Change last character of line from \n to \0
-			argv[argc-1][token_len] = '\0';
+
+			// Saving argument in memory
+			size_t argument_len = strlen(argument);
+			argv[argc-1] = (char*)malloc(sizeof(char)*(argument_len+1));
+			strcpy(argv[argc-1], argument);
+
 			line = ltrim(line);
 
 			// checking for disallowed `--` argument
-			if(strcmp(token, "--")==0) {
+			if(strcmp(argument, "--")==0) {
 				tw_error(TW_LOC, "Argument `--' is invalid inside of args-file.");
 			}
 		}
