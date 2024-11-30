@@ -38,6 +38,8 @@ struct tw_optdef
 extern void tw_opt_parse(int *argc, char ***argv);
 /** Add an opt group */
 extern void tw_opt_add(const tw_optdef *options);
+/** Set an option at runtime. Command line take precedence */
+extern void tw_opt_set(const char *option, const char *value);
 /** Pretty-print the option descriptions (for --help) */
 extern void tw_opt_print(void);
 /** Pretty-print the option descriptions and current values */
