@@ -1,4 +1,6 @@
 #include <ross.h>
+#include <stdio.h>
+#include <ctype.h>
 
 /**
  * Rollback-aware printf, i.e. if the event gets rolled back, undo the printf.
@@ -244,3 +246,55 @@ my_malloc(size_t len)
 }
 
 #undef realloc
+
+/**
+ * tw_fprint_binary_array
+ * @brief Prints content of memory into hexadecimal.
+ *
+ * Printing the array "hello world! I'm happy to be here" would produce:
+ *
+ * | 68 65 6c 6c 6f 20 77 6f 72 6c 64 21 20 49 27 6d | hello world! I'm
+ * | 20 68 61 70 70 79 20 74 6f 20 62 65 20 68 65 72 |  happy to be her
+ * | 65                                              | e
+ **/
+void tw_fprint_binary_array(FILE *output, void const * array, size_t size) {
+    if (!size) {
+        return;
+    }
+
+    fprintf(output, "| hex output                                      | bin output      \n");
+
+    char output_line[70];
+    // "Emptying" output_Line
+    for (int j = 0; j < 69; j++) {
+        output_line[j] = ' ';
+    }
+    output_line[0] = '|';
+    output_line[50] = '|';
+    output_line[68] = '\n';
+    output_line[69] = '\0';
+
+    char hexline[] = "0123456789ABCDEF"; // Trick found in https://stackoverflow.com/a/12839870
+
+    // Printing 16 bytes at the time
+    size_t i = 0;
+    while (i < size) {
+        int const line_size = i + 16 <= size ? 16 : size - i;
+        int j = 0;
+        // Writing down array into output_line
+        for (; j < line_size; j++) {
+            char const val = ((char *) array)[i+j];
+            output_line[j*3+2] = hexline[(val >> 4) & 0xF];
+            output_line[j*3+3] = hexline[val & 0xF];
+            output_line[j+52] = isprint(val) ? val : '.';
+        }
+        // Cleaning
+        for (; j < 16; j++) {
+            output_line[j*3+2] = ' ';
+            output_line[j*3+3] = ' ';
+            output_line[j+52] = ' ';
+        }
+        fprintf(output, "%s", output_line);
+        i += 16;
+    }
+}

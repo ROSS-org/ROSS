@@ -180,5 +180,6 @@ extern void tw_warning(const char *file, int line, const char *fmt, ...);
 extern void tw_printf(const char *file, int line, const char *fmt, ...);
 extern void tw_calloc_stats(size_t *alloc, size_t *waste);
 extern void* tw_calloc(const char *file, int line, const char *for_who, size_t e_sz, size_t n);
+extern void tw_fprint_binary_array(FILE *output, void const* array, size_t size);
 
 #endif
