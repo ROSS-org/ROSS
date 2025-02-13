@@ -935,65 +935,6 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     (*me->type.final)(me);
 }
 
-typedef struct lpstate_checkpoint lpstate_checkpoint;
-struct lpstate_checkpoint {
-    void * state;
-    tw_rng_stream rng;
-    tw_rng_stream core_rng;
-};
-
-static void check_lp_states(
-         tw_lp * clp,
-         tw_event * cev,
-         const lpstate_checkpoint * before_state,
-         const char * before_msg,
-         const char * after_msg
-) {
-    if (memcmp(before_state->state, clp->cur_state, clp->type->state_sz)) {
-        fprintf(stderr, "Error found by a rollback of an event\n");
-        fprintf(stderr, "  The state of the LP is not consistent when rollbacking!\n");
-        fprintf(stderr, "  LPID = %lu\n", clp->gid);
-        fprintf(stderr, "\n  LP contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, before_state->state, clp->type->state_sz);
-        fprintf(stderr, "\n  LP contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->cur_state, clp->type->state_sz);
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
-	    tw_net_abort();
-    }
-    if (memcmp(&before_state->rng, clp->rng, sizeof(struct tw_rng_stream))) {
-        fprintf(stderr, "Error found by rollback of an event\n");
-        fprintf(stderr, "  Random number generation `rng` did not rollback properly!\n");
-        fprintf(stderr, "  This often happens if the random number generation was not properly rollbacked by the reverse handler!\n");
-        fprintf(stderr, "  LPID = %lu\n", clp->gid);
-        fprintf(stderr, "\n  rng contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, &before_state->rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  rng contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
-	    tw_net_abort();
-    }
-    if (memcmp(&before_state->core_rng, clp->core_rng, sizeof(struct tw_rng_stream))) {
-        fprintf(stderr, "Error found by rollback of an event\n");
-        fprintf(stderr, "  Random number generation `core_rng` did not rollback properly!\n");
-        fprintf(stderr, "  LPID = %lu\n", clp->gid);
-        fprintf(stderr, "\n  core_rng contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, &before_state->core_rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  core_rng contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->core_rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
-	    tw_net_abort();
-    }
-}
-
-static void copy_lp_state(lpstate_checkpoint * into, const tw_lp * clp) {
-    memcpy(into->state, clp->cur_state, clp->type->state_sz);
-    memcpy(&into->rng, clp->rng, sizeof(struct tw_rng_stream));
-    memcpy(&into->core_rng, clp->core_rng, sizeof(struct tw_rng_stream));
-}
-
 void tw_scheduler_sequential_rollback_check(tw_pe * me) {
     tw_stime gvt = TW_STIME_CRT(0.0);
 
@@ -1010,7 +951,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         }
     }
     tw_event *cev;
-    lpstate_checkpoint prev, cur;
+    crv_lpstate_checkpoint prev, cur;
     prev.state = malloc(largest_lp_size);
     cur.state = malloc(largest_lp_size);
     if (prev.state == NULL || cur.state == NULL) {
@@ -1068,7 +1009,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
 
-        copy_lp_state(&prev, clp);
+        crv_copy_lpstate(&prev, clp);
 
         // Forward pass
         tw_clock total_event_process = 0.0;
@@ -1080,14 +1021,14 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
             tw_error(TW_LOC, "insufficient event memory");
         }
 
-        copy_lp_state(&cur, clp);
+        crv_copy_lpstate(&cur, clp);
 
         // Rollback pass
         tw_clock const start_rollback = tw_clock_read();
         tw_event_rollback(cev);
         me->stats.s_rollback += tw_clock_read() - start_rollback;
 
-        check_lp_states(clp, cev, &prev, "before processing event", "after processing event and rollback");
+        crv_check_lpstates(clp, cev, &prev, "before processing event", "after processing event and rollback");
 
         // Forward pass (again)
         event_start = tw_clock_read();
@@ -1099,7 +1040,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         }
         total_event_process += tw_clock_read() - event_start;
 
-        check_lp_states(clp, cev, &cur, "after processing event", "after processing, rollback, processing event again and commiting");
+        crv_check_lpstates(clp, cev, &cur, "after processing event", "after processing, rollback, processing event again and commiting");
 
         clp->lp_stats->s_process_event += total_event_process;
         me->stats.s_event_process += total_event_process;

@@ -64,7 +64,11 @@ instrumentation/st-event-trace.c
 instrumentation/st-model-data.c
 instrumentation/ross-lps/analysis-lp.h
 instrumentation/ross-lps/analysis-lp.c
-instrumentation/ross-lps/specialized-lps.c)
+instrumentation/ross-lps/specialized-lps.c
+
+check-revent/crv-state.h
+check-revent/crv-state.c
+)
 
 # ROSS VERSION INFORMATION
 ## Print Date and Time at top of ROSS output

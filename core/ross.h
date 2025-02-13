@@ -235,6 +235,8 @@ typedef uint64_t tw_lpid;
 
 #include "ross-inline.h"
 
+#include "check-revent/crv-state.h"
+
 
 #ifdef __cplusplus
 }
