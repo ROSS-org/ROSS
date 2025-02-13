@@ -306,7 +306,8 @@ struct tw_event {
     tw_eventid   event_id;          /**< @brief Unique id assigned by src_lp->pe if remote. */
 
 #ifdef USE_RAND_TIEBREAKER
-    tw_event_sig sig;
+    tw_event_sig sig;               /**< @brief Event signature, to be used by tiebreaker. */
+    size_t aborted_total;           /**< @brief Number of events caused by this event that were not scheduled. */
 #endif
 
     /** Status of the event's queue location(s). */

@@ -1,6 +1,12 @@
 #include <ross.h>
 #include <assert.h>
 
+#ifdef USE_RAND_TIEBREAKER
+#define INCREASE_ABORTED_COUNT(event) event->aborted_total++
+#else
+#define INCREASE_ABORTED_COUNT(event)
+#endif
+
 static inline void link_causality (tw_event *nev, tw_event *cev) {
     nev->cause_next = cev->caused_by_me;
     cev->caused_by_me = nev;
@@ -19,6 +25,7 @@ void tw_event_send(tw_event * event) {
         if (TW_STIME_DBL(recv_ts) < g_tw_ts_end) {
             send_pe->cev_abort = 1;
         }
+        INCREASE_ABORTED_COUNT(send_pe->cur_event);
         return;
     }
 
@@ -26,6 +33,7 @@ void tw_event_send(tw_event * event) {
     // rio saves events scheduled past end time
      if (recv_ts >= g_tw_ts_end) {
         link_causality(event, send_pe->cur_event);
+        INCREASE_ABORTED_COUNT(send_pe->cur_event);
         return;
     }
 #endif
@@ -267,6 +275,14 @@ jump_over_rc_event_handler:
         event_cancel(e);
         e = n;
     }
+
+#ifdef USE_RAND_TIEBREAKER
+    // undo the tiebreaker rng advanced by this LP for subsequent events that were not scheduled (aborted)
+    while (event->aborted_total) {
+        tw_rand_reverse_unif(event->dest_lp->core_rng);
+        event->aborted_total--;
+    }
+#endif
 
     event->caused_by_me = NULL;
 
