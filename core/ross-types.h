@@ -32,6 +32,7 @@ enum tw_synch_e {
     OPTIMISTIC,
     OPTIMISTIC_DEBUG,
     OPTIMISTIC_REALTIME,
+    SEQUENTIAL_ROLLBACK_CHECK,
 };
 
 typedef enum tw_synch_e tw_synch;

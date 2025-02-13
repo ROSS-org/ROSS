@@ -26,7 +26,7 @@ static char* ross_args_file;
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
-    TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5"),
+    TWOPT_UINT("synch", g_tw_synchronization_protocol, "Sychronization Protocol: SEQUENTIAL=1, CONSERVATIVE=2, OPTIMISTIC=3, OPTIMISTIC_DEBUG=4, OPTIMISTIC_REALTIME=5, SEQUENTIAL_ROLLBACK_CHECK=6"),
     TWOPT_UINT("nkp", nkp_per_pe, "number of kernel processes (KPs) per pe"),
     TWOPT_DOUBLE("end", g_tw_ts_end, "simulation end timestamp"),
     TWOPT_UINT("batch", g_tw_mblock, "messages per scheduler block"),
@@ -444,6 +444,10 @@ void tw_run(void) {
 
         case OPTIMISTIC_REALTIME: // case 5
             tw_scheduler_optimistic_realtime(me);
+            break;
+
+        case SEQUENTIAL_ROLLBACK_CHECK: // case 6
+            tw_scheduler_sequential_rollback_check(me);
             break;
 
         default:

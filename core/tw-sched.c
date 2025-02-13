@@ -1,5 +1,8 @@
 #include <ross.h>
+#include "ross-extern.h"
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * \brief Reset the event bitfield prior to entering the event handler
@@ -16,11 +19,13 @@ static inline void reset_bitfields(tw_event *revent)
 
 // To be used in `tw_sched_event_q`, `tw_scheduler_sequential`, `tw_sched_batch`, `tw_scheduler_optimistic`, and `tw_scheduler_optimistic_realtime`
 #ifdef USE_RAND_TIEBREAKER
+#define PQ_MINUMUM(pe) tw_pq_minimum_sig(pe->pq).recv_ts
 #define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare(kp->last_sig, e->sig)
 #define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, e->sig)
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
 #else
+#define PQ_MINUMUM(pe) tw_pq_minimum(pe->pq)
 #define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
 #define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_arbitrary_fun.at - tw_pq_minimum(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
@@ -504,7 +509,7 @@ void tw_scheduler_sequential(tw_pe * me) {
 
     while (1) {
         // This is only needed because the arbitrary function might shift events past the end of the simulation time. It should cancel such events, but it doesn't
-        if (tw_pq_minimum_sig(me->pq).recv_ts > g_tw_ts_end) { break; }  // Stop simulation if event scheduled past the end of time
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
         // Checking whether we have set up a function to be triggered in the middle of an execution
         if (g_tw_gvt_arbitrary_fun
@@ -926,6 +931,211 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     printf("*** END SIMULATION ***\n\n");
 
     tw_stats(me);
+
+    (*me->type.final)(me);
+}
+
+typedef struct lpstate_checkpoint lpstate_checkpoint;
+struct lpstate_checkpoint {
+    void * state;
+    tw_rng_stream rng;
+    tw_rng_stream core_rng;
+};
+
+static void check_lp_states(
+         tw_lp * clp,
+         tw_event * cev,
+         const lpstate_checkpoint * before_state,
+         const char * before_msg,
+         const char * after_msg
+) {
+    if (memcmp(before_state->state, clp->cur_state, clp->type->state_sz)) {
+        fprintf(stderr, "Error found by a rollback of an event\n");
+        fprintf(stderr, "  The state of the LP is not consistent when rollbacking!\n");
+        fprintf(stderr, "  LPID = %lu\n", clp->gid);
+        fprintf(stderr, "\n  LP contents (%s):\n", before_msg);
+        tw_fprint_binary_array(stderr, before_state->state, clp->type->state_sz);
+        fprintf(stderr, "\n  LP contents (%s):\n", after_msg);
+        tw_fprint_binary_array(stderr, clp->cur_state, clp->type->state_sz);
+        fprintf(stderr, "\n  Event contents:\n");
+        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
+	    tw_net_abort();
+    }
+    if (memcmp(&before_state->rng, clp->rng, sizeof(struct tw_rng_stream))) {
+        fprintf(stderr, "Error found by rollback of an event\n");
+        fprintf(stderr, "  Random number generation `rng` did not rollback properly!\n");
+        fprintf(stderr, "  This often happens if the random number generation was not properly rollbacked by the reverse handler!\n");
+        fprintf(stderr, "  LPID = %lu\n", clp->gid);
+        fprintf(stderr, "\n  rng contents (%s):\n", before_msg);
+        tw_fprint_binary_array(stderr, &before_state->rng, sizeof(struct tw_rng_stream));
+        fprintf(stderr, "\n  rng contents (%s):\n", after_msg);
+        tw_fprint_binary_array(stderr, clp->rng, sizeof(struct tw_rng_stream));
+        fprintf(stderr, "\n  Event contents:\n");
+        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
+	    tw_net_abort();
+    }
+    if (memcmp(&before_state->core_rng, clp->core_rng, sizeof(struct tw_rng_stream))) {
+        fprintf(stderr, "Error found by rollback of an event\n");
+        fprintf(stderr, "  Random number generation `core_rng` did not rollback properly!\n");
+        fprintf(stderr, "  LPID = %lu\n", clp->gid);
+        fprintf(stderr, "\n  core_rng contents (%s):\n", before_msg);
+        tw_fprint_binary_array(stderr, &before_state->core_rng, sizeof(struct tw_rng_stream));
+        fprintf(stderr, "\n  core_rng contents (%s):\n", after_msg);
+        tw_fprint_binary_array(stderr, clp->core_rng, sizeof(struct tw_rng_stream));
+        fprintf(stderr, "\n  Event contents:\n");
+        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
+	    tw_net_abort();
+    }
+}
+
+static void copy_lp_state(lpstate_checkpoint * into, const tw_lp * clp) {
+    memcpy(into->state, clp->cur_state, clp->type->state_sz);
+    memcpy(&into->rng, clp->rng, sizeof(struct tw_rng_stream));
+    memcpy(&into->core_rng, clp->core_rng, sizeof(struct tw_rng_stream));
+}
+
+void tw_scheduler_sequential_rollback_check(tw_pe * me) {
+    tw_stime gvt = TW_STIME_CRT(0.0);
+
+    if(tw_nnodes() > 1) {
+        tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
+    }
+
+    // Finding size of largest LP
+    size_t largest_lp_size = 0;
+    for (size_t i = 0; i < g_tw_nlp; i++) {
+        size_t const lp_size = g_tw_lp[i]->type->state_sz;
+        if (lp_size > largest_lp_size) {
+            largest_lp_size = lp_size;
+        }
+    }
+    tw_event *cev;
+    lpstate_checkpoint prev, cur;
+    prev.state = malloc(largest_lp_size);
+    cur.state = malloc(largest_lp_size);
+    if (prev.state == NULL || cur.state == NULL) {
+        tw_error(TW_LOC, "Failed to allocate memory to save state");
+    }
+
+    printf("*** START SEQUENTIAL ROLLBACK TEST SIMULATION ***\n\n");
+
+    tw_wall_now(&me->start_time);
+    me->stats.s_total = tw_clock_read();
+
+    while (1) {
+        // This is only needed because the arbitrary function might shift events past the end of the simulation time. It should cancel such events, but it doesn't
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
+
+        // Checking whether we have set up a function to be triggered in the middle of an execution
+        if (g_tw_gvt_arbitrary_fun
+            && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
+            && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
+            && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
+            ) {
+            g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+#ifdef USE_RAND_TIEBREAKER
+            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
+#else
+            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.at);
+#endif
+            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
+                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            }
+        }
+
+        cev = tw_pq_dequeue(me->pq);
+        if (!cev) { break; }  // Stop simulation, if there are no new events
+        tw_lp *clp = cev->dest_lp;
+        tw_kp *ckp = clp->kp;
+
+        me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+        ckp->last_sig = cev->sig;
+#else
+        ckp->last_time = cev->recv_ts;
+
+        // Note: I believe that this doesn't fully capture all event ties
+        if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
+            me->stats.s_pe_event_ties++;
+        }
+#endif
+
+        gvt = cev->recv_ts;
+        if(TW_STIME_DBL(gvt)/g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+            gvt_print(gvt);
+        }
+
+        reset_bitfields(cev);
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+
+        copy_lp_state(&prev, clp);
+
+        // Forward pass
+        tw_clock total_event_process = 0.0;
+        tw_clock event_start = tw_clock_read();
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        total_event_process += tw_clock_read() - event_start;
+
+        if (me->cev_abort){
+            tw_error(TW_LOC, "insufficient event memory");
+        }
+
+        copy_lp_state(&cur, clp);
+
+        // Rollback pass
+        tw_clock const start_rollback = tw_clock_read();
+        tw_event_rollback(cev);
+        me->stats.s_rollback += tw_clock_read() - start_rollback;
+
+        check_lp_states(clp, cev, &prev, "before processing event", "after processing event and rollback");
+
+        // Forward pass (again)
+        event_start = tw_clock_read();
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        }
+        total_event_process += tw_clock_read() - event_start;
+
+        check_lp_states(clp, cev, &cur, "after processing event", "after processing, rollback, processing event again and commiting");
+
+        clp->lp_stats->s_process_event += total_event_process;
+        me->stats.s_event_process += total_event_process;
+
+        if (me->cev_abort){
+            tw_error(TW_LOC, "insufficient event memory");
+        }
+
+        ckp->s_nevent_processed+=2;
+        ckp->s_rb_total++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_processed+=2;
+        clp->lp_stats->s_nevent_processed+=2;
+        ckp->kp_stats->s_rb_total++;
+        tw_event_free(me, cev);
+
+        if(g_st_rt_sampling &&
+                tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
+        {
+            tw_clock current_rt = tw_clock_read();
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
+                st_collect_model_data(me, ((double)current_rt) / g_tw_clock_rate, RT_STATS);
+
+            g_st_rt_samp_start_cycles = tw_clock_read();
+        }
+    }
+    tw_wall_now(&me->end_time);
+    me->stats.s_total = tw_clock_read() - me->stats.s_total;
+
+    printf("*** END SIMULATION ***\n\n");
+
+    free(cur.state);
+    free(prev.state);
+
+    tw_stats(me);
+    tw_all_lp_stats(me);
 
     (*me->type.final)(me);
 }
