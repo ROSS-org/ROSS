@@ -85,6 +85,19 @@ static crv_checkpointer * get_chkpntr(tw_lpid id) {
     return checkpointer_for_lps[id];
 }
 
+static void print_event(crv_checkpointer const * chkptr, tw_event * cev) {
+    fprintf(stderr, "\n  Event:\n  ---------\n");
+    fprintf(stderr, "  Bit field contents\n");
+    tw_fprint_binary_array(stderr, &cev->cv, 4);
+    fprintf(stderr, "  ---------\n  Event contents\n");
+    tw_fprint_binary_array(stderr, tw_event_data(cev), g_tw_msg_sz);
+    if (chkptr && chkptr->print_event) {
+        fprintf(stderr, "---------------------------------\n");
+        chkptr->print_event(stderr, tw_event_data(cev));
+    }
+    fprintf(stderr, "---------------------------------\n");
+}
+
 void crv_check_lpstates(
          tw_lp * clp,
          tw_event * cev,
@@ -119,13 +132,7 @@ void crv_check_lpstates(
             chkptr->print_lp(stderr, clp->cur_state);
             fprintf(stderr, "---------------------------------\n");
         }
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
-        if (chkptr && chkptr->print_event) {
-            fprintf(stderr, "---------------------------------\n");
-            chkptr->print_event(stderr, cev);
-            fprintf(stderr, "---------------------------------\n");
-        }
+        print_event(chkptr, cev);
 	    tw_net_abort();
     }
     if (memcmp(&before_state->rng, clp->rng, sizeof(struct tw_rng_stream))) {
@@ -137,8 +144,7 @@ void crv_check_lpstates(
         tw_fprint_binary_array(stderr, &before_state->rng, sizeof(struct tw_rng_stream));
         fprintf(stderr, "\n  rng contents (%s):\n", after_msg);
         tw_fprint_binary_array(stderr, clp->rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
+        print_event(chkptr, cev);
 	    tw_net_abort();
     }
     if (memcmp(&before_state->core_rng, clp->core_rng, sizeof(struct tw_rng_stream))) {
@@ -149,8 +155,7 @@ void crv_check_lpstates(
         tw_fprint_binary_array(stderr, &before_state->core_rng, sizeof(struct tw_rng_stream));
         fprintf(stderr, "\n  core_rng contents (%s):\n", after_msg);
         tw_fprint_binary_array(stderr, clp->core_rng, sizeof(struct tw_rng_stream));
-        fprintf(stderr, "\n  Event contents:\n");
-        tw_fprint_binary_array(stderr, cev, g_tw_msg_sz);
+        print_event(chkptr, cev);
 	    tw_net_abort();
     }
 }
