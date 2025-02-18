@@ -951,11 +951,15 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         }
     }
     tw_event *cev;
-    crv_lpstate_checkpoint prev, cur;
+    crv_lpstate_checkpoint_internal prev, cur;
     prev.state = malloc(largest_lp_size);
     cur.state = malloc(largest_lp_size);
     if (prev.state == NULL || cur.state == NULL) {
         tw_error(TW_LOC, "Failed to allocate memory to save state");
+    }
+    size_t const largest_lp_checkpoint = crv_init_checkpoints();
+    if (largest_lp_checkpoint > largest_lp_size) {
+        largest_lp_size = largest_lp_checkpoint;
     }
 
     printf("*** START SEQUENTIAL ROLLBACK TEST SIMULATION ***\n\n");
@@ -1029,6 +1033,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         me->stats.s_rollback += tw_clock_read() - start_rollback;
 
         crv_check_lpstates(clp, cev, &prev, "before processing event", "after processing event and rollback");
+        crv_clean_lpstate(&prev, clp);
 
         // Forward pass (again)
         event_start = tw_clock_read();
@@ -1041,6 +1046,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         total_event_process += tw_clock_read() - event_start;
 
         crv_check_lpstates(clp, cev, &cur, "after processing event", "after processing, rollback, processing event again and commiting");
+        crv_clean_lpstate(&cur, clp);
 
         clp->lp_stats->s_process_event += total_event_process;
         me->stats.s_event_process += total_event_process;
