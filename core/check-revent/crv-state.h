@@ -2,15 +2,13 @@
 #define INC_check_revent_state_check
 
 #include <stdbool.h>
-#include "ross-types.h"
-#include "ross-inline.h"
 
 typedef void (*save_checkpoint_state_f) (void * into, void const * from);
 typedef void (*clean_checkpoint_state_f) (void * state);
 typedef bool (*check_states_f) (void * current_state, void const * before_state);
-typedef void (*print_lpstate_f) (FILE *, void * state);
-typedef void (*print_checkpoint_state_f) (FILE *, void * state);
-typedef void (*print_event_f) (FILE *, void * state);
+typedef void (*print_lpstate_f) (FILE *, char const * prefix, void * state);
+typedef void (*print_checkpoint_state_f) (FILE *, char const * prefix, void * state);
+typedef void (*print_event_f) (FILE *, char const * prefix, void * state);
 
 /*
  * Interface to implement in order to get tighter control over the

@@ -88,12 +88,12 @@ static crv_checkpointer * get_chkpntr(tw_lpid id) {
 static void print_event(crv_checkpointer const * chkptr, tw_event * cev) {
     fprintf(stderr, "\n  Event:\n  ---------\n");
     fprintf(stderr, "  Bit field contents\n");
-    tw_fprint_binary_array(stderr, &cev->cv, 4);
+    tw_fprint_binary_array(stderr, "", &cev->cv, 4);
     fprintf(stderr, "  ---------\n  Event contents\n");
-    tw_fprint_binary_array(stderr, tw_event_data(cev), g_tw_msg_sz);
+    tw_fprint_binary_array(stderr, "", tw_event_data(cev), g_tw_msg_sz);
     if (chkptr && chkptr->print_event) {
         fprintf(stderr, "---------------------------------\n");
-        chkptr->print_event(stderr, tw_event_data(cev));
+        chkptr->print_event(stderr, "", tw_event_data(cev));
     }
     fprintf(stderr, "---------------------------------\n");
 }
@@ -119,17 +119,17 @@ void crv_check_lpstates(
         fprintf(stderr, "  The state of the LP is not consistent when rollbacking!\n");
         fprintf(stderr, "  LPID = %lu\n", clp->gid);
         fprintf(stderr, "\n  LP contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, before_state->state, clp->type->state_sz);
+        tw_fprint_binary_array(stderr, "", before_state->state, clp->type->state_sz);
         if (chkptr && chkptr->print_checkpoint) {
             fprintf(stderr, "---------------------------------\n");
-            chkptr->print_checkpoint(stderr, before_state->state);
+            chkptr->print_checkpoint(stderr, "", before_state->state);
             fprintf(stderr, "---------------------------------\n");
         }
         fprintf(stderr, "\n  LP contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->cur_state, clp->type->state_sz);
+        tw_fprint_binary_array(stderr, "", clp->cur_state, clp->type->state_sz);
         if (chkptr && chkptr->print_lp) {
             fprintf(stderr, "---------------------------------\n");
-            chkptr->print_lp(stderr, clp->cur_state);
+            chkptr->print_lp(stderr, "", clp->cur_state);
             fprintf(stderr, "---------------------------------\n");
         }
         print_event(chkptr, cev);
@@ -141,9 +141,9 @@ void crv_check_lpstates(
         fprintf(stderr, "  This often happens if the random number generation was not properly rollbacked by the reverse handler!\n");
         fprintf(stderr, "  LPID = %lu\n", clp->gid);
         fprintf(stderr, "\n  rng contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, &before_state->rng, sizeof(struct tw_rng_stream));
+        tw_fprint_binary_array(stderr, "", &before_state->rng, sizeof(struct tw_rng_stream));
         fprintf(stderr, "\n  rng contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->rng, sizeof(struct tw_rng_stream));
+        tw_fprint_binary_array(stderr, "", clp->rng, sizeof(struct tw_rng_stream));
         print_event(chkptr, cev);
 	    tw_net_abort();
     }
@@ -152,9 +152,9 @@ void crv_check_lpstates(
         fprintf(stderr, "  Random number generation `core_rng` did not rollback properly!\n");
         fprintf(stderr, "  LPID = %lu\n", clp->gid);
         fprintf(stderr, "\n  core_rng contents (%s):\n", before_msg);
-        tw_fprint_binary_array(stderr, &before_state->core_rng, sizeof(struct tw_rng_stream));
+        tw_fprint_binary_array(stderr, "", &before_state->core_rng, sizeof(struct tw_rng_stream));
         fprintf(stderr, "\n  core_rng contents (%s):\n", after_msg);
-        tw_fprint_binary_array(stderr, clp->core_rng, sizeof(struct tw_rng_stream));
+        tw_fprint_binary_array(stderr, "", clp->core_rng, sizeof(struct tw_rng_stream));
         print_event(chkptr, cev);
 	    tw_net_abort();
     }

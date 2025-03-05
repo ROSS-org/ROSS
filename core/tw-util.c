@@ -258,12 +258,12 @@ my_malloc(size_t len)
  * | 20 68 61 70 70 79 20 74 6f 20 62 65 20 68 65 72 |  happy to be her
  * | 65                                              | e
  **/
-void tw_fprint_binary_array(FILE *output, void const * array, size_t size) {
+void tw_fprint_binary_array(FILE *output, char const * prefix, void const * array, size_t size) {
     if (!size) {
         return;
     }
 
-    fprintf(output, "| hex output                                      | bin output      \n");
+    fprintf(output, "%s| hex output                                      | bin output      \n", prefix);
 
     char output_line[70];
     // "Emptying" output_Line
@@ -295,7 +295,7 @@ void tw_fprint_binary_array(FILE *output, void const * array, size_t size) {
             output_line[j*3+3] = ' ';
             output_line[j+52] = ' ';
         }
-        fprintf(output, "%s", output_line);
+        fprintf(output, "%s%s", prefix, output_line);
         i += 16;
     }
 }

@@ -178,16 +178,16 @@ void clean_state(struct phold_state_checkpoint * into) {
     // Nothing to do
 }
 
-void print_state(FILE * out, struct phold_state * state) {
-    fprintf(out, "struct phold_state {\n  dummy_state = %ld\n}\n", state->dummy_state);
+void print_state(FILE * out, char const * prefix, struct phold_state * state) {
+    fprintf(out, "%sstruct phold_state {\n  dummy_state = %ld\n}\n", prefix, state->dummy_state);
 }
 
-void print_state_saved(FILE * out, struct phold_state_checkpoint * state) {
-    fprintf(out, "struct phold_state_checkpoint {\n  saved_dummy_data = %ld\n}\n", state->saved_dummy_data);
+void print_state_saved(FILE * out, char const * prefix, struct phold_state_checkpoint * state) {
+    fprintf(out, "%sstruct phold_state_checkpoint {\n  saved_dummy_data = %ld\n}\n", prefix, state->saved_dummy_data);
 }
 
-void print_event(FILE * out, struct phold_message * state) {
-    fprintf(out, "struct phold_message {\n  dummy_data = %ld\n}\n", state->dummy_data);
+void print_event(FILE * out, char const * prefix, struct phold_message * state) {
+    fprintf(out, "%sstruct phold_message {\n  dummy_data = %ld\n}\n", prefix, state->dummy_data);
 }
 
 bool check_state(struct phold_state * before, struct phold_state * after) {
