@@ -186,8 +186,8 @@ void print_state_saved(FILE * out, char const * prefix, struct phold_state_check
     fprintf(out, "%sstruct phold_state_checkpoint {\n  saved_dummy_data = %ld\n}\n", prefix, state->saved_dummy_data);
 }
 
-void print_event(FILE * out, char const * prefix, struct phold_message * state) {
-    fprintf(out, "%sstruct phold_message {\n  dummy_data = %ld\n}\n", prefix, state->dummy_data);
+void print_event(FILE * out, char const * prefix, struct phold_state * state, struct phold_message * message) {
+    fprintf(out, "%sstruct phold_message {\n  dummy_data = %ld\n}\n", prefix, message->dummy_data);
 }
 
 bool check_state(struct phold_state * before, struct phold_state * after) {

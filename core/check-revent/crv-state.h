@@ -8,7 +8,7 @@ typedef void (*clean_checkpoint_state_f) (void * state);
 typedef bool (*check_states_f) (void * current_state, void const * before_state);
 typedef void (*print_lpstate_f) (FILE *, char const * prefix, void * state);
 typedef void (*print_checkpoint_state_f) (FILE *, char const * prefix, void * state);
-typedef void (*print_event_f) (FILE *, char const * prefix, void * state);
+typedef void (*print_event_f) (FILE *, char const * prefix, void * lp_state, void * event_msg);
 
 /*
  * Interface to implement in order to get tighter control over the
