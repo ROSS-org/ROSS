@@ -9,13 +9,9 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-#ifdef USE_RAND_TIEBREAKER
-void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_event_sig gvt) = NULL;
-#else
-void (*g_tw_gvt_arbitrary_fun) (tw_pe * pe, tw_stime gvt) = NULL;
-#endif
+void (*g_tw_gvt_hook) (tw_pe * pe) = NULL;
 // Holds one timestamp at which to trigger the arbitrary function
-struct trigger_arbitrary_fun g_tw_trigger_arbitrary_fun = {.active = ARBITRARY_FUN_disabled};
+struct trigger_gvt_hook g_tw_trigger_gvt_hook = {.active = GVT_HOOK_disabled};
 
 static const tw_optdef gvt_opts [] =
 {
@@ -76,12 +72,12 @@ tw_gvt_stats(FILE * f)
 // To use in `tw_gvt_step1` and `tw_gvt_step1_realtime`
 #ifdef USE_RAND_TIEBREAKER
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum_sig(pe->pq).recv_ts) - TW_STIME_DBL(pe->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)
-#define NOT_PAST_ARBITRARY_FUN_ACTIVATION(pe) (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled \
-        || tw_event_sig_compare(tw_pq_minimum_sig(pe->pq), g_tw_trigger_arbitrary_fun.sig_at) < 0)
+#define NOT_PAST_GVT_HOOK_ACTIVATION(pe) (g_tw_trigger_gvt_hook.active == GVT_HOOK_disabled \
+        || tw_event_sig_compare(tw_pq_minimum_sig(pe->pq), g_tw_trigger_gvt_hook.sig_at) < 0)
 #else
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
-#define NOT_PAST_ARBITRARY_FUN_ACTIVATION(pe) (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_disabled \
-        || tw_pq_minimum(me->pq) < g_tw_trigger_arbitrary_fun.at)
+#define NOT_PAST_GVT_HOOK_ACTIVATION(pe) (g_tw_trigger_gvt_hook.active == GVT_HOOK_disabled \
+        || tw_pq_minimum(me->pq) < g_tw_trigger_gvt_hook.at)
 #endif
 
 void
@@ -92,7 +88,7 @@ tw_gvt_step1(tw_pe *me)
     }
 
     int const still_within_interval = ++gvt_cnt < g_tw_gvt_interval;
-    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_ARBITRARY_FUN_ACTIVATION(me)) {
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_GVT_HOOK_ACTIVATION(me)) {
         return;
     }
 
@@ -106,7 +102,7 @@ tw_gvt_step1_realtime(tw_pe *me)
         return;
     }
     int const still_within_interval = tw_clock_read() - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval;
-    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_ARBITRARY_FUN_ACTIVATION(me)) {
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_GVT_HOOK_ACTIVATION(me)) {
         return;
     }
 
@@ -414,31 +410,44 @@ tw_gvt_step2(tw_pe *me)
 
 
 #ifdef USE_RAND_TIEBREAKER
-void tw_trigger_arbitrary_fun_at(tw_event_sig time) {
-    // TODO(elkin): This does not represent the current time for a sequential execution; the value
-    // never changes under sequential, thus, no warning will be triggered. Find a better alternative
+void tw_trigger_gvt_hook_at(tw_stime time) {
     tw_event_sig now = g_tw_pe->GVT_sig;
+    tw_event_sig time_sig = {
+        .recv_ts = time,
+        .priority = 1.0,
+        .event_tiebreaker = {0.0},
+        .tie_lineage_length = 1};
 
-    if (tw_event_sig_compare(now, time) >= 0) {
+    if (now.recv_ts >= time) {
         tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
     }
 
-    g_tw_trigger_arbitrary_fun.sig_at = time;
-    //g_tw_trigger_arbitrary_fun.at = time;
-    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_enabled;
+    g_tw_trigger_gvt_hook.sig_at = time_sig;
+    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
 }
 #else
-void tw_trigger_arbitrary_fun_at(tw_stime time) {
-    // TODO(elkin): This does not represent the current time for a sequential execution; the value
-    // never changes under sequential, thus, no warning will be triggered. Find a better alternative
+void tw_trigger_gvt_hook_at(tw_stime time) {
     tw_stime now = g_tw_pe->GVT;
 
     if (now >= time) {
         tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
     }
 
-    g_tw_trigger_arbitrary_fun.at = time;
-    //g_tw_trigger_arbitrary_fun.at = time;
-    g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_enabled;
+    g_tw_trigger_gvt_hook.at = time;
+    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
+}
+#endif
+
+#ifdef USE_RAND_TIEBREAKER
+void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time) {
+    tw_event_sig now = g_tw_pe->GVT_sig;
+
+    if (tw_event_sig_compare(now, time) >= 0) {
+        tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time.recv_ts, now.recv_ts);
+    }
+
+    g_tw_trigger_gvt_hook.sig_at = time;
+    //g_tw_trigger_gvt_hook.at = time;
+    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
 }
 #endif

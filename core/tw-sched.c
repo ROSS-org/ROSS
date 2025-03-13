@@ -21,13 +21,13 @@ static inline void reset_bitfields(tw_event *revent)
 #ifdef USE_RAND_TIEBREAKER
 #define PQ_MINUMUM(pe) tw_pq_minimum_sig(pe->pq).recv_ts
 #define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare(kp->last_sig, e->sig)
-#define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_arbitrary_fun.sig_at, tw_pq_minimum_sig(pe->pq))
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_gvt_hook.sig_at, tw_pq_minimum_sig(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, e->sig)
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
 #else
 #define PQ_MINUMUM(pe) tw_pq_minimum(pe->pq)
 #define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
-#define CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_arbitrary_fun.at - tw_pq_minimum(pe->pq))
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_gvt_hook.at - tw_pq_minimum(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT)
 #endif
@@ -192,9 +192,9 @@ static void tw_sched_batch(tw_pe * me) {
         no_free_event_buffers = 0;
 
         // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the arbitrary function
-        if (g_tw_gvt_arbitrary_fun
-                && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-                && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0) {
+        if (g_tw_gvt_hook
+                && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+                && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
             tw_gvt_force_update();
             break;
         }
@@ -512,19 +512,20 @@ void tw_scheduler_sequential(tw_pe * me) {
         if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
         // Checking whether we have set up a function to be triggered in the middle of an execution
-        if (g_tw_gvt_arbitrary_fun
-            && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-            && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
+        if (g_tw_gvt_hook
+            && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+            && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
             && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
             ) {
-            g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+            g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
 #ifdef USE_RAND_TIEBREAKER
-            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
+            me->GVT_sig = g_tw_trigger_gvt_hook.sig_at;
 #else
-            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.at);
+            me->GVT = g_tw_trigger_gvt_hook.at;
 #endif
-            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
-                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            g_tw_gvt_hook(me);
+            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
+                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
             }
         }
 
@@ -757,29 +758,25 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_cancel_q(me);
         int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
-        if (gvt_triggered && g_tw_gvt_arbitrary_fun && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled) {
+        if (gvt_triggered && g_tw_gvt_hook && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled) {
             // checking if the trigger has been activated on all PEs. If true, indicate so
 #ifdef USE_RAND_TIEBREAKER
-            bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_arbitrary_fun.sig_at) >= 0;
+            bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_gvt_hook.sig_at) >= 0;
 #else
-            bool const activate_trigger = me->GVT >= g_tw_trigger_arbitrary_fun.at;
+            bool const activate_trigger = me->GVT >= g_tw_trigger_gvt_hook.at;
 #endif
             bool global_triggered;
             if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
                 tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
             }
             if (global_triggered) {
-                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+                g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
             }
             // Calling arbitrary function
-#ifdef USE_RAND_TIEBREAKER
-            g_tw_gvt_arbitrary_fun(me, me->GVT_sig);
-#else
-            g_tw_gvt_arbitrary_fun(me, me->GVT);
-#endif
+            g_tw_gvt_hook(me);
             // Reverting arbitrary function back to normalcy
-            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
-                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
+                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
             }
         }
 
@@ -972,19 +969,20 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
         // Checking whether we have set up a function to be triggered in the middle of an execution
-        if (g_tw_gvt_arbitrary_fun
-            && g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_enabled
-            && CMP_ARB_FUNC_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
+        if (g_tw_gvt_hook
+            && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+            && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
             && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
             ) {
-            g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_triggered;
+            g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
 #ifdef USE_RAND_TIEBREAKER
-            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.sig_at);
+            me->GVT_sig = g_tw_trigger_gvt_hook.sig_at;
 #else
-            g_tw_gvt_arbitrary_fun(me, g_tw_trigger_arbitrary_fun.at);
+            me->GVT = g_tw_trigger_gvt_hook.at;
 #endif
-            if (g_tw_trigger_arbitrary_fun.active == ARBITRARY_FUN_triggered) {
-                g_tw_trigger_arbitrary_fun.active = ARBITRARY_FUN_disabled;
+            g_tw_gvt_hook(me);
+            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
+                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
             }
         }
 

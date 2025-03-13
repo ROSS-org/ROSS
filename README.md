@@ -65,6 +65,11 @@ ROSS developers typically do out-of-tree builds.  See the [Installation page](ht
   cd ROSS-build
   ccmake ~/path-to/ROSS
   ```
+We reccomend the following CMake parameters:
+  ```
+  cmake .. -DROSS_BUILD_MODELS=ON -DCMAKE_INSTALL_PREFIX="$(realpath ./bin)" \
+      -DCMAKE_C_COMPILER=mpicc -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-g -Wall"
+  ```
 
 5. Make your model(s) with one of the following commands
   ```
