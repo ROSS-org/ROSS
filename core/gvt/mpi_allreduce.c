@@ -13,6 +13,35 @@ void (*g_tw_gvt_hook) (tw_pe * pe) = NULL;
 // Holds one timestamp at which to trigger the arbitrary function
 struct trigger_gvt_hook g_tw_trigger_gvt_hook = {.active = GVT_HOOK_disabled};
 
+// MPI configuration parameters for tw_event_sig
+#ifdef USE_RAND_TIEBREAKER
+MPI_Datatype event_sig_type;
+int event_sig_blocklengths[4] = {1, 1, MAX_TIE_CHAIN, 1};
+MPI_Aint event_sig_displacements[4];
+MPI_Datatype event_sig_types[4] = {MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_UNSIGNED};
+MPI_Aint event_sig_base_address;
+MPI_Op event_sig_min_op;
+tw_event_sig dummy_event_sig;
+
+void find_min_sig(void *in, void *inout, int *len, MPI_Datatype *datatype) {
+    tw_event_sig *in_sig = (tw_event_sig *)in;
+    tw_event_sig *inout_sig = (tw_event_sig *)inout;
+
+    for (int i=0; i < *len; i++) {
+        assert(in_sig->tie_lineage_length < MAX_TIE_CHAIN);
+        assert(inout_sig->tie_lineage_length < MAX_TIE_CHAIN);
+        if (tw_event_sig_compare(*in_sig, *inout_sig) < 0) {
+            inout_sig->recv_ts = in_sig->recv_ts;
+            inout_sig->priority = in_sig->priority;
+            for (unsigned int j = 0; j < in_sig->tie_lineage_length; j++) {
+                inout_sig->event_tiebreaker[j] = in_sig->event_tiebreaker[j];
+            }
+        }
+        in_sig++; inout_sig++;
+    }
+}
+#endif
+
 static const tw_optdef gvt_opts [] =
 {
 	TWOPT_GROUP("ROSS MPI GVT"),
@@ -37,6 +66,30 @@ tw_gvt_setup(void)
 void
 tw_gvt_start(void)
 {
+#ifdef USE_RAND_TIEBREAKER
+    MPI_Get_address(&dummy_event_sig, &event_sig_base_address);
+    MPI_Get_address(&dummy_event_sig.recv_ts, &event_sig_displacements[0]);
+    MPI_Get_address(&dummy_event_sig.priority, &event_sig_displacements[1]);
+    MPI_Get_address(&dummy_event_sig.event_tiebreaker, &event_sig_displacements[2]);
+    MPI_Get_address(&dummy_event_sig.tie_lineage_length, &event_sig_displacements[3]);
+
+    for (int i = 0; i < 4; i++) {
+        event_sig_displacements[i] = MPI_Aint_diff(event_sig_displacements[i], event_sig_base_address);
+    }
+
+    MPI_Type_create_struct(4, event_sig_blocklengths, event_sig_displacements, event_sig_types, &event_sig_type);
+    MPI_Type_commit(&event_sig_type);
+    MPI_Op_create(find_min_sig, 1, &event_sig_min_op); // 1 means operation is commutative
+#endif
+}
+
+void
+tw_gvt_finish(void)
+{
+#ifdef USE_RAND_TIEBREAKER
+    MPI_Op_free(&event_sig_min_op);
+    MPI_Type_free(&event_sig_type);
+#endif
 }
 
 void
@@ -163,17 +216,17 @@ tw_gvt_step2(tw_pe *me)
 		lvt_sig = net_min_sig;
 	}
 
-	memset(&gvt_sig, 0, sizeof(tw_event_sig));
-
 	all_reduce_cnt++;
 	if(MPI_Allreduce(
-		&lvt_sig,
-		&gvt_sig,
+		&lvt_sig.recv_ts,
+		&gvt_sig.recv_ts,
 		1,
-	MPI_TYPE_TW_STIME,
-		MPI_MIN,
-		MPI_COMM_ROSS) != MPI_SUCCESS)
+		event_sig_type,
+		event_sig_min_op,
+		MPI_COMM_ROSS
+	) != MPI_SUCCESS) {
 		tw_error(TW_LOC, "MPI_Allreduce for GVT event signatures failed");
+	}
 
 	if(tw_event_sig_compare(gvt_sig, me->GVT_prev_sig) < 0)
 	{

@@ -486,6 +486,7 @@ void tw_end(void) {
     } // end if(g_st_ross_rank)
 #endif
 
+    tw_gvt_finish();
     tw_net_stop();
 }
 

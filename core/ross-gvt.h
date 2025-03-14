@@ -10,6 +10,7 @@ extern const tw_optdef *tw_gvt_setup(void);
 
 /* start the GVT library (init vars, etc) */
 extern void tw_gvt_start(void);
+extern void tw_gvt_finish(void);
 
 /*
  * GVT computation is broken into two stages:
