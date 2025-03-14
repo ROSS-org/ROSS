@@ -1,6 +1,11 @@
 #ifndef INC_ross_extern_h
 #define INC_ross_extern_h
 
+#include <stdio.h>
+#include "buddy.h"
+#include "ross-types.h"
+#include "tw-opts.h"
+
 extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_streams);
 
 /*

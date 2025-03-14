@@ -1,9 +1,14 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
-#define ROSS_DEBUG 0
+#include "buddy.h"
+#include "hash-quadratic.h"
+#include "instrumentation/st-instrumentation.h"
+#include "ross-extern.h"
+#include "ross-kernel-inline.h"
+#include "ross-types.h"
 
-#include <ross.h>
+#define ROSS_DEBUG 0
 
 /**
  * debug assitant fuction

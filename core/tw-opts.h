@@ -1,6 +1,8 @@
 #ifndef INC_tw_opts_h
 #define INC_tw_opts_h
 
+#include <stdio.h>
+
 enum tw_opttype
 {
 	TWOPTTYPE_GROUP = 1,

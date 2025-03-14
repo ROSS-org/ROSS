@@ -1,6 +1,8 @@
 #ifndef INC_clock_amd64
 #define INC_clock_amd64
 
+#include <stdint.h>
+
 typedef uint64_t tw_clock;
 
 static inline tw_clock  tw_clock_read(void)

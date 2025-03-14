@@ -1,6 +1,9 @@
 #ifndef INC_io_h
 #define INC_io_h
 
+#include "ross-types.h"
+#include "tw-opts.h"
+
 //Elsa Gonsiorowski
 //Rensselaer Polytechnic Institute
 //Decemeber 13, 2013

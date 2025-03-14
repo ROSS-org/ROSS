@@ -1,6 +1,10 @@
 #ifndef INC_network_mpi_h
 #define INC_network_mpi_h
 
+#include "ross-types.h"
+#include "tw-opts.h"
+#include <mpi.h>
+
 typedef long tw_node;
 
 extern MPI_Comm MPI_COMM_ROSS;

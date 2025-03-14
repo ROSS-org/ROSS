@@ -84,158 +84,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
-#endif
-
-#ifdef __GNUC__
-#  define NORETURN __attribute__((__noreturn__))
-#else
-#  define NORETURN
-#  ifndef __attribute__
-#    define __attribute__(x)
-#  endif
-#endif
-
 /*********************************************************************
  *
  * Include ``standard'' headers that most of ROSS will require.
  *
  ********************************************************************/
 
-#include "config.h"
-
 #include <errno.h>
-#include <sys/types.h>
-#include <math.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
-#include <stdint.h>
-
-#if !defined(DBL_MAX)
-#include <float.h>
-#endif
-
-#include <sys/time.h>
-#include <time.h>
 
 #ifdef USE_BGPM
 #include<bgpm.h>
 #endif
 
-#ifdef ROSS_INTERNAL
-#undef malloc
-#undef calloc
-#undef realloc
-#undef strdup
-#undef free
-
-#  define malloc(a) must_use_tw_calloc_not_malloc
-#  define calloc(a,b) must_use_tw_calloc_not_calloc
-#  define realloc(a,b) must_use_tw_calloc_not_realloc
-#  define strdup(b) must_use_tw_calloc_not_strdup
-#  define free(b) must_not_use_free
-#endif
-
-// #include "config.h" -- moved to individual files that need them -- e.g., tw-setup.c
-
-/* tw_peid -- Processing Element "PE" id */
-typedef unsigned long tw_peid;
-
-/* tw_stime -- Simulation time value for sim clock (NOT wall!) */
-typedef double tw_stime;
-#define MPI_TYPE_TW_STIME   MPI_DOUBLE
-#define TW_STIME_CRT(x)     (x)
-#define TW_STIME_DBL(x)     (x)
-#define TW_STIME_CMP(x, y)  (((x) < (y)) ? -1 : ((x) > (y)))
-#define TW_STIME_ADD(x, y)  ((x) + (y))
-#define TW_STIME_MAX        DBL_MAX
-
-/* tw_lpid -- Logical Process "LP" id */
-//typedef unsigned long long tw_lpid;
-typedef uint64_t tw_lpid;
-
-
-#include "buddy.h"
+#include "ross-base.h"
+#include "ross-clock.h"
+#include "ross-gvt.h"
+#include "ross-inline.h"
+#include "ross-kernel-inline.h"
+#include "ross-types.h"
+#include "ross-extern.h"
 #include "ross-random.h"
 
-#ifdef ROSS_RAND_clcg4
-#  include "rand-clcg4.h"
-#endif
-
-#ifdef ROSS_CLOCK_i386
-#  include "clock/i386.h"
-#endif
-#ifdef ROSS_CLOCK_amd64
-#  include "clock/amd64.h"
-#endif
-#ifdef ROSS_CLOCK_ia64
-#  include "clock/ia64.h"
-#endif
-#ifdef ROSS_CLOCK_ppc
-#  include "clock/ppc.h"
-#endif
-#ifdef ROSS_CLOCK_ppc64le
-#  include "clock/ppc64le.h"
-#endif
-#ifdef ROSS_CLOCK_bgl
-#  include "clock/bgl.h"
-#endif
-#ifdef ROSS_CLOCK_bgq
-#  include "clock/bgq.h"
-#endif
-#ifdef ROSS_CLOCK_aarch64
-#  include "clock/aarch64.h"
-#endif
-#ifdef ROSS_CLOCK_armv7l
-#  include "clock/armv7l.h"
-#endif
-#ifdef ROSS_CLOCK_gtod
-#  include "clock/gtod.h"
-#endif
-
-#include "tw-timing.h"
-#include "ross-types.h"
-#include "tw-opts.h"
-
-#ifdef ROSS_NETWORK_mpi
-#  include "network-mpi.h"
-#endif
-
-#include "ross-gvt.h"
-#include "ross-extern.h"
-#include "ross-kernel-inline.h"
-#include "hash-quadratic.h"
-
-#include "queue/tw-queue.h"
-
-#ifdef ROSS_GVT_7oclock
-#  include "gvt/7oclock.h"
-#endif
-#ifdef ROSS_GVT_mpi_allreduce
-#  include "mpi.h"
-#  include "gvt/mpi_allreduce.h"
-#endif
-
 #include "instrumentation/st-instrumentation.h"
+#include "check-revent/crv-state.h"
 
+// Optional headers not needed by any other headers (above)
 #ifdef USE_DAMARIS
 #include "damaris/core/damaris.h"
 #endif
-
-#include "tw-eventq.h"
-
-#ifdef USE_RIO
-#include "rio/io.h"
-#endif
-
-#include "ross-inline.h"
-
-#include "check-revent/crv-state.h"
 
 
 #ifdef __cplusplus

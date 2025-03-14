@@ -2,6 +2,10 @@
 #include <ross.h>
 #include <string.h>
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
+#endif
+
 static const char *program;
 static const tw_optdef *all_groups[10];
 

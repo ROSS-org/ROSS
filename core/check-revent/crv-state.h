@@ -1,7 +1,9 @@
 #ifndef INC_check_revent_state_check
 #define INC_check_revent_state_check
 
+#include "ross-types.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef void (*save_checkpoint_state_f) (void * into, void const * from);
 typedef void (*clean_checkpoint_state_f) (void * state);

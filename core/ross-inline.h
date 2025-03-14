@@ -1,6 +1,12 @@
 #ifndef INC_ross_inline_h
 #define INC_ross_inline_h
 
+#include "ross-types.h"
+#include "tw-eventq.h"
+#ifdef USE_RIO
+#include "rio/io.h"
+#endif
+
 static inline tw_event *
 tw_event_grab(tw_pe *pe)
 {

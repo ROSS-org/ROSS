@@ -1,6 +1,13 @@
 #ifndef INC_ross_types_h
 #define INC_ross_types_h
 
+#include <string.h>
+#include <sys/types.h>
+#include "ross-base.h"
+#include "ross-random.h"
+#include "ross-clock.h"
+#include "tw-timing.h"
+
 /** @file ross-types.h
  *  @brief Definition of ROSS basic types
  */

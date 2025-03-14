@@ -1,10 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "avl_tree.h"
+#include <math.h>
 #include <assert.h>
+#include "ross-kernel-inline.h"
 
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
-
-#include "avl_tree.h"
 
 /* implementation of an AVL tree with explicit heights */
 

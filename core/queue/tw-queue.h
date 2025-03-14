@@ -1,4 +1,7 @@
-#include <ross.h>
+#ifndef INC_tw_queue_h
+#define INC_tw_queue_h
+
+#include "ross-types.h"
 
 // This is the API for the tw queue system
 // There are several queue implementations
@@ -16,3 +19,5 @@ unsigned int tw_pq_max_size(tw_pq *);
 #ifdef ROSS_QUEUE_kp_splay
 tw_eventpq * tw_eventpq_create(void);
 #endif
+
+#endif /* INC_tw_queue_h */

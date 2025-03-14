@@ -1,6 +1,7 @@
 #ifndef BUDDY_H
 #define BUDDY_H
 
+#include <stdint.h>
 #include <sys/queue.h>
 
 /**

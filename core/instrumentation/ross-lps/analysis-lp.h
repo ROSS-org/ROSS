@@ -1,7 +1,7 @@
 #ifndef INC_analysis_lp_h
 #define INC_analysis_lp_h
 
-#include <ross.h>
+#include "ross-types.h"
 
 typedef struct analysis_state analysis_state;
 typedef struct analysis_msg analysis_msg;

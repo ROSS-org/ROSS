@@ -1,6 +1,9 @@
 #ifndef INC_clcg4_h
 #define INC_clcg4_h
 
+#include <stdio.h>
+#include "ross-random-internal.h"
+
 typedef int32_t * tw_seed;
 
 struct tw_rng

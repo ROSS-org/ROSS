@@ -1,6 +1,9 @@
 #ifndef INC_ross_kernel_inline_h
 #define INC_ross_kernel_inline_h
 #include "instrumentation/st-instrumentation.h"
+#include "ross-extern.h"
+#include "ross-gvt-internal.h"
+#include "ross-network.h"
 
 #define ROSS_MAX(a,b) ((a) > (b) ? (a) : (b))
 #define ROSS_MIN(a,b) ((a) < (b) ? (a) : (b))
