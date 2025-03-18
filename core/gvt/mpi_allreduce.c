@@ -36,6 +36,7 @@ void find_min_sig(void *in, void *inout, int *len, MPI_Datatype *datatype) {
             for (unsigned int j = 0; j < in_sig->tie_lineage_length; j++) {
                 inout_sig->event_tiebreaker[j] = in_sig->event_tiebreaker[j];
             }
+            inout_sig->tie_lineage_length = in_sig->tie_lineage_length;
         }
         in_sig++; inout_sig++;
     }
