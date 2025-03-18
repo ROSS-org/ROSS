@@ -219,8 +219,8 @@ tw_gvt_step2(tw_pe *me)
 
 	all_reduce_cnt++;
 	if(MPI_Allreduce(
-		&lvt_sig.recv_ts,
-		&gvt_sig.recv_ts,
+		&lvt_sig,
+		&gvt_sig,
 		1,
 		event_sig_type,
 		event_sig_min_op,
@@ -261,7 +261,7 @@ tw_gvt_step2(tw_pe *me)
 	me->s_nwhite_sent = 0;
 	me->s_nwhite_recv = 0;
 	me->trans_msg_sig = (tw_event_sig){TW_STIME_MAX, TW_STIME_MAX};
-	me->GVT_prev_sig = (tw_event_sig){TW_STIME_MAX, TW_STIME_MAX};
+	me->GVT_prev_sig = (tw_event_sig){TW_STIME_MAX, TW_STIME_MAX}; // me->GVT_sig; // Disabled checking previous timestamp
 	me->GVT_sig = gvt_sig;
 	me->gvt_status = TW_GVT_NORMAL;
 
@@ -468,7 +468,7 @@ void tw_trigger_gvt_hook_at(tw_stime time) {
     tw_event_sig now = g_tw_pe->GVT_sig;
     tw_event_sig time_sig = {
         .recv_ts = time,
-        .priority = 1.0,
+        .priority = 0.0,
         .event_tiebreaker = {0.0},
         .tie_lineage_length = 1};
 

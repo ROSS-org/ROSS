@@ -43,9 +43,11 @@ extern void tw_gvt_stats(FILE * F);
 /* Function to be injected/executed at every GVT */
 //static void (* const g_tw_gvt_hook) (tw_pe * pe) = NULL;
 extern void (*g_tw_gvt_hook) (tw_pe * pe);
-/* Force call of arbitrary GVT function `g_tw_gvt_hook` even on Sequential mode.
- * This function should only be called before any event is processed, or after a GVT step, but
- * it's behaviour is undefined if called anywhere else, specially during an event call. */
+/* Trigger `g_tw_gvt_hook` at a specific time (it even works in Sequential
+ * mode). This function should only be called before tw_run or inside
+ * g_tw_gvt_hook (in which case, it should be executed last, before the end of
+ * the gvt hook call). It's behaviour is undefined if called anywhere else,
+ * specially during while an event is being processed. */
 void tw_trigger_gvt_hook_at(tw_stime time);
 #ifdef USE_RAND_TIEBREAKER
 void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time);
