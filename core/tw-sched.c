@@ -17,19 +17,23 @@ static inline void reset_bitfields(tw_event *revent)
     memset(&revent->cv, 0, sizeof(revent->cv));
 }
 
-// To be used in `tw_sched_event_q`, `tw_scheduler_sequential`, `tw_sched_batch`, `tw_scheduler_optimistic`, and `tw_scheduler_optimistic_realtime`
+// To be used instead of littering the file with ifdef's all over. If this grows
+// far too large, there might be a need to rethink how to implement the
+// tie-breaker mechanism so that it can be deactivated
 #ifdef USE_RAND_TIEBREAKER
 #define PQ_MINUMUM(pe) tw_pq_minimum_sig(pe->pq).recv_ts
 #define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare(kp->last_sig, e->sig)
 #define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_gvt_hook.sig_at, tw_pq_minimum_sig(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, e->sig)
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
+#define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_sig.recv_ts)
 #else
 #define PQ_MINUMUM(pe) tw_pq_minimum(pe->pq)
 #define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
 #define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_gvt_hook.at - tw_pq_minimum(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT)
+#define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_time)
 #endif
 
 /**
@@ -556,7 +560,7 @@ void tw_scheduler_sequential(tw_pe * me) {
         tw_clock const event_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
@@ -617,12 +621,9 @@ void tw_scheduler_conservative(tw_pe * me) {
         tw_sched_event_q(me);
         tw_gvt_step2(me);
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-#endif
+        if (STIME_FROM_PE(me) > g_tw_ts_end) {
             break;
+        }
 
         // put "batch" loop directly here
         /* Process g_tw_mblock events, or until the PQ is empty
@@ -641,12 +642,9 @@ void tw_scheduler_conservative(tw_pe * me) {
                 break;
             }
 
-#ifdef USE_RAND_TIEBREAKER
-            if(TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) >= TW_STIME_DBL(me->GVT_sig.recv_ts) + g_tw_lookahead)
-#else
-            if(TW_STIME_DBL(tw_pq_minimum(me->pq)) >= TW_STIME_DBL(me->GVT) + g_tw_lookahead)
-#endif
+            if(TW_STIME_DBL(PQ_MINUMUM(me)) >= STIME_FROM_PE(me) + g_tw_lookahead) {
                 break;
+            }
 
             start = tw_clock_read();
             if (!(cev = tw_pq_dequeue(me->pq))) {
@@ -665,21 +663,15 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp = clp->kp;
             me->cur_event = cev;
 
-#ifdef USE_RAND_TIEBREAKER
-            if (tw_event_sig_compare(ckp->last_sig, cev->sig) > 0) {
+            if (CMP_KP_TO_EVENT_TIME(ckp, cev) > 0) {
                 tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
                         "src LP %lu, src PE %lu",
-                ckp->last_sig.recv_ts, cev->recv_ts, clp->gid, clp->pe->id,
+                STIME_FROM_KP(ckp), cev->recv_ts, clp->gid, clp->pe->id,
                 cev->send_lp, cev->send_pe);
             }
+#ifdef USE_RAND_TIEBREAKER
             ckp->last_sig = cev->sig;
 #else
-            if( TW_STIME_CMP(ckp->last_time, cev->recv_ts) > 0 ){
-                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
-                        "src LP %lu, src PE %lu",
-                ckp->last_time, cev->recv_ts, clp->gid, clp->pe->id,
-                cev->send_lp, cev->send_pe);
-            }
             ckp->last_time = cev->recv_ts;
 #endif
 
@@ -1037,7 +1029,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
         event_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
