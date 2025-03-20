@@ -195,7 +195,7 @@ static void tw_sched_batch(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
-        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the arbitrary function
+        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
         if (g_tw_gvt_hook
                 && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
                 && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
@@ -350,6 +350,14 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
+        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
+        if (g_tw_gvt_hook
+                && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+                && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
+            tw_gvt_force_update();
+            break;
+        }
+
         start = tw_clock_read();
         if (!(cev = tw_pq_dequeue(me->pq))) {
           break; // leave the batch function
@@ -493,6 +501,30 @@ void tw_sched_init(tw_pe * me) {
     g_tw_sim_started = 1;
 }
 
+static inline void tw_gvt_hook_step(tw_pe * me) {
+    if (g_tw_gvt_hook && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled) {
+        // checking if the trigger has been activated on all PEs. If true, indicate so
+#ifdef USE_RAND_TIEBREAKER
+        bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_gvt_hook.sig_at) >= 0;
+#else
+        bool const activate_trigger = me->GVT >= g_tw_trigger_gvt_hook.at;
+#endif
+        bool global_triggered;
+        if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
+            tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
+        }
+        if (global_triggered) {
+            g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
+        }
+        // Calling arbitrary function
+        g_tw_gvt_hook(me);
+        // Reverting arbitrary function back to normalcy
+        if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
+            g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
+        }
+    }
+}
+
 /*************************************************************************/
 /* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
 /*************************************************************************/
@@ -619,7 +651,11 @@ void tw_scheduler_conservative(tw_pe * me) {
 
         tw_gvt_step1(me);
         tw_sched_event_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
+        }
 
         if (STIME_FROM_PE(me) > g_tw_ts_end) {
             break;
@@ -643,6 +679,13 @@ void tw_scheduler_conservative(tw_pe * me) {
             }
 
             if(TW_STIME_DBL(PQ_MINUMUM(me)) >= STIME_FROM_PE(me) + g_tw_lookahead) {
+                break;
+            }
+
+            if (g_tw_gvt_hook
+                    && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+                    && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
+                tw_gvt_force_update();
                 break;
             }
 
@@ -750,26 +793,8 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_sched_cancel_q(me);
         int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
-        if (gvt_triggered && g_tw_gvt_hook && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled) {
-            // checking if the trigger has been activated on all PEs. If true, indicate so
-#ifdef USE_RAND_TIEBREAKER
-            bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_gvt_hook.sig_at) >= 0;
-#else
-            bool const activate_trigger = me->GVT >= g_tw_trigger_gvt_hook.at;
-#endif
-            bool global_triggered;
-            if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
-                tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
-            }
-            if (global_triggered) {
-                g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
-            }
-            // Calling arbitrary function
-            g_tw_gvt_hook(me);
-            // Reverting arbitrary function back to normalcy
-            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
-                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
-            }
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
         }
 
         if (STIME_FROM_PE(me) > g_tw_ts_end)
@@ -821,7 +846,11 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
         tw_gvt_step1_realtime(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me); // use regular step2 at this point
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
+        }
 
         if (STIME_FROM_PE(me) > g_tw_ts_end)
             break;
@@ -869,6 +898,10 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
     if( g_tw_nkp > 1 ) {
         tw_error(TW_LOC, "Number of KPs is greater than 1.");
+    }
+
+    if (g_tw_gvt_hook && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled) {
+        printf("Warning: GVT Hook will not be triggered in the Optimistic Debug Scheduler.\n");
     }
 
     tw_wall_now(&me->start_time);
