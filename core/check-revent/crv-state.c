@@ -88,7 +88,11 @@ static crv_checkpointer * get_chkpntr(tw_lpid id) {
 static void print_event(crv_checkpointer const * chkptr, tw_lp * clp, tw_event * cev) {
     fprintf(stderr, "\n  Event:\n  ---------\n");
     fprintf(stderr, "  Bit field contents\n");
-    tw_fprint_binary_array(stderr, "", &cev->cv, 4);
+    tw_bf b = cev->cv;
+    fprintf(stderr, "  c0  c1  c2  c3  c4  c5  c6  c7  c8  c9  c10 c11 c12 c13 c14 c15\n");
+    fprintf(stderr, "  %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d \n", b.c0, b.c1, b.c2, b.c3, b.c4, b.c5, b.c6, b.c7, b.c8, b.c9, b.c10, b.c11, b.c12, b.c13, b.c14, b.c15);
+    fprintf(stderr, "  c16 c17 c18 c19 c20 c21 c22 c23 c24 c25 c26 c27 c28 c29 c30 c31\n");
+    fprintf(stderr, "  %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d   %d \n", b.c16, b.c17, b.c18, b.c19, b.c20, b.c21, b.c22, b.c23, b.c24, b.c25, b.c26, b.c27, b.c28, b.c29, b.c30, b.c31);
     fprintf(stderr, "  ---------\n  Event contents\n");
     tw_fprint_binary_array(stderr, "", tw_event_data(cev), g_tw_msg_sz);
     if (chkptr && chkptr->print_event) {
