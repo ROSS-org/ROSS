@@ -42,9 +42,11 @@ tw_pe_init(void)
     tw_pe_settype(&no_type);
 
 #ifdef USE_RAND_TIEBREAKER
-	g_tw_pe->trans_msg_sig = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
+	tw_copy_event_sig(&g_tw_pe->trans_msg_sig, &g_tw_max_sig);
+	tw_copy_event_sig(&g_tw_pe->GVT_prev_sig, &g_tw_max_sig);
 #else
 	g_tw_pe->trans_msg_ts = TW_STIME_MAX;
+	g_tw_pe->GVT_prev = TW_STIME_MAX;
 #endif
 	g_tw_pe->gvt_status = 0;
 

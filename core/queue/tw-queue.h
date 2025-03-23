@@ -11,7 +11,10 @@ void tw_pq_enqueue(tw_pq *, tw_event *);
 tw_event *tw_pq_dequeue(tw_pq *);
 tw_stime tw_pq_minimum(tw_pq *);
 #ifdef USE_RAND_TIEBREAKER
-tw_event_sig tw_pq_minimum_sig(tw_pq *);
+tw_event_sig tw_pq_minimum_sig(tw_pq const *);
+/* Returns the mininum value from priority-queue. Do NOT modify or save pointer. It is safe to save *contents* of the struct that the pointer points at. */
+tw_event_sig const * tw_pq_minimum_sig_ptr(tw_pq const *);
+void tw_set_pq_minimum_sig(tw_event_sig *, tw_pq const *);
 #endif
 void tw_pq_delete_any(tw_pq *, tw_event *);
 unsigned int tw_pq_get_size(tw_pq *);

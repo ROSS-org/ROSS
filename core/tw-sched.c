@@ -1,5 +1,4 @@
 #include <ross.h>
-#include "ross-extern.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,10 +20,10 @@ static inline void reset_bitfields(tw_event *revent)
 // far too large, there might be a need to rethink how to implement the
 // tie-breaker mechanism so that it can be deactivated
 #ifdef USE_RAND_TIEBREAKER
-#define PQ_MINUMUM(pe) tw_pq_minimum_sig(pe->pq).recv_ts
-#define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare(kp->last_sig, e->sig)
-#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare(g_tw_trigger_gvt_hook.sig_at, tw_pq_minimum_sig(pe->pq))
-#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, e->sig)
+#define PQ_MINUMUM(pe) tw_pq_minimum_sig_ptr(pe->pq)->recv_ts
+#define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare_ptr(&kp->last_sig, &e->sig)
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare_ptr(&g_tw_trigger_gvt_hook.sig_at, tw_pq_minimum_sig_ptr(pe->pq))
+#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, &e->sig)
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
 #define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_sig.recv_ts)
 #else
@@ -220,7 +219,7 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-    ckp->last_sig = cev->sig;
+    tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
 	ckp->last_time = cev->recv_ts;
 #endif
@@ -273,7 +272,11 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+        if (cev) {
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
+        } else {
+            tw_copy_event_sig(&ckp->last_sig, &me->GVT_sig);
+        }
 #else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 #endif
@@ -375,7 +378,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-    ckp->last_sig = cev->sig;
+    tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
 	ckp->last_time = cev->recv_ts;
 #endif
@@ -427,7 +430,11 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+        if (cev) {
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
+        } else {
+            tw_copy_event_sig(&ckp->last_sig, &me->GVT_sig);
+        }
 #else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 #endif
@@ -505,7 +512,7 @@ static inline void tw_gvt_hook_step(tw_pe * me) {
     if (g_tw_gvt_hook && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled) {
         // checking if the trigger has been activated on all PEs. If true, indicate so
 #ifdef USE_RAND_TIEBREAKER
-        bool const activate_trigger = tw_event_sig_compare(me->GVT_sig, g_tw_trigger_gvt_hook.sig_at) >= 0;
+        bool const activate_trigger = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at) >= 0;
 #else
         bool const activate_trigger = me->GVT >= g_tw_trigger_gvt_hook.at;
 #endif
@@ -555,7 +562,7 @@ void tw_scheduler_sequential(tw_pe * me) {
             ) {
             g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
 #ifdef USE_RAND_TIEBREAKER
-            me->GVT_sig = g_tw_trigger_gvt_hook.sig_at;
+            tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
 #else
             me->GVT = g_tw_trigger_gvt_hook.at;
 #endif
@@ -572,7 +579,7 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev->sig;
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
         ckp->last_time = cev->recv_ts;
 
@@ -713,7 +720,7 @@ void tw_scheduler_conservative(tw_pe * me) {
                 cev->send_lp, cev->send_pe);
             }
 #ifdef USE_RAND_TIEBREAKER
-            ckp->last_sig = cev->sig;
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
             ckp->last_time = cev->recv_ts;
 #endif
@@ -912,7 +919,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev->sig;
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
         ckp->last_time = cev->recv_ts;
 #endif
@@ -942,7 +949,8 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
 #ifdef USE_RAND_TIEBREAKER
-    tw_kp_rollback_to_sig( g_tw_kp[0], (tw_event_sig){g_tw_rollback_time,0});
+    tw_event_sig const zero_time = (tw_event_sig){ g_tw_rollback_time, 0 };
+    tw_kp_rollback_to_sig( g_tw_kp[0], &zero_time );
 #else
     tw_kp_rollback_to( g_tw_kp[0], TW_STIME_CRT(g_tw_rollback_time) );
 #endif
@@ -1001,7 +1009,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
             ) {
             g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
 #ifdef USE_RAND_TIEBREAKER
-            me->GVT_sig = g_tw_trigger_gvt_hook.sig_at;
+            tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
 #else
             me->GVT = g_tw_trigger_gvt_hook.at;
 #endif
@@ -1018,7 +1026,7 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
 
         me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev->sig;
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
         ckp->last_time = cev->recv_ts;
 

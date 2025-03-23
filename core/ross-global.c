@@ -104,3 +104,18 @@ unsigned long long g_tw_clock_rate=1000000000.0; // Default to 1 GHz
 // LP Type Mapping
 tw_lptype * g_tw_lp_types = NULL;
 tw_typemap_f g_tw_lp_typemap = &map_onetype;
+
+/* Largest tie-breaker signature.
+ *
+ * This isn't technically the largest possible tie-breaker signature, but it is
+ * very close.
+ * The actual largest signature would have a tie_lineage_length equal to
+ * MAX_TIE_CHAIN.
+ * Having a tie_lineage_length of 1 makes copying it very fast (we only copy a
+ * total of four numbers), instead of copying an entire array. */
+tw_event_sig const g_tw_max_sig = {
+    .recv_ts = TW_STIME_MAX,
+    .priority = DBL_MAX,
+    .tie_lineage_length = 1,
+    .event_tiebreaker = { DBL_MAX },
+};

@@ -57,9 +57,9 @@ void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time);
 // some GVT state or it won't). To handle all passible cases, we use an
 // enumeration.
 enum GVT_HOOK {
-    GVT_HOOK_disabled = 0, // Hook won't be executed
-    GVT_HOOK_enabled,  // Hook will be executed
-    GVT_HOOK_triggered,  // Hook is or has been executed, but it hasn't yet been enabled to be triggered again (it should be changed to `GVT_HOOK_enabled` to be executed again)
+    GVT_HOOK_enabled = 0,  // Hook will be executed
+    GVT_HOOK_disabled,     // Hook won't be executed
+    GVT_HOOK_triggered,    // Hook is or has been executed, but it hasn't yet been enabled to be triggered again (it should be changed to `GVT_HOOK_enabled` to be executed again)
 };
 
 // Holds one timestamp at which to trigger the arbitrary function

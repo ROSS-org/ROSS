@@ -142,7 +142,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 
 // To be used in `tw_eventq_fossil_collect`
 #ifdef USE_RAND_TIEBREAKER
-#define CMP_EVENT_TO_GVT(e, pe) tw_event_sig_compare(e->sig, pe->GVT_sig)
+#define CMP_EVENT_TO_GVT(e, pe) tw_event_sig_compare_ptr(&e->sig, &pe->GVT_sig)
 #else
 #define CMP_EVENT_TO_GVT(e, pe) TW_STIME_CMP(e->recv_ts, pe->GVT)
 #endif

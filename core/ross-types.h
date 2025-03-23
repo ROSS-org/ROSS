@@ -27,7 +27,7 @@ typedef struct tw_kp tw_kp;
 typedef struct tw_pe tw_pe;
 typedef struct avlNode *AvlTree;
 
-#define MAX_TIE_CHAIN 100
+#define MAX_TIE_CHAIN 20
 
 /**
  * Synchronization protocol used
@@ -256,38 +256,15 @@ typedef struct tw_causal_origin {
     tw_eventid event_id;
 } tw_unique_event_id;
 
-static inline int tw_unique_event_id_eq(tw_unique_event_id e, tw_unique_event_id n)
-{
-    if (e.pe_id == n.pe_id)
-    {
-        if (e.event_id == n.event_id)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-
-
 typedef struct tw_event_sig {
     tw_stime recv_ts;
-    tw_stime priority;
-    tw_stime event_tiebreaker[MAX_TIE_CHAIN];
+    double priority;
     unsigned int tie_lineage_length;
+    double event_tiebreaker[MAX_TIE_CHAIN];
 } tw_event_sig;
 
-static inline tw_event_sig tw_get_init_sig(tw_stime recv_ts, tw_stime priority, tw_stime event_tiebreaker)
-{
-    tw_event_sig e;
-    memset(&e, 0, sizeof(tw_event_sig));
-    e.recv_ts = recv_ts;
-    e.priority = priority;
-    for (size_t i = 0; i < MAX_TIE_CHAIN; i++) {
-        e.event_tiebreaker[i] = event_tiebreaker;
-    }
-    return e;
-}
+/* Largest tie-breaker signature. */
+extern tw_event_sig const g_tw_max_sig;
 #endif
 
 /**
@@ -498,7 +475,31 @@ struct tw_pe {
     tw_rng  *core_rng; /**< @brief Pointer to the core random number generator on this PE */
 };
 
+
 #ifdef USE_RAND_TIEBREAKER
+static inline int tw_unique_event_id_eq(tw_unique_event_id e, tw_unique_event_id n)
+{
+    if (e.pe_id == n.pe_id)
+    {
+        if (e.event_id == n.event_id)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Copying only what's necessary for the tie-breaker signature
+static inline void tw_copy_event_sig(tw_event_sig * e, tw_event_sig const * sig)
+{
+    e->recv_ts = sig->recv_ts;
+    e->priority = sig->priority;
+    e->tie_lineage_length = sig->tie_lineage_length;
+    for (size_t i = 0; i < sig->tie_lineage_length; i++) {
+        e->event_tiebreaker[i] = sig->event_tiebreaker[i];
+    }
+}
+
 static inline int min_int(int x, int y)
 {
   return (x < y) ? x : y;
@@ -508,34 +509,37 @@ static inline int min_int(int x, int y)
 //n_sig later (larger) than e_sig signature, return -1
 //n_sig before (smaller) than e_sig signature, return 1
 //at the signature - return 0
-static inline int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig)
+static inline int tw_event_sig_compare_ptr(tw_event_sig const * e_sig, tw_event_sig const * n_sig)
 {
-    int time_compare = TW_STIME_CMP(e_sig.recv_ts, n_sig.recv_ts);
-    if (time_compare != 0)
+    int const time_compare = TW_STIME_CMP(e_sig->recv_ts, n_sig->recv_ts);
+    if (time_compare != 0) {
         return time_compare;
-    else {
-        //then we compare the user defined priority first
-        int prio_compare = TW_STIME_CMP(e_sig.priority, n_sig.priority);
-        if (prio_compare != 0)
-            return prio_compare;
-        else {
-            //if tie with user pririty then we use tiebreaker
-            int min_len = min_int(e_sig.tie_lineage_length, n_sig.tie_lineage_length);
-            for(int i = 0; i < min_len; i++) //lexicographical ordering
-            {
-                if (e_sig.event_tiebreaker[i] < n_sig.event_tiebreaker[i])
-                    return -1;
-                else if (e_sig.event_tiebreaker[i] > n_sig.event_tiebreaker[i])
-                    return 1;
-            }
-            if (e_sig.tie_lineage_length == n_sig.tie_lineage_length) //total tie
-                return 0;
-            else if (e_sig.tie_lineage_length > n_sig.tie_lineage_length) //give priority to one with shorter lineage
-                return 1;
-            else
-                return -1;
-            }
+    }
+
+    // then we compare the user defined priority first
+    int const prio_compare = TW_STIME_CMP(e_sig->priority, n_sig->priority);
+    if (prio_compare != 0) {
+        return prio_compare;
+    }
+
+    // if tie with user pririty then we use tiebreaker
+    int const min_len = min_int(e_sig->tie_lineage_length, n_sig->tie_lineage_length);
+    for (int i = 0; i < min_len; i++) // lexicographical ordering
+    {
+        if (e_sig->event_tiebreaker[i] < n_sig->event_tiebreaker[i]) {
+            return -1;
+        } else if (e_sig->event_tiebreaker[i] > n_sig->event_tiebreaker[i]) {
+            return 1;
         }
+    }
+
+    if (e_sig->tie_lineage_length == n_sig->tie_lineage_length) { //total tie
+        return 0;
+    } else if (e_sig->tie_lineage_length > n_sig->tie_lineage_length) {//give priority to one with shorter lineage
+        return 1;
+    } else {
+        return -1;
+    }
 }
 #endif
 

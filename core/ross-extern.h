@@ -93,9 +93,6 @@ extern unsigned long long g_tw_clock_rate;
  */
 extern void tw_event_send(tw_event * event);
 extern void tw_event_rollback(tw_event * event);
-#ifdef USE_RAND_TIEBREAKER
-extern int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig);
-#endif
 
 /*
  * ross-inline.h
@@ -129,7 +126,7 @@ extern void     tw_kp_put_back_output_buffer(tw_out *out);
 extern void tw_kp_rollback_event(tw_event *event);
 extern void tw_kp_rollback_to(tw_kp * kp, tw_stime to);
 #ifdef USE_RAND_TIEBREAKER
-extern void tw_kp_rollback_to_sig(tw_kp * kp, tw_event_sig to_sig);
+extern void tw_kp_rollback_to_sig(tw_kp * kp, tw_event_sig const * to_sig);
 #endif
 
 /*

@@ -105,7 +105,7 @@ extern tw_stime tw_net_minimum(void);
  *
  * @return minimum event signature for this PE's network buffers
  */
-extern tw_event_sig tw_net_minimum_sig(void);
+extern void tw_set_net_minimum_sig(tw_event_sig *);
 #endif
 
 /**
