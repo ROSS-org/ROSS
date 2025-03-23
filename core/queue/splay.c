@@ -407,13 +407,6 @@ tw_pq_minimum_sig_ptr(splay_tree const * pq) {
 	return pq->least ? &pq->least->sig : &g_tw_max_sig;
 }
 
-inline void
-tw_set_pq_minimum_sig(tw_event_sig * sig, splay_tree const *pq)
-{
-    tw_copy_event_sig(sig, pq->least ? &pq->least->sig : &g_tw_max_sig);
-}
-
-
 inline tw_eventid
 tw_pq_minimum_get_event_id(splay_tree *pq)
 {

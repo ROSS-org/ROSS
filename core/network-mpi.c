@@ -202,17 +202,17 @@ tw_net_minimum(void)
 }
 
 #ifdef USE_RAND_TIEBREAKER
-void
-tw_set_net_minimum_sig(tw_event_sig * m)
+tw_event_sig const *
+tw_net_minimum_sig_ptr(void)
 {
-    tw_copy_event_sig(m, &g_tw_max_sig);
+    tw_event_sig const * m = &g_tw_max_sig;
     tw_event *e;
     unsigned int i;
 
     e = outq.head;
     while (e) {
       if (tw_event_sig_compare_ptr(m, &e->sig) > 0) {
-        tw_copy_event_sig(m, &e->sig);
+        m = &e->sig;
       }
       e = e->next;
     }
@@ -220,9 +220,11 @@ tw_set_net_minimum_sig(tw_event_sig * m)
     for (i = 0; i < posted_sends.cur; i++) {
       e = posted_sends.event_list[i];
       if (tw_event_sig_compare_ptr(m, &e->sig) > 0) {
-        tw_copy_event_sig(m, &e->sig);
+        m = &e->sig;
       }
     }
+
+    return m;
 }
 #endif
 

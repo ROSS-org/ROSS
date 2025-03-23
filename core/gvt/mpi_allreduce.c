@@ -206,8 +206,8 @@ tw_gvt_step2(tw_pe *me)
 	    if(total_white == 0)
 	      break;
 	  }
-	tw_set_pq_minimum_sig(&pq_min_sig, me->pq);
-	tw_set_net_minimum_sig(&net_min_sig);
+	tw_copy_event_sig(&pq_min_sig, tw_pq_minimum_sig_ptr(me->pq));
+	tw_copy_event_sig(&net_min_sig, tw_net_minimum_sig_ptr());
 
 	lvt_sig = me->trans_msg_sig;
 	if(tw_event_sig_compare_ptr(&lvt_sig, &pq_min_sig) > 0)
