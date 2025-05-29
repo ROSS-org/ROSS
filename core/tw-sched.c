@@ -586,6 +586,29 @@ static inline void tw_gvt_hook_step(tw_pe * me) {
     }
 }
 
+/**
+ * This function will determine if the GVT hook should be called, and if it does, it calls the hook. Sequential version
+ */
+static inline void tw_gvt_hook_step_seq(tw_pe * me) {
+    if (g_tw_gvt_hook
+        && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
+        && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
+        && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
+        ) {
+#ifdef USE_RAND_TIEBREAKER
+        tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
+#else
+        me->GVT = g_tw_trigger_gvt_hook.at;
+#endif
+        g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
+        g_tw_gvt_hook(me);
+        // Reverting arbitrary function back to normalcy
+        if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
+            g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
+        }
+    }
+}
+
 /*************************************************************************/
 /* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
 /*************************************************************************/
@@ -605,26 +628,11 @@ void tw_scheduler_sequential(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
     while (1) {
-        // This is only needed because the arbitrary function might shift events past the end of the simulation time. It should cancel such events, but it doesn't
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
         if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
-        // Checking whether we have set up a function to be triggered in the middle of an execution
-        if (g_tw_gvt_hook
-            && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
-            && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
-            && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
-            ) {
-            g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
-#ifdef USE_RAND_TIEBREAKER
-            tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
-#else
-            me->GVT = g_tw_trigger_gvt_hook.at;
-#endif
-            g_tw_gvt_hook(me);
-            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
-                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
-            }
-        }
+        // Checking whether we have to call the GVT hook
+        tw_gvt_hook_step_seq(me);
 
         cev = tw_pq_dequeue(me->pq);
         if (!cev) { break; }  // Stop simulation, if there are no new events
@@ -1052,26 +1060,11 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
     while (1) {
-        // This is only needed because the arbitrary function might shift events past the end of the simulation time. It should cancel such events, but it doesn't
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
         if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
-        // Checking whether we have set up a function to be triggered in the middle of an execution
-        if (g_tw_gvt_hook
-            && g_tw_trigger_gvt_hook.active == GVT_HOOK_enabled
-            && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
-            && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
-            ) {
-            g_tw_trigger_gvt_hook.active = GVT_HOOK_triggered;
-#ifdef USE_RAND_TIEBREAKER
-            tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
-#else
-            me->GVT = g_tw_trigger_gvt_hook.at;
-#endif
-            g_tw_gvt_hook(me);
-            if (g_tw_trigger_gvt_hook.active == GVT_HOOK_triggered) {
-                g_tw_trigger_gvt_hook.active = GVT_HOOK_disabled;
-            }
-        }
+        // Checking whether we have to call the GVT hook
+        tw_gvt_hook_step_seq(me);
 
         cev = tw_pq_dequeue(me->pq);
         if (!cev) { break; }  // Stop simulation, if there are no new events
