@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 /**
  * \brief Reset the event bitfield prior to entering the event handler
@@ -40,7 +41,7 @@ static inline void reset_bitfields(tw_event *revent)
  * the priority queue so they can be processed in time stamp
  * order.
  */
-void tw_sched_event_q(tw_pe * me) {
+static void tw_sched_event_q(tw_pe * me) {
     tw_clock     start;
     tw_kp       *dest_kp;
     tw_event    *cev;
@@ -93,7 +94,7 @@ void tw_sched_event_q(tw_pe * me) {
  *      that when we rollback the 1st event, we should not
  *  need to do any further rollbacks.
  */
-void tw_sched_cancel_q(tw_pe * me) {
+static void tw_sched_cancel_q(tw_pe * me) {
     tw_clock     start=0, pq_start;
     tw_event    *cev;
     tw_event    *nev;
@@ -506,6 +507,59 @@ void tw_sched_init(tw_pe * me) {
     * finishing if someone should type CTRL-c
     */
     g_tw_sim_started = 1;
+}
+
+// MPI barrier to check if any PE has a true value `val`. Returns true if anyone says "TRUE"
+static inline bool does_any_pe(bool val) {
+    bool global_val;
+    if(MPI_Allreduce(&val, &global_val, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_ROSS) != MPI_SUCCESS) {
+        tw_error(TW_LOC, "MPI_Allreduce for custom rollback and cleanup failed");
+    }
+    return global_val;
+}
+
+/**
+ * This function can be called by the GVT hook to guarantee that the state of
+ * all LPs has been backtracked to GVT and that all events to process are in the
+ * priority queue (pe->pq), i.e, all other queues are empty (cancel events and
+ * network events)
+ */
+void tw_scheduler_rollback_and_cancel_events_pe(tw_pe * pe) {
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig const gvt_sig = pe->GVT_sig;
+    //tw_stime const gvt = gvt_sig.recv_ts;
+    // Backtracking the simulation to GVT
+    for (unsigned int i = 0; i < g_tw_nkp; i++) {
+        tw_kp_rollback_to_sig(g_tw_kp[i], &gvt_sig);
+    }
+    assert(tw_event_sig_compare_ptr(&pe->GVT_sig, &gvt_sig) == 0);
+#else
+    tw_stime const gvt = pe->GVT;
+    // Backtracking the simulation to GVT
+    for (unsigned int i = 0; i < g_tw_nkp; i++) {
+        tw_kp_rollback_to(g_tw_kp[i], gvt);
+    }
+    assert(pe->GVT == gvt);
+#endif
+
+    // Making sure that everything gets cleaned up properly
+    do {
+        if (tw_nnodes() > 1) {
+            double const start = tw_clock_read();
+            tw_net_read(pe);
+            pe->stats.s_net_read += tw_clock_read() - start;
+        }
+
+        pe->gvt_status = 1;
+        tw_sched_event_q(pe);
+        tw_sched_cancel_q(pe);
+        tw_gvt_step2(pe);
+
+        //printf("PE %lu: Time stamp at the end of GVT time: %f - AVL-tree "
+        //       "sized: %d\n", g_tw_mynode, gvt, pe->avl_tree_size);
+    } while (does_any_pe(pe->cancel_q != NULL) || does_any_pe(pe->event_q.size != 0));
+
+    //printf("PE %lu: All events rolledbacked and cancelled\n", g_tw_mynode);
 }
 
 static inline void tw_gvt_hook_step(tw_pe * me) {
