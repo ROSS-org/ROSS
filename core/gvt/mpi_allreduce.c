@@ -11,7 +11,7 @@ static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
 void (*g_tw_gvt_hook) (tw_pe * pe) = NULL;
 // Holds one timestamp at which to trigger the arbitrary function
-struct trigger_gvt_hook g_tw_trigger_gvt_hook = {.active = GVT_HOOK_disabled};
+struct trigger_gvt_hook g_tw_trigger_gvt_hook = {.enabled = false};
 
 // MPI configuration parameters for tw_event_sig
 #ifdef USE_RAND_TIEBREAKER
@@ -126,12 +126,16 @@ tw_gvt_stats(FILE * f)
 // To use in `tw_gvt_step1` and `tw_gvt_step1_realtime`
 #ifdef USE_RAND_TIEBREAKER
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum_sig_ptr(pe->pq)->recv_ts) - TW_STIME_DBL(pe->GVT_sig.recv_ts) < g_tw_max_opt_lookahead)
-#define NOT_PAST_GVT_HOOK_ACTIVATION(pe) (g_tw_trigger_gvt_hook.active == GVT_HOOK_disabled \
-        || tw_event_sig_compare_ptr(tw_pq_minimum_sig_ptr(pe->pq), &g_tw_trigger_gvt_hook.sig_at) < 0)
+#define PAST_GVT_HOOK_ACTIVATION(pe) (\
+    g_tw_trigger_gvt_hook.enabled \
+    && g_tw_trigger_gvt_hook.trigger_type == GVT_HOOK_TYPE_timestamp \
+    && tw_event_sig_compare_ptr(tw_pq_minimum_sig_ptr(pe->pq), &g_tw_trigger_gvt_hook.sig_at) >= 0)
 #else
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
-#define NOT_PAST_GVT_HOOK_ACTIVATION(pe) (g_tw_trigger_gvt_hook.active == GVT_HOOK_disabled \
-        || tw_pq_minimum(me->pq) < g_tw_trigger_gvt_hook.at)
+#define PAST_GVT_HOOK_ACTIVATION(pe) (
+    g_tw_trigger_gvt_hook.enabled \
+    && g_tw_trigger_gvt_hook.trigger_type == GVT_HOOK_TYPE_timestamp \
+    && tw_pq_minimum(me->pq) >= g_tw_trigger_gvt_hook.at)
 #endif
 
 void
@@ -142,7 +146,7 @@ tw_gvt_step1(tw_pe *me)
     }
 
     int const still_within_interval = ++gvt_cnt < g_tw_gvt_interval;
-    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_GVT_HOOK_ACTIVATION(me)) {
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && !PAST_GVT_HOOK_ACTIVATION(me)) {
         return;
     }
 
@@ -156,7 +160,7 @@ tw_gvt_step1_realtime(tw_pe *me)
         return;
     }
     int const still_within_interval = tw_clock_read() - g_tw_gvt_interval_start_cycles < g_tw_gvt_realtime_interval;
-    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && NOT_PAST_GVT_HOOK_ACTIVATION(me)) {
+    if (still_within_interval && NOT_PAST_LOOKAHEAD(me) && !PAST_GVT_HOOK_ACTIVATION(me)) {
         return;
     }
 
@@ -478,8 +482,9 @@ void tw_trigger_gvt_hook_at(tw_stime time) {
         tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
     }
 
+    g_tw_trigger_gvt_hook.trigger_type = GVT_HOOK_TYPE_timestamp;
     g_tw_trigger_gvt_hook.sig_at = time_sig;
-    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
+    g_tw_trigger_gvt_hook.enabled = true;
 }
 #else
 void tw_trigger_gvt_hook_at(tw_stime time) {
@@ -489,8 +494,9 @@ void tw_trigger_gvt_hook_at(tw_stime time) {
         tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
     }
 
+    g_tw_trigger_gvt_hook.trigger_type = GVT_HOOK_TYPE_timestamp;
     g_tw_trigger_gvt_hook.at = time;
-    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
+    g_tw_trigger_gvt_hook.enabled = true;
 }
 #endif
 
@@ -502,8 +508,19 @@ void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time) {
         tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time.recv_ts, now.recv_ts);
     }
 
+    g_tw_trigger_gvt_hook.trigger_type = GVT_HOOK_TYPE_timestamp;
     g_tw_trigger_gvt_hook.sig_at = time;
     //g_tw_trigger_gvt_hook.at = time;
-    g_tw_trigger_gvt_hook.active = GVT_HOOK_enabled;
+    g_tw_trigger_gvt_hook.enabled = true;
 }
 #endif
+
+void tw_trigger_gvt_hook_every(int num_gvt_calls) {
+    if (num_gvt_calls <= 0) {
+        tw_error(TW_LOC, "`tw_trigger_gvt_hook_every` has been called with a non-positive argument: %d", num_gvt_calls);
+    }
+    g_tw_trigger_gvt_hook.trigger_type = GVT_HOOK_TYPE_every_n_gvt;
+    g_tw_trigger_gvt_hook.every_n_gvt.starting_at = g_tw_gvt_done;
+    g_tw_trigger_gvt_hook.every_n_gvt.nums = num_gvt_calls;
+    g_tw_trigger_gvt_hook.enabled = true;
+}
