@@ -58,14 +58,15 @@ void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time);
  */
 void tw_trigger_gvt_hook_every(int num_gvt_calls);
 
-enum GVT_HOOK_TYPE {
-    GVT_HOOK_TYPE_timestamp = 0,
-    GVT_HOOK_TYPE_every_n_gvt,  // Hook will be executed
+enum GVT_HOOK_TRIGGER {
+    GVT_HOOK_TRIGGER_disabled = 0,
+    GVT_HOOK_TRIGGER_timestamp,
+    GVT_HOOK_TRIGGER_every_n_gvt,  // Hook will be executed
 };
 
 // Holds one timestamp at which to trigger the arbitrary function
 struct trigger_gvt_hook {
-    enum GVT_HOOK_TYPE trigger_type;
+    enum GVT_HOOK_TRIGGER trigger;
     union {
         // GVT_HOOK_TYPE_timestamp
         struct {
@@ -81,7 +82,6 @@ struct trigger_gvt_hook {
             int nums;
         } every_n_gvt;
     };
-    bool enabled;
 };
 
 extern struct trigger_gvt_hook g_tw_trigger_gvt_hook;
