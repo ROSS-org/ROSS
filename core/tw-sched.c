@@ -23,14 +23,14 @@ static inline void reset_bitfields(tw_event *revent)
 #ifdef USE_RAND_TIEBREAKER
 #define PQ_MINUMUM(pe) tw_pq_minimum_sig_ptr(pe->pq)->recv_ts
 #define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare_ptr(&kp->last_sig, &e->sig)
-#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare_ptr(&g_tw_trigger_gvt_hook.sig_at, tw_pq_minimum_sig_ptr(pe->pq))
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) tw_event_sig_compare_ptr(&g_tw_gvt_hook_trigger.sig_at, tw_pq_minimum_sig_ptr(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, &e->sig)
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
 #define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_sig.recv_ts)
 #else
 #define PQ_MINUMUM(pe) tw_pq_minimum(pe->pq)
 #define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
-#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) (g_tw_trigger_gvt_hook.at - tw_pq_minimum(pe->pq))
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(pe) (g_tw_gvt_hook_trigger.at - tw_pq_minimum(pe->pq))
 #define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
 #define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT)
 #define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_time)
@@ -197,7 +197,7 @@ static void tw_sched_batch(tw_pe * me) {
 
         // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
         if (g_tw_gvt_hook
-                && g_tw_trigger_gvt_hook.trigger == GVT_HOOK_TRIGGER_timestamp
+                && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp
                 && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
             tw_gvt_force_update();
             break;
@@ -356,7 +356,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 
         // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
         if (g_tw_gvt_hook
-                && g_tw_trigger_gvt_hook.trigger == GVT_HOOK_TRIGGER_timestamp
+                && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp
                 && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
             tw_gvt_force_update();
             break;
@@ -565,9 +565,9 @@ void tw_scheduler_rollback_and_cancel_events_pe(tw_pe * pe) {
 static inline bool is_gvt_past_hook_threshold(tw_pe * me) {
     // checking if the trigger has been activated on all PEs
 #ifdef USE_RAND_TIEBREAKER
-    bool const activate_trigger = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at) >= 0;
+    bool const activate_trigger = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) >= 0;
 #else
-    bool const activate_trigger = me->GVT >= g_tw_trigger_gvt_hook.at;
+    bool const activate_trigger = me->GVT >= g_tw_gvt_hook_trigger.at;
 #endif
     bool global_triggered;
     if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
@@ -580,21 +580,21 @@ static inline bool is_gvt_past_hook_threshold(tw_pe * me) {
  * This function will determine if the GVT hook should be called, and if it does, it calls the hook
  */
 static inline void tw_gvt_hook_step(tw_pe * me) {
-    if (g_tw_gvt_hook && g_tw_trigger_gvt_hook.trigger) {
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status) {
         bool has_hook_been_triggered = false;
-        switch (g_tw_trigger_gvt_hook.trigger) {
-            case GVT_HOOK_TRIGGER_disabled:
-                tw_error(TW_LOC, "This is weird. This should have never happened. This switch case is guarded by g_tw_trigger_gvt_hook.trigger != GVT_HOOK_TRIGGER_disabled. Panic.");
+        switch (g_tw_gvt_hook_trigger.status) {
+            case GVT_HOOK_STATUS_disabled:
+                tw_error(TW_LOC, "This is weird. This should have never happened. This switch case is guarded by g_tw_gvt_hook_trigger.trigger != GVT_HOOK_STATUS_disabled. Panic.");
             break;
-            case GVT_HOOK_TRIGGER_timestamp:
+            case GVT_HOOK_STATUS_timestamp:
                 has_hook_been_triggered = is_gvt_past_hook_threshold(me);
                 if (has_hook_been_triggered) {
-                    g_tw_trigger_gvt_hook.trigger = GVT_HOOK_TRIGGER_disabled;
+                    g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
                 }
             break;
-            case GVT_HOOK_TRIGGER_every_n_gvt: {
-                int const starting_at = g_tw_trigger_gvt_hook.every_n_gvt.starting_at;
-                int const every = g_tw_trigger_gvt_hook.every_n_gvt.nums;
+            case GVT_HOOK_STATUS_every_n_gvt: {
+                int const starting_at = g_tw_gvt_hook_trigger.every_n_gvt.starting_at;
+                int const every = g_tw_gvt_hook_trigger.every_n_gvt.nums;
                 has_hook_been_triggered = (g_tw_gvt_done - starting_at) % every == 0;
             }
             break;
@@ -611,25 +611,25 @@ bool first_seq_warning = true;
  */
 static inline void tw_gvt_hook_step_seq(tw_pe * me) {
     if (g_tw_gvt_hook
-        && g_tw_trigger_gvt_hook.trigger
+        && g_tw_gvt_hook_trigger.status
         && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
         && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
         ) {
         // GVT hook can only be triggered in sequential mode at user-defined points in time, aka, by `tw_trigger_gvt_hook_at`
-        if (g_tw_trigger_gvt_hook.trigger != GVT_HOOK_TRIGGER_timestamp) {
+        if (g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
             if (first_seq_warning) {
                 tw_warning(TW_LOC, "GVT hook cannot be triggered by other than the timestamp trigger (set by calling `tw_trigger_gvt_hook_at`). The GVT hook won't be called");
                 first_seq_warning = false;
             }
-            g_tw_trigger_gvt_hook.trigger = GVT_HOOK_TRIGGER_disabled;
+            g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
             return;
         }
 #ifdef USE_RAND_TIEBREAKER
-        tw_copy_event_sig(&me->GVT_sig, &g_tw_trigger_gvt_hook.sig_at);
+        tw_copy_event_sig(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at);
 #else
-        me->GVT = g_tw_trigger_gvt_hook.at;
+        me->GVT = g_tw_gvt_hook_trigger.at;
 #endif
-        g_tw_trigger_gvt_hook.trigger = GVT_HOOK_TRIGGER_disabled;
+        g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
         g_tw_gvt_hook(me);
     }
 }
@@ -777,7 +777,7 @@ void tw_scheduler_conservative(tw_pe * me) {
             }
 
             if (g_tw_gvt_hook
-                    && g_tw_trigger_gvt_hook.trigger == GVT_HOOK_TRIGGER_timestamp
+                    && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp
                     && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
                 tw_gvt_force_update();
                 break;
@@ -994,7 +994,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         tw_error(TW_LOC, "Number of KPs is greater than 1.");
     }
 
-    if (g_tw_gvt_hook && g_tw_trigger_gvt_hook.trigger) {
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status) {
         printf("Warning: GVT Hook will not be triggered in the Optimistic Debug Scheduler.\n");
     }
 
