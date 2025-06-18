@@ -105,6 +105,7 @@ unsigned long long g_tw_clock_rate=1000000000.0; // Default to 1 GHz
 tw_lptype * g_tw_lp_types = NULL;
 tw_typemap_f g_tw_lp_typemap = &map_onetype;
 
+#ifdef USE_RAND_TIEBREAKER
 /* Largest tie-breaker signature.
  *
  * This isn't technically the largest possible tie-breaker signature, but it is
@@ -119,3 +120,4 @@ tw_event_sig const g_tw_max_sig = {
     .tie_lineage_length = 1,
     .event_tiebreaker = { DBL_MAX },
 };
+#endif

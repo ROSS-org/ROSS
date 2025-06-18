@@ -600,25 +600,39 @@ static inline void tw_gvt_hook_step(tw_pe * me) {
             break;
         }
         if (has_hook_been_triggered) {
-            g_tw_gvt_hook(me);
+#ifdef USE_RAND_TIEBREAKER
+            bool const past_end_time = me->GVT_sig.recv_ts >= g_tw_ts_end;
+            // resetting GVT to a time before the end of time (hopefully, it is not to a previous GVT time we have already considered)
+            if (past_end_time && g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
+                tw_copy_event_sig(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at);
+                assert(tw_event_sig_compare_ptr(&me->GVT_sig, tw_pq_minimum_sig_ptr(me->pq)) <= 0);
+            }
+#else
+            bool const past_end_time = me->GVT >= g_tw_ts_end;
+            if (past_end_time && g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
+                me->GVT = g_tw_gvt_hook_trigger.at;
+                assert(me->GVT <= tw_pq_minimum(me->pq));
+            }
+#endif
+            g_tw_gvt_hook(me, past_end_time);
         }
     }
 }
 
-bool first_seq_warning = true;
 /**
  * This function will determine if the GVT hook should be called, and if it does, it calls the hook. Sequential version
  */
 static inline void tw_gvt_hook_step_seq(tw_pe * me) {
     if (g_tw_gvt_hook
         && g_tw_gvt_hook_trigger.status
-        && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
-        && tw_pq_get_size(me->pq) > 0 // we have events to process (not triggering function if simulation has finished)
+        && (CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0  // the next event is ahead of our next function trigger
+            || tw_pq_get_size(me->pq) == 0) // we have no events to process
         ) {
         // GVT hook can only be triggered in sequential mode at user-defined points in time, aka, by `tw_trigger_gvt_hook_at`
         if (g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
+            static bool first_seq_warning = true;
             if (first_seq_warning) {
-                tw_warning(TW_LOC, "GVT hook cannot be triggered by other than the timestamp trigger (set by calling `tw_trigger_gvt_hook_at`). The GVT hook won't be called");
+                tw_warning(TW_LOC, "During sequential simulation the GVT hook cannot be triggered by other than the timestamp trigger (set by calling `tw_trigger_gvt_hook_at`). The GVT hook won't be called!");
                 first_seq_warning = false;
             }
             g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
@@ -626,11 +640,14 @@ static inline void tw_gvt_hook_step_seq(tw_pe * me) {
         }
 #ifdef USE_RAND_TIEBREAKER
         tw_copy_event_sig(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at);
+        assert(tw_event_sig_compare_ptr(&me->GVT_sig, tw_pq_minimum_sig_ptr(me->pq)) <= 0);
 #else
         me->GVT = g_tw_gvt_hook_trigger.at;
+        assert(me->GVT <= tw_pq_minimum(me->pq));
 #endif
         g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
-        g_tw_gvt_hook(me);
+        bool const past_end_time = TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0;
+        g_tw_gvt_hook(me, past_end_time);
     }
 }
 
@@ -653,11 +670,11 @@ void tw_scheduler_sequential(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
     while (1) {
-        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
-        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
-
         // Checking whether we have to call the GVT hook
         tw_gvt_hook_step_seq(me);
+
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
         cev = tw_pq_dequeue(me->pq);
         if (!cev) { break; }  // Stop simulation, if there are no new events
@@ -1085,11 +1102,11 @@ void tw_scheduler_sequential_rollback_check(tw_pe * me) {
     me->stats.s_total = tw_clock_read();
 
     while (1) {
-        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
-        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
-
         // Checking whether we have to call the GVT hook
         tw_gvt_hook_step_seq(me);
+
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
 
         cev = tw_pq_dequeue(me->pq);
         if (!cev) { break; }  // Stop simulation, if there are no new events

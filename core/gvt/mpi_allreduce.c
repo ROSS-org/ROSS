@@ -9,7 +9,7 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-void (*g_tw_gvt_hook) (tw_pe * pe) = NULL;
+void (*g_tw_gvt_hook) (tw_pe * pe, bool is_queue_empty) = NULL;
 // Holds one timestamp at which to trigger the arbitrary function
 struct gvt_hook_trigger g_tw_gvt_hook_trigger = {.status = GVT_HOOK_STATUS_disabled};
 
@@ -131,7 +131,7 @@ tw_gvt_stats(FILE * f)
     && tw_event_sig_compare_ptr(tw_pq_minimum_sig_ptr(pe->pq), &g_tw_gvt_hook_trigger.sig_at) >= 0)
 #else
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
-#define PAST_GVT_HOOK_ACTIVATION(pe) (
+#define PAST_GVT_HOOK_ACTIVATION(pe) (\
        g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp \
     && tw_pq_minimum(me->pq) >= g_tw_gvt_hook_trigger.at)
 #endif
@@ -477,7 +477,7 @@ void tw_trigger_gvt_hook_at(tw_stime time) {
         .tie_lineage_length = 1};
 
     if (now.recv_ts >= time) {
-        tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now);
+        tw_warning(TW_LOC, "Trying to schedule arbitrary function trigger at a time in the past %e, current GVT %e\n", time, now.recv_ts);
     }
 
     g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_timestamp;

@@ -41,9 +41,8 @@ static inline int  tw_gvt_inprogress(tw_pe * pe);
 /* Statistics collection and printing function */
 extern void tw_gvt_stats(FILE * F);
 
-/* Function to be injected/executed at every GVT */
-//static void (* const g_tw_gvt_hook) (tw_pe * pe) = NULL;
-extern void (*g_tw_gvt_hook) (tw_pe * pe);
+/* Function to be injected/executed at every GVT. The function receives the current PE and a boolean indicating if the simulation has no more events to process in the queue */
+extern void (*g_tw_gvt_hook) (tw_pe * pe, bool is_queue_empty);
 /* Trigger `g_tw_gvt_hook` at a specific time (it even works in Sequential
  * mode). This function should only be called before tw_run or inside
  * g_tw_gvt_hook. It's behaviour is undefined if called anywhere else,
