@@ -202,27 +202,29 @@ tw_net_minimum(void)
 }
 
 #ifdef USE_RAND_TIEBREAKER
-tw_event_sig
-tw_net_minimum_sig(void)
+tw_event_sig const *
+tw_net_minimum_sig_ptr(void)
 {
-    tw_event_sig m = tw_get_init_sig(TW_STIME_MAX, 1, TW_STIME_MAX);
+    tw_event_sig const * m = &g_tw_max_sig;
     tw_event *e;
     unsigned int i;
 
     e = outq.head;
     while (e) {
-      if (tw_event_sig_compare(m, e->sig) > 0)
-        m = e->sig;
+      if (tw_event_sig_compare_ptr(m, &e->sig) > 0) {
+        m = &e->sig;
+      }
       e = e->next;
     }
 
     for (i = 0; i < posted_sends.cur; i++) {
       e = posted_sends.event_list[i];
-      if (tw_event_sig_compare(m, e->sig) > 0)
-        m = e->sig;
+      if (tw_event_sig_compare_ptr(m, &e->sig) > 0) {
+        m = &e->sig;
+      }
     }
 
-  return m;
+    return m;
 }
 #endif
 
@@ -377,12 +379,14 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
   e->cause_next = NULL;
 
 #ifdef USE_RAND_TIEBREAKER
-  if(tw_event_sig_compare(e->sig, me->GVT_sig) < 0)
+  if(tw_event_sig_compare_ptr(&e->sig, &me->GVT_sig) < 0)
     tw_error(TW_LOC, "%d: Received straggler from %d: %lf < GVT%lf (%d)",
 	     me->id,  e->send_pe, e->sig.recv_ts, me->GVT_sig.recv_ts, e->state.cancel_q);
 
   if(tw_gvt_inprogress(me)) {
-      me->trans_msg_sig = (tw_event_sig_compare(me->trans_msg_sig, e->sig) < 0) ? me->trans_msg_sig : e->sig;
+    if (tw_event_sig_compare_ptr(&me->trans_msg_sig, &e->sig) >= 0) {
+      tw_copy_event_sig(&me->trans_msg_sig, &e->sig);
+    }
   }
 #else
   if(TW_STIME_CMP(e->recv_ts, me->GVT) < 0)
@@ -431,7 +435,7 @@ recv_finish(tw_pe *me, tw_event *e, char * buffer)
    * duplicate messages with no rollback between them.
    */
 #ifdef USE_RAND_TIEBREAKER
-  if(me == dest_pe && tw_event_sig_compare(e->dest_lp->kp->last_sig, e->sig) <= 0 && !dest_pe->cancel_q) {
+  if(me == dest_pe && tw_event_sig_compare_ptr(&e->dest_lp->kp->last_sig, &e->sig) <= 0 && !dest_pe->cancel_q) {
 #else
   if(me == dest_pe && TW_STIME_CMP(e->dest_lp->kp->last_time, e->recv_ts) <= 0 && !dest_pe->cancel_q) {
 #endif

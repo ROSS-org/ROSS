@@ -1,4 +1,7 @@
-#include <ross.h>
+#ifndef INC_avl_tree_h
+#define INC_avl_tree_h
+
+#include "ross-types.h"
 
 /* Copied and modified from http://pine.cs.yale.edu/pinewiki/C/AvlTree google cache */
 
@@ -43,3 +46,5 @@ tw_event * avlDelete(AvlTree *t, tw_event *key);
 AvlTree avl_alloc(void);
 
 void avl_free(AvlTree t);
+
+#endif /* INC_avl_tree_h */

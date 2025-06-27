@@ -1,9 +1,14 @@
 #ifndef INC_tw_eventq_h
 #define INC_tw_eventq_h
 
-#define ROSS_DEBUG 0
+#include "buddy.h"
+#include "hash-quadratic.h"
+#include "instrumentation/st-instrumentation.h"
+#include "ross-extern.h"
+#include "ross-kernel-inline.h"
+#include "ross-types.h"
 
-#include <ross.h>
+#define ROSS_DEBUG 0
 
 /**
  * debug assitant fuction
@@ -137,7 +142,7 @@ tw_eventq_push_list(tw_eventq * q, tw_event * h, tw_event * t, long cnt)
 
 // To be used in `tw_eventq_fossil_collect`
 #ifdef USE_RAND_TIEBREAKER
-#define CMP_EVENT_TO_GVT(e, pe) tw_event_sig_compare(e->sig, pe->GVT_sig)
+#define CMP_EVENT_TO_GVT(e, pe) tw_event_sig_compare_ptr(&e->sig, &pe->GVT_sig)
 #else
 #define CMP_EVENT_TO_GVT(e, pe) TW_STIME_CMP(e->recv_ts, pe->GVT)
 #endif

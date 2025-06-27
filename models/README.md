@@ -1,18 +1,11 @@
 # Welcome to Modeling!
 
-The ROSS repository currently links to two model repositories:
-- [A Template Model](http://github.com/nmcglohon/template-model) that can be used as a starting point for any new model.
-- [A Suite of Stable Models](http://github.com/ROSS-org/ROSS-Models) which contains several completed models.
+ROSS comes loaded with one model Phold. This model is often used to test the speed of ROSS in new systems, specially HPC systems. To find out more ROSS example models, please check out the repos below:
 
-## Building Existing Models
-
-To get the linked model repositories, run the following commands after cloning the ROSS repository:
-```
-git submodule init
-git submodule update
-```
-Then build ROSS as you regularly would.
-Be sure to turn on the option to ROSS_BUILD_MODELS in CMake (more details can be found on the [wiki page](http://github.com/ROSS-org/ROSS/wiki/Installation)).
+- [A Template Model](https://github.com/ROSS-org/template-model) that can be used as a starting point for any new model.
+- [Bare-bones postal network of mailboxes](https://github.com/nmcglo/ROSS-Mail-Model) made with the intent on mind of teaching ROSS to beginners.
+- [A Game of Life example](https://github.com/helq/highlife-ross). The goal of this example is to show case how to build a model where ROSS is linked as library (opposed to building the model inside of ROSS' space).
+- [(Deprecated) A Suite of Stable Models](https://github.com/ROSS-org/ROSS-Models) which contains several completed models. These might need some tweaking before they can be run as they were written for legacy ROSS.
 
 ## Creating Your Own Model
 
@@ -22,4 +15,4 @@ Sym-link your model into this folder and CMake will automatically find it for bu
 cd ~/Projects/ROSS/models
 ln -s ~/Projects/my-model ./
 ```
-For more details on creating a model please check out the [wiki page](http://github.com/ROSS-org/ROSS/wiki/Constructing-the-Model).
+For more details on creating a model please check out ROSS' documentation page.

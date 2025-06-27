@@ -1,6 +1,11 @@
 #ifndef INC_ross_extern_h
 #define INC_ross_extern_h
 
+#include <stdio.h>
+#include "buddy.h"
+#include "ross-types.h"
+#include "tw-opts.h"
+
 extern void tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_streams);
 
 /*
@@ -88,9 +93,6 @@ extern unsigned long long g_tw_clock_rate;
  */
 extern void tw_event_send(tw_event * event);
 extern void tw_event_rollback(tw_event * event);
-#ifdef USE_RAND_TIEBREAKER
-extern int tw_event_sig_compare(tw_event_sig e_sig, tw_event_sig n_sig);
-#endif
 
 /*
  * ross-inline.h
@@ -124,7 +126,7 @@ extern void     tw_kp_put_back_output_buffer(tw_out *out);
 extern void tw_kp_rollback_event(tw_event *event);
 extern void tw_kp_rollback_to(tw_kp * kp, tw_stime to);
 #ifdef USE_RAND_TIEBREAKER
-extern void tw_kp_rollback_to_sig(tw_kp * kp, tw_event_sig to_sig);
+extern void tw_kp_rollback_to_sig(tw_kp * kp, tw_event_sig const * to_sig);
 #endif
 
 /*
@@ -152,8 +154,8 @@ extern void tw_scheduler_conservative(tw_pe * me);
 extern void tw_scheduler_optimistic(tw_pe * me);
 extern void tw_scheduler_optimistic_debug(tw_pe * me);
 extern void tw_scheduler_optimistic_realtime(tw_pe * me);
-extern void tw_sched_event_q(tw_pe * me);
-extern void tw_sched_cancel_q(tw_pe * me);
+extern void tw_scheduler_sequential_rollback_check(tw_pe * me);
+extern void tw_scheduler_rollback_and_cancel_events_pe(tw_pe * pe);
 
 /*
  * tw-state.c
@@ -180,5 +182,6 @@ extern void tw_warning(const char *file, int line, const char *fmt, ...);
 extern void tw_printf(const char *file, int line, const char *fmt, ...);
 extern void tw_calloc_stats(size_t *alloc, size_t *waste);
 extern void* tw_calloc(const char *file, int line, const char *for_who, size_t e_sz, size_t n);
+extern void tw_fprint_binary_array(FILE *output, char const * prefix, void const* array, size_t size);
 
 #endif

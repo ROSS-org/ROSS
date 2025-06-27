@@ -1,6 +1,14 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
+#include "ross-extern.h"
+#include "ross-kernel-inline.h"
+#include "ross-types.h"
+#include "queue/tw-queue.h"
+#include <math.h>
+#include <sys/time.h>
+#include <time.h>
+
 static double gvt_print_interval = 0.01;
 static double percent_complete = 0.0;
 

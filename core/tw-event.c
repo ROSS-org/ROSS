@@ -1,6 +1,12 @@
 #include <ross.h>
 #include <assert.h>
 
+#ifdef USE_RAND_TIEBREAKER
+#define INCREASE_ABORTED_COUNT(event) event->aborted_total++
+#else
+#define INCREASE_ABORTED_COUNT(event)
+#endif
+
 static inline void link_causality (tw_event *nev, tw_event *cev) {
     nev->cause_next = cev->caused_by_me;
     cev->caused_by_me = nev;
@@ -16,9 +22,14 @@ void tw_event_send(tw_event * event) {
     tw_stime   recv_ts = event->recv_ts;
 
     if (event == send_pe->abort_event) {
+        // @bug In the "else" case. We need guarantee that the `event`'s parent
+        // is reversed! We hope it is reversed, but it might not be the case. Of
+        // course, the user will get an "--extramem" warning, but they won't be
+        // told that this might lead to a faulty simulation.
         if (TW_STIME_DBL(recv_ts) < g_tw_ts_end) {
             send_pe->cev_abort = 1;
         }
+        INCREASE_ABORTED_COUNT(send_pe->cur_event);
         return;
     }
 
@@ -26,6 +37,7 @@ void tw_event_send(tw_event * event) {
     // rio saves events scheduled past end time
      if (recv_ts >= g_tw_ts_end) {
         link_causality(event, send_pe->cur_event);
+        INCREASE_ABORTED_COUNT(send_pe->cur_event);
         return;
     }
 #endif
@@ -59,7 +71,7 @@ void tw_event_send(tw_event * event) {
         dest_pe = event->dest_lp->pe;
 
 #ifdef USE_RAND_TIEBREAKER
-        if (send_pe == dest_pe && tw_event_sig_compare(event->dest_lp->kp->last_sig, event->sig) <= 0) {
+        if (send_pe == dest_pe && tw_event_sig_compare_ptr(&event->dest_lp->kp->last_sig, &event->sig) <= 0) {
 #else
         if (send_pe == dest_pe && TW_STIME_CMP(event->dest_lp->kp->last_time, recv_ts) <= 0) {
 #endif
@@ -98,7 +110,9 @@ void tw_event_send(tw_event * event) {
 
     if(tw_gvt_inprogress(send_pe)) {
 #ifdef USE_RAND_TIEBREAKER
-        send_pe->trans_msg_sig = (tw_event_sig_compare(send_pe->trans_msg_sig, event->sig) < 0) ? send_pe->trans_msg_sig : event->sig;
+        if (tw_event_sig_compare_ptr(&send_pe->trans_msg_sig, &event->sig) >= 0) {
+            tw_copy_event_sig(&send_pe->trans_msg_sig, &event->sig);
+        }
 #else
         send_pe->trans_msg_ts = (TW_STIME_CMP(send_pe->trans_msg_ts, recv_ts) < 0) ? send_pe->trans_msg_ts : recv_ts;
 #endif
@@ -132,7 +146,9 @@ static inline void event_cancel(tw_event * event) {
 
         if(tw_gvt_inprogress(send_pe)) {
 #ifdef USE_RAND_TIEBREAKER
-            send_pe->trans_msg_sig = (tw_event_sig_compare(send_pe->trans_msg_sig, event->sig) < 0) ? send_pe->trans_msg_sig : event->sig;
+            if (tw_event_sig_compare_ptr(&send_pe->trans_msg_sig, &event->sig) >= 0) {
+                tw_copy_event_sig(&send_pe->trans_msg_sig, &event->sig);
+            }
 #else
             send_pe->trans_msg_ts = (TW_STIME_CMP(send_pe->trans_msg_ts, event->recv_ts) < 0) ? send_pe->trans_msg_ts : event->recv_ts;
 #endif
@@ -169,7 +185,9 @@ static inline void event_cancel(tw_event * event) {
 
                 if(tw_gvt_inprogress(send_pe)) {
 #ifdef USE_RAND_TIEBREAKER
-                    send_pe->trans_msg_sig = (tw_event_sig_compare(send_pe->trans_msg_sig, event->sig) < 0) ? send_pe->trans_msg_sig : event->sig;
+                    if (tw_event_sig_compare_ptr(&send_pe->trans_msg_sig, &event->sig) >= 0) {
+                        tw_copy_event_sig(&send_pe->trans_msg_sig, &event->sig);
+                    }
 #else
                     send_pe->trans_msg_ts = (TW_STIME_CMP(send_pe->trans_msg_ts, event->recv_ts) < 0) ? send_pe->trans_msg_ts : event->recv_ts;
 #endif
@@ -188,7 +206,9 @@ static inline void event_cancel(tw_event * event) {
 
         if(tw_gvt_inprogress(send_pe)) {
 #ifdef USE_RAND_TIEBREAKER
-            send_pe->trans_msg_sig = (tw_event_sig_compare(send_pe->trans_msg_sig, event->sig) < 0) ? send_pe->trans_msg_sig : event->sig;
+            if (tw_event_sig_compare_ptr(&send_pe->trans_msg_sig, &event->sig) >= 0) {
+                tw_copy_event_sig(&send_pe->trans_msg_sig, &event->sig);
+            }
 #else
             send_pe->trans_msg_ts = (TW_STIME_CMP(send_pe->trans_msg_ts, event->recv_ts) < 0) ? send_pe->trans_msg_ts : event->recv_ts;
 #endif
@@ -215,7 +235,7 @@ void tw_event_rollback(tw_event * event) {
 	dest_lp->suspend_event == event &&
 	// Must test time stamp since events are reused once GVT sweeps by
 #ifdef USE_RAND_TIEBREAKER
-    tw_event_sig_compare(dest_lp->suspend_sig, event->sig) == 0)
+    tw_event_sig_compare_ptr(&dest_lp->suspend_sig, &event->sig) == 0)
 #else
 	TW_STIME_CMP(dest_lp->suspend_time, event->recv_ts) == 0)
 #endif
@@ -224,7 +244,9 @@ void tw_event_rollback(tw_event * event) {
 	dest_lp->suspend_flag = 0;
 	dest_lp->suspend_event = NULL;
 #ifdef USE_RAND_TIEBREAKER
-    dest_lp->suspend_sig = (tw_event_sig){0,0};
+    dest_lp->suspend_sig.recv_ts = TW_STIME_CRT(0.0);
+    dest_lp->suspend_sig.priority = 0;
+    dest_lp->suspend_sig.tie_lineage_length = 0;
 #else
 	dest_lp->suspend_time = TW_STIME_CRT(0.0);
 #endif
@@ -267,6 +289,14 @@ jump_over_rc_event_handler:
         event_cancel(e);
         e = n;
     }
+
+#ifdef USE_RAND_TIEBREAKER
+    // undo the tiebreaker rng advanced by this LP for subsequent events that were not scheduled (aborted)
+    while (event->aborted_total) {
+        tw_rand_reverse_unif(event->dest_lp->core_rng);
+        event->aborted_total--;
+    }
+#endif
 
     event->caused_by_me = NULL;
 
