@@ -1,5 +1,6 @@
 # ignore models that aren't already in tree
 # (must manually add models to override this)
 build/
-models/*
+models/*/
+!models/phold
 *.swp
