@@ -5,6 +5,7 @@ FUNCTION(ROSS_TEST_SCHEDULERS target_name)
 	ADD_TEST(${target_name}_SCHED_Optimistic mpirun -np 2 ./${target_name} --synch=3 --extramem=100000)
 	ADD_TEST(${target_name}_SCHED_Realtime mpirun -np 2 ./${target_name} --synch=5 --gvt-interval=1 --clock-rate=$ENV{CLOCK_SPEED} --extramem=100000)
 	ADD_TEST(${target_name}_SCHED_OptDebug ${target_name} --synch=4 --nkp=1 --extramem=1000000)
+	ADD_TEST(${target_name}_SCHED_RollbackCheck ${target_name} --synch=6 --nkp=1)
 
 	SET(sched_tests
 		${target_name}_SCHED_Sequential
