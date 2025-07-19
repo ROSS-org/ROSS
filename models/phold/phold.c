@@ -210,6 +210,7 @@ main(int argc, char **argv)
     if(mpi_rank%2 == 1){
         // tests should catch any MPI_COMM_WORLD collectives
         MPI_Finalize();
+        return 0;
     }
     // Allows ROSS to function as normal
     tw_comm_set(split_comm);
@@ -281,6 +282,10 @@ main(int argc, char **argv)
     } // end if(g_st_ross_rank)
 #endif
 	tw_end();
+
+#ifdef TEST_COMM_ROSS
+	MPI_Finalize();
+#endif
 
 	return 0;
 }

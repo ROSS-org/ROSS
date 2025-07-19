@@ -3,7 +3,7 @@ FUNCTION(ROSS_TEST_SCHEDULERS target_name)
 	ADD_TEST(${target_name}_SCHED_Sequential ${target_name} --synch=1)
 	ADD_TEST(${target_name}_SCHED_Conservative mpirun -np 2 ./${target_name} --synch=2)
 	ADD_TEST(${target_name}_SCHED_Optimistic mpirun -np 2 ./${target_name} --synch=3 --extramem=100000)
-	ADD_TEST(${target_name}_SCHED_Realtime mpirun -np 2 ./${target_name} --synch=5 --gvt-interval=1 --clock-rate=$ENV{CLOCK_SPEED})
+	ADD_TEST(${target_name}_SCHED_Realtime mpirun -np 2 ./${target_name} --synch=5 --gvt-interval=1 --clock-rate=$ENV{CLOCK_SPEED} --extramem=100000)
 	ADD_TEST(${target_name}_SCHED_OptDebug ${target_name} --synch=4 --nkp=1 --extramem=1000000)
 
 	SET(sched_tests
