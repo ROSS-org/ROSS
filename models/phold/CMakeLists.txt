@@ -9,7 +9,7 @@ ELSE(NOT(BGPM))
 ENDIF(BGPM)
 
 SET(phold_srcs
-phold.c		phold.h)
+phold.main.c		phold.h)
 
 
 ADD_EXECUTABLE(phold ${phold_srcs})
