@@ -50,6 +50,7 @@ typedef struct crv_lpstate_checkpoint_internal {
     void * state;
     tw_rng_stream rng;
     tw_rng_stream core_rng;
+    unsigned int triggered_gvt_hook;
 } crv_lpstate_checkpoint_internal;
 
 size_t crv_init_checkpoints(void);

@@ -366,6 +366,7 @@ struct tw_lp {
     unsigned int suspend_error_number;
     unsigned int suspend_do_orig_event_rc;
     unsigned int suspend_flag;
+    unsigned int triggered_gvt_hook;
 };
 
 /**

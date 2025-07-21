@@ -162,6 +162,15 @@ void crv_check_lpstates(
         print_event(chkptr, clp, cev);
 	    tw_net_abort();
     }
+    if (before_state->triggered_gvt_hook != clp->triggered_gvt_hook) {
+        fprintf(stderr, "Error found by rollback of an event\n");
+        fprintf(stderr, "  triggered_gvt_hook incogruent value, this is most likely the result of not calling tw_trigger_gvt_hook_now_rev when rollbacking tw_trigger_gvt_hook_now!\n");
+        fprintf(stderr, "  LPID = %lu\n", clp->gid);
+        fprintf(stderr, "\n  lp->triggered_gvt_hook (%s) = %d\n", before_msg, before_state->triggered_gvt_hook);
+        fprintf(stderr, "\n  lp->triggered_gvt_hook contents (%s) = %d\n", after_msg, clp->triggered_gvt_hook);
+        print_event(chkptr, clp, cev);
+	    tw_net_abort();
+    }
 }
 
 void crv_copy_lpstate(crv_lpstate_checkpoint_internal * into, tw_lp const * clp) {
@@ -174,6 +183,7 @@ void crv_copy_lpstate(crv_lpstate_checkpoint_internal * into, tw_lp const * clp)
     }
     memcpy(&into->rng, clp->rng, sizeof(struct tw_rng_stream));
     memcpy(&into->core_rng, clp->core_rng, sizeof(struct tw_rng_stream));
+    into->triggered_gvt_hook = clp->triggered_gvt_hook;
 }
 
 void crv_clean_lpstate(crv_lpstate_checkpoint_internal * state, tw_lp const * clp) {

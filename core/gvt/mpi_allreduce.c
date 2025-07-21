@@ -537,8 +537,10 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
 
     // Forcing GVT to happen now (possibly triggering gvt hook)
     lp->pe->gvt_status = TW_GVT_COMPUTE;  // same behavior as if calling `tw_gvt_force_update()`
+    lp->triggered_gvt_hook++;
 }
 
 void tw_trigger_gvt_hook_now_rev(tw_lp * lp) {
     tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+    lp->triggered_gvt_hook--;
 }
