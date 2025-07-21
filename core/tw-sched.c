@@ -358,7 +358,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         if (g_tw_gvt_hook
                 && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp
                 && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(me) <= 0) {
-            tw_gvt_force_update();
+            tw_gvt_force_update_realtime();
             break;
         }
 
