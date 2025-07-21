@@ -518,3 +518,27 @@ void tw_trigger_gvt_hook_every(int num_gvt_calls) {
     g_tw_gvt_hook_trigger.every_n_gvt.starting_at = g_tw_gvt_done;
     g_tw_gvt_hook_trigger.every_n_gvt.nums = num_gvt_calls;
 }
+
+void tw_trigger_gvt_hook_when_model_calls(void) {
+    g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_model_call;
+    // timestamp is the largest signature
+	tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+}
+
+void tw_trigger_gvt_hook_now(tw_lp * lp) {
+    if (g_tw_synchronization_protocol == CONSERVATIVE || g_tw_synchronization_protocol == OPTIMISTIC_DEBUG) {
+        return; // An LP can only force the GVT hook call on sequential and parallel optimistic simulations
+    }
+    if (g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call) {
+        tw_error(TW_LOC, "`tw_trigger_gvt_hook_now` called but `g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call`. Either `tw_trigger_gvt_hook_when_model_calls` was not called or another trigger function has been");
+    }
+    tw_event_sig * now = &lp->kp->last_sig; // tw_now_sig(lp);
+    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, now);
+
+    // Forcing GVT to happen now (possibly triggering gvt hook)
+    lp->pe->gvt_status = TW_GVT_COMPUTE;  // same behavior as if calling `tw_gvt_force_update()`
+}
+
+void tw_trigger_gvt_hook_now_rev(tw_lp * lp) {
+    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+}

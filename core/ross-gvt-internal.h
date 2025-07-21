@@ -56,18 +56,35 @@ void tw_trigger_gvt_hook_at_event_sig(tw_event_sig time);
  * function. Calling this function will disable `tw_trigger_gvt_hook_at`
  */
 void tw_trigger_gvt_hook_every(int num_gvt_calls);
+/* Calling this function will enable the user to trigger the GVT hook
+ * `tw_trigger_gvt_hook_now` as an event is processed. Like
+ * `tw_trigger_gvt_hook_at`, this function has to be called at the start of the
+ * simulation or inside g_tw_gvt_hook
+ */
+void tw_trigger_gvt_hook_when_model_calls(void);
+/* It will pause the simulation and force a gvt hook call. Basically, this does
+ * something similar to doing `tw_trigger_gvt_hook_at(now)` on all PEs with
+ * `now * == tw_now(lp of the caller)`. Ofc, this function should be called only
+ * when processing an event, thus it is complementary to
+ * `tw_trigger_gvt_hook_at`. This function will only work if
+ * `tw_trigger_gvt_hook_when_model_calls` have been called before on all PEs
+ */
+void tw_trigger_gvt_hook_now(tw_lp *);
+// Reversing (removing) LP call to trigger GVT hook
+void tw_trigger_gvt_hook_now_rev(tw_lp *);
 
 enum GVT_HOOK_STATUS {
-    GVT_HOOK_STATUS_disabled = 0,
-    GVT_HOOK_STATUS_timestamp,
-    GVT_HOOK_STATUS_every_n_gvt,
+    GVT_HOOK_STATUS_disabled = 0, // The gvt hook will not be called
+    GVT_HOOK_STATUS_timestamp,    // GVT called: At a specific time stamp (`tw_trigger_gvt_hook_at` has to be called every single time gvt hook is called)
+    GVT_HOOK_STATUS_every_n_gvt,  // GVT called: Every N gvt operations (is set once, no need to call `tw_trigger_gvt_hook_every` again within gvt hook)
+    GVT_HOOK_STATUS_model_call,   // GVT called: Whenever the user calls `tw_trigger_gvt_hook_now` (within the event being processed)
 };
 
 // Holds one timestamp at which to trigger the arbitrary function
 struct gvt_hook_trigger {
     enum GVT_HOOK_STATUS status;
     union {
-        // GVT_HOOK_TYPE_timestamp
+        // GVT_HOOK_TYPE_timestamp and GVT_HOOK_STATUS_model_call
         struct {
 #ifdef USE_RAND_TIEBREAKER
         tw_event_sig sig_at;
