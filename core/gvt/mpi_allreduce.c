@@ -9,7 +9,7 @@ static unsigned int g_tw_gvt_no_change = 0;
 static tw_stat all_reduce_cnt = 0;
 static unsigned int gvt_cnt = 0;
 static unsigned int gvt_force = 0;
-void (*g_tw_gvt_hook) (tw_pe * pe, bool is_queue_empty) = NULL;
+void (*g_tw_gvt_hook) (tw_pe * pe, bool past_end_time) = NULL;
 // Holds one timestamp at which to trigger the arbitrary function
 struct gvt_hook_trigger g_tw_gvt_hook_trigger = {.status = GVT_HOOK_STATUS_disabled};
 

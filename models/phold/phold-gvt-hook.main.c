@@ -108,7 +108,7 @@ tw_lptype mylps[] = {
     {0},
 };
 
-void gvt_hook(tw_pe * pe, bool is_queue_empty) {
+void gvt_hook(tw_pe * pe, bool past_end_time) {
 #ifdef USE_RAND_TIEBREAKER
     tw_event_sig gvt_sig = pe->GVT_sig;
     tw_stime gvt = gvt_sig.recv_ts;
