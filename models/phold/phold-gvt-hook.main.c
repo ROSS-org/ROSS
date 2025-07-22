@@ -58,12 +58,14 @@ void phold_event_handler(phold_state *s, tw_bf *bf, phold_message *m,
   tw_event_send(
       tw_event_new(dest, tw_rand_exponential(lp->rng, mean) + lookahead, lp));
 
+#ifdef TRIGGER_BY_MODEL
   // trigger GVT hook around every 1000 events
   int const random_occurence = tw_rand_integer(lp->rng, 0, 1000);
   if (lp->gid == 0 && random_occurence == 0) {
     bf->c2 = 1;
     tw_trigger_gvt_hook_now(lp);
   }
+#endif
 }
 
 void phold_event_handler_rc(phold_state *s, tw_bf *bf, phold_message *m,
@@ -72,14 +74,17 @@ void phold_event_handler_rc(phold_state *s, tw_bf *bf, phold_message *m,
   (void)m;
   tw_rand_reverse_unif(lp->rng);
   tw_rand_reverse_unif(lp->rng);
-  tw_rand_reverse_unif(lp->rng);
 
   if (bf->c1) {
     tw_rand_reverse_unif(lp->rng);
   }
+
+#ifdef TRIGGER_BY_MODEL
+  tw_rand_reverse_unif(lp->rng);
   if (bf->c2) {
     tw_trigger_gvt_hook_now_rev(lp);
   }
+#endif
 }
 
 void phold_commit(phold_state *s, tw_bf *bf, phold_message *m, tw_lp *lp) {
@@ -110,9 +115,16 @@ void gvt_hook(tw_pe * pe, bool is_queue_empty) {
 #else
     tw_stime gvt = pe->GVT;
 #endif
+
   if (g_tw_mynode == 0) {
     printf("Current GVT time %f\n", gvt);
   }
+
+#ifdef TRIGGER_AT_TIMESTAMP
+  static float trigger_at = 1.0; // initial value is 1.0, then 2.0, 4, 8, 16, ...
+  trigger_at *= 2;
+  tw_trigger_gvt_hook_at(trigger_at);
+#endif
 }
 
 const tw_optdef app_opt[] = {
@@ -159,7 +171,15 @@ int main(int argc, char **argv) {
 
   // setting up GVT hook
   g_tw_gvt_hook = gvt_hook;
+#ifdef TRIGGER_BY_MODEL
   tw_trigger_gvt_hook_when_model_calls();
+#else
+#ifdef TRIGGER_AT_TIMESTAMP
+  tw_trigger_gvt_hook_at(1.0);
+#else // by default, the GVT function is called every 500 GVT operations
+  tw_trigger_gvt_hook_every(500);
+#endif
+#endif
 
   // reset mean based on lookahead
   mean = mean - lookahead;

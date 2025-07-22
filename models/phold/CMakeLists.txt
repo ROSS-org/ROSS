@@ -16,6 +16,8 @@ SET(phold_srcs
 ADD_EXECUTABLE(phold phold.main.c ${phold_srcs})
 ADD_EXECUTABLE(phold_comm_test phold.main.c ${phold_srcs})
 ADD_EXECUTABLE(phold_gvt_hook_test phold-gvt-hook.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_model_test phold-gvt-hook.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_timestamp_test phold-gvt-hook.main.c ${phold_srcs})
 ADD_EXECUTABLE(phold_gvt_hook_comm_test phold-gvt-hook.main.c ${phold_srcs})
 
 IF(BGPM)
@@ -29,6 +31,8 @@ ELSE(NOT(BGPM))
         TARGET_LINK_LIBRARIES(phold ROSS m)
         TARGET_LINK_LIBRARIES(phold_comm_test ROSS m)
         TARGET_LINK_LIBRARIES(phold_gvt_hook_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_model_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_timestamp_test ROSS m)
         TARGET_LINK_LIBRARIES(phold_gvt_hook_comm_test ROSS m)
     ENDIF(USE_DAMARIS)
 ENDIF(BGPM)
@@ -41,6 +45,12 @@ ROSS_TEST_SCHEDULERS(phold_comm_test)
 ROSS_TEST_INSTRUMENTATION(phold_comm_test)
 
 ROSS_TEST_SCHEDULERS(phold_gvt_hook_test)
+
+SET_TARGET_PROPERTIES(phold_gvt_hook_model_test PROPERTIES COMPILE_DEFINITIONS TRIGGER_BY_MODEL)
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_model_test)
+
+SET_TARGET_PROPERTIES(phold_gvt_hook_timestamp_test PROPERTIES COMPILE_DEFINITIONS TRIGGER_AT_TIMESTAMP)
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_timestamp_test)
 
 SET_TARGET_PROPERTIES(phold_gvt_hook_comm_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
 ROSS_TEST_SCHEDULERS(phold_gvt_hook_comm_test)
