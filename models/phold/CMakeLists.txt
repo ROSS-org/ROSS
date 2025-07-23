@@ -9,30 +9,50 @@ ELSE(NOT(BGPM))
 ENDIF(BGPM)
 
 SET(phold_srcs
-phold.c		phold.h)
+	phold.h
+)
 
 
-ADD_EXECUTABLE(phold ${phold_srcs})
-ADD_EXECUTABLE(phold_test ${phold_srcs})
+ADD_EXECUTABLE(phold phold.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_comm_test phold.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_test phold-gvt-hook.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_model_test phold-gvt-hook.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_timestamp_test phold-gvt-hook.main.c ${phold_srcs})
+ADD_EXECUTABLE(phold_gvt_hook_comm_test phold-gvt-hook.main.c ${phold_srcs})
 
 IF(BGPM)
 	TARGET_LINK_LIBRARIES(phold ROSS imp_bgpm m)
-	TARGET_LINK_LIBRARIES(phold_test ROSS imp_bgpm m)
+	TARGET_LINK_LIBRARIES(phold_comm_test ROSS imp_bgpm m)
 ELSE(NOT(BGPM))
     IF(USE_DAMARIS)
         TARGET_LINK_LIBRARIES(phold ROSS ROSS_Damaris m)
-        TARGET_LINK_LIBRARIES(phold_test ROSS ROSS_Damaris m)
+        TARGET_LINK_LIBRARIES(phold_comm_test ROSS ROSS_Damaris m)
     ELSE(NOT(USE_DAMARIS))
         TARGET_LINK_LIBRARIES(phold ROSS m)
-        TARGET_LINK_LIBRARIES(phold_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_comm_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_model_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_timestamp_test ROSS m)
+        TARGET_LINK_LIBRARIES(phold_gvt_hook_comm_test ROSS m)
     ENDIF(USE_DAMARIS)
 ENDIF(BGPM)
 
 ROSS_TEST_SCHEDULERS(phold)
 ROSS_TEST_INSTRUMENTATION(phold)
 
-SET_TARGET_PROPERTIES(phold_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
-ROSS_TEST_SCHEDULERS(phold_test)
-ROSS_TEST_INSTRUMENTATION(phold_test)
+SET_TARGET_PROPERTIES(phold_comm_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
+ROSS_TEST_SCHEDULERS(phold_comm_test)
+ROSS_TEST_INSTRUMENTATION(phold_comm_test)
+
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_test)
+
+SET_TARGET_PROPERTIES(phold_gvt_hook_model_test PROPERTIES COMPILE_DEFINITIONS TRIGGER_BY_MODEL)
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_model_test)
+
+SET_TARGET_PROPERTIES(phold_gvt_hook_timestamp_test PROPERTIES COMPILE_DEFINITIONS TRIGGER_AT_TIMESTAMP)
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_timestamp_test)
+
+SET_TARGET_PROPERTIES(phold_gvt_hook_comm_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
+ROSS_TEST_SCHEDULERS(phold_gvt_hook_comm_test)
 
 INSTALL(FILES ${ROSS_BINARY_DIR}/../models/phold/phold DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

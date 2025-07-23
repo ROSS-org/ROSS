@@ -165,6 +165,36 @@ const tw_optdef app_opt[] =
 	TWOPT_END()
 };
 
+/* Definitions to help debug the reversible handler */
+struct phold_state_checkpoint {
+    long int saved_dummy_data;
+};
+
+void save_state(struct phold_state_checkpoint * into, struct phold_state const * from) {
+    into->saved_dummy_data = from->dummy_state;
+}
+
+void clean_state(struct phold_state_checkpoint * into) {
+    // Nothing to do
+}
+
+void print_state(FILE * out, char const * prefix, struct phold_state * state) {
+    fprintf(out, "%sstruct phold_state {\n  dummy_state = %ld\n}\n", prefix, state->dummy_state);
+}
+
+void print_state_saved(FILE * out, char const * prefix, struct phold_state_checkpoint * state) {
+    fprintf(out, "%sstruct phold_state_checkpoint {\n  saved_dummy_data = %ld\n}\n", prefix, state->saved_dummy_data);
+}
+
+void print_event(FILE * out, char const * prefix, struct phold_state * state, struct phold_message * message) {
+    fprintf(out, "%sstruct phold_message {\n  dummy_data = %ld\n}\n", prefix, message->dummy_data);
+}
+
+bool check_state(struct phold_state * before, struct phold_state * after) {
+    return before->dummy_state == after->dummy_state;
+}
+/* End of definitions */
+
 int
 main(int argc, char **argv)
 {
@@ -180,6 +210,7 @@ main(int argc, char **argv)
     if(mpi_rank%2 == 1){
         // tests should catch any MPI_COMM_WORLD collectives
         MPI_Finalize();
+        return 0;
     }
     // Allows ROSS to function as normal
     tw_comm_set(split_comm);
@@ -217,6 +248,21 @@ main(int argc, char **argv)
         st_model_settype(i, &model_types[0]);
     }
 
+    // Defining all functions for checkpointer (used to test proper
+    // implementation of event reversing handler).
+    // This serves as documentation for them.
+    crv_checkpointer phold_chkptr = {
+        .lptype = &mylps[0],
+        .sz_storage = sizeof(struct phold_state_checkpoint),
+        .save_lp = (save_checkpoint_state_f) save_state, // Can be null
+        .clean_lp = (clean_checkpoint_state_f) clean_state, // Can be null
+        .check_lps = (check_states_f) check_state, // Can be null
+        .print_lp = (print_lpstate_f) print_state,
+        .print_checkpoint = (print_checkpoint_state_f) print_state_saved,
+        .print_event = (print_event_f) print_event,
+    };
+    crv_add_custom_state_checkpoint(&phold_chkptr);
+
         if( g_tw_mynode == 0 )
 	  {
 	    printf("========================================\n");
@@ -236,6 +282,10 @@ main(int argc, char **argv)
     } // end if(g_st_ross_rank)
 #endif
 	tw_end();
+
+#ifdef TEST_COMM_ROSS
+	MPI_Finalize();
+#endif
 
 	return 0;
 }

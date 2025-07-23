@@ -1,6 +1,14 @@
 #ifndef INC_gvt_mpi_allreduce_h
 #define INC_gvt_mpi_allreduce_h
 
+#include "ross-extern.h"
+#include "ross-kernel-inline.h"
+#include "ross-types.h"
+#include "queue/tw-queue.h"
+#include <math.h>
+#include <sys/time.h>
+#include <time.h>
+
 static double gvt_print_interval = 0.01;
 static double percent_complete = 0.0;
 
@@ -34,7 +42,17 @@ gvt_print(tw_stime gvt)
     else
         printf("GVT = %.4f", ts);
 
+#if HAVE_CTIME
+    time_t raw_time;
+    struct tm * timeinfo;
+    char time_str [80];
+    time(&raw_time);
+    timeinfo = localtime(&raw_time);
+    strftime(time_str, 80, "%c", timeinfo);
+    printf(") at %s.\n", time_str);
+#else
     printf(").\n");
+#endif
 
 #ifdef AVL_TREE
     printf("AVL tree size: %d\n", g_tw_pe->avl_tree_size);

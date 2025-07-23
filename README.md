@@ -65,6 +65,11 @@ ROSS developers typically do out-of-tree builds.  See the [Installation page](ht
   cd ROSS-build
   ccmake ~/path-to/ROSS
   ```
+We reccomend the following CMake parameters:
+  ```
+  cmake .. -DROSS_BUILD_MODELS=ON -DCMAKE_INSTALL_PREFIX="$(realpath ./bin)" \
+      -DCMAKE_C_COMPILER=mpicc -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-g -Wall"
+  ```
 
 5. Make your model(s) with one of the following commands
   ```
@@ -80,5 +85,22 @@ See [this blog post](https://ross-org.github.io/setup/running-sim.html) for deta
   ./your-model --synch=1               // sequential mode
   mpirun -np 2 ./your-model --synch=2  // conservative mode
   mpirun -np 2 ./your-model --synch=3  // optimistic mode
-  ./your-model --synch=4               // optimistic debug mode (note: not a parallel execution!)
+  mpirun -np 1 ./your-model --synch=4  // optimistic debug mode (note: not a parallel execution!)
+  mpirun -np 2 ./your-model --synch=5  // optimistic realtime mode
+  mpirun -np 1 ./your-model --synch=6  // reverse handler check mode
+  ```
+
+You can pass arguments to your model from the command line as shown above. However, for better readability, it is also possible to pass command line arguments through a text file.
+
+A sample text file sample.txt is included below.
+  ```
+  # Synchonization protocol
+  --synch=4
+  # AVL Tree contains 2^avl-size nodes (default 18)
+  --avl-size=18
+  ```
+
+The text file is then parsed by ROSS through the args-file command line argument.
+  ```
+  ./your-model --args-file=sample.txt
   ```

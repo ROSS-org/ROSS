@@ -401,10 +401,10 @@ tw_pq_minimum(splay_tree *pq)
 }
 
 #ifdef USE_RAND_TIEBREAKER
-inline tw_event_sig
-tw_pq_minimum_sig(splay_tree *pq)
-{
-	return ((pq->least ? pq->least->sig : (tw_event_sig){TW_STIME_MAX,TW_STIME_MAX}));
+/* Returns the mininum value from priority-queue. Do NOT modify pointer. */
+tw_event_sig const *
+tw_pq_minimum_sig_ptr(splay_tree const * pq) {
+	return pq->least ? &pq->least->sig : &g_tw_max_sig;
 }
 
 inline tw_eventid

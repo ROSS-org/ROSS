@@ -1,6 +1,8 @@
 #ifndef INC_hash_quadratic_h
 #define INC_hash_quadratic_h
 
+#include "ross-types.h"
+
 #define MAX_FRACTION 0.50
 
 extern unsigned int	 g_tw_hash_size;

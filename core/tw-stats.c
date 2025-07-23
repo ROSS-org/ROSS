@@ -1,4 +1,5 @@
 #include <ross.h>
+#include<sys/stat.h>
 
 #ifndef ROSS_DO_NOT_PRINT
 static void
@@ -237,8 +238,32 @@ tw_stats(tw_pe *me)
 #endif
 
 	tw_gvt_stats(stdout);
-    
+
     if (g_st_use_analysis_lps)
         st_print_analysis_LP_stats(&s);
 #endif
+}
+
+void
+tw_all_lp_stats(tw_pe *me)
+{
+    if(me->id==0) {
+        mkdir("ross_all_lp_stats", 0777);
+    }
+    tw_net_barrier();
+
+    char pe_log_file_path[40];
+    snprintf(pe_log_file_path, 40, "ross_all_lp_stats/pe_%lu.txt", me->id);
+    FILE* pe_log_file = fopen(pe_log_file_path, "w");
+
+    fprintf(pe_log_file, "Time spent processing events for each LP:\n");
+
+    for(unsigned int i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++)
+    {
+        tw_lp *lp = tw_getlp(i);
+	fprintf(pe_log_file, "LPID: %lu\t-  Processing time: %e\t-  Events processed: %u\n",
+                lp->gid,
+                (double) lp->lp_stats->s_process_event / g_tw_clock_rate,
+                lp->lp_stats->s_nevent_processed);
+    }
 }

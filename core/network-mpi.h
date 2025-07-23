@@ -1,6 +1,10 @@
 #ifndef INC_network_mpi_h
 #define INC_network_mpi_h
 
+#include "ross-types.h"
+#include "tw-opts.h"
+#include <mpi.h>
+
 typedef long tw_node;
 
 extern MPI_Comm MPI_COMM_ROSS;
@@ -101,7 +105,7 @@ extern tw_stime tw_net_minimum(void);
  *
  * @return minimum event signature for this PE's network buffers
  */
-extern tw_event_sig tw_net_minimum_sig(void);
+extern tw_event_sig const * tw_net_minimum_sig_ptr(void);
 #endif
 
 /**

@@ -5,8 +5,8 @@
  * Header file for all of the ROSS instrumentation
  */
 
-#include <ross.h>
-#include <inttypes.h>
+#include "tw-opts.h"
+#include "ross-types.h"
 
 #define INST_MAX_LENGTH 4096
 
@@ -157,6 +157,7 @@ struct st_lp_stats{
     unsigned int s_e_rbs;
     unsigned int s_nsend_network;
     unsigned int s_nread_network;
+    tw_clock s_process_event;
     float efficiency;
 };
 

@@ -7,7 +7,8 @@ queue/tw-queue.h
 queue/${QUEUE}.c
 
 ross-random.h
-ross-random.c
+ross-random-internal.h
+ross-random-internal.c
 rand-${RAND}.h
 rand-${RAND}.c
 
@@ -15,9 +16,11 @@ clock/${CLOCK}.h
 clock/${CLOCK}.c
 
 ross-gvt.h
+ross-gvt-internal.h
 gvt/${GVT}.h
 gvt/${GVT}.c
 
+ross-network.h
 network-${NETWORK}.h
 network-${NETWORK}.c
 
@@ -33,10 +36,12 @@ tw-state.c
 ross-extern.h
 ross-global.c
 
+ross-base.h
 ross-inline.h
 ross-kernel-inline.h
 ross.h
 ross-types.h
+ross-clock.h
 
 tw-eventq.h
 tw-event.c
@@ -64,7 +69,11 @@ instrumentation/st-event-trace.c
 instrumentation/st-model-data.c
 instrumentation/ross-lps/analysis-lp.h
 instrumentation/ross-lps/analysis-lp.c
-instrumentation/ross-lps/specialized-lps.c)
+instrumentation/ross-lps/specialized-lps.c
+
+check-revent/crv-state.h
+check-revent/crv-state.c
+)
 
 # ROSS VERSION INFORMATION
 ## Print Date and Time at top of ROSS output
@@ -167,6 +176,7 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENE
 # CODES config bin
 SET(ROSS_CC $ENV{CC})
 SET(ROSS_CXX $ENV{CXX})
+STRING(REPLACE " " "\\ " CMAKE_INSTALL_PREFIX_ESCAPED "\"${CMAKE_INSTALL_PREFIX}\"")
 CONFIGURE_FILE(ross-config.in ross-config @ONLY)
 CONFIGURE_FILE(ross.pc.in ross.pc @ONLY)
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/ross.pc.in PROPERTIES GENERATED FALSE)

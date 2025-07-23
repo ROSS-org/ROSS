@@ -1,6 +1,12 @@
 #ifndef INC_ross_inline_h
 #define INC_ross_inline_h
 
+#include "ross-types.h"
+#include "tw-eventq.h"
+#ifdef USE_RIO
+#include "rio/io.h"
+#endif
+
 static inline tw_event *
 tw_event_grab(tw_pe *pe)
 {
@@ -97,12 +103,13 @@ tw_event_new_user_prio(tw_lpid dest_gid, tw_stime offset_ts, tw_lp * sender, tw_
 
 
 #ifdef USE_RAND_TIEBREAKER
+  e->aborted_total = 0;
   e->sig.priority = prio;
-  tw_event *now_event = sender->kp->pe->cur_event;
+  tw_event *now_event = send_pe->cur_event;  // Finding event currently being processed, and thus the event that triggered this event
   tw_stime u_rand_val = tw_rand_unif(sender->core_rng); //create a random number used to deterministically break event ties, this is rolled back in tw_event_rollback() during the sender LP cancel loop
   e->sig.recv_ts = recv_ts;
   if (offset_ts == 0) {
-    if (now_event->sig.tie_lineage_length > MAX_TIE_CHAIN)
+    if (now_event->sig.tie_lineage_length >= MAX_TIE_CHAIN)
       tw_error(TW_LOC, "Maximum zero-offset tie chain reached (%d), increase #define in ross-types.h",MAX_TIE_CHAIN);
     memcpy(e->sig.event_tiebreaker, now_event->sig.event_tiebreaker, sizeof(tw_stime)*(now_event->sig.tie_lineage_length));
     e->sig.event_tiebreaker[now_event->sig.tie_lineage_length] = u_rand_val;

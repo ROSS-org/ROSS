@@ -1,4 +1,8 @@
 #include <ross.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 /**
  * \brief Reset the event bitfield prior to entering the event handler
@@ -12,6 +16,25 @@ static inline void reset_bitfields(tw_event *revent)
 {
     memset(&revent->cv, 0, sizeof(revent->cv));
 }
+
+// To be used instead of littering the file with ifdef's all over. If this grows
+// far too large, there might be a need to rethink how to implement the
+// tie-breaker mechanism so that it can be deactivated
+#ifdef USE_RAND_TIEBREAKER
+#define PQ_MINUMUM(pe) tw_pq_minimum_sig_ptr(pe->pq)->recv_ts
+#define CMP_KP_TO_EVENT_TIME(kp, e) tw_event_sig_compare_ptr(&kp->last_sig, &e->sig)
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(trigger, pe) tw_event_sig_compare_ptr(&trigger.sig_at, tw_pq_minimum_sig_ptr(pe->pq))
+#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to_sig(kp, &e->sig)
+#define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT_sig.recv_ts)
+#define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_sig.recv_ts)
+#else
+#define PQ_MINUMUM(pe) tw_pq_minimum(pe->pq)
+#define CMP_KP_TO_EVENT_TIME(kp, e) TW_STIME_CMP(kp->last_time, e->recv_ts)
+#define CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(trigger, pe) (trigger.at - tw_pq_minimum(pe->pq))
+#define TRIGGER_ROLLBACK_TO_EVENT_TIME(kp, e) tw_kp_rollback_to(kp, e->recv_ts);
+#define STIME_FROM_PE(pe) TW_STIME_DBL(pe->GVT)
+#define STIME_FROM_KP(kp) TW_STIME_DBL(kp->last_time)
+#endif
 
 /**
  * Get all events out of my event queue and spin them out into
@@ -43,31 +66,17 @@ static void tw_sched_event_q(tw_pe * me) {
                 case TW_pe_event_q:
                     dest_kp = cev->dest_lp->kp;
 
-#ifdef USE_RAND_TIEBREAKER
-                    if (tw_event_sig_compare(dest_kp->last_sig, cev->sig) > 0) {
+                    if (CMP_KP_TO_EVENT_TIME(dest_kp, cev) > 0) {
                         /* cev is a straggler message which has arrived
                         * after we processed events occuring after it.
                         * We need to jump back to before cev's timestamp.
                         */
                         start = tw_clock_read();
-                        tw_kp_rollback_to_sig(dest_kp, cev->sig);
+                        TRIGGER_ROLLBACK_TO_EVENT_TIME(dest_kp, cev);
                         me->stats.s_rollback += tw_clock_read() - start;
                         if (g_st_ev_trace == RB_TRACE)
                            st_collect_event_data(cev, (double)start / g_tw_clock_rate);
                     }
-#else
-                    if (TW_STIME_CMP(dest_kp->last_time, cev->recv_ts) > 0) {
-                        /* cev is a straggler message which has arrived
-                        * after we processed events occuring after it.
-                        * We need to jump back to before cev's timestamp.
-                        */
-                        start = tw_clock_read();
-                        tw_kp_rollback_to(dest_kp, cev->recv_ts);
-                        me->stats.s_rollback += tw_clock_read() - start;
-                        if (g_st_ev_trace == RB_TRACE)
-                           st_collect_event_data(cev, (double)start / g_tw_clock_rate);
-                    }
-#endif
                     start = tw_clock_read();
                     tw_pq_enqueue(me->pq, cev);
                     me->stats.s_pq += tw_clock_read() - start;
@@ -156,7 +165,7 @@ static void tw_sched_batch(tw_pe * me) {
     static int warned_no_free_event_buffers = 0;
     const int max_alloc_fail_count = 20;
 
-    tw_clock     start, pq_start;
+    tw_clock     start, end, pq_start;
     unsigned int     msg_i;
 
     /* Process g_tw_mblock events, or until the PQ is empty
@@ -186,6 +195,15 @@ static void tw_sched_batch(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
+        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
+        if (g_tw_gvt_hook) {
+            bool const hook_type = g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp || g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_model_call;
+            if (hook_type && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(g_tw_gvt_hook_trigger, me) <= 0) {
+                tw_gvt_force_update();
+                break;
+            }
+        }
+
         start = tw_clock_read();
         if (!(cev = tw_pq_dequeue(me->pq))) {
             break;
@@ -203,7 +221,7 @@ static void tw_sched_batch(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-    ckp->last_sig = cev->sig;
+    tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
 	ckp->last_time = cev->recv_ts;
 #endif
@@ -232,7 +250,9 @@ static void tw_sched_batch(tw_pe * me) {
     // instrumentation
     ckp->kp_stats->s_nevent_processed++;
     clp->lp_stats->s_nevent_processed++;
-	me->stats.s_event_process += tw_clock_read() - start;
+    end = tw_clock_read();
+	clp->lp_stats->s_process_event += end - start;
+	me->stats.s_event_process += end - start;
 
 	/* We ran out of events while processing this event.  We
 	 * cannot continue without doing GVT and fossil collect.
@@ -254,7 +274,11 @@ static void tw_sched_batch(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+        if (cev) {
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
+        } else {
+            tw_copy_event_sig(&ckp->last_sig, &me->GVT_sig);
+        }
 #else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 #endif
@@ -331,6 +355,15 @@ static void tw_sched_batch_realtime(tw_pe * me) {
         }
         no_free_event_buffers = 0;
 
+        // Force GVT computation, if (local) virtual time is ahead of the triggering timestamp for the gvt hook
+        if (g_tw_gvt_hook) {
+            bool const hook_type = g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp || g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_model_call;
+            if (hook_type && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(g_tw_gvt_hook_trigger, me) <= 0) {
+                tw_gvt_force_update_realtime();
+                break;
+            }
+        }
+
         start = tw_clock_read();
         if (!(cev = tw_pq_dequeue(me->pq))) {
           break; // leave the batch function
@@ -348,7 +381,7 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 	ckp = clp->kp;
 	me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-    ckp->last_sig = cev->sig;
+    tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
 	ckp->last_time = cev->recv_ts;
 #endif
@@ -400,7 +433,11 @@ static void tw_sched_batch_realtime(tw_pe * me) {
 
 	    cev = tw_eventq_peek(&ckp->pevent_q);
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev ? cev->sig : me->GVT_sig;
+        if (cev) {
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
+        } else {
+            tw_copy_event_sig(&ckp->last_sig, &me->GVT_sig);
+        }
 #else
 	    ckp->last_time = cev ? cev->recv_ts : me->GVT;
 #endif
@@ -474,6 +511,179 @@ void tw_sched_init(tw_pe * me) {
     g_tw_sim_started = 1;
 }
 
+// MPI barrier to check if any PE has a true value `val`. Returns true if anyone says "TRUE"
+static inline bool does_any_pe(bool val) {
+    bool global_val;
+    if(MPI_Allreduce(&val, &global_val, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_ROSS) != MPI_SUCCESS) {
+        tw_error(TW_LOC, "MPI_Allreduce for custom rollback and cleanup failed");
+    }
+    return global_val;
+}
+
+/**
+ * This function can be called by the GVT hook to guarantee that the state of
+ * all LPs has been backtracked to GVT and that all events to process are in the
+ * priority queue (pe->pq), i.e, all other queues are empty (cancel events and
+ * network events)
+ */
+void tw_scheduler_rollback_and_cancel_events_pe(tw_pe * pe) {
+#ifdef USE_RAND_TIEBREAKER
+    tw_event_sig const gvt_sig = pe->GVT_sig;
+    //tw_stime const gvt = gvt_sig.recv_ts;
+    // Backtracking the simulation to GVT
+    for (unsigned int i = 0; i < g_tw_nkp; i++) {
+        tw_kp_rollback_to_sig(g_tw_kp[i], &gvt_sig);
+    }
+    assert(tw_event_sig_compare_ptr(&pe->GVT_sig, &gvt_sig) == 0);
+#else
+    tw_stime const gvt = pe->GVT;
+    // Backtracking the simulation to GVT
+    for (unsigned int i = 0; i < g_tw_nkp; i++) {
+        tw_kp_rollback_to(g_tw_kp[i], gvt);
+    }
+    assert(pe->GVT == gvt);
+#endif
+
+    // Making sure that everything gets cleaned up properly
+    do {
+        if (tw_nnodes() > 1) {
+            double const start = tw_clock_read();
+            tw_net_read(pe);
+            pe->stats.s_net_read += tw_clock_read() - start;
+        }
+
+        pe->gvt_status = 1;
+        tw_sched_event_q(pe);
+        tw_sched_cancel_q(pe);
+        tw_gvt_step2(pe);
+
+        //printf("PE %lu: Time stamp at the end of GVT time: %f - AVL-tree "
+        //       "sized: %d\n", g_tw_mynode, gvt, pe->avl_tree_size);
+    } while (does_any_pe(pe->cancel_q != NULL) || does_any_pe(pe->event_q.size != 0));
+
+    //printf("PE %lu: All events rolledbacked and cancelled\n", g_tw_mynode);
+}
+
+static inline bool is_gvt_past_hook_threshold(tw_pe * me) {
+    // checking if the trigger has been activated on all PEs
+#ifdef USE_RAND_TIEBREAKER
+    bool const activate_trigger = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) >= 0;
+#else
+    bool const activate_trigger = me->GVT >= g_tw_gvt_hook_trigger.at;
+#endif
+    bool global_triggered;
+    if(MPI_Allreduce(&activate_trigger, &global_triggered, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_ROSS) != MPI_SUCCESS) {
+        tw_error(TW_LOC, "MPI_Allreduce to check arbitrary function activation failed");
+    }
+    return global_triggered;
+}
+
+/**
+ * This function will determine if the GVT hook should be called, and if it does, it calls the hook
+ */
+static inline void tw_gvt_hook_step(tw_pe * me) {
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status) {
+        bool has_hook_been_triggered = false;
+        switch (g_tw_gvt_hook_trigger.status) {
+            case GVT_HOOK_STATUS_disabled:
+                tw_error(TW_LOC, "This is weird. This should have never happened. This switch case is guarded by g_tw_gvt_hook_trigger.status != 0 (aka, != GVT_HOOK_STATUS_disabled). Panic.");
+            break;
+            case GVT_HOOK_STATUS_timestamp:
+                has_hook_been_triggered = is_gvt_past_hook_threshold(me);
+                if (has_hook_been_triggered) {
+                    g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
+                }
+            break;
+            case GVT_HOOK_STATUS_every_n_gvt: {
+                int const starting_at = g_tw_gvt_hook_trigger.every_n_gvt.starting_at;
+                int const every = g_tw_gvt_hook_trigger.every_n_gvt.nums;
+                has_hook_been_triggered = (g_tw_gvt_done - starting_at) % every == 0;
+            }
+            break;
+            case GVT_HOOK_STATUS_model_call: {
+                bool const triggered_here = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) > 0;
+                bool const triggered_somewhere = does_any_pe(triggered_here);
+                if (triggered_somewhere) {
+                   // LP has triggered GVT hook
+                   has_hook_been_triggered = true;
+                   // reset g_tw_gvt_hook_trigger.sig_at
+                   tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+                }
+            }
+            break;
+        }
+        if (has_hook_been_triggered) {
+#ifdef USE_RAND_TIEBREAKER
+            bool const past_end_time = me->GVT_sig.recv_ts >= g_tw_ts_end;
+            // resetting GVT to a time before the end of time (hopefully, it is not to a previous GVT time we have already considered)
+            if (past_end_time && g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
+                tw_copy_event_sig(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at);
+                assert(tw_event_sig_compare_ptr(&me->GVT_sig, tw_pq_minimum_sig_ptr(me->pq)) <= 0);
+            }
+#else
+            bool const past_end_time = me->GVT >= g_tw_ts_end;
+            if (past_end_time && g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_timestamp) {
+                me->GVT = g_tw_gvt_hook_trigger.at;
+                assert(me->GVT <= tw_pq_minimum(me->pq));
+            }
+#endif
+            g_tw_gvt_hook(me, past_end_time);
+        }
+    }
+}
+
+/**
+ * This function will determine if the GVT hook should be called, and if it does, it calls the hook. Sequential version
+ */
+static inline void tw_gvt_hook_step_seq(tw_pe * me) {
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status) {
+        bool triggered = false;
+        switch (g_tw_gvt_hook_trigger.status) {
+            case GVT_HOOK_STATUS_timestamp:
+                triggered = (CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(g_tw_gvt_hook_trigger, me) <= 0  // the next event is ahead of our next function trigger
+                             || tw_pq_get_size(me->pq) == 0); // we have no events to process
+            break;
+            case GVT_HOOK_STATUS_model_call:
+                triggered = CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(g_tw_gvt_hook_trigger, me) < 0;
+            break;
+            default: {
+                static bool first_seq_warning = true;
+                if (first_seq_warning) {
+                    tw_warning(TW_LOC, "During sequential simulation the GVT hook cannot be triggered by other than: the timestamp trigger (set by calling `tw_trigger_gvt_hook_at`), or by an LP call (should call `tw_trigger_gvt_hook_now`). The GVT hook won't be called!");
+                    first_seq_warning = false;
+                }
+                g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
+                return;
+            }
+            break;
+        }
+        if (!triggered) {
+            return;
+        }
+
+#ifdef USE_RAND_TIEBREAKER
+        tw_copy_event_sig(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at);
+        assert(tw_event_sig_compare_ptr(&me->GVT_sig, tw_pq_minimum_sig_ptr(me->pq)) <= 0);
+#else
+        me->GVT = g_tw_gvt_hook_trigger.at;
+        assert(me->GVT <= tw_pq_minimum(me->pq));
+#endif
+
+        switch (g_tw_gvt_hook_trigger.status) {
+            case GVT_HOOK_STATUS_timestamp:
+                g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
+            break;
+            case GVT_HOOK_STATUS_model_call:
+                tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+            break;
+            default:
+                tw_error(TW_LOC, "This is weird. This should have never happened. Only GVT_HOOK_STATUS_timestamp and GVT_HOOK_STATUS_model_call are allowed");
+        }
+        bool const past_end_time = TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0;
+        g_tw_gvt_hook(me, past_end_time);
+    }
+}
+
 /*************************************************************************/
 /* Primary Schedulers -- In order: Sequential, Conservative, Optimistic  */
 /*************************************************************************/
@@ -492,13 +702,21 @@ void tw_scheduler_sequential(tw_pe * me) {
     tw_wall_now(&me->start_time);
     me->stats.s_total = tw_clock_read();
 
-    while ((cev = tw_pq_dequeue(me->pq))) {
+    while (1) {
+        // Checking whether we have to call the GVT hook
+        tw_gvt_hook_step_seq(me);
+
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
+
+        cev = tw_pq_dequeue(me->pq);
+        if (!cev) { break; }  // Stop simulation, if there are no new events
         tw_lp *clp = cev->dest_lp;
         tw_kp *ckp = clp->kp;
 
         me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev->sig;
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
         ckp->last_time = cev->recv_ts;
 
@@ -515,12 +733,16 @@ void tw_scheduler_sequential(tw_pe * me) {
 
         reset_bitfields(cev);
         clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+        tw_clock const event_start = tw_clock_read();
         (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         if (g_st_ev_trace == FULL_TRACE)
-            st_collect_event_data(cev, tw_clock_read() / g_tw_clock_rate);
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
         if (*clp->type->commit) {
             (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
         }
+        tw_clock const total_event_process = tw_clock_read() - event_start;
+        clp->lp_stats->s_process_event += total_event_process;
+        me->stats.s_event_process += total_event_process;
 
         if (me->cev_abort){
             tw_error(TW_LOC, "insufficient event memory");
@@ -548,6 +770,7 @@ void tw_scheduler_sequential(tw_pe * me) {
     printf("*** END SIMULATION ***\n\n");
 
     tw_stats(me);
+    tw_all_lp_stats(me);
 
     (*me->type.final)(me);
 }
@@ -555,6 +778,10 @@ void tw_scheduler_sequential(tw_pe * me) {
 void tw_scheduler_conservative(tw_pe * me) {
     tw_clock start;
     unsigned int msg_i;
+
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_model_call && g_tw_mynode == 0) {
+        printf("Warning: GVT Hook will not be triggered in Parallel Conservative Simulation by the function `tw_trigger_gvt_hook_now` (The function `tw_trigger_gvt_hook_when_model_calls` has activated the GVT hook functionality for LP modes.) Please use sequential or parallel optimistic simulation modes.\n");
+    }
 
     if (g_tw_mynode == g_tw_masternode) {
         printf("*** START PARALLEL CONSERVATIVE SIMULATION ***\n\n");
@@ -572,14 +799,15 @@ void tw_scheduler_conservative(tw_pe * me) {
 
         tw_gvt_step1(me);
         tw_sched_event_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
+        }
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-#endif
+        if (STIME_FROM_PE(me) > g_tw_ts_end) {
             break;
+        }
 
         // put "batch" loop directly here
         /* Process g_tw_mblock events, or until the PQ is empty
@@ -598,12 +826,16 @@ void tw_scheduler_conservative(tw_pe * me) {
                 break;
             }
 
-#ifdef USE_RAND_TIEBREAKER
-            if(TW_STIME_DBL(tw_pq_minimum_sig(me->pq).recv_ts) >= TW_STIME_DBL(me->GVT_sig.recv_ts) + g_tw_lookahead)
-#else
-            if(TW_STIME_DBL(tw_pq_minimum(me->pq)) >= TW_STIME_DBL(me->GVT) + g_tw_lookahead)
-#endif
+            if(TW_STIME_DBL(PQ_MINUMUM(me)) >= STIME_FROM_PE(me) + g_tw_lookahead) {
                 break;
+            }
+
+            if (g_tw_gvt_hook
+                    && g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp
+                    && CMP_GVT_HOOK_TO_NEXT_IN_QUEUE(g_tw_gvt_hook_trigger, me) <= 0) {
+                tw_gvt_force_update();
+                break;
+            }
 
             start = tw_clock_read();
             if (!(cev = tw_pq_dequeue(me->pq))) {
@@ -622,21 +854,15 @@ void tw_scheduler_conservative(tw_pe * me) {
             ckp = clp->kp;
             me->cur_event = cev;
 
+            if (CMP_KP_TO_EVENT_TIME(ckp, cev) > 0) {
+                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
+                        "src LP %lu, src PE %lu",
+                STIME_FROM_KP(ckp), cev->recv_ts, clp->gid, clp->pe->id,
+                cev->send_lp, cev->send_pe);
+            }
 #ifdef USE_RAND_TIEBREAKER
-            if (tw_event_sig_compare(ckp->last_sig, cev->sig) > 0) {
-                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
-                        "src LP %lu, src PE %lu",
-                ckp->last_sig.recv_ts, cev->recv_ts, clp->gid, clp->pe->id,
-                cev->send_lp, cev->send_pe);
-            }
-            ckp->last_sig = cev->sig;
+            tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
-            if( TW_STIME_CMP(ckp->last_time, cev->recv_ts) > 0 ){
-                tw_error(TW_LOC, "Found KP last time %lf > current event time %lf for LP %d, PE %lu"
-                        "src LP %lu, src PE %lu",
-                ckp->last_time, cev->recv_ts, clp->gid, clp->pe->id,
-                cev->send_lp, cev->send_pe);
-            }
             ckp->last_time = cev->recv_ts;
 #endif
 
@@ -713,15 +939,14 @@ void tw_scheduler_optimistic(tw_pe * me) {
         tw_gvt_step1(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me);
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
+        }
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
+        if (STIME_FROM_PE(me) > g_tw_ts_end)
             break;
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-            break;
-#endif
 
         tw_sched_batch(me);
     }
@@ -741,6 +966,7 @@ void tw_scheduler_optimistic(tw_pe * me) {
     st_inst_finalize(me);
 
     tw_stats(me);
+    tw_all_lp_stats(me);
 }
 
 void tw_scheduler_optimistic_realtime(tw_pe * me) {
@@ -768,15 +994,14 @@ void tw_scheduler_optimistic_realtime(tw_pe * me) {
         tw_gvt_step1_realtime(me);
         tw_sched_event_q(me);
         tw_sched_cancel_q(me);
+        int const gvt_triggered = me->gvt_status;
         tw_gvt_step2(me); // use regular step2 at this point
+        if (gvt_triggered) {
+            tw_gvt_hook_step(me);
+        }
 
-#ifdef USE_RAND_TIEBREAKER
-        if (TW_STIME_DBL(me->GVT_sig.recv_ts) > g_tw_ts_end)
+        if (STIME_FROM_PE(me) > g_tw_ts_end)
             break;
-#else
-        if (TW_STIME_DBL(me->GVT) > g_tw_ts_end)
-            break;
-#endif
 
         tw_sched_batch_realtime(me);
     }
@@ -823,6 +1048,12 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
         tw_error(TW_LOC, "Number of KPs is greater than 1.");
     }
 
+    if (g_tw_gvt_hook && g_tw_gvt_hook_trigger.status) {
+        printf("Warning: GVT Hook will not be triggered in the Optimistic Debug Scheduler.\n");
+    }
+
+    printf("\n");
+    printf("*** START OPTIMISTIC DEBUG SIMULATION ***\n\n");
     tw_wall_now(&me->start_time);
 
     while ((cev = tw_pq_dequeue(me->pq))) {
@@ -831,7 +1062,7 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
 
         me->cur_event = cev;
 #ifdef USE_RAND_TIEBREAKER
-        ckp->last_sig = cev->sig;
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
 #else
         ckp->last_time = cev->recv_ts;
 #endif
@@ -861,7 +1092,8 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     // Perform all the rollbacks!
     printf("/******************* Starting Rollback Phase ******************************/\n");
 #ifdef USE_RAND_TIEBREAKER
-    tw_kp_rollback_to_sig( g_tw_kp[0], (tw_event_sig){g_tw_rollback_time,0});
+    tw_event_sig const zero_time = (tw_event_sig){ g_tw_rollback_time, 0 };
+    tw_kp_rollback_to_sig( g_tw_kp[0], &zero_time );
 #else
     tw_kp_rollback_to( g_tw_kp[0], TW_STIME_CRT(g_tw_rollback_time) );
 #endif
@@ -872,6 +1104,144 @@ void tw_scheduler_optimistic_debug(tw_pe * me) {
     printf("*** END SIMULATION ***\n\n");
 
     tw_stats(me);
+
+    (*me->type.final)(me);
+}
+
+void tw_scheduler_sequential_rollback_check(tw_pe * me) {
+    tw_stime gvt = TW_STIME_CRT(0.0);
+
+    if(tw_nnodes() > 1) {
+        tw_error(TW_LOC, "Sequential Scheduler used for world size greater than 1.");
+    }
+
+    // Finding size of largest LP
+    size_t largest_lp_size = 0;
+    for (size_t i = 0; i < g_tw_nlp; i++) {
+        size_t const lp_size = g_tw_lp[i]->type->state_sz;
+        if (lp_size > largest_lp_size) {
+            largest_lp_size = lp_size;
+        }
+    }
+    tw_event *cev;
+    crv_lpstate_checkpoint_internal prev, cur;
+    prev.state = malloc(largest_lp_size);
+    cur.state = malloc(largest_lp_size);
+    if (prev.state == NULL || cur.state == NULL) {
+        tw_error(TW_LOC, "Failed to allocate memory to save state");
+    }
+    size_t const largest_lp_checkpoint = crv_init_checkpoints();
+    if (largest_lp_checkpoint > largest_lp_size) {
+        largest_lp_size = largest_lp_checkpoint;
+    }
+
+    printf("*** START SEQUENTIAL ROLLBACK TEST SIMULATION ***\n\n");
+
+    tw_wall_now(&me->start_time);
+    me->stats.s_total = tw_clock_read();
+
+    while (1) {
+        // Checking whether we have to call the GVT hook
+        tw_gvt_hook_step_seq(me);
+
+        // This is only needed in the case a GVT hook changes the timestamp of an event in the queue, otherwise it is always false
+        if (TW_STIME_CMP(PQ_MINUMUM(me), g_tw_ts_end) > 0) { break; }  // Stop simulation if event scheduled past the end of time
+
+        cev = tw_pq_dequeue(me->pq);
+        if (!cev) { break; }  // Stop simulation, if there are no new events
+        tw_lp *clp = cev->dest_lp;
+        tw_kp *ckp = clp->kp;
+
+        me->cur_event = cev;
+#ifdef USE_RAND_TIEBREAKER
+        tw_copy_event_sig(&ckp->last_sig, &cev->sig);
+#else
+        ckp->last_time = cev->recv_ts;
+
+        // Note: I believe that this doesn't fully capture all event ties
+        if(TW_STIME_CMP(cev->recv_ts, tw_pq_minimum(me->pq)) == 0) {
+            me->stats.s_pe_event_ties++;
+        }
+#endif
+
+        gvt = cev->recv_ts;
+        if(TW_STIME_DBL(gvt)/g_tw_ts_end > percent_complete && (g_tw_mynode == g_tw_masternode)) {
+            gvt_print(gvt);
+        }
+
+        reset_bitfields(cev);
+        clp->critical_path = ROSS_MAX(clp->critical_path, cev->critical_path)+1;
+
+        crv_copy_lpstate(&prev, clp);
+
+        // Forward pass
+        tw_clock total_event_process = 0.0;
+        tw_clock event_start = tw_clock_read();
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        total_event_process += tw_clock_read() - event_start;
+
+        if (me->cev_abort){
+            tw_error(TW_LOC, "insufficient event memory");
+        }
+
+        crv_copy_lpstate(&cur, clp);
+
+        // Rollback pass
+        tw_clock const start_rollback = tw_clock_read();
+        tw_event_rollback(cev);
+        me->stats.s_rollback += tw_clock_read() - start_rollback;
+
+        crv_check_lpstates(clp, cev, &prev, "before processing event", "after processing event and rollback");
+        crv_clean_lpstate(&prev, clp);
+
+        // Forward pass (again)
+        event_start = tw_clock_read();
+        (*clp->type->event)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        if (g_st_ev_trace == FULL_TRACE)
+            st_collect_event_data(cev, (double)tw_clock_read() / g_tw_clock_rate);
+        if (*clp->type->commit) {
+            (*clp->type->commit)(clp->cur_state, &cev->cv, tw_event_data(cev), clp);
+        }
+        total_event_process += tw_clock_read() - event_start;
+
+        crv_check_lpstates(clp, cev, &cur, "after processing event", "after processing, rollback, processing event again and commiting");
+        crv_clean_lpstate(&cur, clp);
+
+        clp->lp_stats->s_process_event += total_event_process;
+        me->stats.s_event_process += total_event_process;
+
+        if (me->cev_abort){
+            tw_error(TW_LOC, "insufficient event memory");
+        }
+
+        ckp->s_nevent_processed+=2;
+        ckp->s_rb_total++;
+        // instrumentation
+        ckp->kp_stats->s_nevent_processed+=2;
+        clp->lp_stats->s_nevent_processed+=2;
+        ckp->kp_stats->s_rb_total++;
+        tw_event_free(me, cev);
+
+        if(g_st_rt_sampling &&
+                tw_clock_read() - g_st_rt_samp_start_cycles > g_st_rt_interval)
+        {
+            tw_clock current_rt = tw_clock_read();
+            if (g_st_model_stats == RT_STATS || g_st_model_stats == ALL_STATS)
+                st_collect_model_data(me, ((double)current_rt) / g_tw_clock_rate, RT_STATS);
+
+            g_st_rt_samp_start_cycles = tw_clock_read();
+        }
+    }
+    tw_wall_now(&me->end_time);
+    me->stats.s_total = tw_clock_read() - me->stats.s_total;
+
+    printf("*** END SIMULATION ***\n\n");
+
+    free(cur.state);
+    free(prev.state);
+
+    tw_stats(me);
+    tw_all_lp_stats(me);
 
     (*me->type.final)(me);
 }

@@ -1,14 +1,23 @@
 #include <ctype.h>
 #include <ross.h>
+#include <string.h>
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a) ( sizeof((a)) / sizeof((a)[0]) )
+#endif
 
 static const char *program;
 static const tw_optdef *all_groups[10];
 
 static void need_argument(const tw_optdef *def) NORETURN;
 static int is_empty(const tw_optdef *def);
+static void parse_args_file(const char* file_name, int* argc_p, char ***argv_p);
 
 static const tw_optdef *opt_groups[10];
 static unsigned int opt_index = 0;
+
+// We don't allow recursive invocations of the `args-file` option
+static uint args_file_depth = 0;
 
 void
 tw_opt_add(const tw_optdef *options)
@@ -283,6 +292,37 @@ need_argument(const tw_optdef *def)
 	exit(1);
 }
 
+// Trims left spaces and returns NULL if the string is empty or has a comment (starts with #)
+char *ltrim(char *s)
+{
+    while(isspace(*s)) s++;
+    if (*s == '\0' || *s == '#') { return NULL; }
+    return s;
+}
+
+// Returns the next argument and leaves `line` pointer at the end of the argument, so that it can be consumed further
+char *next_argument(char **line) {
+    char * to_ret = *line;
+    // consuming characters until we have traversed a full argument
+    // An argument doesn't have any spaces on it
+    while(!(isspace(**line) || **line == '\0' || **line == '#')) {
+        (*line)++;
+    }
+
+    switch (**line) {
+        case '\0':
+            break;
+        case '#':  // we don't care about the rest of the line
+            **line = '\0';
+            break;
+        default:  // the next character is a space, so there might be more arguments in the same line
+            **line = '\0';
+            (*line)++;
+    }
+
+    return to_ret;
+}
+
 static void
 apply_opt(const tw_optdef *def, const char *value)
 {
@@ -298,6 +338,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		if (!value)
 			need_argument(def);
 		v = strtoul(value, &end, 10);
+
 		if (*end)
 			need_argument(def);
 		switch (def->type)
@@ -353,7 +394,7 @@ apply_opt(const tw_optdef *def, const char *value)
 		if (!value)
 			need_argument(def);
 
-		//*((char **)def->value) = tw_calloc(TW_LOC, "string arg", strlen(value) + 1, 1);
+		// *((char **)def->value) = tw_calloc(TW_LOC, "string arg", strlen(value) + 1, 1);
 		strcpy((char *) def->value, value);
 		break;
 	}
@@ -368,6 +409,45 @@ apply_opt(const tw_optdef *def, const char *value)
 		tw_net_stop();
 		exit(0);
 		break;
+
+	case TWOPTTYPE_ARGSFILE:
+	{
+		if (args_file_depth) {
+			tw_error(TW_LOC, "--args-file cannot be invoked inside an args-file.");
+		}
+		args_file_depth++;
+
+		int argc_parsed = 1;
+		char** argv_parsed = (char**)malloc(sizeof(char*));
+
+		// Copying program name into first slot of argv
+		size_t prog_name_len = strlen(program);
+		argv_parsed[0] = malloc(prog_name_len + 3); // 1 for `\0`, and 2 for "./"
+		strcpy(argv_parsed[0], "./");
+		strcat(argv_parsed[0], program);
+		argv_parsed[0][prog_name_len+2] = '\0';
+
+		parse_args_file(value, &argc_parsed, &argv_parsed);
+
+		// Print out the arguments passed through the args-file
+		if (tw_ismaster()) {
+			printf("Arguments passed through --args-file:\n");
+			for (int i = 1; i < argc_parsed; i++) {
+				printf("%s\n", argv_parsed[i]);
+			}
+			printf("\n");
+		}
+
+		// Recursive call of args-file (it is not allowed to go recursively more than once, thanks to `args_file_depth`)
+		tw_opt_parse(&argc_parsed, &argv_parsed);
+		for (size_t i = 0; i < argc_parsed; i++) {
+			free(argv_parsed[0]);
+		}
+		free(argv_parsed);
+
+		args_file_depth--;
+		break;
+	}
 
 	default:
 		tw_error(TW_LOC, "Option type not supported here.");
@@ -423,6 +503,51 @@ static int is_empty(const tw_optdef *def)
 	return 1;
 }
 
+static void
+parse_args_file(const char* file_name, int* argc_p, char ***argv_p)
+{
+	FILE* file;
+	char* line = NULL;
+	char* argument = NULL;
+	size_t len = 0;
+	ssize_t read;
+	int argc = *argc_p;
+	char** argv = *argv_p;
+
+	file = fopen(file_name, "r");
+
+	if (file == NULL) {
+		tw_error(TW_LOC, "Invalid file path!");
+	}
+
+	while ((read = getline(&line, &len, file)) != -1) {
+		char * start_line = line;
+		line = ltrim(line);
+		// Retrieve all arguments from the line
+		while (line && (argument = next_argument(&line))) {
+			argc++;
+			argv = (char**)realloc(argv, sizeof(char*)*argc);
+
+			// Saving argument in memory
+			size_t argument_len = strlen(argument);
+			argv[argc-1] = (char*)malloc(sizeof(char)*(argument_len+1));
+			strcpy(argv[argc-1], argument);
+
+			line = ltrim(line);
+
+			// checking for disallowed `--` argument
+			if(strcmp(argument, "--")==0) {
+				tw_error(TW_LOC, "Argument `--' is invalid inside of args-file.");
+			}
+		}
+		free(start_line);
+	}
+	if (line) { free(line); }
+
+	*argc_p = argc;
+	*argv_p = argv;
+}
+
 void
 tw_opt_parse(int *argc_p, char ***argv_p)
 {
@@ -441,7 +566,9 @@ tw_opt_parse(int *argc_p, char ***argv_p)
 		if (!(opt_groups[i])->type || is_empty(opt_groups[i]))
 			continue;
 		if (i >= ARRAY_SIZE(all_groups))
+		{
 			tw_error(TW_LOC, "Too many tw_optdef arrays.");
+		}
 		all_groups[i] = opt_groups[i];
 	}
 	all_groups[i++] = basic;

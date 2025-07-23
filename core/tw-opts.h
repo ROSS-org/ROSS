@@ -1,6 +1,8 @@
 #ifndef INC_tw_opts_h
 #define INC_tw_opts_h
 
+#include <stdio.h>
+
 enum tw_opttype
 {
 	TWOPTTYPE_GROUP = 1,
@@ -11,6 +13,7 @@ enum tw_opttype
         TWOPTTYPE_DOUBLE,      /**< value must be a  "double *"            */
 	TWOPTTYPE_CHAR,        /**< value must be a  "char *"              */
         TWOPTTYPE_FLAG,        /**< value must be an "unsigned int*"       */
+	TWOPTTYPE_ARGSFILE,    /**< value must be a  "char *"              */
 	TWOPTTYPE_SHOWHELP
 };
 typedef enum tw_opttype tw_opttype;
@@ -31,6 +34,7 @@ struct tw_optdef
 #define TWOPT_STIME(n,v,h)     { TWOPTTYPE_STIME,     (n), (h), &(v) }
 #define TWOPT_DOUBLE(n,v,h)    { TWOPTTYPE_DOUBLE,    (n), (h), &(v) }
 #define TWOPT_CHAR(n,v,h)      { TWOPTTYPE_CHAR,      (n), (h), &(v) }
+#define TWOPT_ARGSFILE(n,v,h)  { TWOPTTYPE_ARGSFILE,  (n), (h), &(v) }
 #define TWOPT_FLAG(n,v,h)      { TWOPTTYPE_FLAG,      (n), (h), &(v) }
 #define TWOPT_END()            { (tw_opttype)0,     NULL, NULL, NULL }
 
