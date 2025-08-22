@@ -539,8 +539,12 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
     if (g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call) {
         tw_error(TW_LOC, "`tw_trigger_gvt_hook_now` called but `g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call`. Either `tw_trigger_gvt_hook_when_model_calls` was not called or another trigger function has been");
     }
+    if (g_tw_gvt_hook_trigger.sig_at.tie_lineage_length >= MAX_TIE_CHAIN) {
+      tw_error(TW_LOC, "Maximum zero-offset tie chain reached (%d), increase #define in ross-types.h", MAX_TIE_CHAIN);
+    }
     tw_event_sig * now = &lp->kp->last_sig; // tw_now_sig(lp);
     tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, now);
+    // We store as the trigger time the next valid, larger tiebreaker signature. It is unlikely we will this will tie with any other signature
     g_tw_gvt_hook_trigger.sig_at.event_tiebreaker[g_tw_gvt_hook_trigger.sig_at.tie_lineage_length] = 0;
     g_tw_gvt_hook_trigger.sig_at.tie_lineage_length += 1;
 
