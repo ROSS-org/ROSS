@@ -211,7 +211,7 @@ tw_gvt_step2(tw_pe *me)
 	tw_copy_event_sig(&pq_min_sig, tw_pq_minimum_sig_ptr(me->pq));
 	tw_copy_event_sig(&net_min_sig, tw_net_minimum_sig_ptr());
 
-	lvt_sig = me->trans_msg_sig;
+	tw_copy_event_sig(&lvt_sig, &me->trans_msg_sig);
 	if(tw_event_sig_compare_ptr(&lvt_sig, &pq_min_sig) > 0)
 	{
 		tw_copy_event_sig(&lvt_sig, &pq_min_sig);
@@ -219,6 +219,12 @@ tw_gvt_step2(tw_pe *me)
 	if(tw_event_sig_compare_ptr(&lvt_sig, &net_min_sig) > 0)
 	{
 		tw_copy_event_sig(&lvt_sig, &net_min_sig);
+	}
+	if(g_tw_gvt_hook
+        && g_tw_gvt_hook_trigger.status
+        && tw_event_sig_compare_ptr(&lvt_sig, &g_tw_gvt_hook_trigger.sig_at) > 0)
+	{
+		tw_copy_event_sig(&lvt_sig, &g_tw_gvt_hook_trigger.sig_at);
 	}
 
 	all_reduce_cnt++;
@@ -517,6 +523,7 @@ void tw_trigger_gvt_hook_every(int num_gvt_calls) {
     g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_every_n_gvt;
     g_tw_gvt_hook_trigger.every_n_gvt.starting_at = g_tw_gvt_done;
     g_tw_gvt_hook_trigger.every_n_gvt.nums = num_gvt_calls;
+    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
 }
 
 void tw_trigger_gvt_hook_when_model_calls(void) {
@@ -534,6 +541,8 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
     }
     tw_event_sig * now = &lp->kp->last_sig; // tw_now_sig(lp);
     tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, now);
+    g_tw_gvt_hook_trigger.sig_at.event_tiebreaker[g_tw_gvt_hook_trigger.sig_at.tie_lineage_length] = 0;
+    g_tw_gvt_hook_trigger.sig_at.tie_lineage_length += 1;
 
     // Forcing GVT to happen now (possibly triggering gvt hook)
     lp->pe->gvt_status = TW_GVT_COMPUTE;  // same behavior as if calling `tw_gvt_force_update()`

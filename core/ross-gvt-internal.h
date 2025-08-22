@@ -83,21 +83,19 @@ enum GVT_HOOK_STATUS {
 // Holds one timestamp at which to trigger the arbitrary function
 struct gvt_hook_trigger {
     enum GVT_HOOK_STATUS status;
-    union {
-        // GVT_HOOK_TYPE_timestamp and GVT_HOOK_STATUS_model_call
-        struct {
+    // GVT_HOOK_TYPE_timestamp and GVT_HOOK_STATUS_model_call
+    struct {
 #ifdef USE_RAND_TIEBREAKER
-        tw_event_sig sig_at;
+    tw_event_sig sig_at;
 #else
-        tw_stime at;
+    tw_stime at;
 #endif
-        };
-        // GVT_HOOK_TYPE_every_n_gvt
-        struct {
-            int starting_at;
-            int nums;
-        } every_n_gvt;
     };
+    // GVT_HOOK_TYPE_every_n_gvt
+    struct {
+        int starting_at;
+        int nums;
+    } every_n_gvt;
 };
 
 extern struct gvt_hook_trigger g_tw_gvt_hook_trigger;

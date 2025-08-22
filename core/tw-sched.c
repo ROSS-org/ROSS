@@ -601,7 +601,7 @@ static inline void tw_gvt_hook_step(tw_pe * me) {
             }
             break;
             case GVT_HOOK_STATUS_model_call: {
-                bool const triggered_here = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) > 0;
+                bool const triggered_here = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) >= 0;
                 bool const triggered_somewhere = does_any_pe(triggered_here);
                 if (triggered_somewhere) {
                    // LP has triggered GVT hook
