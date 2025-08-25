@@ -492,6 +492,12 @@ send_begin(tw_pe *me)
       if (!e)
 	break;
 
+#if PRIORITIZE_CANCEL_EVENTS
+      if (e->state.cancel_asend) {
+        break;
+      }
+#endif
+
       if(e == me->abort_event)
 	tw_error(TW_LOC, "Sending abort event!");
 
@@ -549,7 +555,9 @@ send_finish(tw_pe *me, tw_event *e, char * buffer)
        */
       e->state.cancel_asend = 0;
       e->state.cancel_q = 1;
+#if !PRIORITIZE_CANCEL_EVENTS
       tw_eventq_push(&outq, e);
+#endif
     } else {
       /* Event finished transmission and was not cancelled.
        * Add to our sent event queue so we can retain the
@@ -661,6 +669,9 @@ tw_net_cancel(tw_event *e)
      * this message is completed.
      */
     e->state.cancel_asend = 1;
+#if PRIORITIZE_CANCEL_EVENTS
+    tw_eventq_unshift(&outq, e);
+#endif
     break;
 
   case TW_pe_sevent_q:
