@@ -4,3 +4,5 @@ build/
 models/*/
 !models/phold
 *.swp
+CLAUDE.local.md
+CMakeUserPresets.json
