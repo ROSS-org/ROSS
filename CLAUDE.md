@@ -65,8 +65,9 @@ Optional subsystems:
 - **AVL tree vs hash** for remote-event dedup in optimistic mode (`AVL_TREE=ON` default; files `avl_tree.c`, `hash-quadratic.c`).
 - **RIO** — checkpoint/restart ([core/rio/](core/rio/)), opt-in via `USE_RIO=ON`.
 - **Instrumentation** ([core/instrumentation/](core/instrumentation/)) — ships ROSS-internal analysis LPs; enabled by runtime flags `--engine-stats`, `--event-trace`, `--model-stats`, `--kp-data`, `--lp-data`.
-- **Damaris/RISA** — in-situ vis, `USE_DAMARIS=ON` pulls in the submodule under [core/risa/](core/risa/).
 - **check-revent** ([core/check-revent/](core/check-revent/)) — backs `--synch=6` sequential rollback validation.
+
+Damaris/RISA in-situ vis is currently disabled — the `USE_DAMARIS` CMake option has been removed pending a follow-up that strips the inert C source paths and the `core/risa/` submodule.
 
 ### Memory discipline
 

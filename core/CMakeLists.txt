@@ -116,14 +116,6 @@ IF(USE_RIO)
   INCLUDE_DIRECTORIES(rio)
 ENDIF(USE_RIO)
 
-# Damaris I/O and data management
-OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
-if (USE_DAMARIS)
-    ADD_SUBDIRECTORY(risa)
-    INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
-    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
-ENDIF(USE_DAMARIS)
-
 # Use deterministic unbiased RNG tiebreaker for event ties
 OPTION(USE_RAND_TIEBREAKER "Build with deterministic unbiased tiebreaker for event ties" ON)
 
