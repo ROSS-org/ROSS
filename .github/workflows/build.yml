@@ -37,3 +37,42 @@ jobs:
             build/CMakeCache.txt
           if-no-files-found: ignore
           retention-days: 14
+
+  coverage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MPICH and lcov
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mpich libmpich-dev lcov
+      - name: Configure with coverage
+        run: cmake -S . -B build -DROSS_BUILD_MODELS=ON -DCMAKE_BUILD_TYPE=Debug -DROSS_ENABLE_COVERAGE=ON
+      - name: Build
+        run: cmake --build build -j
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Collect coverage
+        run: |
+          lcov --capture --directory build --output-file coverage.info \
+               --ignore-errors mismatch,gcov,source,unused
+          lcov --remove coverage.info \
+               '/usr/*' \
+               '*/core/lz4.*' \
+               '*/models/*' \
+               --output-file coverage.info \
+               --ignore-errors unused
+          lcov --list coverage.info
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.info
+          fail_ci_if_error: false
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-info
+          path: coverage.info
+          if-no-files-found: ignore
+          retention-days: 14

@@ -39,14 +39,6 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 # end of spack-related addition
 
-# We probably don't want this to run on every build.
-option(COVERALLS "Generate coveralls data" OFF)
-
-if (COVERALLS)
-    include(Coveralls)
-    coveralls_turn_on_coverage()
-endif()
-
 # Priority Queue Implementation
 SET(QUEUE splay)
 # Other queue implementations are no longer supported.
@@ -155,6 +147,20 @@ ELSE(MPI_C_FOUND)
         MESSAGE("         Either add an MPI compiler to your path (using modules)")
         MESSAGE("         Or force CMake to build using the correct compiler (`export CC=mpicc`)")
 ENDIF(MPI_C_FOUND)
+
+# Code coverage instrumentation (GCC/Clang only). Applied at directory scope
+# so flags propagate to core/ and models/. Collect with lcov/gcovr after ctest.
+option(ROSS_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
+mark_as_advanced(ROSS_ENABLE_COVERAGE)
+if(ROSS_ENABLE_COVERAGE)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    message(FATAL_ERROR
+      "ROSS_ENABLE_COVERAGE requires GCC or Clang; got ${CMAKE_C_COMPILER_ID}")
+  endif()
+  message(STATUS "Code coverage enabled (--coverage)")
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
+endif()
 
 # ROSS Core code
 ADD_SUBDIRECTORY(core)

@@ -116,14 +116,6 @@ IF(USE_RIO)
   INCLUDE_DIRECTORIES(rio)
 ENDIF(USE_RIO)
 
-# Damaris I/O and data management
-OPTION(USE_DAMARIS "Build with Damaris library (for in situ vis/analysis)?" OFF)
-if (USE_DAMARIS)
-    ADD_SUBDIRECTORY(risa)
-    INCLUDE_DIRECTORIES(${DAMARIS_INCLUDE})
-    SET(ross_srcs ${ross_srcs} ${ROSS_Damaris_SOURCE_DIR}/core/damaris.h)
-ENDIF(USE_DAMARIS)
-
 # Use deterministic unbiased RNG tiebreaker for event ties
 OPTION(USE_RAND_TIEBREAKER "Build with deterministic unbiased tiebreaker for event ties" ON)
 
@@ -154,18 +146,6 @@ SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
 TARGET_LINK_LIBRARIES(ROSS ${ROSS_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(ROSS INTERFACE ${MPI_C_INCLUDE_PATH})
 
-if (COVERALLS)
-    set(COVERAGE_SRCS ${ross_srcs})
-    # Don't check coverage on lz4
-    list(REMOVE_ITEM COVERAGE_SRCS lz4.h lz4.c)
-
-    # Create the coveralls target.
-    coveralls_setup(
-        "${COVERAGE_SRCS}" # The source files.
-        OFF)               # If we should upload.
-
-endif()
-
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
 SET(ross_srcs ${ross_srcs} config.h)
@@ -174,17 +154,13 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENE
 
 
 # CODES config bin
-SET(ROSS_CC $ENV{CC})
-SET(ROSS_CXX $ENV{CXX})
 STRING(REPLACE " " "\\ " CMAKE_INSTALL_PREFIX_ESCAPED "\"${CMAKE_INSTALL_PREFIX}\"")
-CONFIGURE_FILE(ross-config.in ross-config @ONLY)
 CONFIGURE_FILE(ross.pc.in ross.pc @ONLY)
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/ross.pc.in PROPERTIES GENERATED FALSE)
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENERATED TRUE)
 
 
 # Make Install
-INSTALL(FILES ${ROSS_BINARY_DIR}/ross-config DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 INSTALL(FILES ${ROSS_BINARY_DIR}/config.h DESTINATION include)
 INSTALL(DIRECTORY ${ROSS_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 INSTALL(TARGETS ROSS EXPORT ROSS-targets DESTINATION lib)
