@@ -146,18 +146,6 @@ SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
 TARGET_LINK_LIBRARIES(ROSS ${ROSS_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(ROSS INTERFACE ${MPI_C_INCLUDE_PATH})
 
-if (COVERALLS)
-    set(COVERAGE_SRCS ${ross_srcs})
-    # Don't check coverage on lz4
-    list(REMOVE_ITEM COVERAGE_SRCS lz4.h lz4.c)
-
-    # Create the coveralls target.
-    coveralls_setup(
-        "${COVERAGE_SRCS}" # The source files.
-        OFF)               # If we should upload.
-
-endif()
-
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
 SET(ross_srcs ${ross_srcs} config.h)

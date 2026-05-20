@@ -39,14 +39,6 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 # end of spack-related addition
 
-# We probably don't want this to run on every build.
-option(COVERALLS "Generate coveralls data" OFF)
-
-if (COVERALLS)
-    include(Coveralls)
-    coveralls_turn_on_coverage()
-endif()
-
 # Priority Queue Implementation
 SET(QUEUE splay)
 # Other queue implementations are no longer supported.
