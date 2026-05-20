@@ -36,7 +36,7 @@ static int l_io_append_flag = 0;
 char model_version[41];
 
 void io_register_model_version (char *sha1) {
-    strcpy(model_version, sha1);
+    snprintf(model_version, sizeof(model_version), "%s", sha1);
 }
 
 tw_event * io_event_grab(tw_pe *pe) {
@@ -105,7 +105,7 @@ void io_appending_job() {
 }
 
 void io_load_checkpoint(char * master_filename, io_load_type load_at) {
-    strcpy(g_io_checkpoint_name, master_filename);
+    snprintf(g_io_checkpoint_name, sizeof(g_io_checkpoint_name), "%s", master_filename);
     g_io_load_at = load_at;
 }
 
@@ -135,7 +135,7 @@ void io_read_checkpoint() {
 
     io_partition my_partitions[g_tw_nkp];
 
-    sprintf(filename, "%s.rio-md", g_io_checkpoint_name);
+    snprintf(filename, sizeof(filename), "%s.rio-md", g_io_checkpoint_name);
     rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     if (rc != 0) {
         printf("ERROR: could not MPI_File_open %s\n", filename);
@@ -163,7 +163,7 @@ void io_read_checkpoint() {
     size_t * model_sizes = (size_t *) calloc(g_tw_nlp, sizeof(size_t));
     int index = 0;
 
-    sprintf(filename, "%s.rio-lp", g_io_checkpoint_name);
+    snprintf(filename, sizeof(filename), "%s.rio-lp", g_io_checkpoint_name);
     rc = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     if (rc != 0) {
         printf("ERROR: could not MPI_File_open %s\n", filename);
