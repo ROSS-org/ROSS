@@ -1,29 +1,28 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Derive the project version from git so it stays in sync with release tags.
-# This must run BEFORE project() — project(VERSION ...) needs numeric pieces.
+# Canonical version lives in .version at the repo root — bumped at release
+# time alongside the matching git tag (e.g., .version = "8.1.1", tag v8.1.1).
+# Tarball, shallow-clone, and no-tag builds all get the right answer from
+# this file. git-describe is only consulted to enrich the runtime
+# ROSS_VERSION string with a commit-count + sha + -dirty suffix on developer
+# builds; it is never authoritative.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/.version" ROSS_DETECTED_VERSION)
+string(STRIP "${ROSS_DETECTED_VERSION}" ROSS_DETECTED_VERSION)
+if(NOT ROSS_DETECTED_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+    message(FATAL_ERROR
+        "Malformed version in .version: '${ROSS_DETECTED_VERSION}'. "
+        "Expected semantic version X.Y.Z (no leading 'v').")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
 include(GetGitRevisionDescription)
 git_describe_working_tree(ROSS_GIT_DESCRIBE --tags --dirty)
-message(STATUS "ROSS git describe: ${ROSS_GIT_DESCRIBE}")
-
-string(REGEX REPLACE "^v([0-9]+)\\..*"                "\\1" ROSS_VERSION_MAJOR "${ROSS_GIT_DESCRIBE}")
-string(REGEX REPLACE "^v[0-9]+\\.([0-9]+).*"          "\\1" ROSS_VERSION_MINOR "${ROSS_GIT_DESCRIBE}")
-string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" ROSS_VERSION_PATCH "${ROSS_GIT_DESCRIBE}")
-set(ROSS_DETECTED_VERSION "${ROSS_VERSION_MAJOR}.${ROSS_VERSION_MINOR}.${ROSS_VERSION_PATCH}")
-
-# project(VERSION ...) errors on malformed input. Tarball / shallow-clone /
-# no-tag builds make git_describe_working_tree return sentinels like
-# "GITDIR-NOTFOUND" or "HEAD-HASH-NOTFOUND" that the regexes above leave
-# unchanged. Detect that and fall back to 0.0.0.
-if(NOT ROSS_DETECTED_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
-    message(WARNING
-        "Could not derive ROSS version from git (got '${ROSS_GIT_DESCRIBE}'); "
-        "falling back to 0.0.0. This is expected for tarball, shallow, or "
-        "no-tag builds.")
-    set(ROSS_DETECTED_VERSION "0.0.0")
-    set(ROSS_GIT_DESCRIBE "0.0.0")
+if(ROSS_GIT_DESCRIBE MATCHES "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)$")
+    set(VERSION "${ROSS_DETECTED_VERSION}${CMAKE_MATCH_1}")
+else()
+    set(VERSION "${ROSS_DETECTED_VERSION}")
 endif()
+message(STATUS "ROSS version: ${VERSION}")
 
 project(ross
     VERSION ${ROSS_DETECTED_VERSION}
@@ -42,13 +41,10 @@ if(NOT DEFINED PROJECT_IS_TOP_LEVEL)
     endif()
 endif()
 
-# Full git-describe string (e.g., "v8.0.0-3-gabcdef-dirty") embedded into
-# config.h as ROSS_VERSION; suffix after MAJOR.MINOR.PATCH used historically
-# as VERSION_SHA1 (preserved for compatibility — no current consumer reads
-# it, but keep the extraction in case config.h.in starts referencing it).
-set(VERSION "${ROSS_GIT_DESCRIBE}")
-string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
-# VERSION_SHORT is consumed by core/ross.pc.in; In the future it will switch to
+# Suffix after MAJOR.MINOR.PATCH (e.g., "-18-g90cb62f4-dirty") preserved as
+# VERSION_SHA1 for legacy compatibility.
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
+# VERSION_SHORT consumed by core/ross.pc.in; In the future it will switch to
 # @PROJECT_VERSION@.
 set(VERSION_SHORT "${PROJECT_VERSION}")
 
