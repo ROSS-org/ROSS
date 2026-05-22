@@ -2,11 +2,10 @@
 
 ---
 
-If this merge represents a feature addition to ROSS, the following items must be completed before the branch will be merged:
+## Checklist
 
-- [ ] Document the feature on the blog (See the [website Contributing guide](https://github.com/ROSS-org/ross-org.github.io/blob/master/CONTRIBUTING.md)).
-  Include a link to your blog post in the Pull Request.
-- [ ] Builds should cleanly compile with -Wall and -Wextra.
-- [ ] One or more TravisCI tests should be created (and they should pass)
-- [ ] Through the TravisCI tests, coverage should increase
-- [ ] Test with CODES to ensure everything continues to work
+- [ ] Builds cleanly with `-Wall` and `-Wextra`
+- [ ] CI is green
+- [ ] Added a changelog fragment under [`Documentation/dev/`](Documentation/dev/README.md), unless the change is invisible to anyone outside the PR (test refactors, internal renames, comment-only tweaks)
+- [ ] Confirmed nothing in CODES breaks. Build CODES against this branch's installed ROSS
+- [ ] For new features: blog post on the [ROSS website](https://github.com/ROSS-org/ross-org.github.io/blob/master/CONTRIBUTING.md), with link in this PR

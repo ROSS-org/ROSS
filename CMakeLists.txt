@@ -1,16 +1,61 @@
-PROJECT(ROSS_TOP C)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
-SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# Canonical version lives in .version at the repo root — bumped at release
+# time alongside the matching git tag (e.g., .version = "8.1.1", tag v8.1.1).
+# Tarball, shallow-clone, and no-tag builds all get the right answer from
+# this file. git-describe is only consulted to enrich the runtime
+# ROSS_VERSION string with a commit-count + sha + -dirty suffix on developer
+# builds; it is never authoritative.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/.version" ROSS_DETECTED_VERSION)
+string(STRIP "${ROSS_DETECTED_VERSION}" ROSS_DETECTED_VERSION)
+if(NOT ROSS_DETECTED_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+    message(FATAL_ERROR
+        "Malformed version in .version: '${ROSS_DETECTED_VERSION}'. "
+        "Expected semantic version X.Y.Z (no leading 'v').")
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
+include(GetGitRevisionDescription)
+git_describe_working_tree(ROSS_GIT_DESCRIBE --tags --dirty)
+if(ROSS_GIT_DESCRIBE MATCHES "^v[0-9]+\\.[0-9]+\\.[0-9]+(.*)$")
+    set(VERSION "${ROSS_DETECTED_VERSION}${CMAKE_MATCH_1}")
+else()
+    set(VERSION "${ROSS_DETECTED_VERSION}")
+endif()
+message(STATUS "ROSS version: ${VERSION}")
+
+project(ross
+    VERSION ${ROSS_DETECTED_VERSION}
+    DESCRIPTION "Rensselaer's Optimistic Simulation System"
+    HOMEPAGE_URL "https://github.com/ROSS-org/ROSS"
+    LANGUAGES C)
+
+# Polyfill PROJECT_IS_TOP_LEVEL for CMake < 3.21. Drop this block when the
+# minimum required CMake version is bumped to 3.21+ — the variable is then
+# set by project() automatically.
+if(NOT DEFINED PROJECT_IS_TOP_LEVEL)
+    if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+        set(PROJECT_IS_TOP_LEVEL TRUE)
+    else()
+        set(PROJECT_IS_TOP_LEVEL FALSE)
+    endif()
+endif()
+
+# Suffix after MAJOR.MINOR.PATCH (e.g., "-18-g90cb62f4-dirty") preserved as
+# VERSION_SHA1 for legacy compatibility.
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+(.*)" "\\1" VERSION_SHA1 "${VERSION}")
+# VERSION_SHORT consumed by core/ross.pc.in; In the future it will switch to
+# @PROJECT_VERSION@.
+set(VERSION_SHORT "${PROJECT_VERSION}")
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # ROSS Configuration Options
 
 ENABLE_TESTING()
 INCLUDE(CTest)
 
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core/cmake/")
-
-# Follow section based on Spack doc: 
+# Follow section based on Spack doc:
 # https://spack.readthedocs.io/en/latest/workflows.html#write-the-cmake-build
 # enable @rpath in the install name for any shared library being built
 # note: it is planned that a future version of CMake will enable this by default
