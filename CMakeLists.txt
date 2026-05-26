@@ -183,15 +183,10 @@ ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
 
 
 ## MPI
-INCLUDE(SetupMPI)
-IF(MPI_C_FOUND)
-        INCLUDE_DIRECTORIES(${MPI_C_INCLUDE_PATH})
-        LIST(APPEND ROSS_EXTERNAL_LIBS ${MPI_C_LIBRARIES})
-ELSE(MPI_C_FOUND)
-        MESSAGE("WARNING: Could not find MPI!")
-        MESSAGE("         Either add an MPI compiler to your path (using modules)")
-        MESSAGE("         Or force CMake to build using the correct compiler (`export CC=mpicc`)")
-ENDIF(MPI_C_FOUND)
+# MPI is required; build the system C compiler against MPI::MPI_C rather than
+# forcing CC=mpicc. For non-standard installs, hint with -DMPI_HOME=... or
+# `module load <mpi>` before configuring.
+find_package(MPI REQUIRED COMPONENTS C)
 
 # Code coverage instrumentation (GCC/Clang only). Applied at directory scope
 # so flags propagate to core/ and models/. Collect with lcov/gcovr after ctest.
