@@ -121,8 +121,10 @@ OPTION(ROSS_BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
 SET(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
 ADD_LIBRARY(ROSS ${ross_srcs})
 SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
-TARGET_LINK_LIBRARIES(ROSS ${ROSS_EXTERNAL_LIBS})
-TARGET_INCLUDE_DIRECTORIES(ROSS INTERFACE ${MPI_C_INCLUDE_PATH})
+# MPI is PUBLIC because core/ross.h does `#include <mpi.h>` — consumers must
+# inherit the MPI include path and link against MPI when they link ROSS.
+target_link_libraries(ROSS PUBLIC MPI::MPI_C)
+target_link_libraries(ROSS PRIVATE m)
 
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
