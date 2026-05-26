@@ -117,10 +117,11 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
-OPTION(ROSS_BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
-SET(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
+# Library type (static vs shared) is selected at top-level via
+# ROSS_BUILD_SHARED_LIBS, which propagates here as BUILD_SHARED_LIBS.
 ADD_LIBRARY(ROSS ${ross_srcs})
 SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
+
 # MPI is PUBLIC because core/ross.h does `#include <mpi.h>` — consumers must
 # inherit the MPI include path and link against MPI when they link ROSS.
 target_link_libraries(ROSS PUBLIC MPI::MPI_C)

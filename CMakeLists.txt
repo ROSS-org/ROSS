@@ -188,6 +188,15 @@ ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
 # `module load <mpi>` before configuring.
 find_package(MPI REQUIRED COMPONENTS C)
 
+# ROSS's own static/shared knob. Defaults from BUILD_SHARED_LIBS so a
+# superbuild parent that sets the standard variable at the top gets ROSS
+# to follow the convention; an explicit -DROSS_BUILD_SHARED_LIBS=... is
+# the per-ROSS override.
+option(ROSS_BUILD_SHARED_LIBS
+    "Build ROSS libraries as shared instead of static"
+    ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
+
 # Code coverage instrumentation (GCC/Clang only). Applied at directory scope
 # so flags propagate to core/ and models/. Collect with lcov/gcovr after ctest.
 option(ROSS_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)

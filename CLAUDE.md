@@ -16,6 +16,8 @@ Models are **not** built by default — pass `-DROSS_BUILD_MODELS=ON` to include
 
 MPI is required and auto-discovered via `find_package(MPI)` — do not set `CC=mpicc` or `-DCMAKE_C_COMPILER=mpicc`. For non-standard installs, hint with `-DMPI_HOME=...` or `module load <mpi>` before configuring. The top-level `CMakeLists.txt` does per-arch detection via `CMAKE_SYSTEM_PROCESSOR` and falls back to a `gtod` clock if unrecognized. Set `-DROSS_CLOCK_OVERRIDE=YES` to force the gtod clock.
 
+Default is a static library. Pass `-DROSS_BUILD_SHARED_LIBS=ON` to build shared. The option defaults from `BUILD_SHARED_LIBS` if a parent project set it (e.g., a superbuild), otherwise OFF.
+
 ## Running a model
 
 Models accept `--synch=N` to pick the scheduler:
