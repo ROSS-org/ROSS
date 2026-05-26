@@ -1,0 +1,77 @@
+name: CODES contract test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+# Builds CODES against a freshly-installed ROSS and runs CODES's test suite.
+# Catches consumer-API regressions (header layout, pkg-config, library name)
+# that ROSS's own test suite can't see by construction. Minimal CODES build —
+# SWM, UNION, DUMPI, TORCH are all left off so we don't drag in argobots /
+# conceptual / python2 / etc.
+#
+# CODES is pinned to a specific master SHA so external repo churn doesn't
+# break ROSS CI. Bump CODES_REF when CODES advances and we want to validate
+# against the newer ref — that's a separate, explicit ROSS-side change.
+
+jobs:
+  codes-contract:
+    runs-on: ubuntu-24.04
+    env:
+      # codes-org/codes@master as of 2026-05-26
+      CODES_REF: 4a055c23be3dd400c7f77c08ca2702b766b763bf
+    steps:
+      - name: Checkout ROSS
+        uses: actions/checkout@v4
+        with:
+          path: ross
+
+      - name: Checkout CODES (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: codes-org/codes
+          ref: ${{ env.CODES_REF }}
+          path: codes
+
+      - name: Install MPICH
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mpich libmpich-dev pkg-config
+
+      - name: Configure ROSS
+        run: cmake -S ross -B ross/build -DROSS_BUILD_MODELS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/ross-install
+
+      - name: Build ROSS
+        run: cmake --build ross/build -j
+
+      - name: Install ROSS
+        run: cmake --install ross/build
+
+      - name: Configure CODES against installed ROSS
+        run: cmake -S codes -B codes/build -DROSS_PKG_CONFIG_PATH=$PWD/ross-install/lib/pkgconfig -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DUSE_TORCH=false
+
+      - name: Build CODES
+        run: cmake --build codes/build -j
+
+      - name: Run CODES tests
+        run: ctest --test-dir codes/build --output-on-failure
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codes-contract-logs
+          path: |
+            codes/build/Testing/Temporary/LastTest.log
+            codes/build/Testing/Temporary/LastTestsFailed.log
+            codes/build/CMakeFiles/CMakeError.log
+            codes/build/CMakeFiles/CMakeOutput.log
+            codes/build/CMakeCache.txt
+            ross/build/CMakeFiles/CMakeError.log
+            ross/build/CMakeFiles/CMakeOutput.log
+            ross/build/CMakeCache.txt
+          if-no-files-found: ignore
+          retention-days: 14
