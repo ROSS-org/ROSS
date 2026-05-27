@@ -170,7 +170,7 @@ install(EXPORT ROSSTargets
 
 # Canonical ROSSConfig.cmake + ROSSConfigVersion.cmake.
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROSSConfig.cmake.in
+    ${CMAKE_SOURCE_DIR}/cmake/ROSSConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
 
@@ -194,7 +194,7 @@ export(EXPORT ROSSTargets
 # delegates to the canonical config above. Catches users still passing
 # -DROSS_DIR=<prefix>/lib. RENAME because both files are named ROSSConfig.cmake
 # but live in different directories.
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROSSConfig-legacy-shim.cmake
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/ROSSConfig-legacy-shim.cmake
     RENAME ROSSConfig.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
