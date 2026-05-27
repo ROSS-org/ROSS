@@ -153,8 +153,26 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENER
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION include)
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+# Headers ship under <prefix>/include/ross/ rather than flat in
+# <prefix>/include/ to avoid polluting the consumer namespace with common
+# names (config.h, buddy.h, lz4.h, io.h, etc.). The exported target's
+# INSTALL_INTERFACE attaches the right -I flag so #include <ross.h> still
+# resolves transparently for consumers.
+#
+# *-internal.h headers ship despite the name because the supported public
+# headers (ross-gvt.h, rand-clcg4.h, ross-random.h, ross-kernel-inline.h)
+# transitively #include them. A proper public/private split requires
+# refactoring those public headers first.
+#
+# risa is excluded since Damaris was disabled.
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ross)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ross
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "risa" EXCLUDE)
 
 # Library target + namespaced export.
 install(TARGETS ROSS

@@ -13,9 +13,13 @@
 #
 # Path B consumer contract for headers:
 #     #include <ross.h>                  — supported
-#     #include <ross-extern.h>           — supported (any top-level ross-*.h)
-#     #include <ross-gvt-internal.h>     — NOT INSTALLED (*-internal.h excluded
-#                                          from the install rule; never public)
+#     #include <ross-extern.h>           — supported (any top-level ross-*.h
+#                                          except *-internal.h)
+#     #include <ross-gvt-internal.h>     — UNSUPPORTED (ships today because
+#                                          public headers like ross-gvt.h
+#                                          transitively need it; do not
+#                                          include directly. A public/private
+#                                          header split is deferred work)
 #     #include <instrumentation/...>     — UNSUPPORTED (subdirectory and other
 #                                          internal headers ship today but may
 #                                          be hidden in a future release).
