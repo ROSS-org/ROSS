@@ -1,6 +1,3 @@
-PROJECT(ROSS C)
-INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
-
 SET(ross_srcs
 
 queue/tw-queue.h
@@ -117,15 +114,26 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
-# Library type (static vs shared) is selected at top-level via
 # ROSS_BUILD_SHARED_LIBS, which propagates here as BUILD_SHARED_LIBS.
-ADD_LIBRARY(ROSS ${ross_srcs})
-SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
+add_library(ROSS ${ross_srcs})
+add_library(ROSS::ROSS ALIAS ROSS)
 
 # MPI is PUBLIC because core/ross.h does `#include <mpi.h>` — consumers must
 # inherit the MPI include path and link against MPI when they link ROSS.
 target_link_libraries(ROSS PUBLIC MPI::MPI_C)
 target_link_libraries(ROSS PRIVATE m)
+
+# Public include dirs travel with the target:
+#   BUILD_INTERFACE — in-tree models find both
+#     the source dir (ross.h, ross-base.h, etc.) and the binary dir
+#     (generated config.h).
+#   INSTALL_INTERFACE — installed consumers find headers at <prefix>/include/ross
+target_include_directories(ROSS
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include/ross>
+)
 
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
@@ -142,9 +150,9 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENER
 
 
 # Make Install
-INSTALL(FILES ${ROSS_BINARY_DIR}/config.h DESTINATION include)
-INSTALL(DIRECTORY ${ROSS_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION include)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 INSTALL(TARGETS ROSS EXPORT ROSS-targets DESTINATION lib)
 INSTALL(EXPORT ROSS-targets DESTINATION lib)
 INSTALL(FILES ROSSConfig.cmake DESTINATION lib)
-INSTALL(FILES ${ROSS_BINARY_DIR}/ross.pc DESTINATION lib/pkgconfig)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/ross.pc DESTINATION lib/pkgconfig)

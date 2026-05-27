@@ -1,33 +1,30 @@
-INCLUDE_DIRECTORIES(${ROSS_BINARY_DIR})
-IF(BGPM)
-	INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${BGPM_LIB})
-ELSE(NOT(BGPM))
-	INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
-ENDIF(BGPM)
-
-SET(phold_srcs
-	phold.h
+set(phold_srcs
+    phold.h
 )
 
+set(phold_targets
+    phold
+    phold_comm_test
+    phold_gvt_hook_test
+    phold_gvt_hook_model_test
+    phold_gvt_hook_timestamp_test
+    phold_gvt_hook_comm_test
+)
 
-ADD_EXECUTABLE(phold phold.main.c ${phold_srcs})
-ADD_EXECUTABLE(phold_comm_test phold.main.c ${phold_srcs})
-ADD_EXECUTABLE(phold_gvt_hook_test phold-gvt-hook.main.c ${phold_srcs})
-ADD_EXECUTABLE(phold_gvt_hook_model_test phold-gvt-hook.main.c ${phold_srcs})
-ADD_EXECUTABLE(phold_gvt_hook_timestamp_test phold-gvt-hook.main.c ${phold_srcs})
-ADD_EXECUTABLE(phold_gvt_hook_comm_test phold-gvt-hook.main.c ${phold_srcs})
+add_executable(phold phold.main.c ${phold_srcs})
+add_executable(phold_comm_test phold.main.c ${phold_srcs})
+add_executable(phold_gvt_hook_test phold-gvt-hook.main.c ${phold_srcs})
+add_executable(phold_gvt_hook_model_test phold-gvt-hook.main.c ${phold_srcs})
+add_executable(phold_gvt_hook_timestamp_test phold-gvt-hook.main.c ${phold_srcs})
+add_executable(phold_gvt_hook_comm_test phold-gvt-hook.main.c ${phold_srcs})
 
-IF(BGPM)
-	TARGET_LINK_LIBRARIES(phold ROSS imp_bgpm m)
-	TARGET_LINK_LIBRARIES(phold_comm_test ROSS imp_bgpm m)
-ELSE(NOT(BGPM))
-    TARGET_LINK_LIBRARIES(phold ROSS m)
-    TARGET_LINK_LIBRARIES(phold_comm_test ROSS m)
-    TARGET_LINK_LIBRARIES(phold_gvt_hook_test ROSS m)
-    TARGET_LINK_LIBRARIES(phold_gvt_hook_model_test ROSS m)
-    TARGET_LINK_LIBRARIES(phold_gvt_hook_timestamp_test ROSS m)
-    TARGET_LINK_LIBRARIES(phold_gvt_hook_comm_test ROSS m)
-ENDIF(BGPM)
+# Include dirs ride along ROSS's INTERFACE_INCLUDE_DIRECTORIES, so this
+# directory no longer needs its own INCLUDE_DIRECTORIES block. The legacy
+# BGPM branch keyed on a variable that was never set (the actual option is
+# USE_BGPM, gated to bgq builds) and is dropped.
+foreach(t ${phold_targets})
+    target_link_libraries(${t} PRIVATE ROSS m)
+endforeach()
 
 ROSS_TEST_SCHEDULERS(phold)
 ROSS_TEST_INSTRUMENTATION(phold)
@@ -47,4 +44,4 @@ ROSS_TEST_SCHEDULERS(phold_gvt_hook_timestamp_test)
 SET_TARGET_PROPERTIES(phold_gvt_hook_comm_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
 ROSS_TEST_SCHEDULERS(phold_gvt_hook_comm_test)
 
-INSTALL(FILES ${ROSS_BINARY_DIR}/../models/phold/phold DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+install(TARGETS ${phold_targets} RUNTIME DESTINATION bin)
