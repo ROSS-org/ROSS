@@ -149,10 +149,53 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/ross.pc.in PROPERTIES GE
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENERATED TRUE)
 
 
-# Make Install
+# Install
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION include)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
-INSTALL(TARGETS ROSS EXPORT ROSS-targets DESTINATION lib)
-INSTALL(EXPORT ROSS-targets DESTINATION lib)
-INSTALL(FILES ROSSConfig.cmake DESTINATION lib)
+
+# Library target + namespaced export.
+install(TARGETS ROSS
+    EXPORT ROSSTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(EXPORT ROSSTargets
+    FILE ROSSTargets.cmake
+    NAMESPACE ROSS::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+# Canonical ROSSConfig.cmake + ROSSConfigVersion.cmake.
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROSSConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+# Build-tree export so consumers can use
+# find_package(ROSS) against the build dir without installing.
+export(EXPORT ROSSTargets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/ROSSTargets.cmake
+    NAMESPACE ROSS::)
+
+# Legacy-location shim at <prefix>/${CMAKE_INSTALL_LIBDIR}/ROSSConfig.cmake
+# delegates to the canonical config above. Catches users still passing
+# -DROSS_DIR=<prefix>/lib. RENAME because both files are named ROSSConfig.cmake
+# but live in different directories.
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROSSConfig-legacy-shim.cmake
+    RENAME ROSSConfig.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/ross.pc DESTINATION lib/pkgconfig)
