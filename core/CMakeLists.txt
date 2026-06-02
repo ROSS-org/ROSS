@@ -142,16 +142,16 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in PROPERTIES G
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENERATED TRUE)
 
 
-# CODES config bin
-STRING(REPLACE " " "\\ " CMAKE_INSTALL_PREFIX_ESCAPED "\"${CMAKE_INSTALL_PREFIX}\"")
-CONFIGURE_FILE(ross.pc.in ross.pc @ONLY)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/ross.pc.in PROPERTIES GENERATED FALSE)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENERATED TRUE)
-
-
 # Install
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+# pkg-config file — back-compat surface for consumers that haven't migrated
+# to find_package(ROSS) yet. Must run after include(GNUInstallDirs) so the
+# CMAKE_INSTALL_LIBDIR / CMAKE_INSTALL_INCLUDEDIR substitutions are
+# populated.
+string(REPLACE " " "\\ " ROSS_PC_PREFIX "\"${CMAKE_INSTALL_PREFIX}\"")
+configure_file(ross.pc.in ross.pc @ONLY)
 
 # Headers ship under <prefix>/include/ross/ rather than flat in
 # <prefix>/include/ to avoid polluting the consumer namespace with common
@@ -216,4 +216,5 @@ install(FILES ${CMAKE_SOURCE_DIR}/cmake/ROSSConfig-legacy-shim.cmake
     RENAME ROSSConfig.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/ross.pc DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ross.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
