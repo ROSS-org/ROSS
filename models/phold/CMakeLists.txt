@@ -44,4 +44,4 @@ ROSS_TEST_SCHEDULERS(phold_gvt_hook_timestamp_test)
 SET_TARGET_PROPERTIES(phold_gvt_hook_comm_test PROPERTIES COMPILE_DEFINITIONS TEST_COMM_ROSS)
 ROSS_TEST_SCHEDULERS(phold_gvt_hook_comm_test)
 
-install(TARGETS ${phold_targets} RUNTIME DESTINATION bin)
+install(TARGETS ${phold_targets} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

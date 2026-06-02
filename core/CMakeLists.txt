@@ -143,13 +143,12 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENE
 
 
 # Install
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 # pkg-config file — back-compat surface for consumers that haven't migrated
-# to find_package(ROSS) yet. Must run after include(GNUInstallDirs) so the
-# CMAKE_INSTALL_LIBDIR / CMAKE_INSTALL_INCLUDEDIR substitutions are
-# populated.
+# to find_package(ROSS) yet. GNUInstallDirs is included at top level so the
+# CMAKE_INSTALL_LIBDIR / CMAKE_INSTALL_INCLUDEDIR substitutions are populated
+# by the time we get here.
 string(REPLACE " " "\\ " ROSS_PC_PREFIX "\"${CMAKE_INSTALL_PREFIX}\"")
 configure_file(ross.pc.in ross.pc @ONLY)
 
