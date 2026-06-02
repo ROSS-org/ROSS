@@ -1,0 +1,40 @@
+@PACKAGE_INIT@
+
+# ROSSConfig.cmake — ROSS package configuration for find_package(ROSS)
+#
+# Usage:
+#     find_package(ROSS REQUIRED)
+#     target_link_libraries(myapp PRIVATE ROSS::ROSS)
+#
+# The ROSS::ROSS imported target carries include dirs, the MPI dependency,
+# and link libraries — no legacy ROSS_LIBRARIES / ROSS_FOUND variables to
+# read. If you need the include path explicitly:
+#     get_target_property(dirs ROSS::ROSS INTERFACE_INCLUDE_DIRECTORIES)
+#
+# Path B consumer contract for headers:
+#     #include <ross.h>                  — supported
+#     #include <ross-extern.h>           — supported (any top-level ross-*.h
+#                                          except *-internal.h)
+#     #include <ross-gvt-internal.h>     — UNSUPPORTED (ships today because
+#                                          public headers like ross-gvt.h
+#                                          transitively need it; do not
+#                                          include directly. A public/private
+#                                          header split is deferred work)
+#     #include <instrumentation/...>     — UNSUPPORTED (subdirectory and other
+#                                          internal headers ship today but may
+#                                          be hidden in a future release).
+
+include(CMakeFindDependencyMacro)
+find_dependency(MPI REQUIRED COMPONENTS C)
+
+include("${CMAKE_CURRENT_LIST_DIR}/ROSSTargets.cmake")
+
+# Bare-target back-compat. Master's hand-written ROSSConfig.cmake exported the
+# library with no namespace, so legacy target_link_libraries(... ROSS) callers
+# expected a plain ROSS target. The new export uses NAMESPACE ROSS::; this
+# alias bridges the gap until the bare name is dropped.
+if(NOT TARGET ROSS AND TARGET ROSS::ROSS)
+    add_library(ROSS ALIAS ROSS::ROSS)
+endif()
+
+check_required_components(ROSS)

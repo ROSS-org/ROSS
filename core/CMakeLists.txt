@@ -1,6 +1,3 @@
-PROJECT(ROSS C)
-INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
-
 SET(ross_srcs
 
 queue/tw-queue.h
@@ -117,14 +114,26 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSS_OPTION_LIST='\"${OPTIONS}\"'")
 
 # Generate Library
-OPTION(ROSS_BUILD_SHARED_LIBS "Build shared libraries instead of static" OFF)
-SET(BUILD_SHARED_LIBS ${ROSS_BUILD_SHARED_LIBS})
-ADD_LIBRARY(ROSS ${ross_srcs})
-SET_TARGET_PROPERTIES(ROSS PROPERTIES OUTPUT_NAME ROSS)
+# ROSS_BUILD_SHARED_LIBS, which propagates here as BUILD_SHARED_LIBS.
+add_library(ROSS ${ross_srcs})
+add_library(ROSS::ROSS ALIAS ROSS)
+
 # MPI is PUBLIC because core/ross.h does `#include <mpi.h>` — consumers must
 # inherit the MPI include path and link against MPI when they link ROSS.
 target_link_libraries(ROSS PUBLIC MPI::MPI_C)
 target_link_libraries(ROSS PRIVATE m)
+
+# Public include dirs travel with the target:
+#   BUILD_INTERFACE — in-tree models find both
+#     the source dir (ross.h, ross-base.h, etc.) and the binary dir
+#     (generated config.h).
+#   INSTALL_INTERFACE — installed consumers find headers at <prefix>/include/ross
+target_include_directories(ROSS
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include/ross>
+)
 
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
@@ -133,17 +142,78 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in PROPERTIES G
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/config.h PROPERTIES GENERATED TRUE)
 
 
-# CODES config bin
-STRING(REPLACE " " "\\ " CMAKE_INSTALL_PREFIX_ESCAPED "\"${CMAKE_INSTALL_PREFIX}\"")
-CONFIGURE_FILE(ross.pc.in ross.pc @ONLY)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/ross.pc.in PROPERTIES GENERATED FALSE)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/ross.pc PROPERTIES GENERATED TRUE)
+# Install
+include(CMakePackageConfigHelpers)
 
+# pkg-config file — back-compat surface for consumers that haven't migrated
+# to find_package(ROSS) yet. GNUInstallDirs is included at top level so the
+# CMAKE_INSTALL_LIBDIR / CMAKE_INSTALL_INCLUDEDIR substitutions are populated
+# by the time we get here.
+string(REPLACE " " "\\ " ROSS_PC_PREFIX "\"${CMAKE_INSTALL_PREFIX}\"")
+configure_file(ross.pc.in ross.pc @ONLY)
 
-# Make Install
-INSTALL(FILES ${ROSS_BINARY_DIR}/config.h DESTINATION include)
-INSTALL(DIRECTORY ${ROSS_SOURCE_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
-INSTALL(TARGETS ROSS EXPORT ROSS-targets DESTINATION lib)
-INSTALL(EXPORT ROSS-targets DESTINATION lib)
-INSTALL(FILES ROSSConfig.cmake DESTINATION lib)
-INSTALL(FILES ${ROSS_BINARY_DIR}/ross.pc DESTINATION lib/pkgconfig)
+# Headers ship under <prefix>/include/ross/ rather than flat in
+# <prefix>/include/ to avoid polluting the consumer namespace with common
+# names (config.h, buddy.h, lz4.h, io.h, etc.). The exported target's
+# INSTALL_INTERFACE attaches the right -I flag so #include <ross.h> still
+# resolves transparently for consumers.
+#
+# *-internal.h headers ship despite the name because the supported public
+# headers (ross-gvt.h, rand-clcg4.h, ross-random.h, ross-kernel-inline.h)
+# transitively #include them. A proper public/private split requires
+# refactoring those public headers first.
+#
+# risa is excluded since Damaris was disabled.
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ross)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ross
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "risa" EXCLUDE)
+
+# Library target + namespaced export.
+install(TARGETS ROSS
+    EXPORT ROSSTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(EXPORT ROSSTargets
+    FILE ROSSTargets.cmake
+    NAMESPACE ROSS::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+# Canonical ROSSConfig.cmake + ROSSConfigVersion.cmake.
+configure_package_config_file(
+    ${CMAKE_SOURCE_DIR}/cmake/ROSSConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ROSSConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ROSS)
+
+# Build-tree export so consumers can use
+# find_package(ROSS) against the build dir without installing.
+export(EXPORT ROSSTargets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/ROSSTargets.cmake
+    NAMESPACE ROSS::)
+
+# Legacy-location shim at <prefix>/${CMAKE_INSTALL_LIBDIR}/ROSSConfig.cmake
+# delegates to the canonical config above. Catches users still passing
+# -DROSS_DIR=<prefix>/lib. RENAME because both files are named ROSSConfig.cmake
+# but live in different directories.
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/ROSSConfig-legacy-shim.cmake
+    RENAME ROSSConfig.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ross.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

@@ -16,6 +16,8 @@ Models are **not** built by default — pass `-DROSS_BUILD_MODELS=ON` to include
 
 MPI is required and auto-discovered via `find_package(MPI)` — do not set `CC=mpicc` or `-DCMAKE_C_COMPILER=mpicc`. For non-standard installs, hint with `-DMPI_HOME=...` or `module load <mpi>` before configuring. The top-level `CMakeLists.txt` does per-arch detection via `CMAKE_SYSTEM_PROCESSOR` and falls back to a `gtod` clock if unrecognized. Set `-DROSS_CLOCK_OVERRIDE=YES` to force the gtod clock.
 
+Default is a static library. Pass `-DROSS_BUILD_SHARED_LIBS=ON` to build shared. The option defaults from `BUILD_SHARED_LIBS` if a parent project set it (e.g., a superbuild), otherwise OFF.
+
 ## Running a model
 
 Models accept `--synch=N` to pick the scheduler:
@@ -88,6 +90,15 @@ The de facto C style in `core/` is:
 - **Includes**: system headers first (stdio/stdlib/string/assert/mpi), then project headers. Grouped, not strictly alphabetized.
 - **Line length**: soft ~100 chars. No hard cap.
 - **Comments**: both `//` and `/* */` appear; `/** ... */` Doxygen-style is used for some function-level docs but isn't required.
+
+## Consumer-facing API surface
+
+Installed headers live under `<prefix>/include/ross/`. External consumers can `#include <ross.h>` (the umbrella) or any top-level `ross-*.h`. The supported entry-point set is intentionally narrow:
+
+- **Supported**: `<ross.h>` and any top-level `<ross-*.h>` (e.g. `<ross-extern.h>`, `<ross-types.h>`).
+- **Unsupported but installed**: `*-internal.h` siblings (`ross-gvt-internal.h`, `ross-random-internal.h`) ship because supported public headers transitively `#include` them. Do not include directly. Subdirectory headers (`<instrumentation/...>`, `<check-revent/...>`, `<queue/...>`, `<rio/...>`) and other internals (`<buddy.h>`, `<lz4.h>`, `<hash-quadratic.h>`) likewise ship but are not part of the supported surface and may be hidden in the future.
+
+CMake consumers do `find_package(ROSS REQUIRED)` + `target_link_libraries(... ROSS::ROSS)` and inherit the include path automatically. pkg-config consumers do `pkg_check_modules(ROSS REQUIRED IMPORTED_TARGET ross)` and get the same path via `${ROSS_INCLUDE_DIRS}`.
 
 ## Consumer compatibility (CODES)
 
