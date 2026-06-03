@@ -62,15 +62,14 @@ INCLUDE(CTest)
 # install-RPATH and the global CMAKE_INSTALL_RPATH; mutating those from a
 # subproject would override the parent's choices for every target it builds.
 if(PROJECT_IS_TOP_LEVEL)
-    # Follow section based on Spack doc:
-    # https://spack.readthedocs.io/en/latest/workflows.html#write-the-cmake-build
-    # enable @rpath in the install name for any shared library being built
-    # note: it is planned that a future version of CMake will enable this by default
-    set(CMAKE_MACOSX_RPATH 1)
+    # Full install-RPATH recipe; see CMake's own docs for the variables and
+    # Spack's CMakePackage page for the downstream-packaging motivation:
+    # https://gitlab.kitware.com/cmake/community/-/wikis/doc/cmake/RPATH-handling
+    # https://spack.readthedocs.io/en/latest/build_systems/cmakepackage.html
 
-    # Always use full RPATH
-    # http://www.cmake.org/Wiki/CMake_RPATH_handling
-    # http://www.kitware.com/blog/home/post/510
+    # enable @rpath in the install name for any shared library being built
+    # (CMake's default since 3.0 via CMP0042; kept explicit for documentation)
+    set(CMAKE_MACOSX_RPATH 1)
 
     # use, i.e. don't skip the full RPATH for the build tree
     SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
