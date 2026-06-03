@@ -239,6 +239,7 @@ endif()
 
 if(ROSS_BUILD_TESTING)
     include(CTest)
+    add_subdirectory(tests)
 endif()
 
 # ROSS Models directory
