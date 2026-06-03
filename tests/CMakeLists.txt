@@ -34,3 +34,4 @@ function(ROSS_DRIVER_TEST name)
 endfunction()
 
 ROSS_DRIVER_TEST(lifecycle_test)
+ROSS_DRIVER_TEST(rand_reverse_test)
