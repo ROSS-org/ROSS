@@ -1,0 +1,1 @@
+Debug symbols (`-g`) are no longer forced unconditionally into the compile command. `CMAKE_BUILD_TYPE` now controls them via the built-in flag variables (`Debug` → `-g`, `RelWithDebInfo` → `-O2 -g -DNDEBUG`, `Release` → `-O3 -DNDEBUG`, no `-g`), so Release builds produce smaller binaries without debug info as expected.
