@@ -96,10 +96,6 @@ extern "C" {
 #include <unistd.h>
 #include <stdarg.h>
 
-#ifdef USE_BGPM
-#include<bgpm.h>
-#endif
-
 #include "ross-base.h"
 #include "ross-clock.h"
 #include "ross-gvt.h"
