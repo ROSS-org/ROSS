@@ -106,84 +106,44 @@ SET(NETWORK mpi)
 SET(GVT mpi_allreduce)
 
 # Architecture setting and management
+#
+# CLOCK selection is architecture-driven and independent of the compiler.
+# Compile-flag injection (the XL-specific block below) is gated separately on
+# both arch and compiler ID. Generic compile flags (-Wall, _GNU_SOURCE) are
+# applied target-scoped at the ROSS library definition in core/CMakeLists.txt.
 SET(VALID_ARCH NO)
 OPTION(ROSS_CLOCK_OVERRIDE "override platform detection to use gtod clock" NO)
 
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL i386)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
-  ADD_DEFINITIONS(-D_GNU_SOURCE)
-  SET(CLOCK i386)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL i386)
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i386")
+    set(VALID_ARCH YES)
+    set(CLOCK i386)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64")
+    set(VALID_ARCH YES)
+    set(CLOCK ppc)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le")
+    set(VALID_ARCH YES)
+    set(CLOCK ppc64le)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "amd64")
+    set(VALID_ARCH YES)
+    set(CLOCK amd64)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+    # Apple Silicon reports "arm64"; Linux reports "aarch64". Same ISA, same clock impl.
+    set(VALID_ARCH YES)
+    set(CLOCK aarch64)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
+    set(VALID_ARCH YES)
+    set(CLOCK armv7l)
+endif()
 
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgl)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
-  SET(OPTIONS "-qtune=440 -qarch=440d")
-  SET(CLOCK bgl)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgl)
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgp)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -qflag=i:i -qattr=full -O5")
-  SET(OPTIONS "-qtune=450 -qarch=450d")
-  SET(CLOCK bgl)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgp)
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgq)
-  SET(VALID_ARCH YES)
-  OPTION(USE_BGPM "Blue Gene/Q specific Performance Counters" OFF)
-  SET(BGPM_INCLUDE /bgsys/drivers/ppcfloor/bgpm/include/)
-  ADD_LIBRARY(imp_bgpm STATIC IMPORTED)
-  SET_PROPERTY(TARGET imp_bgpm PROPERTY IMPORTED_LOCATION /bgsys/drivers/ppcfloor/bgpm/lib/libbgpm.a)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${BGPM_INCLUDE} -O5 -qstrict -qprefetch=aggressive -qarch=qp -qtune=qp -qmaxmem=-1 -qsimd=noauto -qreport -qhot")
-  SET(CLOCK bgq)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL bgq)
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
-  ADD_DEFINITIONS(-D_GNU_SOURCE)
-  SET(CLOCK ppc)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64)
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64le)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O5 -qprefetch=aggressive -qarch=pwr9 -qtune=auto -qmaxmem=-1 -qsimd=noauto -qhot")
-  SET(CLOCK ppc64le)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ppc64le)
-
-IF((${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL amd64))
-  SET(VALID_ARCH YES)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
-  ADD_DEFINITIONS(-D_GNU_SOURCE)
-  SET(CLOCK amd64)
-ENDIF((${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86_64) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL amd64))
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
-  ADD_DEFINITIONS(-D_GNU_SOURCE)
-  SET(CLOCK aarch64)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL aarch64)
-
-IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
-  SET(VALID_ARCH YES)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  ADD_DEFINITIONS(-D_GNU_SOURCE)
-  SET(CLOCK armv7l)
-ENDIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL armv7l)
-
-IF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
-  MESSAGE(STATUS "System architecture detected: ${CMAKE_SYSTEM_PROCESSOR}")
-  MESSAGE(STATUS "Using C_FLAGS: ${CMAKE_C_FLAGS}")
-  MESSAGE(STATUS "Using CLOCK: ${CLOCK}")
-ELSE(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
-  MESSAGE(WARNING "System architecture not recognized!\n"
-    "Found: ${CMAKE_SYSTEM_PROCESSOR}\n"
-    "Falling back to get-time-of-day clock implementation.")
-  SET(CLOCK gtod)
-ENDIF(VALID_ARCH AND NOT ${ROSS_CLOCK_OVERRIDE})
+if(VALID_ARCH AND NOT ROSS_CLOCK_OVERRIDE)
+    message(STATUS "System architecture detected: ${CMAKE_SYSTEM_PROCESSOR}")
+    message(STATUS "Using CLOCK: ${CLOCK}")
+else()
+    message(WARNING "System architecture not recognized!\n"
+        "Found: ${CMAKE_SYSTEM_PROCESSOR}\n"
+        "Falling back to get-time-of-day clock implementation.")
+    set(CLOCK gtod)
+endif()
 
 
 ## MPI

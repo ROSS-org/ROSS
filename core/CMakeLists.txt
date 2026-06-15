@@ -135,6 +135,27 @@ target_include_directories(ROSS
         $<INSTALL_INTERFACE:include/ross>
 )
 
+# Generic compile options applied unconditionally. Replaces the per-arch
+# CMAKE_C_FLAGS / ADD_DEFINITIONS mutations that used to live in the top-level
+# arch dispatch — those leaked into every sibling target and ROSS consumers.
+# Debug info (-g) is intentionally NOT here — CMAKE_BUILD_TYPE handles it
+# (Debug=-g, RelWithDebInfo=-O2 -g -DNDEBUG, Release=-O3 -DNDEBUG, no -g).
+target_compile_options(ROSS PRIVATE -Wall)
+target_compile_definitions(ROSS PRIVATE _GNU_SOURCE)
+
+# IBM XL family (XL, XLClang) on ppc64le gets the legacy XL tuning flags.
+# Gated on BOTH compiler ID and arch: on ppc64le-with-gcc (the typical case
+# on current Power9/Power10 systems), gcc would error on -qarch=pwr9 etc.
+if(CMAKE_C_COMPILER_ID MATCHES "^XL" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le")
+    message(STATUS
+        "IBM XL compiler detected on ppc64le — applying legacy XL optimization flags. "
+        "This path has not been validated against current hardware by the ROSS team; "
+        "please report build success/failure.")
+    target_compile_options(ROSS PRIVATE
+        -O5 -qprefetch=aggressive -qarch=pwr9 -qtune=auto
+        -qmaxmem=-1 -qsimd=noauto -qhot)
+endif()
+
 # Build Specific Config Header
 CONFIGURE_FILE(config.h.in config.h)
 SET(ross_srcs ${ross_srcs} config.h)

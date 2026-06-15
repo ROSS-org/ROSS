@@ -10,7 +10,6 @@
 #cmakedefine HAVE_CTIME 1
 #define ROSS_VERSION "${VERSION}"
 #cmakedefine AVL_TREE 1
-#cmakedefine USE_BGPM
 #cmakedefine RAND_NORMAL
 #cmakedefine ROSS_timing
 #cmakedefine ROSS_runtime_checks

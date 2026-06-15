@@ -1,0 +1,1 @@
+Apple Silicon is now recognized in the architecture dispatch: `CMAKE_SYSTEM_PROCESSOR=arm64` maps to the same clock implementation as Linux `aarch64` (`core/clock/aarch64.{c,h}`). M1/M2/M3 Macs no longer fall back to the get-time-of-day clock with the "System architecture not recognized" warning.
