@@ -1,5 +1,11 @@
 ## BASIC SCHEDULERS
 FUNCTION(ROSS_TEST_SCHEDULERS target_name)
+	# if a parent superbuild has called
+	# enable_testing() at its own scope, add_test() here would otherwise
+	# register against that scope even with ROSS_BUILD_TESTING=OFF.
+	if(NOT ROSS_BUILD_TESTING)
+		return()
+	endif()
 	ADD_TEST(${target_name}_SCHED_Sequential ${target_name} --synch=1)
 	ADD_TEST(${target_name}_SCHED_Conservative mpirun -np 2 ./${target_name} --synch=2)
 	ADD_TEST(${target_name}_SCHED_Optimistic mpirun -np 2 ./${target_name} --synch=3 --extramem=100000)
@@ -18,6 +24,10 @@ ENDFUNCTION(ROSS_TEST_SCHEDULERS)
 
 ## INSTRUMENTATION TESTS
 FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
+	# See ROSS_TEST_SCHEDULERS above for why this guard exists.
+	if(NOT ROSS_BUILD_TESTING)
+		return()
+	endif()
 	ADD_TEST(${target_name}_INST_OptPE mpirun -np 2 ./${target_name} --synch=3 --engine-stats=4 --event-trace=2 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
 	ADD_TEST(${target_name}_INST_OptLP mpirun -np 2 ./${target_name} --synch=3 --engine-stats=4 --event-trace=2 --kp-data=1 --lp-data=1 --extramem=100000 --vt-interval=10000 --vt-samp-end=100000)
 

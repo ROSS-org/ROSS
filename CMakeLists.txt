@@ -54,9 +54,6 @@ include(GNUInstallDirs)
 
 # ROSS Configuration Options
 
-ENABLE_TESTING()
-INCLUDE(CTest)
-
 # RPATH policy is set only when ROSS is the top-level project. When ROSS is
 # consumed via add_subdirectory()/FetchContent, the parent project owns
 # install-RPATH and the global CMAKE_INSTALL_RPATH; mutating those from a
@@ -220,6 +217,30 @@ endif()
 
 # ROSS Core code
 ADD_SUBDIRECTORY(core)
+
+# Test suite gating. Project-scoped knob so:
+#  - top-level builds preserve today's UX (default ON; `-DBUILD_TESTING=OFF`
+#    still suppresses tests by feeding the default)
+#  - subdirectory consumption defaults OFF (parent must opt in explicitly)
+# Once set, ROSS_BUILD_TESTING is the sole gate on include(CTest) and on
+# the add_test() registrations inside ROSS_TEST_SCHEDULERS /
+# ROSS_TEST_INSTRUMENTATION (see models/CMakeLists.txt).
+if(PROJECT_IS_TOP_LEVEL)
+    if(DEFINED BUILD_TESTING)
+        set(_ross_build_testing_default ${BUILD_TESTING})
+    else()
+        set(_ross_build_testing_default ON)
+    endif()
+    option(ROSS_BUILD_TESTING "Build ROSS test suite" ${_ross_build_testing_default})
+    unset(_ross_build_testing_default)
+else()
+    option(ROSS_BUILD_TESTING "Build ROSS test suite" OFF)
+endif()
+
+if(ROSS_BUILD_TESTING)
+    include(CTest)
+    add_subdirectory(tests)
+endif()
 
 # ROSS Models directory
 OPTION(ROSS_BUILD_MODELS "Build ROSS models?" OFF)
