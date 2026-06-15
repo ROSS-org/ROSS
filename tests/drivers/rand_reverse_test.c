@@ -13,10 +13,9 @@
  * picture -- this isolates the test to rand-clcg4 itself.
  */
 
-#undef NDEBUG  /* assertions must run regardless of build type */
-#include <assert.h>
 #include <string.h>
 
+#include "test_assert.h"
 #include "test_lp_minimal.h"
 
 typedef struct rng_snapshot {
@@ -55,7 +54,12 @@ main(int argc, char **argv)
         tw_rand_unif(rng);
     for (int i = 0; i < 1000; i++)
         tw_rand_reverse_unif(rng);
-    assert(rng_matches(&before, rng) && "tw_rand_unif/reverse_unif asymmetry");
+    ROSS_TEST_ASSERT(rng_matches(&before, rng),
+        "unif/reverse_unif asymmetry after 1000 round-trips: "
+        "Cg before=[%d,%d,%d,%d] after=[%d,%d,%d,%d] count_delta=%ld",
+        before.Cg[0], before.Cg[1], before.Cg[2], before.Cg[3],
+        rng->Cg[0], rng->Cg[1], rng->Cg[2], rng->Cg[3],
+        (long)(rng->count - before.count));
 
     /* Each of these is documented to cost exactly one rng_gen_val call;
      * the assertion catches a regression where one of them silently
@@ -63,17 +67,23 @@ main(int argc, char **argv)
     snapshot_rng(&before, rng);
     (void) tw_rand_integer(rng, 0, 1000);
     tw_rand_reverse_unif(rng);
-    assert(rng_matches(&before, rng) && "tw_rand_integer is not one unif draw");
+    ROSS_TEST_ASSERT(rng_matches(&before, rng),
+        "tw_rand_integer not one unif draw: count_delta=%ld",
+        (long)(rng->count - before.count));
 
     snapshot_rng(&before, rng);
     (void) tw_rand_exponential(rng, 1.0);
     tw_rand_reverse_unif(rng);
-    assert(rng_matches(&before, rng) && "tw_rand_exponential is not one unif draw");
+    ROSS_TEST_ASSERT(rng_matches(&before, rng),
+        "tw_rand_exponential not one unif draw: count_delta=%ld",
+        (long)(rng->count - before.count));
 
     snapshot_rng(&before, rng);
     (void) tw_rand_ulong(rng, 0, 1000);
     tw_rand_reverse_unif(rng);
-    assert(rng_matches(&before, rng) && "tw_rand_ulong is not one unif draw");
+    ROSS_TEST_ASSERT(rng_matches(&before, rng),
+        "tw_rand_ulong not one unif draw: count_delta=%ld",
+        (long)(rng->count - before.count));
 
     tw_run();
     tw_end();

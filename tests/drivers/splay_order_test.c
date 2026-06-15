@@ -14,10 +14,9 @@
  * scramble the test's own bookkeeping.
  */
 
-#undef NDEBUG  /* assertions must run regardless of build type */
-#include <assert.h>
-
 #include <ross.h>
+
+#include "test_assert.h"
 
 typedef struct splay_state {
     tw_stime last_ts;
@@ -56,10 +55,11 @@ static void
 splay_event(splay_state *s, tw_bf *bf, splay_message *m, tw_lp *lp)
 {
     (void) bf;
-    (void) m;
 
     tw_stime now = tw_now(lp);
-    assert(now >= s->last_ts && "splay delivered event out of timestamp order");
+    ROSS_TEST_ASSERT(now >= s->last_ts,
+        "delivery #%d out of order: now=%g last_ts=%g sched_index=%d",
+        s->delivery_count, now, s->last_ts, m->sched_index);
     s->last_ts = now;
     s->delivery_count++;
 }
@@ -68,8 +68,9 @@ static void
 splay_final(splay_state *s, tw_lp *lp)
 {
     (void) lp;
-    assert(s->delivery_count == (int) N_EVENTS
-        && "splay lost or duplicated events");
+    ROSS_TEST_ASSERT(s->delivery_count == (int) N_EVENTS,
+        "delivered %d events, expected %d",
+        s->delivery_count, (int) N_EVENTS);
 }
 
 static tw_peid
