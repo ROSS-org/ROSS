@@ -12,7 +12,7 @@ cmake --build build -j
 cmake --install build
 ```
 
-Models are **not** built by default — pass `-DROSS_BUILD_MODELS=ON` to include `phold` and any symlinked-in models. Test discovery is gated by `ROSS_BUILD_TESTING` (defaults ON at top level, inherits from `BUILD_TESTING` if the parent set it; defaults OFF under `add_subdirectory()`/`FetchContent` — parent must opt in).
+Models are **not** built by default — pass `-DROSS_BUILD_MODELS=ON` to build the bundled `phold`. External models should be standalone CMake projects that consume ROSS via `find_package(ROSS)`; see [models/README.md](models/README.md). The older symlink-into-`models/` workflow still works during a deprecation period but is no longer the documented path. Test discovery is gated by `ROSS_BUILD_TESTING` (defaults ON at top level, inherits from `BUILD_TESTING` if the parent set it; defaults OFF under `add_subdirectory()`/`FetchContent` — parent must opt in).
 
 MPI is required and auto-discovered via `find_package(MPI)` — do not set `CC=mpicc` or `-DCMAKE_C_COMPILER=mpicc`. For non-standard installs, hint with `-DMPI_HOME=...` or `module load <mpi>` before configuring. The top-level `CMakeLists.txt` does per-arch detection via `CMAKE_SYSTEM_PROCESSOR` and falls back to a `gtod` clock if unrecognized. Set `-DROSS_CLOCK_OVERRIDE=YES` to force the gtod clock.
 

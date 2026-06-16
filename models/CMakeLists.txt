@@ -62,11 +62,35 @@ FUNCTION(ROSS_TEST_INSTRUMENTATION target_name)
 ENDFUNCTION(ROSS_TEST_INSTRUMENTATION)
 
 
-# Automatically search and add model subdirectories
-CMAKE_POLICY(SET CMP0009 NEW) # follow sym-links
-FILE(GLOB_RECURSE my_list . FOLLOW_SYMLINKS */CMakeLists.txt)
-FOREACH(cmf ${my_list})
-    GET_FILENAME_COMPONENT(dir_path ${cmf} PATH)
-    ADD_SUBDIRECTORY(${dir_path})
-#    MESSAGE(${dir_path})
-ENDFOREACH(cmf)
+# Discover model subdirectories via a flat (non-recursive) glob: every
+# top-level entry under models/ that is a directory and contains a
+# CMakeLists.txt gets added. This skips build/install/test dirs (no
+# CMakeLists.txt there) and avoids the GLOB_RECURSE + FOLLOW_SYMLINKS
+# recursion the previous form risked. Symlinked-in models keep working
+# as a side effect of IS_DIRECTORY / EXISTS following symlinks — see
+# models/README.md, where that workflow is no longer the documented
+# path. New models should be standalone CMake projects that consume
+# ROSS via find_package(ROSS). When the symlink workflow is fully
+# retired, the glob below collapses to an explicit add_subdirectory(phold).
+file(GLOB model_dirs LIST_DIRECTORIES TRUE
+     RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+     "${CMAKE_CURRENT_SOURCE_DIR}/*")
+foreach(d ${model_dirs})
+    if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${d}"
+       AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${d}/CMakeLists.txt")
+        # Catch users still on the deprecated symlink workflow at the
+        # moment they reconfigure. The README note only reaches new
+        # users discovering the path; this reaches existing users. The
+        # whole block goes away with the glob when the workflow is
+        # fully retired.
+        if(IS_SYMLINK "${CMAKE_CURRENT_SOURCE_DIR}/${d}")
+            message(DEPRECATION
+                "Model '${d}' was discovered via the deprecated "
+                "symlink-into-models/ workflow. This path still works "
+                "but will be removed in a future ROSS release. Please "
+                "migrate to a standalone CMake project consuming ROSS "
+                "via find_package(ROSS); see models/README.md.")
+        endif()
+        add_subdirectory(${d})
+    endif()
+endforeach()
