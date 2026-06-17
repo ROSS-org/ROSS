@@ -21,8 +21,8 @@ jobs:
   codes-contract:
     runs-on: ubuntu-24.04
     env:
-      # codes-org/codes@master as of 2026-05-26
-      CODES_REF: 4a055c23be3dd400c7f77c08ca2702b766b763bf
+      # codes-org/codes@master as of 2026-06-17
+      CODES_REF: a3b8fdf6bc036b903f4bb988a881dbfa17144014
     steps:
       - name: Checkout ROSS
         uses: actions/checkout@v4
