@@ -6,9 +6,111 @@ on:
   pull_request:
     branches:
       - master
+  # Weekly re-run on floating package sets (newer apt/brew MPI + compiler
+  # releases) to catch toolchain drift that no ROSS commit would trigger.
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
 
 jobs:
-  ubuntu:
+  build:
+    name: ${{ matrix.os }} · ${{ matrix.mpi }} · ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04]
+        mpi: [mpich, openmpi]
+        cc: [gcc, clang]
+        exclude:
+          # ubuntu-22.04 is the portability-floor cell (older glibc/gcc/MPICH,
+          # standing in for the conservative HPC systems ROSS users run); run it
+          # with the system gcc only. clang would only re-test that floor —
+          # compiler coverage already comes from ubuntu-24.04 (both MPIs) and
+          # macOS. 22.04 x clang also fails: the Debian 22.04 MPICH wrapper
+          # emits gcc-only compile flags (the -flto=auto / -ffat-lto-objects
+          # family) that CMake's find_package(MPI) verification try-compile
+          # rejects under clang, yielding "Could NOT find MPI_C". 24.04's newer
+          # wrapper doesn't carry them. Redundant and broken — not worth a
+          # fragile flag-stripping workaround.
+          - os: ubuntu-22.04
+            cc: clang
+        # macOS uses the system clang only (no gcc row — gcc on macOS is a
+        # Homebrew shim that just re-points at clang).
+        include:
+          - os: macos-14
+            mpi: mpich
+            cc: clang
+          - os: macos-14
+            mpi: openmpi
+            cc: clang
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MPI + compiler (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          if [ "${{ matrix.cc }}" = "clang" ]; then
+            sudo apt-get install -y clang
+          fi
+          if [ "${{ matrix.mpi }}" = "mpich" ]; then
+            sudo apt-get install -y mpich libmpich-dev
+          else
+            sudo apt-get install -y openmpi-bin libopenmpi-dev
+          fi
+
+      - name: Install MPI (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          if [ "${{ matrix.mpi }}" = "mpich" ]; then
+            brew install mpich
+          else
+            brew install open-mpi
+          fi
+
+      - name: Configure
+        run: |
+          # OpenMPI refuses to launch more ranks than detected slots; the test
+          # harness forwards MPIEXEC_PREFLAGS verbatim, so allow oversubscribe
+          # as a guard on small/loaded runners. MPICH does not need it.
+          PREFLAGS=()
+          if [ "${{ matrix.mpi }}" = "openmpi" ]; then
+            PREFLAGS=(-DMPIEXEC_PREFLAGS=--oversubscribe)
+          fi
+          cmake -S . -B build \
+            -DROSS_BUILD_MODELS=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+            "${PREFLAGS[@]}"
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.mpi }}-${{ matrix.cc }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/LastTestsFailed.log
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeOutput.log
+            build/CMakeCache.txt
+          if-no-files-found: ignore
+          retention-days: 14
+
+  consumer-smoke:
+    name: consumer find_package(ROSS)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -16,25 +118,32 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mpich libmpich-dev
-      - name: Configure
-        run: cmake -S . -B build -DROSS_BUILD_MODELS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install
-      - name: Build
-        run: cmake --build build -j
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
-      - name: Install
-        run: cmake --install build
+      - name: Build and install ROSS
+        run: |
+          cmake -S . -B build \
+            -DROSS_BUILD_MODELS=OFF \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="$PWD/install"
+          cmake --build build -j
+          cmake --install build
+      # Builds a 2-file external project via find_package(ROSS) + ROSS::ROSS.
+      # CODES consumes ROSS through pkg-config, so its contract job never
+      # exercises the CMake-config path — this job is the only coverage of it.
+      - name: Configure and build the consumer against installed ROSS
+        run: |
+          cmake -S ci/consumer-smoke -B ci/consumer-smoke/build \
+            -DCMAKE_PREFIX_PATH="$PWD/install"
+          cmake --build ci/consumer-smoke/build
+          ./ci/consumer-smoke/build/consumer_smoke
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
+          name: consumer-smoke-logs
           path: |
-            build/Testing/Temporary/LastTest.log
-            build/Testing/Temporary/LastTestsFailed.log
             build/CMakeFiles/CMakeError.log
-            build/CMakeFiles/CMakeOutput.log
-            build/CMakeCache.txt
+            ci/consumer-smoke/build/CMakeFiles/CMakeError.log
+            ci/consumer-smoke/build/CMakeCache.txt
           if-no-files-found: ignore
           retention-days: 14
 

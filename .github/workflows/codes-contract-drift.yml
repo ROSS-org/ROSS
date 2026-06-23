@@ -1,41 +1,33 @@
-name: CODES contract test
+name: CODES contract drift
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  # Schedule + manual only — deliberately no push/pull_request triggers, so this
+  # workflow never appears in a PR's checks (not even as "skipped"). The pinned
+  # per-PR gate lives in codes-contract.yml.
+  schedule:
+    - cron: '0 7 * * 1'   # Mondays 07:00 UTC
   workflow_dispatch:
 
-# Builds CODES against a freshly-installed ROSS and runs CODES's test suite.
-# Catches consumer-API regressions (header layout, pkg-config, library name)
-# that ROSS's own test suite can't see by construction. Minimal CODES build —
-# SWM, UNION, DUMPI, TORCH are all left off so we don't drag in argobots /
-# conceptual / python2 / etc.
-#
-# This is the per-PR / per-push gate: CODES is pinned to a known SHA so external
-# repo churn can't break ROSS CI. The drift check against codes-org/codes@master
-# lives in codes-contract-drift.yml (schedule + workflow_dispatch only), kept in
-# a separate file so it doesn't show up as a skipped check on PRs.
+# Weekly drift check: builds CODES against a freshly-installed ROSS using
+# codes-org/codes@master (floating, not the pinned SHA in codes-contract.yml).
+# A red here means CODES@master has moved past what the pinned CODES_REF
+# validates — investigate, then bump CODES_REF in codes-contract.yml if
+# appropriate. Minimal CODES build (SWM, UNION, DUMPI, TORCH off), same as the
+# pinned job.
 
 jobs:
-  codes-contract-pinned:
+  codes-contract-master:
     runs-on: ubuntu-24.04
-    env:
-      # codes-org/codes@master as of 2026-06-17
-      CODES_REF: a3b8fdf6bc036b903f4bb988a881dbfa17144014
     steps:
       - name: Checkout ROSS
         uses: actions/checkout@v4
         with:
           path: ross
 
-      - name: Checkout CODES (pinned)
+      - name: Checkout CODES (master)
         uses: actions/checkout@v4
         with:
           repository: codes-org/codes
-          ref: ${{ env.CODES_REF }}
+          ref: master
           path: codes
 
       - name: Install MPICH
@@ -65,7 +57,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: codes-contract-pinned-logs
+          name: codes-contract-master-logs
           path: |
             codes/build/Testing/Temporary/LastTest.log
             codes/build/Testing/Temporary/LastTestsFailed.log
