@@ -601,13 +601,21 @@ static inline void tw_gvt_hook_step(tw_pe * me) {
             }
             break;
             case GVT_HOOK_STATUS_model_call: {
+#ifdef USE_RAND_TIEBREAKER
                 bool const triggered_here = tw_event_sig_compare_ptr(&me->GVT_sig, &g_tw_gvt_hook_trigger.sig_at) >= 0;
+#else
+                bool const triggered_here = me->GVT >= g_tw_gvt_hook_trigger.at;
+#endif
                 bool const triggered_somewhere = does_any_pe(triggered_here);
                 if (triggered_somewhere) {
                    // LP has triggered GVT hook
                    has_hook_been_triggered = true;
                    // reset g_tw_gvt_hook_trigger.sig_at
-                   tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+#ifdef USE_RAND_TIEBREAKER
+                   tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig); // sentinel value
+#else
+                   g_tw_gvt_hook_trigger.at = TW_STIME_MAX; // sentinel value
+#endif
                 }
             }
             break;
@@ -674,7 +682,11 @@ static inline void tw_gvt_hook_step_seq(tw_pe * me) {
                 g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_disabled;
             break;
             case GVT_HOOK_STATUS_model_call:
-                tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+#ifdef USE_RAND_TIEBREAKER
+                tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);  // sentinel value
+#else
+                g_tw_gvt_hook_trigger.at = TW_STIME_MAX;  // sentinel value
+#endif
             break;
             default:
                 tw_error(TW_LOC, "This is weird. This should have never happened. Only GVT_HOOK_STATUS_timestamp and GVT_HOOK_STATUS_model_call are allowed");

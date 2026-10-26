@@ -133,7 +133,7 @@ tw_gvt_stats(FILE * f)
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
 #define PAST_GVT_HOOK_ACTIVATION(pe) (\
        g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp \
-    && tw_pq_minimum(me->pq) >= g_tw_gvt_hook_trigger.at)
+    && tw_pq_minimum(pe->pq) >= g_tw_gvt_hook_trigger.at)
 #endif
 
 void
@@ -523,13 +523,21 @@ void tw_trigger_gvt_hook_every(int num_gvt_calls) {
     g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_every_n_gvt;
     g_tw_gvt_hook_trigger.every_n_gvt.starting_at = g_tw_gvt_done;
     g_tw_gvt_hook_trigger.every_n_gvt.nums = num_gvt_calls;
-    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+#ifdef USE_RAND_TIEBREAKER
+    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig); // sentinel value
+#else
+    g_tw_gvt_hook_trigger.at = TW_STIME_MAX; // sentinel value
+#endif
 }
 
 void tw_trigger_gvt_hook_when_model_calls(void) {
     g_tw_gvt_hook_trigger.status = GVT_HOOK_STATUS_model_call;
     // timestamp is the largest signature
-	tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+#ifdef USE_RAND_TIEBREAKER
+	tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig); // sentinel value
+#else
+	g_tw_gvt_hook_trigger.at = TW_STIME_MAX; // sentinel value
+#endif
 }
 
 void tw_trigger_gvt_hook_now(tw_lp * lp) {
@@ -539,6 +547,7 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
     if (g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call) {
         tw_error(TW_LOC, "`tw_trigger_gvt_hook_now` called but `g_tw_gvt_hook_trigger.status != GVT_HOOK_STATUS_model_call`. Either `tw_trigger_gvt_hook_when_model_calls` was not called or another trigger function has been");
     }
+#ifdef USE_RAND_TIEBREAKER
     if (g_tw_gvt_hook_trigger.sig_at.tie_lineage_length >= MAX_TIE_CHAIN) {
       tw_error(TW_LOC, "Maximum zero-offset tie chain reached (%d), increase #define in ross-types.h", MAX_TIE_CHAIN);
     }
@@ -547,6 +556,11 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
     // We store as the trigger time the next valid, larger tiebreaker signature. It is unlikely we will this will tie with any other signature
     g_tw_gvt_hook_trigger.sig_at.event_tiebreaker[g_tw_gvt_hook_trigger.sig_at.tie_lineage_length] = 0;
     g_tw_gvt_hook_trigger.sig_at.tie_lineage_length += 1;
+#else
+    // Without the tiebreaker, the finest trigger resolution is the timestamp itself,
+    // The GVT hook fires once GVT >= that time.
+    g_tw_gvt_hook_trigger.at = lp->kp->last_time;
+#endif
 
     // Forcing GVT to happen now (possibly triggering gvt hook)
     lp->pe->gvt_status = TW_GVT_COMPUTE;  // same behavior as if calling `tw_gvt_force_update()`
@@ -554,6 +568,10 @@ void tw_trigger_gvt_hook_now(tw_lp * lp) {
 }
 
 void tw_trigger_gvt_hook_now_rev(tw_lp * lp) {
-    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig);
+#ifdef USE_RAND_TIEBREAKER
+    tw_copy_event_sig(&g_tw_gvt_hook_trigger.sig_at, &g_tw_max_sig); // sentinel value
+#else
+    g_tw_gvt_hook_trigger.at = TW_STIME_MAX; // sentinel value
+#endif
     lp->triggered_gvt_hook--;
 }
