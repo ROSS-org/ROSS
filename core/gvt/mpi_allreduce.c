@@ -133,7 +133,7 @@ tw_gvt_stats(FILE * f)
 #define NOT_PAST_LOOKAHEAD(pe) (TW_STIME_DBL(tw_pq_minimum(pe->pq)) - TW_STIME_DBL(pe->GVT) < g_tw_max_opt_lookahead)
 #define PAST_GVT_HOOK_ACTIVATION(pe) (\
        g_tw_gvt_hook_trigger.status == GVT_HOOK_STATUS_timestamp \
-    && tw_pq_minimum(me->pq) >= g_tw_gvt_hook_trigger.at)
+    && tw_pq_minimum(pe->pq) >= g_tw_gvt_hook_trigger.at)
 #endif
 
 void
