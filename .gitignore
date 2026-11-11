@@ -6,3 +6,5 @@ models/*/
 *.swp
 CLAUDE.local.md
 CMakeUserPresets.json
+ross.csv
+ross_all_lp_stats

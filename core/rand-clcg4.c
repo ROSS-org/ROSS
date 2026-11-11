@@ -1,4 +1,13 @@
 #include <ross.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <limits.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @file rand-clcg4.c
@@ -23,6 +32,133 @@
 static tw_rng	*rng = NULL;
 // Core RNG (For tiebreaker etc.)
 static tw_rng *core_rng = NULL;
+
+/* Read-only, demand-paged quantum bit pool. Model RNG streams only. */
+static const unsigned char *quantum_data = NULL;
+static size_t quantum_file_size = 0;
+static uint64_t quantum_values_per_stream = 0;
+static uint64_t quantum_total_streams = 0;
+static uint64_t *quantum_block_for_stream = NULL;
+extern unsigned int ross_quantum_rng_debug;
+
+void
+ross_quantum_rng_close(void)
+{
+    if (quantum_data != NULL) {
+        munmap((void *)quantum_data, quantum_file_size);
+        quantum_data = NULL;
+    }
+    free(quantum_block_for_stream);
+    quantum_block_for_stream = NULL;
+    quantum_file_size = 0;
+    quantum_total_streams = 0;
+    quantum_values_per_stream = 0;
+}
+
+/* Decode one MSB-first packed 53-bit value without allocating a buffer. */
+static double
+quantum_read_value(uint64_t value_index)
+{
+    uint64_t bit_index = value_index * UINT64_C(53);
+    uint64_t first_byte = bit_index / 8;
+    unsigned offset = (unsigned)(bit_index % 8);
+    uint64_t word = 0;
+    /* At most eight bytes cover any 53 consecutive bits. */
+    for (unsigned i = 0; i < 8; ++i) {
+        uint64_t byte_index = first_byte + i;
+        word = (word << 8) |
+               (byte_index < quantum_file_size ? quantum_data[byte_index] : 0u);
+    }
+    uint64_t bits = (word >> (11u - offset)) &
+                    UINT64_C(0x1fffffffffffff);
+    return (double)bits * (1.0 / 9007199254740992.0);
+}
+
+/* Called collectively after global LP count and model stream count exist. */
+void
+ross_quantum_rng_open(const char *filename)
+{
+    if (filename == NULL || filename[0] == '\0')
+        return;
+    if (quantum_data != NULL)
+        tw_error(TW_LOC, "Quantum RNG initialized twice");
+    if (g_tw_nRNG_per_lp == 0 || g_tw_total_lps == 0 ||
+        (uint64_t)g_tw_total_lps > UINT64_MAX / g_tw_nRNG_per_lp)
+        tw_error(TW_LOC, "Invalid global model RNG stream count");
+
+    quantum_total_streams = (uint64_t)g_tw_total_lps * g_tw_nRNG_per_lp;
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0)
+        tw_error(TW_LOC, "Unable to open quantum pool: %s", filename);
+    struct stat st;
+    if (fstat(fd, &st) != 0 || st.st_size <= 0 ||
+        (uint64_t)st.st_size > SIZE_MAX)
+        tw_error(TW_LOC, "Invalid quantum pool size: %s", filename);
+    quantum_file_size = (size_t)st.st_size;
+    if ((uint64_t)quantum_file_size > UINT64_MAX / 8)
+        tw_error(TW_LOC, "Quantum pool too large for bit addressing");
+    uint64_t total_values = ((uint64_t)quantum_file_size * 8) / 53;
+    quantum_values_per_stream = total_values / quantum_total_streams;
+    if (ross_quantum_rng_debug && g_tw_mynode == g_tw_masternode) {
+        fprintf(stderr,
+                "[quantum-rng] pool_bytes=%zu usable_values=%llu "
+                "global_streams=%llu values_per_block=%llu "
+                "unused_values=%llu\n",
+                quantum_file_size,
+                (unsigned long long)total_values,
+                (unsigned long long)quantum_total_streams,
+                (unsigned long long)quantum_values_per_stream,
+                (unsigned long long)(total_values % quantum_total_streams));
+    }
+    if (quantum_values_per_stream == 0)
+        tw_error(TW_LOC, "Quantum pool has fewer 53-bit values than model RNG streams");
+
+    void *mapped = mmap(NULL, quantum_file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+    if (mapped == MAP_FAILED)
+        tw_error(TW_LOC, "mmap failed for quantum pool: %s", filename);
+    quantum_data = (const unsigned char *)mapped;
+
+    if (quantum_total_streams > SIZE_MAX / sizeof(uint64_t))
+        tw_error(TW_LOC, "Quantum block permutation too large");
+    quantum_block_for_stream = (uint64_t *)malloc(
+            (size_t)quantum_total_streams * sizeof(uint64_t));
+    if (!quantum_block_for_stream)
+        tw_error(TW_LOC, "Cannot allocate quantum block permutation");
+    for (uint64_t i = 0; i < quantum_total_streams; ++i)
+        quantum_block_for_stream[i] = i;
+
+    /* Every rank derives the same shuffle using model CLCG4 seed 0. */
+    tw_rng_stream selector = {0};
+    tw_rand_initial_seed(&selector, 0, rng);
+    for (uint64_t remaining = quantum_total_streams; remaining > 1; --remaining) {
+        /* Avoid float-index rounding; use a 53-bit integer with rejection. */
+        const uint64_t range = UINT64_C(9007199254740992);
+        if (remaining > range)
+            tw_error(TW_LOC, "More model streams than CLCG4 selector range");
+        uint64_t cutoff = range - range % remaining;
+        uint64_t sample;
+        do {
+            sample = (uint64_t)(rng_gen_val(&selector) * (double)range);
+        } while (sample >= cutoff);
+        uint64_t j = sample % remaining;
+        uint64_t tmp = quantum_block_for_stream[remaining - 1];
+        quantum_block_for_stream[remaining - 1] = quantum_block_for_stream[j];
+        quantum_block_for_stream[j] = tmp;
+    }
+}
+
+static void
+quantum_assign_stream(tw_rng_stream *stream, uint64_t global_id)
+{
+    if (global_id >= quantum_total_streams)
+        tw_error(TW_LOC, "Quantum stream ID exceeds global stream count");
+    uint64_t block = quantum_block_for_stream[global_id];
+    stream->quantum_start = block * quantum_values_per_stream;
+    stream->quantum_cursor = 0;
+    stream->quantum_limit = quantum_values_per_stream;
+    stream->quantum_enabled = 1;
+}
 
 // default RNG seed
 int32_t seed[4] = { 11111111, 22222222, 33333333, 44444444 };
@@ -344,6 +480,29 @@ tw_rand_init_streams(tw_lp * lp, unsigned int nstreams, unsigned int n_core_stre
 
   for(i = 0; i < nstreams; i++) {
             tw_rand_initial_seed(&lp->rng[i], (lp->gid * g_tw_nRNG_per_lp) + i, rng);
+            if (quantum_data != NULL) {
+                uint64_t global_stream_id =
+                    (uint64_t)lp->gid * g_tw_nRNG_per_lp + i;
+                quantum_assign_stream(&lp->rng[i], global_stream_id);
+                if (ross_quantum_rng_debug) {
+                    uint64_t block = quantum_block_for_stream[global_stream_id];
+                    uint64_t start = lp->rng[i].quantum_start;
+                    uint64_t limit = lp->rng[i].quantum_limit;
+                    fprintf(stderr,
+                            "[quantum-rng] rank=%llu lp=%llu stream=%u "
+                            "global_stream=%llu block=%llu "
+                            "start_value=%llu end_value_exclusive=%llu "
+                            "block_values=%llu\n",
+                            (unsigned long long)g_tw_mynode,
+                            (unsigned long long)lp->gid,
+                            i,
+                            (unsigned long long)global_stream_id,
+                            (unsigned long long)block,
+                            (unsigned long long)start,
+                            (unsigned long long)(start + limit),
+                            (unsigned long long)limit);
+                }
+            }
   }
 
   //ROSS core rng streams should be seeded "after" lp rng streams so adjusting number of core streams doesn't change seeds of the lp rng streams
@@ -453,6 +612,16 @@ rng_gen_val(tw_rng_stream * g)
   int32_t k, s;
   double u;
 
+  if (g->quantum_enabled) {
+      if (g->quantum_cursor >= g->quantum_limit)
+          tw_error(TW_LOC, "Quantum RNG stream exhausted at %llu draws",
+                   (unsigned long long)g->quantum_limit);
+      double result = quantum_read_value(g->quantum_start + g->quantum_cursor);
+      ++g->quantum_cursor;
+      ++g->count;
+      return result;
+  }
+
   g->count++;
 
   u = 0.0;
@@ -518,6 +687,14 @@ rng_gen_reverse_val(tw_rng_stream * g)
   int32_t *m = rng->m;
   int32_t s;
   double u;
+
+  if (g->quantum_enabled) {
+      if (g->quantum_cursor == 0)
+          tw_error(TW_LOC, "Quantum RNG reverse before start of stream");
+      --g->quantum_cursor;
+      --g->count;
+      return quantum_read_value(g->quantum_start + g->quantum_cursor);
+  }
 
   g->count--;
 

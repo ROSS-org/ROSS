@@ -33,3 +33,27 @@ For more details on writing the model code itself please check out ROSS' documen
 ### If you have a model symlinked into this directory
 
 The older workflow — drop your model's source into a separate repo, symlink it into ROSS's `models/`, rely on ROSS's build to pick it up — still works for now, but is deprecated and will be removed in a future release. Please migrate to the standalone `find_package(ROSS)` setup shown above.
+
+## Running your model with random numbers from a quantum RNG number set
+
+ROSS supports using random numbers generated from a quantum computer(or any external source for that matter) stored as a .bin file.
+
+The format to use the quantum RNG set in your program is to pass the bin file path through the --quantum-rng-file option.
+There is also a --quantum-rng-debug option to view debug messages about how ROSS distributes the pool of quantum RNG numbers among different LPs.
+
+For example, to run phold using a quantum RNG number set,
+
+```
+cd build
+
+POOL="<path to your bin file>"
+
+mpirun -np 3 ./models/phold/phold \
+  --synch=3 \
+  --nlp=4 \
+  --start-events=2 \
+  --end=10000 \
+  --extramem=100000 \
+  --quantum-rng-file="$POOL" \
+  --quantum-rng-debug
+```

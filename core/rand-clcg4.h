@@ -35,6 +35,11 @@ typedef enum SeedType SeedType;
 struct tw_rng_stream
 {
     unsigned long count;
+    /* Quantum-backed model stream (core streams remain CLCG4). */
+    uint8_t quantum_enabled;
+    uint64_t quantum_start;
+    uint64_t quantum_cursor;
+    uint64_t quantum_limit;
 	int32_t	 Ig[4];
 	int32_t	 Lg[4];
 	int32_t	 Cg[4];
