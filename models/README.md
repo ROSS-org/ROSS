@@ -44,7 +44,7 @@ There is also a --quantum-rng-debug option to view debug messages about how ROSS
 For example, to run phold using a quantum RNG number set,
 
 ```
-cd build
+cd ../build
 
 POOL="<path to your bin file>"
 
