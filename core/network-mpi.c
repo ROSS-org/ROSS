@@ -153,6 +153,33 @@ tw_net_abort(void)
 void
 tw_net_stop(void)
 {
+  /*
+   * recv_begin() keeps read_buffer nonblocking receives posted for the
+   * lifetime of the simulation.  Complete their cancellation before
+   * MPI_Finalize(); otherwise MPICH reports pending references to
+   * MPI_COMM_ROSS at process shutdown.
+   *
+   * This runs only after tw_gvt_finish(), so it cannot affect simulation
+   * event ordering or model state.
+   */
+  if (posted_recvs.cur > 0) {
+    unsigned int i;
+
+    for (i = 0; i < posted_recvs.cur; i++) {
+      if (posted_recvs.req_list[i] != MPI_REQUEST_NULL) {
+        if (MPI_Cancel(&posted_recvs.req_list[i]) != MPI_SUCCESS)
+          tw_error(TW_LOC, "Failed to cancel posted MPI receive");
+      }
+    }
+
+    if (MPI_Waitall((int)posted_recvs.cur,
+                    posted_recvs.req_list,
+                    posted_recvs.status_list) != MPI_SUCCESS)
+      tw_error(TW_LOC, "Failed to complete posted MPI receive cancellation");
+
+    posted_recvs.cur = 0;
+  }
+
 #ifdef USE_DAMARIS
     if (g_st_damaris_enabled)
         st_damaris_ross_finalize();

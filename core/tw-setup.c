@@ -23,6 +23,10 @@ static int32_t ross_core_rng_seed2;
 static int32_t ross_core_rng_seed3;
 static int32_t ross_core_rng_seed4;
 static char* ross_args_file;
+static char ross_quantum_rng_file[4096] = {0};
+unsigned int ross_quantum_rng_debug = 0;
+extern void ross_quantum_rng_open(const char *filename);
+extern void ross_quantum_rng_close(void);
 
 static const tw_optdef kernel_options[] = {
     TWOPT_GROUP("ROSS Kernel"),
@@ -46,6 +50,8 @@ static const tw_optdef kernel_options[] = {
     TWOPT_UINT("core-rng-seed2",ross_core_rng_seed2, "ROSS Core RNG Seed 2 of 4"),
     TWOPT_UINT("core-rng-seed3",ross_core_rng_seed3, "ROSS Core RNG Seed 3 of 4"),
     TWOPT_UINT("core-rng-seed4",ross_core_rng_seed4, "ROSS Core RNG Seed 4 of 4"),
+    TWOPT_CHAR("quantum-rng-file",ross_quantum_rng_file, "Use a conditioned QRNG pool for model RNG streams (read-only mmap)"),
+    TWOPT_FLAG("quantum-rng-debug",ross_quantum_rng_debug, "Print conditioned QRNG block assignments for local LP RNG streams"),
     TWOPT_ARGSFILE("args-file",ross_args_file, "ROSS Command Line Args File"),
     TWOPT_END()
 };
@@ -319,6 +325,10 @@ void tw_define_lps(tw_lpid nlp, size_t msg_sz) {
     //if (g_tw_mapping == CUSTOM)
         specialized_lp_init_mapping();
 
+    /* Map the pool and construct the shared, deterministic block permutation. */
+    if (ross_quantum_rng_file && ross_quantum_rng_file[0])
+        ross_quantum_rng_open(ross_quantum_rng_file);
+
     // init LP RNG stream(s)
     for(i = 0; i < g_tw_nlp + g_st_analysis_nlp; i++) {
         if(g_tw_rng_default == 1) {
@@ -431,6 +441,7 @@ void tw_end(void) {
 #endif
 
     tw_gvt_finish();
+    ross_quantum_rng_close();
     tw_net_stop();
 }
 
